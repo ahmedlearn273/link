@@ -922,4 +922,19 @@ draw();
   );
 </script>
  
+<script>
+(async function () {
+  const { error } = await window.sbClient
+    .from('categories')
+    .select('id')
+    .limit(1);
+
+  if (error) {
+    alert('فشل الاتصال: ' + error.message);
+  } else {
+    alert('تم الاتصال بقاعدة البيانات بنجاح!');
+  }
+})();
+</script>
+ 
 </html>
