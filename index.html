@@ -418,7 +418,26 @@ case"svcpick":{var sv=S.svc.filter(function(s){return s.id===d.id})[0];if(!sv)br
 case"catpick":ST.catf=d.id;ST.trade=null;TAB="list";close_();draw();break;
 case"clr":ST.trade=ST.catf=null;draw();break;
 case"doLogin2":{var r=d.r,er=$("lerr");
- if(r==="a"){var s=S.staff.filter(function(x){return x.u===$("l1").value.trim()&&x.p===$("l2").value})[0];if(!s){er.textContent=L("اسم المستخدم أو كلمة المرور غلط.","Wrong username or password.");break}SES={r:"a",id:s.u,n:s.n};TAB="";ST={};draw();break}
+ if(r==="a"){
+ var email=$("l1").value.trim().toLowerCase();
+ var password=$("l2").value;
+ er.textContent=L("جاري تسجيل الدخول...","Signing in...");
+ window.sbClient.auth.signInWithPassword({email:email,password:password})
+ .then(async function(res){
+  if(res.error){er.textContent=res.error.message;return}
+  var p=await window.sbClient.from("profiles").select("id,full_name,role,status").eq("id",res.data.user.id).single();
+  if(p.error||!p.data||p.data.role!=="admin"||p.data.status!=="active"){
+   await window.sbClient.auth.signOut();
+   er.textContent=L("الحساب ليس لديه صلاحية الإدارة.","This account has no admin permission.");
+   return;
+  }
+  var s=S.staff.filter(function(x){return x.role==="gm"})[0];
+  if(!s){er.textContent=L("حساب الإدارة المحلي غير موجود.","Local admin account not found.");return}
+  SES={r:"a",id:s.u,n:s.n};
+  TAB="";ST={};draw();
+ });
+ break;
+}
 if(r==="c"){
  var name=$("cname").value.trim();
  var email=$("cemail").value.trim().toLowerCase();
