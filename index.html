@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+٨<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
@@ -317,7 +317,35 @@ PERMS=PERMS.concat([["usr","المستخدمين"],["svc","الخدمات"],["cf
 ROLEN.owner="المالك";ROLEN.gm="مدير عام";CT[1][2]="مقدمو الخدمة";
 S.techs.forEach(function(t){if(!t.cc)t.cc="+20"});
 S.custs.forEach(function(c){if(!c.cc)c.cc="+20"});
-})();
+})();async function loadCatalog(){
+  try{
+    var old=S.cat||[];
+    var a=await window.sbClient.from("categories")
+      .select("id,name_ar,name_en,icon,is_active,sort_order")
+      .eq("is_active",true).order("sort_order");
+    var b=await window.sbClient.from("services")
+      .select("id,category_id,name_ar,name_en,is_active,sort_order")
+      .eq("is_active",true).order("sort_order");
+    if(a.error)throw a.error;
+    if(b.error)throw b.error;
+    S.cat=a.data.map(function(c,i){
+      var o=old.filter(function(x){return x.ar===c.name_ar})[0];
+      return{id:"c"+i,dbid:c.id,ar:c.name_ar,en:c.name_en,
+        icon:c.icon||"🛠️",m:o?!!o.m:i<3,on:true};
+    });
+    S.svc=b.data.map(function(s,i){
+      var ci=a.data.findIndex(function(c){return c.id===s.category_id});
+      return{id:"s"+i,dbid:s.id,ar:s.name_ar,en:s.name_en,
+        cat:"c"+ci,on:true};
+    });
+    S.cats=[];
+    syncCats();
+    draw();
+  }catch(e){
+    console.error("Catalog loading failed:",e);
+  }
+}
+loadCatalog();
 function L(a,b){return S.lang==="en"?b:a}
 function nm(o){return S.lang==="en"&&o.en?o.en:o.ar}
 function bn(){var t=S.theme;return S.lang==="en"?(t.be||"Wasla"):(t.ba||"وصلة")}
