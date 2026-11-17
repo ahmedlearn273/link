@@ -391,7 +391,31 @@ case"catpick":ST.catf=d.id;ST.trade=null;TAB="list";close_();draw();break;
 case"clr":ST.trade=ST.catf=null;draw();break;
 case"doLogin2":{var r=d.r,er=$("lerr");
  if(r==="a"){var s=S.staff.filter(function(x){return x.u===$("l1").value.trim()&&x.p===$("l2").value})[0];if(!s){er.textContent=L("اسم المستخدم أو كلمة المرور غلط.","Wrong username or password.");break}SES={r:"a",id:s.u,n:s.n};TAB="";ST={};draw();break}
- var dial=$("lc").value,ph=$("l2").value;if(!okFull(dial,ph)){er.textContent=L("رقم الموبايل مش مظبوط.","Invalid phone number.");break}var full=fullPh(dial,ph);
+if(r==="c"){
+ var name=$("cname").value.trim();
+ var email=$("cemail").value.trim().toLowerCase();
+ if(!name||!email||! /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+ er.textContent=L("اكتب اسمك وبريد إلكتروني صحيح.","Enter your name and a valid email.");
+ break;
+ }
+ er.textContent=L("جاري إرسال رابط الدخول...","Sending login link...");
+ window.sbClient.auth.signInWithOtp({
+  email:email,
+  options:{
+   emailRedirectTo:window.location.origin,
+   shouldCreateUser:true,
+   data:{full_name:name}
+  }
+ }).then(function(res){
+  if(res.error){
+   er.textContent=res.error.message;
+  }else{
+   er.textContent=L("تم إرسال رابط الدخول إلى بريدك الإلكتروني. افتح الرسالة واضغط على الرابط.","A login link has been sent to your email. Open it and click the link.");
+  }
+ });
+ break;
+}
+                var dial=$("lc").value,ph=$("l2").value;if(!okFull(dial,ph)){er.textContent=L("رقم الموبايل مش مظبوط.","Invalid phone number.");break}var full=fullPh(dial,ph);
  if(r==="c"){var c=S.custs.filter(function(x){return x.id===full})[0];if(c){if(c.sus){er.textContent=L("الحساب موقوف.","Account suspended.");break}SES={r:"c",id:full,n:c.n};TAB="";ST={};draw()}else{ST.regc={dial:dial,full:full};ST.loc=null;draw()}}
  else{var t=S.techs.filter(function(x){return x.w===full&&x.pin===$("l3").value.trim()})[0];if(!t){er.textContent=L("الرقم أو الرقم السري غلط.","Wrong number or PIN.");break}if(t.sus){er.textContent=L("الحساب موقوف.","Account suspended.");break}if(t.act===false){er.textContent=L("حسابك لسه خامل ومستني تفعيل الإدارة.","Your account is inactive, waiting for admin activation.");break}SES={r:"t",id:t.w,n:t.n};TAB="";ST={};draw()}break}
 case"creg":{var n=$("cg1").value.trim(),cy=$("cg2").value.trim();if(!n||!cy){$("gerr").textContent=L("اكتب الاسم والمدينة.","Enter your name and city.");break}startVer("c",ST.regc.full,{n:n,city:cy,area:$("cg3").value.trim(),addr:$("cg4").value.trim(),lat:ST.loc?ST.loc[0]:null,lng:ST.loc?ST.loc[1]:null,cc:ST.regc.dial});break}
