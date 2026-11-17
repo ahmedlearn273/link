@@ -312,7 +312,7 @@ if(!S.cat){S.cat=[];S.svc=[];var n=0;LIB.split(";").forEach(function(b,i){var p=
 S.countries=S.countries||CS.split(";").map(function(x){var q=x.split("|");return{id:q[2].replace("+",""),ar:q[0],en:q[1],dial:q[2],cur:q[3],on:true}});
 S.staff.forEach(function(s){if(s.u==="gm"){s.role="owner";s.n="المالك"}});
 if(!S.staff.some(function(s){return s.u==="admin"}))S.staff.push({u:"admin",p:"admin123",n:"المدير العام",role:"gm",perms:ALLP.slice()});
-S.staff.forEach(function(s){if(s.role==="owner")s.perms=ALLP.slice()});
+S.staff.forEach(function(s){if(s.role==="owner"||s.role==="gm")s.perms=ALLP.slice()});
 PERMS=PERMS.concat([["usr","المستخدمين"],["svc","الخدمات"],["cfg","الإعدادات"]]);
 ROLEN.owner="المالك";ROLEN.gm="مدير عام";CT[1][2]="مقدمو الخدمة";
 S.techs.forEach(function(t){if(!t.cc)t.cc="+20"});
