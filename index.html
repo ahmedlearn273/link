@@ -922,8 +922,6 @@ draw();
   );
 </script>
  
-<script>
-(async function () {
   const { error } = await window.sbClient
     .from('categories')
     .select('id')
