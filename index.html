@@ -148,7 +148,7 @@ document.body.addEventListener("click",function(e){var a=e.target.closest("[data
 switch(d.act){
 case"login":ST.lr=d.r;draw();break;
 case"back":ST.lr=null;draw();break;
-case"logout":SES=null;ST={};TAB="";draw();break;
+case"logout":if(SES&&SES.r==="c")window.sbClient.auth.signOut();SES=null;ST={};TAB="";draw();break;
 case"tab":TAB=d.t;draw();window.scrollTo(0,0);break;
 case"pick":ST.trade=d.t;TAB="list";draw();break;
 case"chip":ST.trade=d.t;draw();break;
