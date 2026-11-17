@@ -941,6 +941,31 @@ V.aacc = function(){
 };
 
 draw();
+      (async function(){
+ async function restoreCustomer(session){
+  if(!session)return;
+  var result=await window.sbClient.from("profiles")
+   .select("id,full_name,role,status")
+   .eq("id",session.user.id)
+   .single();
+  if(result.error||!result.data)return;
+  var p=result.data;
+  if(p.role!=="customer"||p.status!=="active")return;
+  SES={r:"c",id:p.id,n:p.full_name||session.user.email};
+  TAB="";
+  ST={};
+  draw();
+ }
+ window.sbClient.auth.onAuthStateChange(function(event,session){
+  if(session)Promise.resolve().then(function(){
+   restoreCustomer(session);
+  });
+ });
+ var current=await window.sbClient.auth.getSession();
+ if(current.data&&current.data.session){
+  await restoreCustomer(current.data.session);
+ }
+})();
 </script>
 
 </body>
