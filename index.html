@@ -111,7 +111,7 @@ function tier(n){return n>=25?["ذهبي",8,0]:n>=10?["فضي",10,25]:["برون
 function me(){return S.staff.filter(function(s){return s.u===SES.id})[0]}
 function can(k){var m=me();return !!m&&(k==="gm"?m.role==="gm":m.perms.indexOf(k)>-1)}
 var CT=[["home","🏠","الرئيسية"],["list","🔧","الصنايعية"],["my","📋","طلباتي"]],TT=[["jobs","📥","شغلي"],["earn","💼","أرباحي"],["offers","🎁","عروض"]];
-function AT(){return[["dash","📊","لوحة التحكم"],["acc","📒","حسابات"],["col","💰","تحصيل"],["sup","🛡️","مشرفين"],["gm","👑","مدير عام"],["ads","📣","إعلانات"]].filter(function(t){return can(t[0])})}
+function AT(){return[["dash","📊","لوحة التحكم"],["acc","📒","حسابات"],["col","💰","تحصيل"],["sup","🛡️","مشرفين"],["gm","👑","مدير عام"],["svc","🧰","الخدمات"],["ads","📣","إعلانات"]].filter(function(t){return can(t[0])})}
 function adCard(a){return'<div class="ad"><b>'+esc(a.t)+'</b><span>'+esc(a.d)+'</span>'+(a.c?'<em>'+esc(a.c)+'</em>':'')+'</div>'}
 function techCard(t,i){return'<button class="card" data-act="open" data-i="'+i+'"><span class="av">'+esc(t.n.charAt(0))+'</span><span><b>'+esc(t.n)+'</b><span class="meta">'+t.t+' · '+t.a+'<br>'+t.p+'</span></span><span class="rate">★ '+t.r+'</span></button>'}
 function avl(){return S.techs.map(function(t,i){return[t,i]}).filter(function(x){return x[0].on}).sort(function(a,b){return b[0].r-a[0].r})}
