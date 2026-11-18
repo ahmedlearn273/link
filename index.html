@@ -1052,7 +1052,6 @@ draw();
    restoreCustomer(session);
   });
  });
- alert("وصلنا لطلب الجلسة");
 var current=await window.sbClient.auth.getSession();
         alert(current.data&&current.data.session
  ? "الجلسة محفوظة في Supabase"
