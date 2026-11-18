@@ -175,28 +175,68 @@ if(s.tab==="messages")body=chatContent();
  const nav=[["home","نظرة عامة"],["providers","المزوّدون"],["staff","الموظفون"],["services","الخدمات"],["categories","التصنيفات"],["requests","الطلبات"]].map(x=>'<button data-a="tab" data-id="'+x[0]+'" class="'+(s.tab===x[0]?"active":"")+'">'+x[1]+'</button>').join("");
  return header("لوحة إدارة المنصة",nav)+'<main class="wrap">'+msg()+'<div class="sectionhead"><h2>الإدارة</h2><span class="tag ok">مدير</span></div>'+body+'</main>';
 }
-      function staff(){
- const labels={
-  "dashboard.view":"عرض لوحة التحكم",
-  "customers.view":"عرض العملاء",
-  "customers.manage":"إدارة العملاء",
-  "providers.view":"عرض المزوّدين",
-  "providers.review":"مراجعة المزوّدين",
-  "requests.view":"عرض الطلبات",
-  "requests.manage":"إدارة الطلبات",
-  "services.view":"عرض الخدمات",
-  "services.manage":"إدارة الخدمات",
-  "categories.view":"عرض التصنيفات",
-  "categories.manage":"إدارة التصنيفات",
-  "messages.view":"عرض الرسائل",
-  "payments.view":"عرض المدفوعات",
-  "payments.manage":"إدارة المدفوعات",
-  "reports.view":"عرض التقارير",
-  "ads.view":"عرض الإعلانات",
-  "ads.manage":"إدارة الإعلانات",
-  "settings.view":"عرض الإعدادات",
-  "settings.manage":"إدارة الإعدادات"
- };
+      
+function staff(){
+ const permissions=Array.isArray(s.staffAccess?.permissions)?s.staffAccess.permissions:[];
+ const can=p=>permissions.includes(p);
+ const canServices=can("services.view")||can("services.manage");
+ const canCategories=can("categories.view")||can("categories.manage");
+
+ const navItems=[["home","نظرة عامة"]];
+ if(canServices)navItems.push(["services","الخدمات"]);
+ if(canCategories)navItems.push(["categories","التصنيفات"]);
+
+ if(!navItems.some(x=>x[0]===s.tab))s.tab="home";
+
+ let body="";
+
+ if(s.tab==="home"){
+  body='<section class="section"><div class="card">'+
+  '<h2>أهلًا '+esc(s.profile?.full_name||"بك")+'</h2>'+
+  '<p class="muted">لوحة الموظف وإدارة الصلاحيات</p>'+
+  '<div class="row"><span>حالة الحساب</span>'+tag("نشط")+'</div>'+
+  '<div class="row"><span>عدد الصلاحيات</span><b>'+permissions.length+'</b></div>'+
+  '</div></section>'+
+  '<section class="section"><h2>الصلاحيات الممنوحة لك</h2>'+
+  '<div class="grid small">'+
+  (permissions.map(p=>'<div class="card">✓ '+esc(p)+'</div>').join("")||empty("لا توجد صلاحيات ممنوحة"))+
+  '</div></section>';
+ }
+
+ if(s.tab==="services"&&canServices){
+  body='<section class="section">'+
+  '<div class="sectionhead"><h2>إدارة الخدمات</h2>'+
+  (can("services.manage")?btn("addservice","إضافة خدمة","gold"):"")+
+  '</div><div class="list">'+
+  (s.services.map(x=>'<article class="item">'+
+  '<div class="row"><b>'+esc(x.name_ar)+'</b>'+tag(x.is_active?"نشطة":"متوقفة")+'</div>'+
+  '<p>'+esc(x.description||"لا يوجد وصف")+'</p>'+
+  (can("services.manage")?btn("toggleservice",x.is_active?"إيقاف الخدمة":"تفعيل الخدمة","light",x.id):"")+
+  '</article>').join("")||empty("لا توجد خدمات"))+
+  '</div></section>';
+ }
+
+ if(s.tab==="categories"&&canCategories){
+  body='<section class="section">'+
+  '<div class="sectionhead"><h2>إدارة التصنيفات</h2>'+
+  (can("categories.manage")?btn("addcategory","إضافة تصنيف","gold"):"")+
+  '</div><div class="list">'+
+  (s.cats.map(x=>'<article class="item">'+
+  '<div class="row"><b>'+esc(x.name_ar)+'</b>'+tag(x.is_active?"نشط":"متوقف")+'</div>'+
+  '<p>'+esc(x.slug||"")+'</p>'+
+  (can("categories.manage")?btn("togglecategory",x.is_active?"إيقاف التصنيف":"تفعيل التصنيف","light",x.id):"")+
+  '</article>').join("")||empty("لا توجد تصنيفات"))+
+  '</div></section>';
+ }
+
+ const nav=navItems.map(x=>'<button data-a="tab" data-id="'+x[0]+'" class="'+(s.tab===x[0]?"active":"")+'">'+x[1]+'</button>').join("");
+
+ return header("لوحة الموظف",nav)+
+ '<main class="wrap">'+msg()+
+ '<div class="sectionhead"><h2>لوحة الموظف</h2>'+tag("موظف")+'</div>'+
+ body+'</main>';
+}
+
  const permissions=Array.isArray(s.staffAccess?.permissions)?s.staffAccess.permissions:[];
  return header("لوحة الموظف")+
  '<main class="wrap">'+msg()+
