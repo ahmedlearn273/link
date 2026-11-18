@@ -1053,6 +1053,9 @@ draw();
   });
  });
  var current=await window.sbClient.auth.getSession();
+        alert(current.data&&current.data.session
+ ? "الجلسة محفوظة في Supabase"
+ : "لا توجد جلسة محفوظة في Supabase");
  if(current.data&&current.data.session){
   await restoreCustomer(current.data.session);
  }
