@@ -300,6 +300,16 @@ async function action(a,id,b){
 if(a==="forgot"){let email=document.querySelector('#login [name="email"]')?.value;if(!email)throw Error("اكتب بريدك الإلكتروني أولًا");let r=await db.auth.resetPasswordForEmail(email,{redirectTo:location.origin+"/?mode=recovery"});if(r.error)throw r.error;note("تم إرسال رابط استعادة كلمة المرور.","success");return}
   if(a==="addstaff"){if(!s.staffCandidates.length)throw Error("لا توجد حسابات عملاء نشطة لإضافتها كموظفين");s.modal={type:"addstaff"};render();return}
   if(a==="editstaff"){s.modal={type:"editstaff",userId:id};render();return}
+  if(a==="removestaff"){
+ let x=s.staff.find(y=>y.id===id);
+ if(!x)throw Error("الموظف غير موجود");
+ if(!confirm("هل تريد إزالة "+(x.full_name||"هذا الموظف")+" من الموظفين؟"))return;
+ let r=await db.rpc("admin_remove_staff",{p_user_id:id});
+ if(r.error)throw r.error;
+ await loadUser(s.user);
+ note("تمت إزالة الموظف بنجاح.","success");
+ return;
+  }
   if(a==="request"){if(!s.user){s.mode="login";note("سجّل الدخول أولًا حتى تتمكن من إرسال طلب خدمة.");return}s.modal={type:"request",providerId:s.providers.some(x=>x.id===id)?id:null,serviceId:s.services.some(x=>x.id===id)?id:null};render();return}
   if(["addoffer","addservice","addcategory"].includes(a)){s.modal={type:a==="addoffer"?"offer":a==="addservice"?"service":"category"};render();return}
   if(a==="review"){let q=s.requests.find(x=>x.id===id);if(q){s.modal={type:"review",requestId:q.id,providerId:q.provider_id};render()}return}
