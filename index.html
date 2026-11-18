@@ -17,7 +17,12 @@
 <script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script>
 (()=>{"use strict";
-const db=window.supabase.createClient("https://hnnomaiohwyuqpfzlcol.supabase.co","sb_publishable_I4IfNkGvcxDxzz3xdGeKxw_TAzgc3ck"),app=document.getElementById("app");
+const app=document.getElementById("app");
+if(!window.supabase?.createClient){
+ app.innerHTML='<main class="wrap"><div class="empty">خطأ: مكتبة Supabase لم يتم تحميلها.</div></main>';
+ return;
+}
+const db=window.supabase.createClient("https://hnnomaiohwyuqpfzlcol.supabase.co","sb_publishable_I4IfNkGvcxDxzz3xdGeKxw_TAzgc3ck");
 const s={user:null,profile:null,provider:null,staffAccess:null,mode:"welcome",type:"customer",tab:"home",cats:[],services:[],providers:[],requests:[],offers:[],apps:[],allRequests:[],adminProfiles:[],staff:[],staffCandidates:[],chats:[],messages:[],activeChat:null,notice:"",noticeType:"",modal:null,filter:""};
 const esc=x=>String(x??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])),fmt=x=>Number(x||0).toLocaleString("ar-SA");
 function note(x,t){s.notice=x;s.noticeType=t||"";render()}
