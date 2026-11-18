@@ -1021,7 +1021,11 @@ V.aacc = function(){
     '</div>';
 };
 
-draw();
+try{
+ draw();
+}catch(e){
+ alert("خطأ داخل draw: "+e.message);
+}
       (async function(){
  async function restoreCustomer(session){
   if(!session)return;
