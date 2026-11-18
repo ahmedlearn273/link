@@ -77,6 +77,18 @@ function authView(){
  '<form id="login">'+field("البريد الإلكتروني","email","email","name@example.com","",true)+field("كلمة المرور","password","password","كلمة المرور","",true)+'<button class="btn gold">دخول</button><button type="button" class="btn light" data-a="forgot">نسيت كلمة المرور؟</button></form>')+
  '<p class="small">كل الحسابات تستخدم البريد الإلكتروني وكلمة المرور. لا توجد حسابات تجريبية.</p></div></div></main>';
 }
+      function recoveryView(){
+ return header("استعادة كلمة المرور")+
+ '<main class="wrap"><div class="auth"><div class="card">'+
+ '<h2>تعيين كلمة مرور جديدة</h2>'+
+ '<p>اكتب كلمة المرور الجديدة وأعد كتابتها للتأكيد.</p>'+
+ msg()+
+ '<form id="recoveryForm">'+
+ field("كلمة المرور الجديدة","password","password","8 أحرف على الأقل","",true)+
+ field("تأكيد كلمة المرور","confirm_password","password","أعد كتابة كلمة المرور","",true)+
+ '<button class="btn gold">حفظ كلمة المرور</button>'+
+ '</form></div></div></main>';
+      }
 function serviceCard(x){return '<article class="card"><div class="icon">✦</div><h3>'+esc(x.name_ar)+'</h3><p>'+esc(x.description||"خدمة متاحة")+'</p>'+btn("request","اطلب الخدمة","gold",x.id)+'</article>'}
 function providerCard(p){const names=(p.provider_services||[]).filter(x=>x.is_active).map(x=>x.services?.name_ar).filter(Boolean).join("، ");return '<article class="card"><div class="provider"><div class="avatar">'+esc((p.display_name||"م").slice(0,1))+'</div><div><h3>'+esc(p.display_name||"مزوّد خدمة")+'</h3><p>'+esc([p.city,p.country].filter(Boolean).join("، "))+'</p></div></div><p>'+esc(p.bio||"مزوّد معتمد")+'</p><p>خبرة '+fmt(p.experience_years)+' سنة · ⭐ '+fmt(p.average_rating)+' ('+fmt(p.total_reviews)+')</p><p>'+esc(names)+'</p>'+btn("request","اطلب من هذا المزوّد","gold",p.id)+'</article>'}
 function landing(){return header("اكتشف الخدمات ومزوّدي الخدمة المعتمدين")+'<main class="wrap"><section class="hero"><h1>الخدمة المناسبة، من الشخص المناسب.</h1><p>تصفّح الخدمات، قارن مزوّدي الخدمة، واطلب الخدمة بسهولة.</p>'+btn("showauth","ابدأ الآن","gold")+'</section><section class="section"><h2>التصنيفات</h2><div class="grid small">'+(s.cats.slice(0,8).map(c=>'<div class="card"><div class="icon">'+esc(c.icon||"✦")+'</div><b>'+esc(c.name_ar)+'</b></div>').join("")||empty("لا توجد تصنيفات"))+'</div></section><section class="section"><h2>خدمات مختارة</h2><div class="grid">'+(s.services.slice(0,8).map(serviceCard).join("")||empty("لا توجد خدمات"))+'</div></section><section class="section"><h2>مزوّدو خدمة معتمدون</h2><div class="grid">'+(s.providers.slice(0,4).map(providerCard).join("")||empty("لا يوجد مزوّدون معتمدون بعد"))+'</div></section></main>'}
