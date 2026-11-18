@@ -396,7 +396,7 @@ async function action(a,id,b){
   if(a==="logout"){await db.auth.signOut();s.user=null;s.profile=null;s.provider=null;s.mode="welcome";render();return}
   
 if(a==="forgot"){let email=document.querySelector('#login [name="email"]')?.value;if(!email)throw Error("اكتب بريدك الإلكتروني أولًا");let r=await db.auth.resetPasswordForEmail(email,{redirectTo:location.origin+"/?mode=recovery"});if(r.error)throw r.error;note("تم إرسال رابط استعادة كلمة المرور.","success");return}
-  if(a==="addstaff"){if(!s.staffCandidates.length)throw Error("لا توجد حسابات عملاء نشطة لإضافتها كموظفين");s.modal={type:"addstaff"};render();return}
+  if(a==="addstaff"){s.modal={type:"addstaff"};render();return}
   if(a==="editstaff"){s.modal={type:"editstaff",userId:id};render();return}
   if(a==="removestaff"){
  let x=s.staff.find(y=>y.id===id);
