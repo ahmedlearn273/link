@@ -449,7 +449,7 @@ async function boot(){
  const recoveryMode=new URLSearchParams(location.search).get("mode")==="recovery"||new URLSearchParams(location.hash.slice(1)).get("type")==="recovery";
  if(recoveryMode)s.mode="recovery";
 
- status("اختبار 1/3: تحميل بيانات الخدمات والتصنيفات...");
+
  try{
   await Promise.race([
    publicData(),
