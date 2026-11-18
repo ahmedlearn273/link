@@ -58,7 +58,7 @@ async function loadUser(u){
  }
  s.provider=pp||null;
 s.staffAccess=null;
-await publicData(p.role==="admin");
+await publicData(p.role==="admin"||p.role==="staff");
 s.requests=[];s.offers=[];s.apps=[];s.allRequests=[];s.adminProfiles=[];s.chats=[];s.messages=[];s.activeChat=null;
 
 if(p.role==="staff"){
