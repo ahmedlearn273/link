@@ -251,6 +251,7 @@ else if(s.profile?.role==="staff")app.innerHTML=staff()+'<main class="wrap">'+bt
   if(m.type==="offer")c='<h3>إضافة خدمة إلى ملفك</h3><form id="offerForm">'+select("الخدمة","service_id",s.services.map(x=>({value:x.id,label:x.name_ar})),"")+field("السعر","price","number","السعر","",true)+select("العملة","currency",[{value:"SAR",label:"ريال سعودي"},{value:"EGP",label:"جنيه مصري"},{value:"AED",label:"درهم إماراتي"}],"SAR")+select("نوع السعر","price_type",[{value:"fixed",label:"ثابت"},{value:"starting_from",label:"يبدأ من"},{value:"negotiable",label:"قابل للتفاوض"}],"fixed")+'<button class="btn gold">إضافة</button></form>';
   if(m.type==="service")c='<h3>إضافة خدمة</h3><form id="serviceForm">'+select("التصنيف","category_id",s.cats.map(x=>({value:x.id,label:x.name_ar})),"")+field("اسم الخدمة بالعربية","name_ar","text","الخدمة","",true)+field("الاسم بالإنجليزية","name_en","text","Service","",false)+'<label class="field">الوصف<textarea name="description"></textarea></label><button class="btn gold">حفظ</button></form>';
   if(m.type==="category")c='<h3>إضافة تصنيف</h3><form id="categoryForm">'+field("اسم التصنيف","name_ar","text","التصنيف","",true)+field("الاسم بالإنجليزية","name_en","text","Category","",false)+field("الرابط المختصر","slug","text","home-maintenance","",true)+field("الأيقونة","icon","text","🔧","",false)+'<button class="btn gold">حفظ</button></form>';
+
 if(m.type==="addstaff"){
  const permissions=[
  ["dashboard.view","عرض لوحة المعلومات"],
@@ -273,8 +274,18 @@ if(m.type==="addstaff"){
  ["settings.view","عرض الإعدادات"],
  ["settings.manage","إدارة الإعدادات"]
  ];
- c='<h3>إضافة موظف</h3><form id="addStaffForm">'+select("اختر الحساب","user_id",s.staffCandidates.map(x=>({value:x.id,label:(x.full_name||"بدون اسم")+" - "+(x.phone||x.city||"حساب")})),"")+'<p><b>الصلاحيات</b></p><div class="list">'+permissions.map(x=>'<label class="item"><input type="checkbox" name="permissions" value="'+x[0]+'"> '+x[1]+'</label>').join("")+'</div><button class="btn gold">حفظ الموظف</button></form>';
-}
+ c='<h3>إنشاء حساب موظف جديد</h3>'+
+ '<form id="addStaffForm">'+
+ field("اسم الموظف","full_name","text","الاسم الكامل","",true)+
+ field("البريد الإلكتروني","email","email","employee@example.com","",true)+
+ '<p><b>الصلاحيات الممنوحة</b></p>'+
+ '<p class="muted">اختر الصلاحيات التي سيُسمح للموظف باستخدامها.</p>'+
+ '<div class="list">'+
+ permissions.map(x=>'<label class="item"><input type="checkbox" name="permissions" value="'+x[0]+'"> '+x[1]+'</label>').join("")+
+ '</div>'+
+ '<button class="btn gold">إنشاء الموظف وإرسال الدعوة</button>'+
+ '</form>';
+}                                                                                                                                                                                                                                                                                                                                                                                     }
  if(m.type==="editstaff"){
  const x=s.staff.find(y=>y.id===m.userId);
  if(!x)throw Error("الموظف غير موجود");
