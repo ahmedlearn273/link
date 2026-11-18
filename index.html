@@ -140,7 +140,8 @@ function admin(){
  return header("لوحة إدارة المنصة",nav)+'<main class="wrap">'+msg()+'<div class="sectionhead"><h2>الإدارة</h2><span class="tag ok">مدير</span></div>'+body+'</main>';
 }
 function render(){
- if(!s.user){app.innerHTML=(s.mode==="welcome"?landing():authView())+'<div class="foot">منصة الخدمات · جميع الحقوق محفوظة</div>';return}
+   if(s.mode==="recovery"){app.innerHTML=recoveryView();return}
+  if(!s.user){app.innerHTML=(s.mode==="welcome"?landing():authView())+'<div class="foot">منصة الخدمات · جميع الحقوق محفوظة</div>';return}
  if(s.profile?.role==="admin")app.innerHTML=admin()+'<main class="wrap">'+btn("logout","تسجيل الخروج","light")+'</main>';
  else if(s.profile?.role==="provider"&&s.provider?.verification_status==="approved")app.innerHTML=provider()+'<main class="wrap">'+btn("logout","تسجيل الخروج","light")+'</main>';
  else if(s.provider&&s.provider.verification_status!=="approved")app.innerHTML=header(s.provider.verification_status==="pending"?"طلب الانضمام قيد المراجعة":s.provider.verification_status==="rejected"?"تم رفض طلب الانضمام":"حالة طلب الانضمام")+'<main class="wrap"><div class="auth card"><div class="icon">⏳</div><h2>'+(s.provider.verification_status==="pending"?"طلبك قيد المراجعة":s.provider.verification_status==="rejected"?"تم رفض طلب الانضمام":"حالة الطلب")+'</h2><p class="muted">'+(s.provider.verification_status==="pending"?"ستتم مراجعة بياناتك من الإدارة، وبعد الموافقة ستتمكن من إضافة خدماتك واستقبال الطلبات.":"يمكنك التواصل مع إدارة المنصة لمعرفة التفاصيل.")+'</p>'+tag(s.provider.verification_status)+btn("logout","تسجيل الخروج","light")+'</div></main>';
