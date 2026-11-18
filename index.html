@@ -18,7 +18,7 @@
 <script>
 (()=>{"use strict";
 const db=window.supabase.createClient("https://hnnomaiohwyuqpfzlcol.supabase.co","sb_publishable_I4IfNkGvcxDxzz3xdGeKxw_TAzgc3ck"),app=document.getElementById("app");
-const s={user:null,profile:null,provider:null,mode:"welcome",type:"customer",tab:"home",cats:[],services:[],providers:[],requests:[],offers:[],apps:[],allRequests:[],adminProfiles:[],chats:[],messages:[],activeChat:null,notice:"",noticeType:"",modal:null,filter:""};
+const s={user:null,profile:null,provider:null,mode:"welcome",type:"customer",tab:"home",cats:[],services:[],providers:[],requests:[],offers:[],apps:[],allRequests:[],adminProfiles:[],staff:[],staffCandidates:[],chats:[],messages:[],activeChat:null,notice:"",noticeType:"",modal:null,filter:""};,type:"customer",tab:"home",cats:[],services:[],providers:[],requests:[],offers:[],apps:[],allRequests:[],adminProfiles:[],chats:[],messages:[],activeChat:null,notice:"",noticeType:"",modal:null,filter:""};
 const esc=x=>String(x??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])),fmt=x=>Number(x||0).toLocaleString("ar-SA");
 function note(x,t){s.notice=x;s.noticeType=t||"";render()}
 function tag(x){let a={pending:["قيد المراجعة","wait"],accepted:["مقبول","ok"],in_progress:["قيد التنفيذ","wait"],completed:["مكتمل","ok"],cancelled:["ملغي","bad"],approved:["موثّق","ok"],rejected:["مرفوض","bad"]}[x]||[x||"—",""];return '<span class="tag '+a[1]+'">'+a[0]+'</span>'}
