@@ -492,22 +492,7 @@ async function boot(){
   }
  });
 }
- 
- db.auth.onAuthStateChange((event,session)=>{
-  if(event==="PASSWORD_RECOVERY"||(recoveryMode&&session?.user)){
-   s.mode="recovery";
-   render();
-   return;
-  }
-  if(session?.user&&session.user.id!==s.user?.id)loadUser(session.user);
-  else if(!session){
-   s.user=null;
-   s.profile=null;
-   s.provider=null;
-   if(s.mode!=="recovery")render();
-  }
- });
-}
+
 boot().catch(e=>{console.error(e);app.innerHTML='<main class="wrap">'+empty("تعذّر تحميل المنصة. تحقق من الاتصال ثم أعد المحاولة.")+'</main>'});
 })();
 </script></body></html>
