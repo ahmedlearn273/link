@@ -271,6 +271,21 @@ async function submit(e){
  note("تمت إضافة الموظف وحفظ صلاحياته.","success");
  return;
   }
+  if(f.id==="editStaffForm"){
+ let userId=f.elements.user_id.value;
+ let permissions=Array.from(f.querySelectorAll('input[name="permissions"]:checked')).map(x=>x.value);
+ let isActive=f.elements.is_active.value==="true";
+ let r=await db.rpc("admin_upsert_staff",{
+  p_user_id:userId,
+  p_permissions:permissions,
+  p_is_active:isActive
+ });
+ if(r.error)throw r.error;
+ s.modal=null;
+ await loadUser(s.user);
+ note("تم تحديث صلاحيات الموظف.","success");
+ return;
+  }
   if(f.id==="categoryForm"){let v=vals(f),r=await db.from("categories").insert({name_ar:v.name_ar,name_en:v.name_en||null,slug:v.slug,icon:v.icon||null,is_active:true});if(r.error)throw r.error;s.modal=null;await loadUser(s.user);note("تمت إضافة التصنيف.","success");return}
   if(f.id==="reviewForm"){let v=vals(f),r=await db.from("reviews").insert({request_id:v.request_id,provider_id:v.provider_id,customer_id:s.user.id,rating:Number(v.rating),comment:v.comment||null});if(r.error)throw r.error;s.modal=null;note("تم إرسال تقييمك.","success");return}
   if(f.id==="sendMessage"){let v=vals(f);let r=await db.from("messages").insert({conversation_id:s.activeChat.id,sender_id:s.user.id,message_text:v.message_text.trim()});if(r.error)throw r.error;let q=await db.from("messages").select("id,sender_id,message_text,is_read,created_at").eq("conversation_id",s.activeChat.id).order("created_at");if(q.error)throw q.error;s.messages=q.data||[];render();return}
