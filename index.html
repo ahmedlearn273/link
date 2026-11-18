@@ -199,7 +199,37 @@ app.addEventListener("click",e=>{let b=e.target.closest("[data-a]");if(!b)return
 app.addEventListener("submit",submit);
 app.addEventListener("change",e=>{if(e.target.name==="account_type"){s.type=e.target.value;const extra=document.getElementById("providerExtra");if(extra)extra.classList.toggle("hidden",s.type!=="provider")}});
 app.addEventListener("input",e=>{if(e.target.id==="search"){s.filter=e.target.value;let pos=e.target.selectionStart;render();let n=document.getElementById("search");if(n){n.focus();n.setSelectionRange(pos,pos)}}});
-async function boot(){await publicData();let r=await db.auth.getSession();if(r.data.session?.user)await loadUser(r.data.session.user);else{s.mode="welcome";render()}db.auth.onAuthStateChange((_e,session)=>{if(session?.user&&session.user.id!==s.user?.id)loadUser(session.user);else if(!session){s.user=null;s.profile=null;s.provider=null;render()}})}
+
+async function boot(){
+ const recoveryMode=new URLSearchParams(location.search).get("mode")==="recovery"||new URLSearchParams(location.hash.slice(1)).get("type")==="recovery";
+ if(recoveryMode)s.mode="recovery";
+ await publicData();
+ let r=await db.auth.getSession();
+ if(recoveryMode){
+  s.mode="recovery";
+  render();
+ }else if(r.data.session?.user){
+  await loadUser(r.data.session.user);
+ }else{
+  s.mode="welcome";
+  render();
+ }
+ db.auth.onAuthStateChange((event,session)=>{
+  if(event==="PASSWORD_RECOVERY"||(recoveryMode&&session?.user)){
+   s.mode="recovery";
+   render();
+   return;
+  }
+  if(session?.user&&session.user.id!==s.user?.id)loadUser(session.user);
+  else if(!session){
+   s.user=null;
+   s.profile=null;
+   s.provider=null;
+   if(s.mode!=="recovery")render();
+  }
+ });
+}
 boot().catch(e=>{console.error(e);app.innerHTML='<main class="wrap">'+empty("تعذّر تحميل المنصة. تحقق من الاتصال ثم أعد المحاولة.")+'</main>'});
 })();
 </script></body></html>
+
