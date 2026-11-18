@@ -1025,9 +1025,8 @@ try{
  draw();
 }catch(e){
  alert("خطأ داخل draw: "+e.message);
-}
-      (async function(){
-        alert("بدأ استعادة الجلسة");
+}      (async function(){
+        alert("وصلنا لاستعادة الجلسة");
  async function restoreCustomer(session){
   if(!session)return;
   var result=await window.sbClient.from("profiles")
