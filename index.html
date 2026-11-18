@@ -196,6 +196,33 @@ if(m.type==="addstaff"){
  ];
  c='<h3>إضافة موظف</h3><form id="addStaffForm">'+select("اختر الحساب","user_id",s.staffCandidates.map(x=>({value:x.id,label:(x.full_name||"بدون اسم")+" - "+(x.phone||x.city||"حساب")})),"")+'<p><b>الصلاحيات</b></p><div class="list">'+permissions.map(x=>'<label class="item"><input type="checkbox" name="permissions" value="'+x[0]+'"> '+x[1]+'</label>').join("")+'</div><button class="btn gold">حفظ الموظف</button></form>';
 }
+ if(m.type==="editstaff"){
+ const x=s.staff.find(y=>y.id===m.userId);
+ if(!x)throw Error("الموظف غير موجود");
+ const permissions=[
+ ["dashboard.view","لوحة المعلومات"],
+ ["customers.view","عرض العملاء"],
+ ["customers.manage","إدارة العملاء"],
+ ["providers.view","عرض المزوّدين"],
+ ["providers.review","مراجعة المزوّدين"],
+ ["requests.view","عرض الطلبات"],
+ ["requests.manage","إدارة الطلبات"],
+ ["services.view","عرض الخدمات"],
+ ["services.manage","إدارة الخدمات"],
+ ["categories.view","عرض التصنيفات"],
+ ["categories.manage","إدارة التصنيفات"],
+ ["messages.view","المحادثات"],
+ ["payments.view","عرض المدفوعات"],
+ ["payments.manage","إدارة المدفوعات"],
+ ["reports.view","التقارير"],
+ ["ads.view","عرض الإعلانات"],
+ ["ads.manage","إدارة الإعلانات"],
+ ["settings.view","عرض الإعدادات"],
+ ["settings.manage","إدارة الإعدادات"]
+ ];
+ const current=x.staff_permissions?.permissions||[];
+ c='<h3>تعديل صلاحيات '+esc(x.full_name||"الموظف")+'</h3><form id="editStaffForm"><input type="hidden" name="user_id" value="'+esc(x.id)+'">'+select("حالة الموظف","is_active",[{value:"true",label:"نشط"},{value:"false",label:"موقوف"}],String(x.staff_permissions?.is_active!==false))+'<p><b>الصلاحيات</b></p><div class="list">'+permissions.map(p=>'<label class="item"><input type="checkbox" name="permissions" value="'+p[0]+'" '+(current.includes(p[0])?"checked":"")+'> '+p[1]+'</label>').join("")+'</div><button class="btn gold">حفظ التعديلات</button></form>';
+ }
   if(m.type==="review")c='<h3>تقييم الخدمة</h3><form id="reviewForm"><input type="hidden" name="request_id" value="'+esc(m.requestId)+'"><input type="hidden" name="provider_id" value="'+esc(m.providerId)+'">'+select("التقييم","rating",[1,2,3,4,5].map(n=>({value:n,label:n+" من 5"})),5)+'<label class="field">تعليق<textarea name="comment"></textarea></label><button class="btn gold">إرسال التقييم</button></form>';
   app.insertAdjacentHTML("beforeend",'<div class="modalback" data-a="close"><div class="modal" onclick="event.stopPropagation()">'+btn("close","إغلاق","light")+'<hr>'+c+'</div></div>');
  }
@@ -257,6 +284,7 @@ async function action(a,id,b){
   
 if(a==="forgot"){let email=document.querySelector('#login [name="email"]')?.value;if(!email)throw Error("اكتب بريدك الإلكتروني أولًا");let r=await db.auth.resetPasswordForEmail(email,{redirectTo:location.origin+"/?mode=recovery"});if(r.error)throw r.error;note("تم إرسال رابط استعادة كلمة المرور.","success");return}
   if(a==="addstaff"){if(!s.staffCandidates.length)throw Error("لا توجد حسابات عملاء نشطة لإضافتها كموظفين");s.modal={type:"addstaff"};render();return}
+  if(a==="editstaff"){s.modal={type:"editstaff",userId:id};render();return}
   if(a==="request"){if(!s.user){s.mode="login";note("سجّل الدخول أولًا حتى تتمكن من إرسال طلب خدمة.");return}s.modal={type:"request",providerId:s.providers.some(x=>x.id===id)?id:null,serviceId:s.services.some(x=>x.id===id)?id:null};render();return}
   if(["addoffer","addservice","addcategory"].includes(a)){s.modal={type:a==="addoffer"?"offer":a==="addservice"?"service":"category"};render();return}
   if(a==="review"){let q=s.requests.find(x=>x.id===id);if(q){s.modal={type:"review",requestId:q.id,providerId:q.provider_id};render()}return}
