@@ -131,6 +131,7 @@ Deno.serve(async (req: Request) => {
 
     if (
       !Array.isArray(permissions) ||
+    permissions.length === 0 ||
       permissions.some(
         (permission: unknown) =>
           typeof permission !== "string" ||
