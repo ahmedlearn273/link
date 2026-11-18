@@ -72,6 +72,7 @@ nav button[aria-current="page"]{color:var(--gi);font-weight:700}
 <style>.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.tile{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 4px;text-align:center;font:inherit;font-size:13px;color:inherit;cursor:pointer}.tile span{display:block;font-size:28px}[dir=ltr] .card,[dir=ltr] .role{text-align:left}#lgb{position:fixed;top:8px;left:50%;transform:translateX(-50%);z-index:20;background:rgba(0,0,0,.35);padding:2px 12px;font-size:12px}</style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+  alert(typeof window.supabase);
 window.sbClient = window.supabase.createClient(
   'https://hnnomaiohwyuqpfzlcol.supabase.co',
   'sb_publishable_I4IfNkGvcxDxzz3xdGeKxw_TAzgc3ck'
