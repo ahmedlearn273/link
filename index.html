@@ -476,7 +476,7 @@ async function boot(){
   s.mode="recovery";
   render();
  }else if(r.data.session?.user){
-  status("اختبار 3/3: تحميل بيانات الحساب...");
+  
   await loadUser(r.data.session.user);
  }else{
   s.mode="welcome";
