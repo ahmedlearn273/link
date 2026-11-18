@@ -175,6 +175,42 @@ if(s.tab==="messages")body=chatContent();
  const nav=[["home","نظرة عامة"],["providers","المزوّدون"],["staff","الموظفون"],["services","الخدمات"],["categories","التصنيفات"],["requests","الطلبات"]].map(x=>'<button data-a="tab" data-id="'+x[0]+'" class="'+(s.tab===x[0]?"active":"")+'">'+x[1]+'</button>').join("");
  return header("لوحة إدارة المنصة",nav)+'<main class="wrap">'+msg()+'<div class="sectionhead"><h2>الإدارة</h2><span class="tag ok">مدير</span></div>'+body+'</main>';
 }
+      function staff(){
+ const labels={
+  "dashboard.view":"عرض لوحة التحكم",
+  "customers.view":"عرض العملاء",
+  "customers.manage":"إدارة العملاء",
+  "providers.view":"عرض المزوّدين",
+  "providers.review":"مراجعة المزوّدين",
+  "requests.view":"عرض الطلبات",
+  "requests.manage":"إدارة الطلبات",
+  "services.view":"عرض الخدمات",
+  "services.manage":"إدارة الخدمات",
+  "categories.view":"عرض التصنيفات",
+  "categories.manage":"إدارة التصنيفات",
+  "messages.view":"عرض الرسائل",
+  "payments.view":"عرض المدفوعات",
+  "payments.manage":"إدارة المدفوعات",
+  "reports.view":"عرض التقارير",
+  "ads.view":"عرض الإعلانات",
+  "ads.manage":"إدارة الإعلانات",
+  "settings.view":"عرض الإعدادات",
+  "settings.manage":"إدارة الإعدادات"
+ };
+ const permissions=Array.isArray(s.staffAccess?.permissions)?s.staffAccess.permissions:[];
+ return header("لوحة الموظف")+
+ '<main class="wrap">'+msg()+
+ '<section class="section">'+
+ '<div class="card"><h2>أهلًا '+esc(s.profile?.full_name||"بك")+'</h2>'+
+ '<p class="muted">لوحة الموظف وإدارة الصلاحيات</p>'+
+ '<div class="row"><span>حالة الحساب</span>'+tag("نشط")+'</div>'+
+ '<div class="row"><span>عدد الصلاحيات</span><b>'+permissions.length+'</b></div>'+
+ '</div></section>'+
+ '<section class="section"><h2>الصلاحيات الممنوحة لك</h2>'+
+ '<div class="grid small">'+
+ (permissions.map(p=>'<div class="card"><span>✓</span> '+esc(labels[p]||p)+'</div>').join("")||empty("لا توجد صلاحيات ممنوحة"))+
+ '</div></section></main>';
+      }
 function render(){
    if(s.mode==="recovery"){app.innerHTML=recoveryView();return}
   if(!s.user){app.innerHTML=(s.mode==="welcome"?landing():authView())+'<div class="foot">منصة الخدمات · جميع الحقوق محفوظة</div>';return}
