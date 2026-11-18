@@ -56,7 +56,23 @@ async function loadUser(u){
   const r=await db.from("provider_profiles").insert({user_id:u.id,display_name:p.full_name||"مزوّد خدمة",bio:m.bio||null,experience_years:Number(m.experience_years||0),country:p.country,city:p.city,service_area:m.service_area||null,verification_status:"pending",is_available:false}).select("*").single();
   if(!r.error)pp=r.data;else console.error(r.error);
  }
- s.provider=pp||null;await publicData(p.role==="admin");s.requests=[];s.offers=[];s.apps=[];s.allRequests=[];s.adminProfiles=[];s.chats=[];s.messages=[];s.activeChat=null;
+ s.provider=pp||null;
+s.staffAccess=null;
+await publicData(p.role==="admin");
+s.requests=[];s.offers=[];s.apps=[];s.allRequests=[];s.adminProfiles=[];s.chats=[];s.messages=[];s.activeChat=null;
+
+if(p.role==="staff"){
+ const {data:staffAccess,error:staffError}=await db.from("staff_permissions").select("permissions,is_active").eq("user_id",u.id).maybeSingle();
+ if(staffError)throw staffError;
+ if(!staffAccess||!staffAccess.is_active){
+  await db.auth.signOut();
+  s.user=null;
+  s.profile=null;
+  app.innerHTML=header("حساب الموظف غير نشط")+'<main class="wrap"><div class="card"><h2>تم إيقاف صلاحيات الموظف</h2><p>يرجى التواصل مع الإدارة.</p></div></main>';
+  return;
+ }
+ s.staffAccess=staffAccess;
+}
  if(p.role==="customer"){
   const [r,ch]=await Promise.all([db.from("service_requests").select("*,services(name_ar),provider_profiles(display_name,city)").eq("customer_id",u.id).order("created_at",{ascending:false}),db.from("conversations").select("id,request_id,customer_id,provider_id,last_message_at,service_requests(title)").eq("customer_id",u.id).order("last_message_at",{ascending:false})]);
   s.requests=r.data||[];s.chats=ch.data||[];
