@@ -1023,6 +1023,7 @@ V.aacc = function(){
 
 draw();
       (async function(){
+        alert("بدأ تشغيل كود استعادة الجلسة");
  async function restoreCustomer(session){
   if(!session)return;
   var result=await window.sbClient.from("profiles")
