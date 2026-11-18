@@ -237,20 +237,6 @@ function staff(){
  body+'</main>';
 }
 
- const permissions=Array.isArray(s.staffAccess?.permissions)?s.staffAccess.permissions:[];
- return header("لوحة الموظف")+
- '<main class="wrap">'+msg()+
- '<section class="section">'+
- '<div class="card"><h2>أهلًا '+esc(s.profile?.full_name||"بك")+'</h2>'+
- '<p class="muted">لوحة الموظف وإدارة الصلاحيات</p>'+
- '<div class="row"><span>حالة الحساب</span>'+tag("نشط")+'</div>'+
- '<div class="row"><span>عدد الصلاحيات</span><b>'+permissions.length+'</b></div>'+
- '</div></section>'+
- '<section class="section"><h2>الصلاحيات الممنوحة لك</h2>'+
- '<div class="grid small">'+
- (permissions.map(p=>'<div class="card"><span>✓</span> '+esc(labels[p]||p)+'</div>').join("")||empty("لا توجد صلاحيات ممنوحة"))+
- '</div></section></main>';
-      }
 function render(){
    if(s.mode==="recovery"){app.innerHTML=recoveryView();return}
   if(!s.user){app.innerHTML=(s.mode==="welcome"?landing():authView())+'<div class="foot">منصة الخدمات · جميع الحقوق محفوظة</div>';return}
