@@ -108,7 +108,8 @@ if(!S||!S.staff)S=seed();
 function save(){try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}}
 var $=function(i){return document.getElementById(i)};
 function logo(){var b=S.brand||"صنايعي";return esc(b.slice(0,-1))+'<i>'+esc(b.slice(-1))+'</i>'}
-function esc(s){return String(s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
+alert("BODY: "+document.body.tagName+" | LISTENER: "+typeof document.body.addEventListener);
+  function esc(s){return String(s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
 function fmt(n){return(Math.round(n*100)/100).toLocaleString("ar-EG")}
 function norm(p){return String(p).replace(/\D/g,"").replace(/^0/,"20")}
 function okPh(p){return/^201[0125]\d{8}$/.test(norm(p))}
