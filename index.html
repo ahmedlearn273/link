@@ -492,7 +492,41 @@ case"catup":case"catdn":{var i=S.cat.findIndex(function(c){return c.id===d.id}),
 case"catdel":{if(S.svc.some(function(s){return s.cat===d.id}))alert_(L("امسح الخدمات اللي جواه الأول.","Delete its services first."));else{S.cat.splice(S.cat.findIndex(function(c){return c.id===d.id}),1);lg("حذف تصنيف");save();draw()}break}
 case"catedit":{var c3=catById(d.id);sheet('<h2 style="margin:0">'+L("تعديل تصنيف","Edit category")+'</h2><label>'+L("عربي","Arabic")+'<input id="ke1" value="'+esc(c3.ar)+'"></label><label>English<input id="ke2" dir="ltr" value="'+esc(c3.en||"")+'"></label><label>'+L("الأيقونة","Icon")+'<input id="ke3" value="'+esc(c3.icon)+'"></label><label class="pk"><input type="checkbox" id="ke4"'+(c3.m?" checked":"")+'> '+L("قسم صيانة","Maintenance")+'</label><button class="btn sec" data-act="cateditok" data-id="'+d.id+'">'+L("حفظ","Save")+'</button><button class="btn ghost" data-act="close">'+L("إلغاء","Cancel")+'</button>');break}
 case"cateditok":{var c4=catById(d.id);if($("ke1").value.trim()){c4.ar=$("ke1").value.trim();c4.en=$("ke2").value.trim();c4.icon=$("ke3").value.trim()||c4.icon;c4.m=$("ke4").checked;lg("تعديل تصنيف "+c4.ar);syncCats();save();close_();draw()}break}
-case"svcadd":{var v1=$("v1").value.trim();if(!v1||svcOf(v1)){$("verr2").textContent=L("اكتب اسم خدمة جديد.","Enter a new service name.");break}S.svc.push({id:rid("s"),ar:v1,en:$("v2").value.trim(),cat:$("v3").value,on:true});lg("إضافة خدمة "+v1);syncCats();save();draw();break}
+case"svcadd":{
+ var v1=$("v1").value.trim();
+ var cat=catById($("v3").value);
+ var er2=$("verr2");
+
+ if(!v1||svcOf(v1)){
+  er2.textContent=L("اكتب اسم خدمة جديد.","Enter a new service name.");
+  break;
+ }
+ if(!cat||!cat.dbid){
+  er2.textContent=L("التصنيف غير موجود في قاعدة البيانات.","Category not found.");
+  break;
+ }
+
+ er2.textContent=L("جاري حفظ الخدمة...","Saving service...");
+
+ (async function(){
+  var res=await window.sbClient.from("services").insert({
+   category_id:cat.dbid,
+   name_ar:v1,
+   name_en:$("v2").value.trim(),
+   is_active:true,
+   sort_order:S.svc.filter(function(s){return s.cat===cat.id}).length
+  });
+
+  if(res.error){
+   er2.textContent=res.error.message;
+   return;
+  }
+
+  await loadCatalog();
+ })();
+
+ break;
+}
 case"svctog":{var s1=S.svc.filter(function(s){return s.id===d.id})[0];s1.on=a.checked;save();break}
 case"svcdel":{var s2=S.svc.filter(function(s){return s.id===d.id})[0];if(S.techs.some(function(t){return t.t===s2.ar}))alert_(L("فيه مقدمين خدمة على الخدمة دي، أوقفها بدل الحذف.","Providers use this service; disable it instead."));else{S.svc=S.svc.filter(function(s){return s.id!==d.id});lg("حذف خدمة "+s2.ar);syncCats();save();draw()}break}
 case"svcedit":{var s3=S.svc.filter(function(s){return s.id===d.id})[0];sheet('<h2 style="margin:0">'+L("تعديل خدمة","Edit service")+'</h2><label>'+L("عربي","Arabic")+'<input id="se1" value="'+esc(s3.ar)+'"></label><label>English<input id="se2" dir="ltr" value="'+esc(s3.en||"")+'"></label><label>'+L("التصنيف","Category")+'<select id="se3">'+S.cat.map(function(c){return'<option value="'+c.id+'"'+(c.id===s3.cat?" selected":"")+'>'+esc(nm(c))+'</option>'}).join("")+'</select></label><button class="btn sec" data-act="svceditok" data-id="'+d.id+'">'+L("حفظ","Save")+'</button><button class="btn ghost" data-act="close">'+L("إلغاء","Cancel")+'</button>');break}
