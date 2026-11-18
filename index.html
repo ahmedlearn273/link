@@ -1031,11 +1031,21 @@ draw();
    .single();
   if(result.error||!result.data)return;
   var p=result.data;
-  if(p.role!=="customer"||p.status!=="active")return;
+  if(p.status!=="active")return;
+
+if(p.role==="admin"){
+  var s=S.staff.filter(function(x){return x.role==="gm"})[0];
+  if(!s)return;
+  SES={r:"a",id:s.u,n:s.n};
+}else if(p.role==="customer"){
   SES={r:"c",id:p.id,n:p.full_name||session.user.email};
-  TAB="";
-  ST={};
-  draw();
+}else{
+  return;
+}
+
+TAB="";
+ST={};
+draw();
  }
  window.sbClient.auth.onAuthStateChange(function(event,session){
   if(session)Promise.resolve().then(function(){
