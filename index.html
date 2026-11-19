@@ -496,7 +496,8 @@ if(p.role==="staff"){
   const people=profiles.data||[];
   const perms=permissions.data||[];
   s.staff=people.filter(x=>x.role==="staff").map(x=>({...x,staff_permissions:perms.find(p=>p.user_id===x.id)||null}));
-  s.staffCandidates=people.filter(x=>x.role==="customer"&&x.status==="active");
+ s.staffCandidates=people.filter(x=>x.role==="customer"&&x.status==="active");
+s.customers=people.filter(x=>x.role==="customer");
   const ids=[...new Set(s.apps.map(x=>x.user_id).concat(s.allRequests.map(x=>x.customer_id)))];
   if(ids.length){
     const x=await db.from("profiles").select("id,full_name,phone,city,country").in("id",ids);
