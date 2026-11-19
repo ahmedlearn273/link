@@ -774,7 +774,7 @@ if(a==="theme-preview"){
  return;
 }
 if(a==="theme-reset"){
- s.themeDraft={bg:"#111111",card:"#1d1d1d",ink:"#f5f1e8",navy:"#171717",gold:"#d6a642"};
+ s.themeDraft={bg:"#111111",card:"#1d1d1d",ink:"#f5f1e8",muted:"#aaa18f",line:"#393328",navy:"#171717",navy2:"#29231a",gold:"#d6a642",green:"#16845d",red:"#c44545"};
  Object.entries(s.themeDraft).forEach(([key,value])=>document.documentElement.style.setProperty("--"+key,value));
  render();
  note("تمت استعادة الألوان الافتراضية.","success");
