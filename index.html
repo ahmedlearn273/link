@@ -900,6 +900,7 @@ if(a==="theme-suggest"){
 if(a==="forgot"){let email=document.querySelector('#login [name="email"]')?.value;if(!email)throw Error("اكتب بريدك الإلكتروني أولًا");let r=await db.auth.resetPasswordForEmail(email,{redirectTo:location.origin+"/?mode=recovery"});if(r.error)throw r.error;note("تم إرسال رابط استعادة كلمة المرور.","success");return}
   if(a==="addstaff"){s.modal={type:"addstaff"};render();return}
   if(a==="editstaff"){s.modal={type:"editstaff",userId:id};render();return}
+if(a==="viewcustomer"){s.modal={type:"customerDetails",userId:id};render();return}
   if(a==="removestaff"){
  let x=s.staff.find(y=>y.id===id);
  if(!x)throw Error("الموظف غير موجود");
