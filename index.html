@@ -187,6 +187,57 @@ hr{
   }
 }
  
+/* WASLA - Unified Button Polish */
+.btn,
+.tabs button,
+.top .nav button{
+  min-height:40px;
+  border-radius:12px;
+  font-weight:700;
+  transition:background .2s ease,
+             color .2s ease,
+             border-color .2s ease,
+             transform .2s ease,
+             box-shadow .2s ease;
+}
+
+.btn{
+  padding:9px 17px;
+  border:1px solid transparent;
+  box-shadow:0 2px 7px #0002;
+}
+
+.btn:not(:disabled):active,
+.tabs button:not(:disabled):active,
+.top .nav button:not(:disabled):active{
+  transform:scale(.97);
+}
+
+.btn:disabled,
+.tabs button:disabled,
+.top .nav button:disabled{
+  opacity:.5;
+  cursor:not-allowed;
+  box-shadow:none;
+  transform:none;
+}
+
+.btn.gold{
+  background:linear-gradient(135deg,#e8bd58,#c7952e);
+  color:#171717;
+}
+
+.btn.gold:not(:disabled):hover{
+  box-shadow:0 5px 16px #d6a64245;
+}
+
+@media(max-width:600px){
+  .btn{
+    min-height:42px;
+    padding:9px 14px;
+  }
+}
+ 
 </style>
 </head>
 <body><div id="app"><main class="wrap"><div class="empty">جاري تحميل المنصة...</div></main></div>
