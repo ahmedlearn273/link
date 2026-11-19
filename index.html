@@ -46,6 +46,7 @@ body{background:var(--bg);color:var(--ink)}
 .tag.bad{background:var(--card);color:var(--red)}
  
 .empty{border-color:var(--line)}
+
 /* WASLA - UI Polish */
 .btn{
   transition:background .2s ease,transform .2s ease,box-shadow .2s ease;
@@ -55,27 +56,27 @@ body{background:var(--bg);color:var(--ink)}
   box-shadow:0 5px 14px #0005;
 }
 .btn.gold:hover{
-  background:#e6b94f;
+  background:var(--gold);
 }
 .card,.item{
   transition:border-color .2s ease,transform .2s ease,box-shadow .2s ease;
 }
 .card:hover,.item:hover{
-  border-color:#80652f;
+  border-color:var(--navy2);
   box-shadow:0 5px 18px #0003;
 }
 .tabs button.active,.nav button.active{
-  background:var(--gold);
-  color:#171717;
-  border-color:var(--gold);
+  background:var(--navy2);
+  color:var(--card);
+  border-color:var(--navy2);
 }
 .field input:focus,.field select:focus,.field textarea:focus{
   outline:none;
-  border-color:var(--gold);
-  box-shadow:0 0 0 3px #d6a64225;
+  border-color:var(--navy2);
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--navy2) 18%,transparent);
 }
 button:focus-visible{
-  outline:2px solid var(--gold);
+  outline:2px solid var(--navy2);
   outline-offset:3px;
 }
 hr{
@@ -83,10 +84,10 @@ hr{
   border-top:1px solid var(--line);
 }
 ::selection{
-  background:#d6a642;
-  color:#171717;
+  background:var(--line);
+  color:var(--ink);
 }
-
+ 
 /* WASLA - Navigation Design */
 .top .nav{
   display:flex;
