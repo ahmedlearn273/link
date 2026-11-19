@@ -238,6 +238,144 @@ hr{
   }
 }
  
+/* WASLA - Complete Theme Contrast System */
+:root {
+  --bg: #111827;
+  --card: #1f2937;
+  --ink: #f8fafc;
+  --muted: #b6c2d1;
+  --line: #3b485b;
+  --navy: #243b53;
+  --navy2: #334e68;
+  --gold: #e7b95b;
+  --green: #35b987;
+  --red: #ef7777;
+}
+
+body {
+  background: var(--bg) !important;
+  color: var(--ink) !important;
+}
+
+.card, .item, .modal, .empty {
+  background: var(--card) !important;
+  color: var(--ink) !important;
+  border-color: var(--line) !important;
+}
+
+.card p, .item p, .muted, .small, .foot {
+  color: var(--muted) !important;
+}
+
+.field, label, .modal label {
+  color: var(--ink);
+}
+
+.field input, .field select, .field textarea,
+input, select, textarea {
+  background: var(--bg);
+  color: var(--ink);
+  border-color: var(--line);
+}
+
+.field input::placeholder,
+.field textarea::placeholder,
+input::placeholder,
+textarea::placeholder {
+  color: var(--muted);
+  opacity: 1;
+}
+
+.tabs button {
+  background: var(--bg);
+  color: var(--ink);
+  border-color: var(--line);
+}
+
+.tabs button.active,
+.nav button.active {
+  background: var(--gold);
+  color: #17202b;
+  border-color: var(--gold);
+}
+
+.btn {
+  background: var(--navy);
+  color: #fff;
+}
+
+.btn.light {
+  background: var(--navy2);
+  color: #fff;
+}
+
+.btn.gold {
+  background: var(--gold);
+  color: #17202b;
+}
+
+.btn.danger {
+  background: #642f38;
+  color: #fff;
+}
+
+.modal {
+  color: var(--ink) !important;
+}
+
+.modal h2, .modal h3, .modal p,
+.modal span, .modal strong {
+  color: inherit;
+}
+
+.icon, .avatar {
+  background: var(--navy2);
+  color: var(--gold);
+}
+
+.notice {
+  background: var(--navy2);
+  color: var(--ink);
+}
+
+.notice.error {
+  background: #642f38;
+  color: #fff;
+}
+
+.notice.success {
+  background: #175c49;
+  color: #fff;
+}
+
+.tag {
+  background: var(--navy2);
+  color: var(--ink);
+}
+
+.tag.ok {
+  background: #175c49;
+  color: #fff;
+}
+
+.tag.wait {
+  background: #72551c;
+  color: #fff;
+}
+
+.tag.bad {
+  background: #642f38;
+  color: #fff;
+}
+
+.price {
+  color: var(--green);
+}
+
+hr {
+  border-color: var(--line);
+}
+ 
 </style>
 </head>
 <body><div id="app"><main class="wrap"><div class="empty">جاري تحميل المنصة...</div></main></div>
