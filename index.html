@@ -335,7 +335,7 @@ const s={user:null,profile:null,provider:null,staffAccess:null,mode:"welcome",ty
 const esc=x=>String(x??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])),fmt=x=>Number(x||0).toLocaleString("ar-SA");
 function note(x,t){s.notice=x;s.noticeType=t||"";render()}
 function tag(x){let a={pending:["قيد المراجعة","wait"],accepted:["مقبول","ok"],in_progress:["قيد التنفيذ","wait"],completed:["مكتمل","ok"],cancelled:["ملغي","bad"],approved:["موثّق","ok"],rejected:["مرفوض","bad"]}[x]||[x||"—",""];return '<span class="tag '+a[1]+'">'+a[0]+'</span>'}
-function header(sub,nav){return '<input type="checkbox" id="waslaSidebarToggle" class="sidebar-toggle"><label class="sidebar-toggle-btn" for="waslaSidebarToggle" aria-label="فتح وإغلاق القائمة">☰</label><header class="top"><div class="topline"><div><div class="brand">منصة <span>الخدمات</span></div><p>'+esc(sub||"خدمات موثوقة في مكان واحد")+'</p></div>'+(nav?'<div class="nav">'+nav+'</div>':'')+'</div></header>'}
+function header(sub,nav){return '<header class="top"><div class="topline"><div><div class="brand">منصة <span>الخدمات</span></div><p>'+esc(sub||"خدمات موثوقة في مكان واحد")+'</p></div>'+(nav?'<div class="nav">'+nav+'</div>':'')+'</div></header>'}
 function msg(){return s.notice?'<div class="notice '+(s.noticeType==="error"?"error":s.noticeType==="success"?"success":"")+'">'+esc(s.notice)+'</div>':""}
 function btn(a,t,k,id,extra){return '<button class="btn '+(k||"")+'" data-a="'+a+'" data-id="'+esc(id||"")+'" '+(extra||"")+'>'+t+'</button>'}
 function field(l,n,type,ph,v,req){return '<label class="field">'+l+'<input name="'+n+'" type="'+(type||"text")+'" placeholder="'+esc(ph||"")+'" value="'+esc(v||"")+'" '+(req?"required":"")+'></label>'}
