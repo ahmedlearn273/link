@@ -768,6 +768,11 @@ async function action(a,id,b){
   if(a==="showauth"){s.mode="login";render();return}
 if(a==="mode"){s.mode=id;s.notice="";render();return}
 if(a==="tab"){s.tab=id;render();return}
+if(a==="theme-save-local"){
+ localStorage.setItem("wasla_theme_draft",JSON.stringify({themeDraft:s.themeDraft,themeStyle:s.themeStyle}));
+ note("تم حفظ الثيم على هذا الجهاز.","success");
+ return;
+}
 if(a==="theme-preview"){
  Object.entries(s.themeDraft).forEach(([key,value])=>document.documentElement.style.setProperty("--"+key,value));
  note("تمت معاينة الألوان. التغيير حاليًا للمعاينة فقط.","success");
