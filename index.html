@@ -788,78 +788,68 @@ if(a==="theme-suggest"){
  const styles={
   modern:{h:[185,225],sat:[48,68]},
   minimal:{h:[205,225],sat:[12,28]},
-  luxury:{h:[265,315],sat:[35,58]},
-  corporate:{h:[205,235],sat:[38,58]},
-  nature:{h:[105,155],sat:[30,52]},
-  tech:{h:[245,285],sat:[48,72]}
+
+if(a==="theme-suggest"){
+ const palettes={
+  modern:[
+   "#eef5f8","#ffffff","#183447","#607d8b","#d5e2e9",
+   "#167d91","#249bb0","#e6a23c","#238b70","#d65b5b"
+  ],
+  minimal:[
+   "#f5f5f2","#ffffff","#292d32","#777e85","#e1e3e2",
+   "#596b73","#82939a","#b18b62","#56816d","#bd6666"
+  ],
+  luxury:[
+   "#171522","#242033","#f4efff","#b9aecb","#40364f",
+   "#403052","#59416d","#d6b36a","#5b9c83","#d36b78"
+  ],
+  corporate:[
+   "#edf2f7","#ffffff","#1e344d","#65788e","#d7e0e9",
+   "#244d73","#356b9a","#c58b35","#25836a","#c65353"
+  ],
+  nature:[
+   "#eff5ed","#ffffff","#263d2e","#718575","#d9e5d6",
+   "#426b50","#628b68","#c49a54","#31815d","#bd6258"
+  ],
+  tech:[
+   "#101827","#1b2940","#f1f5ff","#aab9d1","#34445f",
+   "#263e68","#385b91","#42c6d9","#27a77c","#e06470"
+  ],
+  auto:[
+   "#eef5f8","#ffffff","#183447","#607d8b","#d5e2e9",
+   "#167d91","#249bb0","#e6a23c","#238b70","#d65b5b",
+   "#171522","#242033","#f4efff","#b9aecb","#40364f",
+   "#403052","#59416d","#d6b36a","#5b9c83","#d36b78"
+  ]
  };
 
- const names=Object.keys(styles);
- const style=s.themeStyle==="auto"?pick(names):s.themeStyle;
- const cfg=styles[style]||styles.modern;
+ const keys=["bg","card","ink","muted","line","navy","navy2","gold","green","red"];
+ const style=s.themeStyle||"auto";
+ const source=palettes[style]||palettes.modern;
+ const count=source.length/10;
+ const index=Math.floor(Math.random()*count);
+ const colors=source.slice(index*10,index*10+10);
 
- const toHex=(h,s,l)=>{
-  h=((h%360)+360)%360;
-  s/=100;l/=100;
-  const a=s*Math.min(l,1-l);
-  const f=n=>{
-   const k=(n+h/30)%12;
-   const c=l-a*Math.max(-1,Math.min(k-3,Math.min(9-k,1)));
-   return Math.round(255*c).toString(16).padStart(2,"0");
-  };
-  return "#"+f(0)+f(8)+f(4);
- };
-
- const hue=rand(cfg.h[0],cfg.h[1]);
- const sat=rand(cfg.sat[0],cfg.sat[1]);
- const light=Math.random()>.2;
-
- const bg=light
-  ?toHex(hue,rand(5,13),rand(95,98))
-  :toHex(hue,rand(10,20),rand(8,12));
-
- const card=light
-  ?toHex(hue,rand(2,7),rand(98,100))
-  :toHex(hue,rand(8,15),rand(14,19));
-
- const ink=light
-  ?toHex(hue,rand(8,18),rand(10,18))
-  :toHex(hue,rand(5,12),rand(92,97));
-
- const navy=toHex(
-  hue,
-  sat,
-  light?rand(27,39):rand(58,70)
- );
-
- let accentHue=hue+35;
- if(style==="luxury")accentHue=rand(35,48);
- if(style==="nature")accentHue=rand(35,75);
- if(style==="tech")accentHue=hue+65;
- if(style==="minimal")accentHue=rand(195,220);
-
- const gold=toHex(
-  accentHue,
-  style==="minimal"?rand(25,40):rand(40,65),
-  light?rand(38,50):rand(62,73)
- );
-
- s.themeDraft={bg,card,ink,navy,gold};
-
- Object.entries(s.themeDraft).forEach(([key,value])=>{
-  document.documentElement.style.setProperty("--"+key,value);
+ s.themeDraft={};
+ keys.forEach((key,i)=>{
+  s.themeDraft[key]=colors[i];
+  document.documentElement.style.setProperty("--"+key,colors[i]);
  });
 
- note("تم توليد ثيم بنمط "+({
-  modern:"عصري",
-  minimal:"بسيط وهادئ",
-  luxury:"فاخر",
-  corporate:"رسمي واحترافي",
-  nature:"طبيعي",
-  tech:"تقني"
- }[style]||"تلقائي")+" بنجاح.","success");
+ const names={
+  modern:"العصري",
+  minimal:"البسيط والهادئ",
+  luxury:"الفاخر",
+  corporate:"الرسمي والاحترافي",
+  nature:"الطبيعي",
+  tech:"التقني",
+  auto:"التلقائي"
+ };
+
+ note("تم اقتراح لوحة ألوان "+(names[style]||"العصرية")+" متناسقة.","success");
  return;
 }
+  
   if(a==="logout"){await db.auth.signOut();s.user=null;s.profile=null;s.provider=null;s.mode="welcome";render();return}
   
 if(a==="forgot"){let email=document.querySelector('#login [name="email"]')?.value;if(!email)throw Error("اكتب بريدك الإلكتروني أولًا");let r=await db.auth.resetPasswordForEmail(email,{redirectTo:location.origin+"/?mode=recovery"});if(r.error)throw r.error;note("تم إرسال رابط استعادة كلمة المرور.","success");return}
