@@ -315,6 +315,52 @@ body:has(.top .nav) .wrap{
     border-radius:10px;
   }
 }
+/* WASLA - Restore Horizontal Mobile Navigation */
+@media(max-width:600px){
+  .sidebar-toggle-btn{
+    display:none !important;
+  }
+
+  .top:has(.nav){
+    position:relative !important;
+    top:auto !important;
+    right:auto !important;
+    bottom:auto !important;
+    width:100% !important;
+    height:auto !important;
+    padding:15px !important;
+    transform:none !important;
+    overflow:visible !important;
+    border-radius:0 0 20px 20px !important;
+  }
+
+  .top:has(.nav) .topline{
+    height:auto !important;
+    flex-direction:column !important;
+    gap:12px !important;
+  }
+
+  .top:has(.nav) .nav{
+    display:flex !important;
+    flex-direction:row !important;
+    flex-wrap:nowrap !important;
+    width:100% !important;
+    overflow-x:auto !important;
+    padding:8px 2px 12px !important;
+    gap:8px !important;
+  }
+
+  .top:has(.nav) .nav button{
+    flex:0 0 auto !important;
+    width:auto !important;
+    min-width:105px !important;
+    text-align:center !important;
+  }
+
+  body:has(.top .nav) .wrap{
+    margin:0 auto !important;
+  }
+}
 </style>
 </head>
 <body><div id="app"><main class="wrap"><div class="empty">جاري تحميل المنصة...</div></main></div>
