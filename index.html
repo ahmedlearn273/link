@@ -407,6 +407,7 @@ if(s.tab==="messages")body=chatContent();
  if(s.tab==="requests")body='<section class="section"><h2>طلبات العملاء</h2><div class="list">'+(s.allRequests.map(x=>'<article class="item"><div class="row"><b>'+esc(x.title||x.services?.name_ar||"طلب")+'</b>'+tag(x.status)+'</div><p>'+esc([x.city,x.country].filter(Boolean).join("، "))+'</p></article>').join("")||empty("لا توجد طلبات"))+'</div></section>';
 if(s.tab==="appearance")body='<section class="section"><div class="card"><h2>المظهر والثيمات</h2><p>تحكم في ألوان وهوية منصة وصلة، وعاين التغييرات قبل تطبيقها.</p><p class="muted">إعدادات الألوان والثيمات قيد التجهيز.</p></div></section>';
  const nav=[["home","نظرة عامة"],["providers","المزوّدون"],["staff","الموظفون"],["services","الخدمات"],["categories","التصنيفات"],["requests","الطلبات"],["appearance","المظهر والثيمات"]]
+ if(s.tab==="appearance")body='<section class="section"><div class="card"><h2>المظهر والثيمات</h2><p>تحكم في ألوان وهوية منصة وصلة، وعاين التغييرات قبل تطبيقها.</p><p class="muted">إعدادات الألوان والثيمات قيد التجهيز.</p></div></section>';
  return header("لوحة إدارة المنصة",nav)+'<main class="wrap">'+msg()+'<div class="sectionhead"><h2>الإدارة</h2><span class="tag ok">مدير</span></div>'+body+'</main>';
 }
       
