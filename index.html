@@ -92,6 +92,67 @@ hr{
   background:#d6a642;
   color:#171717;
 }
+
+/* WASLA - Navigation Design */
+.top .nav{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  flex-wrap:wrap;
+  margin:14px 0 0;
+  padding:5px 0;
+}
+
+.top .nav button{
+  flex:0 0 auto;
+  min-height:40px;
+  padding:8px 17px;
+  border:1px solid #d6a64245;
+  border-radius:12px;
+  background:#ffffff0d;
+  color:#e8e0d0;
+  font-size:13px;
+  font-weight:700;
+  white-space:nowrap;
+  transition:all .2s ease;
+}
+
+.top .nav button:hover{
+  background:#d6a64220;
+  border-color:var(--gold);
+  transform:translateY(-2px);
+}
+
+.top .nav button.active{
+  background:var(--gold);
+  color:#171717;
+  border-color:var(--gold);
+  box-shadow:0 3px 12px #d6a64235;
+}
+
+@media(max-width:600px){
+  .top .nav{
+    width:100%;
+    flex-wrap:nowrap;
+    overflow-x:auto;
+    overflow-y:hidden;
+    padding:8px 2px 12px;
+    gap:8px;
+    scrollbar-width:none;
+    -webkit-overflow-scrolling:touch;
+  }
+
+  .top .nav::-webkit-scrollbar{
+    display:none;
+  }
+
+  .top .nav button{
+    flex:0 0 auto;
+    min-width:100px;
+    padding:9px 14px;
+  }
+}
+ 
 </style>
 </head>
 <body><div id="app"><main class="wrap"><div class="empty">جاري تحميل المنصة...</div></main></div>
