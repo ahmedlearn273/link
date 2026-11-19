@@ -405,7 +405,7 @@ function admin(){
  if(s.tab==="staff")body='<section class="section"><div class="sectionhead"><h2>إدارة الموظفين</h2>'+btn("addstaff","إضافة موظف","gold")+'</div><div class="list">'+(s.staff.map(x=>'<article class="item"><div class="row"><b>'+esc(x.full_name||"موظف بدون اسم")+'</b>'+tag(x.staff_permissions?.is_active?"نشط":"موقوف")+'</div><p>'+esc(x.phone||"لا يوجد رقم هاتف")+'</p><p class="muted">'+(x.staff_permissions?.permissions||[]).length+' صلاحية ممنوحة</p>'+btn("editstaff","إدارة الصلاحيات","light",x.id)+btn("removestaff","إزالة الموظف","danger",x.id)+'</article>').join("")||empty("لا يوجد موظفون حتى الآن"))+'</div></section>';
 if(s.tab==="messages")body=chatContent();
  if(s.tab==="requests")body='<section class="section"><h2>طلبات العملاء</h2><div class="list">'+(s.allRequests.map(x=>'<article class="item"><div class="row"><b>'+esc(x.title||x.services?.name_ar||"طلب")+'</b>'+tag(x.status)+'</div><p>'+esc([x.city,x.country].filter(Boolean).join("، "))+'</p></article>').join("")||empty("لا توجد طلبات"))+'</div></section>';
- const nav=[["home","نظرة عامة"],["providers","المزوّدون"],["staff","الموظفون"],["services","الخدمات"],["categories","التصنيفات"],["requests","الطلبات"]].map(x=>'<button data-a="tab" data-id="'+x[0]+'" class="'+(s.tab===x[0]?"active":"")+'">'+x[1]+'</button>').join("");
+ const nav=[["home","نظرة عامة"],["providers","المزوّدون"],["staff","الموظفون"],["services","الخدمات"],["categories","التصنيفات"],["requests","الطلبات"],["appearance","المظهر والثيمات"]]
  return header("لوحة إدارة المنصة",nav)+'<main class="wrap">'+msg()+'<div class="sectionhead"><h2>الإدارة</h2><span class="tag ok">مدير</span></div>'+body+'</main>';
 }
       
