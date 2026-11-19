@@ -609,49 +609,254 @@ textarea:disabled{
 .tabs button{
   padding:9px 14px;
   border:1px solid var(--line);
-  background:#202a35;
-  color:#e8edf1;
+/* WASLA - Theme Responsive Design */
+
+/* Main surfaces */
+body{
+  background:var(--bg);
+  color:var(--ink);
+}
+
+.card,
+.item,
+.modal,
+.empty{
+  background:var(--card) !important;
+  color:var(--ink);
+  border:1px solid var(--line) !important;
+  border-radius:18px;
+  box-shadow:0 5px 18px #00000012;
+  transition:background .2s ease,
+             border-color .2s ease,
+             color .2s ease,
+             box-shadow .2s ease;
+}
+
+.card h2,
+.card h3,
+.item h3,
+.sectionhead h2{
+  color:var(--ink);
+}
+
+.card p,
+.item p,
+.muted,
+.small{
+  color:var(--muted);
+}
+
+.card:hover,
+.item:hover{
+  border-color:var(--gold) !important;
+  box-shadow:0 9px 24px #00000018;
+}
+
+.card .icon,
+.avatar{
+  background:var(--bg);
+  color:var(--navy);
+  border:1px solid var(--line);
+}
+
+/* Forms */
+.field{
+  color:var(--ink);
+  font-weight:700;
+}
+
+.field input:not([type="checkbox"]):not([type="radio"]),
+.field select,
+.field textarea,
+input:not([type="checkbox"]):not([type="radio"]),
+select,
+textarea{
+  background:var(--card);
+  color:var(--ink);
+  border:1px solid var(--line);
+  border-radius:12px;
+}
+
+.field input::placeholder,
+.field textarea::placeholder,
+input::placeholder,
+textarea::placeholder{
+  color:var(--muted);
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus,
+input:focus,
+select:focus,
+textarea:focus{
+  outline:none;
+  border-color:var(--gold);
+  box-shadow:0 0 0 3px var(--gold)25;
+}
+
+select option{
+  background:var(--card);
+  color:var(--ink);
+}
+
+input[type="checkbox"],
+input[type="radio"]{
+  accent-color:var(--gold);
+}
+
+/* Buttons */
+.btn{
+  background:var(--navy);
+  color:#fff;
+  border:1px solid transparent;
+  border-radius:12px;
+  font-family:inherit;
+  font-weight:700;
+  transition:transform .2s ease,
+             background .2s ease,
+             box-shadow .2s ease;
+}
+
+.btn.gold{
+  background:var(--gold);
+  color:var(--ink);
+}
+
+.btn.light{
+  background:var(--card);
+  color:var(--ink);
+  border-color:var(--line);
+}
+
+.btn.green{
+  background:var(--green);
+  color:#fff;
+}
+
+.btn.danger{
+  background:var(--red);
+  color:#fff;
+}
+
+.btn:not(:disabled):hover,
+.tabs button:not(:disabled):hover{
+  transform:translateY(-2px);
+  box-shadow:0 5px 14px #00000020;
+}
+
+/* Navigation and tabs */
+.tabs button{
+  background:var(--card);
+  color:var(--ink);
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:9px 14px;
 }
 
 .tabs button.active{
-  background:var(--gold);
-  border-color:var(--gold);
-  color:#172b38;
+  background:var(--navy);
+  color:#fff;
+  border-color:var(--navy);
 }
 
 .top .nav button{
-  padding:8px 13px;
-  border:1px solid #ffffff35;
-  background:#ffffff12;
+  background:transparent;
   color:#fff;
+  border:1px solid #ffffff55;
+  border-radius:12px;
 }
 
 .top .nav button.active{
   background:var(--gold);
+  color:var(--ink);
   border-color:var(--gold);
-  color:#172b38;
 }
 
+/* Status labels */
+.tag{
+  background:var(--bg);
+  color:var(--ink);
+  border:1px solid var(--line);
+}
+
+.tag.ok{
+  background:var(--green);
+  color:#fff;
+}
+
+.tag.wait{
+  background:var(--gold);
+  color:var(--ink);
+}
+
+.tag.bad{
+  background:var(--red);
+  color:#fff;
+}
+
+/* Notices */
+.notice{
+  background:var(--bg);
+  color:var(--ink);
+  border:1px solid var(--line);
+}
+
+.notice.success{
+  background:var(--green);
+  color:#fff;
+}
+
+.notice.error{
+  background:var(--red);
+  color:#fff;
+}
+
+/* Disabled and focus states */
 .btn:disabled,
-.tabs button:disabled,
-.top .nav button:disabled{
-  opacity:.5;
+input:disabled,
+select:disabled,
+textarea:disabled{
+  opacity:.55;
   cursor:not-allowed;
-  transform:none;
-  box-shadow:none;
+}
+
+.btn:focus-visible,
+.tabs button:focus-visible,
+.top .nav button:focus-visible{
+  outline:2px solid var(--gold);
+  outline-offset:3px;
+}
+
+.auth{
+  width:min(100%,480px);
+  margin:28px auto;
+}
+
+.modal{
+  box-shadow:0 18px 55px #00000030;
 }
 
 @media(max-width:600px){
+  .card,
+  .item,
+  .modal{
+    border-radius:15px;
+  }
+
   .btn{
     min-height:42px;
   }
 
-  .tabs{
-    gap:6px;
+  .field input:not([type="checkbox"]):not([type="radio"]),
+  .field select,
+  .field textarea{
+    min-height:45px;
+    font-size:16px;
   }
 
-  .tabs button{
-    padding:8px 11px;
+  .tabs{
+    gap:6px;
   }
 }
 </style>
