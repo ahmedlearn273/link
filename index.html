@@ -718,6 +718,18 @@ if(m.type==="addstaff"){
  const current=x.staff_permissions?.permissions||[];
  c='<h3>تعديل صلاحيات '+esc(x.full_name||"الموظف")+'</h3><form id="editStaffForm"><input type="hidden" name="user_id" value="'+esc(x.id)+'">'+select("حالة الموظف","is_active",[{value:"true",label:"نشط"},{value:"false",label:"موقوف"}],String(x.staff_permissions?.is_active!==false))+'<p><b>الصلاحيات</b></p><div class="list">'+permissions.map(p=>'<label class="item"><input type="checkbox" name="permissions" value="'+p[0]+'" '+(current.includes(p[0])?"checked":"")+'> '+p[1]+'</label>').join("")+'</div><button class="btn gold">حفظ التعديلات</button></form>';
  }
+ if(m.type==="customerDetails"){
+ const x=s.customers.find(y=>y.id===m.userId);
+ if(!x)throw Error("العميل غير موجود");
+ const orders=s.allRequests.filter(q=>q.customer_id===x.id);
+ c='<h3>ملف العميل</h3>'+
+ '<div class="item"><b>'+esc(x.full_name||"عميل بدون اسم")+'</b>'+
+ '<p>'+esc(x.phone||"لا يوجد رقم هاتف")+'</p>'+
+ '<p>'+esc([x.city,x.country].filter(Boolean).join("، ")||"الموقع غير محدد")+'</p>'+
+ '<p>'+tag(x.status==="active"?"نشط":"موقوف")+'</p></div>'+
+ '<h4>سجل الطلبات ('+fmt(orders.length)+')</h4>'+
+ '<div class="list">'+(orders.map(q=>'<article class="item"><div class="row"><b>'+esc(q.title||q.services?.name_ar||"طلب")+'</b>'+tag(q.status)+'</div><p>'+esc([q.city,q.country].filter(Boolean).join("، ")||"الموقع غير محدد")+'</p><p>'+esc(q.description||"")+'</p></article>').join("")||empty("لا توجد طلبات لهذا العميل"))+'</div>';
+ }
   if(m.type==="review")c='<h3>تقييم الخدمة</h3><form id="reviewForm"><input type="hidden" name="request_id" value="'+esc(m.requestId)+'"><input type="hidden" name="provider_id" value="'+esc(m.providerId)+'">'+select("التقييم","rating",[1,2,3,4,5].map(n=>({value:n,label:n+" من 5"})),5)+'<label class="field">تعليق<textarea name="comment"></textarea></label><button class="btn gold">إرسال التقييم</button></form>';
   app.insertAdjacentHTML("beforeend",'<div class="modalback" data-a="close"><div class="modal" onclick="event.stopPropagation()">'+btn("close","إغلاق","light")+'<hr>'+c+'</div></div>');
  }
