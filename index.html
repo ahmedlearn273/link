@@ -37,12 +37,14 @@ body{background:var(--bg);color:var(--ink)}
 .icon,.avatar{background:var(--line);color:var(--ink)}
 .notice{background:var(--card);color:var(--ink);border:1px solid var(--line)}
  
-.notice.error{background:#402323;color:#ffb5b5}
-.notice.success{background:#19382c;color:#a8e5c5}
-.tag{background:#332c1e;color:var(--gold)}
-.tag.ok{background:#19382c;color:#a8e5c5}
-.tag.wait{background:#40351d;color:#f2d38a}
-.tag.bad{background:#402323;color:#ffb5b5}
+
+.notice.error{background:var(--card);color:var(--red);border-color:var(--red)}
+.notice.success{background:var(--card);color:var(--green);border-color:var(--green)}
+.tag{background:var(--line);color:var(--ink)}
+.tag.ok{background:var(--card);color:var(--green)}
+.tag.wait{background:var(--card);color:var(--gold)}
+.tag.bad{background:var(--card);color:var(--red)}
+ 
 .empty{border-color:var(--line)}
 /* WASLA - UI Polish */
 .btn{
