@@ -859,6 +859,235 @@ textarea:disabled{
     gap:6px;
   }
 }
+
+/* WASLA - Full Dynamic Theme Enforcement */
+:root {
+  color-scheme: light dark;
+}
+
+/* Main backgrounds and text */
+body,
+#app,
+.wrap,
+.section {
+  background-color: var(--bg);
+  color: var(--ink);
+}
+
+.card,
+.item,
+.modal,
+.empty,
+.auth,
+.stat,
+.provider {
+  background: var(--card) !important;
+  color: var(--ink) !important;
+  border-color: var(--line) !important;
+}
+
+/* All headings and content text */
+h1, h2, h3, h4, h5, h6,
+.sectionhead h2,
+.card h3,
+.item h3,
+label,
+.field,
+.modal,
+.modal p,
+.card p,
+.item p,
+.list,
+.stat {
+  color: var(--ink);
+}
+
+p,
+.muted,
+.small,
+.caption,
+.card p,
+.item p,
+.foot {
+  color: var(--muted);
+}
+
+/* Tabs */
+.tabs button,
+.tabs button:not(.active) {
+  background: var(--card) !important;
+  color: var(--ink) !important;
+  border: 1px solid var(--line) !important;
+}
+
+.tabs button.active,
+.tabs button[aria-selected="true"] {
+  background: var(--navy) !important;
+  color: #fff !important;
+  border-color: var(--navy) !important;
+}
+
+/* Navigation */
+.top .nav button {
+  background: color-mix(in srgb, var(--card) 16%, transparent) !important;
+  color: #fff !important;
+  border-color: color-mix(in srgb, var(--gold) 45%, transparent) !important;
+}
+
+.top .nav button.active {
+  background: var(--gold) !important;
+  color: var(--ink) !important;
+  border-color: var(--gold) !important;
+}
+
+/* All button variants */
+.btn {
+  background: var(--navy) !important;
+  color: #fff !important;
+  border-color: var(--navy) !important;
+}
+
+.btn.gold {
+  background: var(--gold) !important;
+  color: var(--ink) !important;
+  border-color: var(--gold) !important;
+}
+
+.btn.light {
+  background: var(--card) !important;
+  color: var(--ink) !important;
+  border-color: var(--line) !important;
+}
+
+.btn.green {
+  background: var(--green) !important;
+  color: #fff !important;
+}
+
+.btn.danger {
+  background: var(--red) !important;
+  color: #fff !important;
+}
+
+/* Form fields */
+input:not([type="checkbox"]):not([type="radio"]),
+select,
+textarea {
+  background: var(--card) !important;
+  color: var(--ink) !important;
+  border: 1px solid var(--line) !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--muted) !important;
+  opacity: 1;
+}
+
+select option {
+  background: var(--card);
+  color: var(--ink);
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+  accent-color: var(--gold);
+}
+
+/* Icons and avatars */
+.icon,
+.avatar {
+  background: color-mix(in srgb, var(--navy) 12%, var(--card)) !important;
+  color: var(--navy) !important;
+  border: 1px solid var(--line);
+}
+
+/* Status labels */
+.tag {
+  background: var(--card) !important;
+  color: var(--ink) !important;
+  border: 1px solid var(--line);
+}
+
+.tag.ok {
+  background: var(--green) !important;
+  color: #fff !important;
+}
+
+.tag.wait {
+  background: var(--gold) !important;
+  color: var(--ink) !important;
+}
+
+.tag.bad {
+  background: var(--red) !important;
+  color: #fff !important;
+}
+
+/* Notifications */
+.notice {
+  background: var(--card) !important;
+  color: var(--ink) !important;
+  border: 1px solid var(--line);
+}
+
+.notice.success {
+  background: color-mix(in srgb, var(--green) 16%, var(--card)) !important;
+  color: var(--ink) !important;
+}
+
+.notice.error {
+  background: color-mix(in srgb, var(--red) 16%, var(--card)) !important;
+  color: var(--ink) !important;
+}
+
+/* Borders and separators */
+hr,
+.divider,
+.card,
+.item,
+.modal,
+.field input,
+.field select,
+.field textarea {
+  border-color: var(--line);
+}
+
+/* Focus and hover */
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+.card:hover,
+.item:hover {
+  border-color: var(--gold) !important;
+}
+
+/* Price and highlights */
+.price {
+  color: var(--green) !important;
+}
+
+/* Keep brand header tied to theme */
+.top {
+  background: linear-gradient(125deg, var(--navy), var(--navy2)) !important;
+}
+
+.brand span,
+.brand-en {
+  color: var(--gold) !important;
+}
+
+@media (max-width: 600px) {
+  .tabs button {
+    white-space: nowrap;
+  }
+}
+ 
 </style>
 </head>
 <body><div id="app"><main class="wrap"><div class="empty">جاري تحميل المنصة...</div></main></div>
