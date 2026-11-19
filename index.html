@@ -88,6 +88,7 @@ hr{
   color:var(--ink);
 }
  
+
 /* WASLA - Navigation Design */
 .top .nav{
   display:flex;
@@ -102,10 +103,10 @@ hr{
   flex:0 0 auto;
   min-height:40px;
   padding:8px 17px;
-  border:1px solid #d6a64245;
+  border:1px solid color-mix(in srgb,var(--card) 35%,transparent);
   border-radius:12px;
-  background:#ffffff0d;
-  color:#e8e0d0;
+  background:color-mix(in srgb,var(--card) 12%,transparent);
+  color:var(--card);
   font-size:13px;
   font-weight:700;
   white-space:nowrap;
@@ -113,8 +114,8 @@ hr{
 }
 
 .top .nav button:hover{
-  background:#d6a64220;
-  border-color:var(--gold);
+  background:color-mix(in srgb,var(--card) 24%,transparent);
+  border-color:var(--card);
   transform:translateY(-2px);
 }
 
@@ -147,8 +148,7 @@ hr{
     padding:9px 14px;
   }
 }
-
-
+ 
 /* WASLA - Dashboard Statistics Cards */
 .grid.small > .card{
   position:relative;
