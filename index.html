@@ -669,41 +669,67 @@ if(a==="theme-reset"){
   second=hue+180;
   third=hue+155;
  }
- if(harmony==="triadic"){
-  second=hue+120;
-  third=hue+240;
- }
- if(harmony==="split"){
-  second=hue+150;
-  third=hue+210;
- }
- if(harmony==="monochrome"){
-  second=hue+8;
-  third=hue+16;
- }
+if(a==="theme-suggest"){
+ const rand=(min,max)=>min+Math.random()*(max-min);
+ const pick=arr=>arr[Math.floor(Math.random()*arr.length)];
+
+ const styles={
+  modern:{h:[185,225],sat:[48,68]},
+  minimal:{h:[205,225],sat:[12,28]},
+  luxury:{h:[265,315],sat:[35,58]},
+  corporate:{h:[205,235],sat:[38,58]},
+  nature:{h:[105,155],sat:[30,52]},
+  tech:{h:[245,285],sat:[48,72]}
+ };
+
+ const names=Object.keys(styles);
+ const style=s.themeStyle==="auto"?pick(names):s.themeStyle;
+ const cfg=styles[style]||styles.modern;
+
+ const toHex=(h,s,l)=>{
+  h=((h%360)+360)%360;
+  s/=100;l/=100;
+  const a=s*Math.min(l,1-l);
+  const f=n=>{
+   const k=(n+h/30)%12;
+   const c=l-a*Math.max(-1,Math.min(k-3,Math.min(9-k,1)));
+   return Math.round(255*c).toString(16).padStart(2,"0");
+  };
+  return "#"+f(0)+f(8)+f(4);
+ };
+
+ const hue=rand(cfg.h[0],cfg.h[1]);
+ const sat=rand(cfg.sat[0],cfg.sat[1]);
+ const light=Math.random()>.2;
 
  const bg=light
-  ?toHex(hue,rand(8,18),rand(94,98))
-  :toHex(hue,rand(12,22),rand(8,13));
+  ?toHex(hue,rand(5,13),rand(95,98))
+  :toHex(hue,rand(10,20),rand(8,12));
 
  const card=light
-  ?toHex(hue,rand(4,10),rand(98,100))
-  :toHex(hue,rand(10,18),rand(14,19));
+  ?toHex(hue,rand(2,7),rand(98,100))
+  :toHex(hue,rand(8,15),rand(14,19));
 
  const ink=light
-  ?toHex(hue,rand(12,25),rand(12,21))
-  :toHex(hue,rand(5,14),rand(91,97));
+  ?toHex(hue,rand(8,18),rand(10,18))
+  :toHex(hue,rand(5,12),rand(92,97));
 
  const navy=toHex(
   hue,
-  rand(42,65),
-  light?rand(28,42):rand(58,70)
+  sat,
+  light?rand(27,39):rand(58,70)
  );
 
+ let accentHue=hue+35;
+ if(style==="luxury")accentHue=rand(35,48);
+ if(style==="nature")accentHue=rand(35,75);
+ if(style==="tech")accentHue=hue+65;
+ if(style==="minimal")accentHue=rand(195,220);
+
  const gold=toHex(
-  harmony==="monochrome"?hue:second,
-  rand(38,62),
-  light?rand(38,53):rand(62,74)
+  accentHue,
+  style==="minimal"?rand(25,40):rand(40,65),
+  light?rand(38,50):rand(62,73)
  );
 
  s.themeDraft={bg,card,ink,navy,gold};
@@ -712,9 +738,16 @@ if(a==="theme-reset"){
   document.documentElement.style.setProperty("--"+key,value);
  });
 
- note("تم توليد ثيم جديد بنظام تناغم ألوان احترافي.","success");
+ note("تم توليد ثيم بنمط "+({
+  modern:"عصري",
+  minimal:"بسيط وهادئ",
+  luxury:"فاخر",
+  corporate:"رسمي واحترافي",
+  nature:"طبيعي",
+  tech:"تقني"
+ }[style]||"تلقائي")+" بنجاح.","success");
  return;
-  }
+}
   if(a==="logout"){await db.auth.signOut();s.user=null;s.profile=null;s.provider=null;s.mode="welcome";render();return}
   
 if(a==="forgot"){let email=document.querySelector('#login [name="email"]')?.value;if(!email)throw Error("اكتب بريدك الإلكتروني أولًا");let r=await db.auth.resetPasswordForEmail(email,{redirectTo:location.origin+"/?mode=recovery"});if(r.error)throw r.error;note("تم إرسال رابط استعادة كلمة المرور.","success");return}
