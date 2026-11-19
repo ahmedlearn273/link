@@ -184,6 +184,7 @@ hr{
 }
  
  
+
 /* WASLA - Unified Button Polish */
 .btn,
 .tabs button,
@@ -201,7 +202,7 @@ hr{
 .btn{
   padding:9px 17px;
   border:1px solid transparent;
-  box-shadow:0 2px 7px #0002;
+  box-shadow:0 2px 7px color-mix(in srgb,var(--ink) 12%,transparent);
 }
 
 .btn:not(:disabled):active,
@@ -220,12 +221,12 @@ hr{
 }
 
 .btn.gold{
-  background:linear-gradient(135deg,#e8bd58,#c7952e);
-  color:#171717;
+  background:var(--gold);
+  color:var(--ink);
 }
 
 .btn.gold:not(:disabled):hover{
-  box-shadow:0 5px 16px #d6a64245;
+  box-shadow:0 5px 16px color-mix(in srgb,var(--gold) 28%,transparent);
 }
 
 @media(max-width:600px){
