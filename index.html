@@ -444,7 +444,52 @@ hr {
     font-size:10px;
   }
 }
- 
+ /* WASLA - Premium Content Cards */
+.card,
+.item{
+  position:relative;
+  border:1px solid #d6a64235 !important;
+  border-radius:18px !important;
+  padding:17px !important;
+  background:linear-gradient(145deg,#222b35 0%,#1b2430 100%) !important;
+  box-shadow:0 5px 18px #00000020;
+  transition:transform .22s ease,
+             border-color .22s ease,
+             box-shadow .22s ease;
+}
+
+.card:hover,
+.item:hover{
+  transform:translateY(-3px);
+  border-color:#d6a64285 !important;
+  box-shadow:0 10px 25px #00000035;
+}
+
+.card h3,
+.item h3{
+  color:#f0c66c;
+  font-weight:800;
+}
+
+.card p,
+.item p{
+  line-height:1.8;
+}
+
+.card .icon{
+  border:1px solid #d6a64235;
+  border-radius:14px;
+  background:#302b22;
+  color:#e8bd58;
+}
+
+@media(max-width:600px){
+  .card,
+  .item{
+    border-radius:15px !important;
+    padding:14px !important;
+  }
+}
 </style>
 </head>
 <body><div id="app"><main class="wrap"><div class="empty">جاري تحميل المنصة...</div></main></div>
