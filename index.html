@@ -52,6 +52,46 @@ body{background:var(--bg);color:var(--ink)}
 .tag.wait{background:#40351d;color:#f2d38a}
 .tag.bad{background:#402323;color:#ffb5b5}
 .empty{border-color:var(--line)}
+/* WASLA - UI Polish */
+.btn{
+  transition:background .2s ease,transform .2s ease,box-shadow .2s ease;
+}
+.btn:not(:disabled):hover{
+  transform:translateY(-2px);
+  box-shadow:0 5px 14px #0005;
+}
+.btn.gold:hover{
+  background:#e6b94f;
+}
+.card,.item{
+  transition:border-color .2s ease,transform .2s ease,box-shadow .2s ease;
+}
+.card:hover,.item:hover{
+  border-color:#80652f;
+  box-shadow:0 5px 18px #0003;
+}
+.tabs button.active,.nav button.active{
+  background:var(--gold);
+  color:#171717;
+  border-color:var(--gold);
+}
+.field input:focus,.field select:focus,.field textarea:focus{
+  outline:none;
+  border-color:var(--gold);
+  box-shadow:0 0 0 3px #d6a64225;
+}
+button:focus-visible{
+  outline:2px solid var(--gold);
+  outline-offset:3px;
+}
+hr{
+  border:0;
+  border-top:1px solid var(--line);
+}
+::selection{
+  background:#d6a642;
+  color:#171717;
+}
 </style>
 </head>
 <body><div id="app"><main class="wrap"><div class="empty">جاري تحميل المنصة...</div></main></div>
