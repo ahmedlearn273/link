@@ -409,10 +409,22 @@ try{
  console.warn("تعذر استعادة الثيم المحلي",e);
 }
 const esc=x=>String(x??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])),fmt=x=>Number(x||0).toLocaleString("ar-SA");
-function note(x,t){s.notice=x;s.noticeType=t||"";render()}
+function note(x,t){
+ s.notice=x;
+ s.noticeType=t||"";
+ const el=document.getElementById("appNotice");
+ if(el){
+  el.textContent=x;
+  el.className="notice "+(s.noticeType==="error"?"error":s.noticeType==="success"?"success":"");
+ }else{
+  render();
+ }
+}
 function tag(x){let a={pending:["قيد المراجعة","wait"],accepted:["مقبول","ok"],in_progress:["قيد التنفيذ","wait"],completed:["مكتمل","ok"],cancelled:["ملغي","bad"],approved:["موثّق","ok"],rejected:["مرفوض","bad"]}[x]||[x||"—",""];return '<span class="tag '+a[1]+'">'+a[0]+'</span>'}
 function header(sub,nav){return '<header class="top"><div class="topline"><div><div class="brand">منصة <span>الخدمات</span></div><p>'+esc(sub||"خدمات موثوقة في مكان واحد")+'</p></div>'+(nav?'<div class="nav">'+nav+'</div>':'')+'</div></header>'}
-function msg(){return s.notice?'<div class="notice '+(s.noticeType==="error"?"error":s.noticeType==="success"?"success":"")+'">'+esc(s.notice)+'</div>':""}
+function msg(){
+ return s.notice?'<div id="appNotice" class="notice '+(s.noticeType==="error"?"error":s.noticeType==="success"?"success":"")+'">'+esc(s.notice)+'</div>':"";
+}
 function btn(a,t,k,id,extra){return '<button class="btn '+(k||"")+'" data-a="'+a+'" data-id="'+esc(id||"")+'" '+(extra||"")+'>'+t+'</button>'}
 function field(l,n,type,ph,v,req){return '<label class="field">'+l+'<input name="'+n+'" type="'+(type||"text")+'" placeholder="'+esc(ph||"")+'" value="'+esc(v||"")+'" '+(req?"required":"")+'></label>'}
 function select(l,n,opts,v){return '<label class="field">'+l+'<select name="'+n+'">'+opts.map(o=>'<option value="'+esc(o.value)+'" '+(String(o.value)===String(v)?"selected":"")+'>'+esc(o.label)+'</option>').join("")+'</select></label>'}
