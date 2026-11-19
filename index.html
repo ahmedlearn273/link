@@ -580,6 +580,80 @@ textarea:disabled{
     padding:17px !important;
   }
 }
+/* WASLA - Unified Buttons & Navigation */
+.btn,
+.tabs button,
+.top .nav button{
+  border-radius:12px;
+  font-family:inherit;
+  font-weight:700;
+  transition:transform .2s ease,
+             box-shadow .2s ease,
+             border-color .2s ease;
+}
+
+.btn:not(:disabled):hover,
+.tabs button:not(:disabled):hover,
+.top .nav button:not(:disabled):hover{
+  transform:translateY(-2px);
+  box-shadow:0 5px 14px #0003;
+}
+
+.btn:focus-visible,
+.tabs button:focus-visible,
+.top .nav button:focus-visible{
+  outline:2px solid var(--gold);
+  outline-offset:3px;
+}
+
+.tabs button{
+  padding:9px 14px;
+  border:1px solid var(--line);
+  background:#202a35;
+  color:#e8edf1;
+}
+
+.tabs button.active{
+  background:var(--gold);
+  border-color:var(--gold);
+  color:#172b38;
+}
+
+.top .nav button{
+  padding:8px 13px;
+  border:1px solid #ffffff35;
+  background:#ffffff12;
+  color:#fff;
+}
+
+.top .nav button.active{
+  background:var(--gold);
+  border-color:var(--gold);
+  color:#172b38;
+}
+
+.btn:disabled,
+.tabs button:disabled,
+.top .nav button:disabled{
+  opacity:.5;
+  cursor:not-allowed;
+  transform:none;
+  box-shadow:none;
+}
+
+@media(max-width:600px){
+  .btn{
+    min-height:42px;
+  }
+
+  .tabs{
+    gap:6px;
+  }
+
+  .tabs button{
+    padding:8px 11px;
+  }
+}
 </style>
 </head>
 <body><div id="app"><main class="wrap"><div class="empty">جاري تحميل المنصة...</div></main></div>
