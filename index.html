@@ -749,7 +749,7 @@ if(a==="forgot"){let email=document.querySelector('#login [name="email"]')?.valu
 }
 app.addEventListener("click",e=>{let b=e.target.closest("[data-a]");if(!b)return;if(b.dataset.a==="close"&&e.target!==b&&e.target.closest(".modal"))return;action(b.dataset.a,b.dataset.id,b)});
 app.addEventListener("submit",submit);
-app.addEventListener("change",e=>{if(e.target.name==="account_type"){s.type=e.target.value;const extra=document.getElementById("providerExtra");if(extra)extra.classList.toggle("hidden",s.type!=="provider")}});
+app.addEventListener("change",e=>{if(e.target.dataset.themeStyle!==undefined){s.themeStyle=e.target.value;return}if(e.target.name==="account_type"){s.type=e.target.value;const extra=document.getElementById("providerExtra");if(extra)extra.classList.toggle("hidden",s.type!=="provider")}});
 app.addEventListener("input",e=>{if(e.target.dataset.themeKey){s.themeDraft[e.target.dataset.themeKey]=e.target.value;return}if(e.target.id==="search"){s.filter=e.target.value;let pos=e.target.selectionStart;render();let n=document.getElementById("search");if(n){n.focus();n.setSelectionRange(pos,pos)}}});
 
 
