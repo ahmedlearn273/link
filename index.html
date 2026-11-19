@@ -390,6 +390,24 @@ if(!window.supabase?.createClient){
 }
 const db=window.supabase.createClient("https://hnnomaiohwyuqpfzlcol.supabase.co","sb_publishable_I4IfNkGvcxDxzz3xdGeKxw_TAzgc3ck");
 const s={user:null,profile:null,provider:null,staffAccess:null,themeDraft:{bg:"#111111",card:"#1d1d1d",ink:"#f5f1e8",muted:"#aaa18f",line:"#393328",navy:"#171717",navy2:"#29231a",gold:"#d6a642",green:"#16845d",red:"#c44545"},themeStyle:"auto",mode:"welcome",type:"customer",tab:"home",cats:[],services:[],providers:[],requests:[],offers:[],apps:[],allRequests:[],adminProfiles:[],staff:[],staffCandidates:[],chats:[],messages:[],activeChat:null,notice:"",noticeType:"",modal:null,filter:""};
+
+try{
+ const savedTheme=JSON.parse(localStorage.getItem("wasla_theme_draft")||"null");
+ if(savedTheme&&savedTheme.themeDraft&&typeof savedTheme.themeDraft==="object"){
+  Object.keys(s.themeDraft).forEach(key=>{
+   const value=savedTheme.themeDraft[key];
+   if(typeof value==="string"&&/^#[0-9a-fA-F]{6}$/.test(value)){
+    s.themeDraft[key]=value;
+    document.documentElement.style.setProperty("--"+key,value);
+   }
+  });
+  if(["auto","modern","minimal","luxury","corporate","nature","tech"].includes(savedTheme.themeStyle)){
+   s.themeStyle=savedTheme.themeStyle;
+  }
+ }
+}catch(e){
+ console.warn("تعذر استعادة الثيم المحلي",e);
+}
 const esc=x=>String(x??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])),fmt=x=>Number(x||0).toLocaleString("ar-SA");
 function note(x,t){s.notice=x;s.noticeType=t||"";render()}
 function tag(x){let a={pending:["قيد المراجعة","wait"],accepted:["مقبول","ok"],in_progress:["قيد التنفيذ","wait"],completed:["مكتمل","ok"],cancelled:["ملغي","bad"],approved:["موثّق","ok"],rejected:["مرفوض","bad"]}[x]||[x||"—",""];return '<span class="tag '+a[1]+'">'+a[0]+'</span>'}
