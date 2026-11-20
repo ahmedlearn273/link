@@ -1248,7 +1248,7 @@ function note(x,t){
 function tag(x){let a={pending:["قيد المراجعة","wait"],accepted:["مقبول","ok"],in_progress:["قيد التنفيذ","wait"],completed:["مكتمل","ok"],cancelled:["ملغي","bad"],approved:["موثّق","ok"],rejected:["مرفوض","bad"]}[x]||[x||"—",""];return '<span class="tag '+a[1]+'">'+a[0]+'</span>'}
 
 function header(sub,nav){
- return '<header class="top"><div class="topline"><div class="brand-lockup"><svg class="wasla-mark" viewBox="0 0 64 64" aria-label="Wasla"><path d="M7 17 L19 46 L31 25 L43 46 L57 17" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 39 C17 57 46 9 59 27" fill="none" stroke="#D6A642" stroke-width="4" stroke-linecap="round"/><circle cx="55" cy="15" r="5" fill="#D6A642"/></svg><div class="brand-copy"><div class="brand">وصلة</div><div class="brand-en">WASLA</div><div class="brand-tagline">كل خدمة تبدأ باتصال</div></div></div>'+(nav?'<div class="nav">'+nav+'</div>':'')+'</div>'+(sub?'<div class="header-sub">'+esc(sub)+'</div>':'')+'</header>';
+ return '<header class="top"><div class="topline"><div class="brand-lockup"><svg class="wasla-mark" viewBox="0 0 64 64" aria-label="Wasla"><path d="M7 17 L19 46 L31 25 L43 46 L57 17" fill="none" stroke="var(--ink)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 39 C17 57 46 9 59 27" fill="none" stroke="#D6A642" stroke-width="4" stroke-linecap="round"/><circle cx="55" cy="15" r="5" fill="#D6A642"/></svg><div class="brand-copy"><div class="brand">وصلة</div><div class="brand-en">WASLA</div><div class="brand-tagline">كل خدمة تبدأ باتصال</div></div></div>'+(nav?'<div class="nav">'+nav+'</div>':'')+'</div>'+(sub?'<div class="header-sub">'+esc(sub)+'</div>':'')+'</header>';
 }
       
 function msg(){
