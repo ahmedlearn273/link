@@ -1201,6 +1201,73 @@ a:focus-visible{
   outline:2px solid var(--button-active-bg) !important;
   outline-offset:3px;
 }
+/* WASLA - Welcome Screen */
+.wasla-welcome{
+  min-height:100vh;
+  min-height:100dvh;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding:30px 20px;
+  text-align:center;
+  overflow:hidden;
+  background:
+    radial-gradient(ellipse at center,var(--navy2),var(--bg) 75%);
+  color:var(--ink);
+}
+.wasla-welcome .welcome-logo{
+  width:110px;
+  height:110px;
+  margin-bottom:20px;
+  animation:waslaWelcomeLogo 1.4s ease both;
+  filter:drop-shadow(0 0 18px color-mix(in srgb,var(--gold) 35%,transparent));
+}
+.wasla-welcome .welcome-name{
+  margin:0;
+  color:var(--ink);
+  font:800 clamp(38px,8vw,58px) Tajawal,sans-serif;
+  animation:waslaWelcomeText 1.2s ease both;
+}
+.wasla-welcome .welcome-en{
+  color:var(--gold);
+  font:700 12px Arial,sans-serif;
+  letter-spacing:6px;
+  margin-top:3px;
+}
+.wasla-welcome .welcome-tagline{
+  color:var(--muted);
+  margin:12px 0 30px;
+  font-size:15px;
+  animation:waslaWelcomeText 1.5s ease both;
+}
+.wasla-welcome .welcome-actions{
+  display:flex;
+  justify-content:center;
+  flex-wrap:wrap;
+  gap:12px;
+  animation:waslaWelcomeText 1.8s ease both;
+}
+.wasla-welcome .welcome-actions .btn{
+  min-width:155px;
+  min-height:48px;
+}
+@keyframes waslaWelcomeLogo{
+  from{opacity:0;transform:translateY(-20px) scale(.75)}
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
+@keyframes waslaWelcomeText{
+  from{opacity:0;transform:translateY(14px)}
+  to{opacity:1;transform:translateY(0)}
+}
+@media(prefers-reduced-motion:reduce){
+  .wasla-welcome .welcome-logo,
+  .wasla-welcome .welcome-name,
+  .wasla-welcome .welcome-tagline,
+  .wasla-welcome .welcome-actions{
+    animation:none;
+  }
+}
 </style>
 </head>
 <body><div id="app"><main class="wrap"><div class="empty">جاري تحميل المنصة...</div></main></div>
