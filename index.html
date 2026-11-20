@@ -1590,7 +1590,26 @@ function landing(){
 
  return '<style>'+
  '.wasla-landing{padding-bottom:38px;overflow:hidden}'+
-'.wasla-landing .wl-service-card{padding:0!important;overflow:hidden;display:flex;flex-direction:column;gap:0}'+
+'.wasla-landing .wl-provider-card{padding:0!important;overflow:hidden;display:flex;flex-direction:column}'+
+'.wasla-landing .wl-provider-cover{height:125px;position:relative;display:grid;place-items:center;overflow:hidden;background:linear-gradient(135deg,var(--navy),var(--navy2))}'+
+'.wasla-landing .wl-provider-orbit{position:absolute;width:170px;height:170px;border:1px solid color-mix(in srgb,var(--gold) 35%,transparent);border-radius:50%;box-shadow:0 0 0 22px color-mix(in srgb,var(--gold) 8%,transparent)}'+
+'.wasla-landing .wl-provider-avatar{width:76px;height:76px;border-radius:50%;display:grid;place-items:center;position:relative;z-index:1;background:var(--card);border:3px solid var(--gold);color:var(--ink);font:800 32px Tajawal;box-shadow:0 5px 18px #0004}'+
+'.wasla-landing .wl-provider-verified{position:absolute;top:10px;inset-inline-start:10px;padding:5px 9px;border-radius:20px;background:var(--card);color:var(--green);font-size:10px;font-weight:700}'+
+'.wasla-landing .wl-provider-info{padding:14px;display:flex;flex-direction:column;flex:1}'+
+'.wasla-landing .wl-provider-name-row{display:flex;align-items:center;justify-content:space-between;gap:7px}'+
+'.wasla-landing .wl-provider-name-row h3{margin:0;font:800 16px Tajawal;color:var(--ink)}'+
+'.wasla-landing .wl-provider-status{font-size:10px;white-space:nowrap;font-weight:700}'+
+'.wasla-landing .wl-provider-status:before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;margin-inline-end:4px;background:var(--muted)}'+
+'.wasla-landing .wl-provider-status.is-available{color:var(--green)}'+
+'.wasla-landing .wl-provider-status.is-available:before{background:var(--green)}'+
+'.wasla-landing .wl-provider-location{font-size:11px!important;color:var(--muted);margin:5px 0!important}'+
+'.wasla-landing .wl-provider-bio{font-size:12px!important;color:var(--muted);margin:5px 0!important;line-height:1.8}'+
+'.wasla-landing .wl-provider-stats{display:flex;justify-content:space-between;gap:6px;padding:10px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);font-size:11px;color:var(--ink)}'+
+'.wasla-landing .wl-provider-stats small{color:var(--muted)}'+
+'.wasla-landing .wl-provider-services{font-size:10px;color:var(--muted);padding-top:9px;line-height:1.8}'+
+'.wasla-landing .wl-provider-action{margin-top:12px}'+
+'.wasla-landing .wl-provider-action .btn{width:100%}'+
+  '.wasla-landing .wl-service-card{padding:0!important;overflow:hidden;display:flex;flex-direction:column;gap:0}'+
 '.wasla-landing .wl-service-image{height:180px;position:relative;overflow:hidden;background:linear-gradient(135deg,var(--line),var(--bg));border-bottom:1px solid var(--line)}'+
 '.wasla-landing .wl-service-image img{width:100%;height:100%;display:block;object-fit:cover;transition:transform .35s ease}'+
 '.wasla-landing .wl-service-card:hover .wl-service-image img{transform:scale(1.045)}'+
