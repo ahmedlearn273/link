@@ -1431,11 +1431,14 @@ function providerCard(p){const names=(p.provider_services||[]).filter(x=>x.is_ac
 function landing(){return header("اكتشف الخدمات ومزوّدي الخدمة المعتمدين")+'<main class="wrap"><section class="hero"><h1>الخدمة المناسبة، من الشخص المناسب.</h1><p>تصفّح الخدمات، قارن مزوّدي الخدمة، واطلب الخدمة بسهولة.</p>'+btn("showauth","ابدأ الآن","gold")+'</section><section class="section"><h2>التصنيفات</h2><div class="grid small">'+(s.cats.slice(0,8).map(c=>'<div class="card"><div class="icon">'+esc(c.icon||"✦")+'</div><b>'+esc(c.name_ar)+'</b></div>').join("")||empty("لا توجد تصنيفات"))+'</div></section><section class="section"><h2>خدمات مختارة</h2><div class="grid">'+(s.services.slice(0,8).map(serviceCard).join("")||empty("لا توجد خدمات"))+'</div></section><section class="section"><h2>مزوّدو خدمة معتمدون</h2><div class="grid">'+(s.providers.slice(0,4).map(providerCard).join("")||empty("لا يوجد مزوّدون معتمدون بعد"))+'</div></section></main>'}
 function welcomeView(){
  return '<main class="wasla-welcome">'+
- '<svg class="welcome-logo" viewBox="0 0 64 64" aria-label="Wasla">'+
+ '<div class="welcome-wordmark">'+
+ '<svg class="welcome-logo" viewBox="0 0 64 64" aria-label="W">'+
  '<path d="M7 17 L19 46 L31 25 L43 46 L57 17" fill="none" stroke="var(--ink)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>'+
  '<path d="M5 39 C17 57 46 9 59 27" fill="none" stroke="#D6A642" stroke-width="4" stroke-linecap="round"/>'+
  '<circle cx="55" cy="15" r="5" fill="#D6A642"/>'+
  '</svg>'+
+ '<span class="welcome-elcome">elcome</span>'+
+ '</div>'+
  '<h1 class="welcome-name">وصلة</h1>'+
  '<div class="welcome-en">WASLA</div>'+
  '<p class="welcome-tagline">كل خدمة تبدأ باتصال</p>'+
@@ -1445,7 +1448,7 @@ function welcomeView(){
  btn("showexplore","استكشف الخدمات","light")+
  '</div>'+
  '</main>';
-}
+ }
       function requestList(provider){
  return s.requests.map(q=>{const own=q.provider_id===s.provider?.id;let a="";
  if(provider&&q.status==="pending"&&!q.provider_id)a=btn("claim","قبول الطلب","green",q.id);
