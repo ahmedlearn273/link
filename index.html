@@ -1499,7 +1499,13 @@ function authView(){
  '<button class="btn gold">حفظ كلمة المرور</button>'+
  '</form></div></div></main>';
       }
-function serviceCard(x){return '<article class="card"><div class="icon">✦</div><h3>'+esc(x.name_ar)+'</h3><p>'+esc(x.description||"خدمة متاحة")+'</p>'+btn("request","اطلب الخدمة","gold",x.id)+'</article>'}
+function serviceCard(x){
+ const image=x.image_url&&String(x.image_url).trim();
+ return '<article class="card wl-service-card">'+
+  '<div class="wl-service-image">'+(image?'<img src="'+esc(image)+'" alt="'+esc(x.name_ar)+'" loading="lazy">':'<div class="wl-service-image-empty"><span>صورة الخدمة</span></div>')+'</div>'+
+  '<div class="wl-service-info"><h3>'+esc(x.name_ar)+'</h3><p>'+esc(x.description||"خدمة متاحة للطلب")+'</p>'+
+  '<div class="wl-service-action">'+btn("request","اطلب الخدمة","gold",x.id)+'</div></div></article>';
+}
 function providerCard(p){const names=(p.provider_services||[]).filter(x=>x.is_active).map(x=>x.services?.name_ar).filter(Boolean).join("، ");return '<article class="card"><div class="provider"><div class="avatar">'+esc((p.display_name||"م").slice(0,1))+'</div><div><h3>'+esc(p.display_name||"مزوّد خدمة")+'</h3><p>'+esc([p.city,p.country].filter(Boolean).join("، "))+'</p></div></div><p>'+esc(p.bio||"مزوّد معتمد")+'</p><p>خبرة '+fmt(p.experience_years)+' سنة · ⭐ '+fmt(p.average_rating)+' ('+fmt(p.total_reviews)+')</p><p>'+esc(names)+'</p>'+btn("request","اطلب من هذا المزوّد","gold",p.id)+'</article>'}
 function landing(){
  const selected=s.cats.find(c=>c.id===s.selectedCategory);
