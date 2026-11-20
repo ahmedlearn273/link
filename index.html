@@ -1404,7 +1404,7 @@ function field(l,n,type,ph,v,req){return '<label class="field">'+l+'<input name=
 function select(l,n,opts,v){return '<label class="field">'+l+'<select name="'+n+'">'+opts.map(o=>'<option value="'+esc(o.value)+'" '+(String(o.value)===String(v)?"selected":"")+'>'+esc(o.label)+'</option>').join("")+'</select></label>'}
 function empty(x){return '<div class="empty">'+esc(x)+'</div>'}
 async function publicData(includeInactive=false){
- let serviceQuery=db.from("services").select("id,category_id,name_ar,description,is_active").order("sort_order");
+ let serviceQuery=db.from("services").select("id,category_id,name_ar,description,image_url,is_active").order("sort_order");
  if(!includeInactive)serviceQuery=serviceQuery.eq("is_active",true);
  const [c,v,p]=await Promise.all([
   (()=>{let q=db.from("categories").select("id,name_ar,slug,icon,description,is_active").order("sort_order");return includeInactive?q:q.eq("is_active",true)})(),
