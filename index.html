@@ -1163,11 +1163,16 @@ body,
 
 /* Header navigation */
 .top .nav button{
-  background:color-mix(in srgb,var(--card) 16%,transparent) !important;
+  background:var(--card) !important;
   color:var(--ink) !important;
-  border-color:color-mix(in srgb,var(--gold) 45%,transparent) !important;
+  border:1px solid var(--line) !important;
 }
 
+.top .nav button.active{
+  background:var(--navy) !important;
+  color:var(--card) !important;
+  border-color:var(--navy) !important;
+}
 .top .nav button.active{
   background:var(--gold) !important;
   color:var(--ink) !important;
