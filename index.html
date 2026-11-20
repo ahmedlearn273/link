@@ -1238,36 +1238,43 @@ a:focus-visible{
   filter:drop-shadow(0 0 18px color-mix(in srgb,var(--gold) 35%,transparent));
   animation:welcomeLogoCenter 5.85s cubic-bezier(.2,.75,.25,1) forwards;
 }
-
 .wasla-welcome .welcome-elcome{
   position:absolute;
   left:calc(50% - 60px);
   top:50%;
-  display:inline-flex;
+  display:flex;
+  flex-direction:row;
   align-items:center;
+  justify-content:flex-start;
+  gap:3px;
   transform:translateY(-50%);
   white-space:nowrap;
+  direction:ltr;
   color:var(--ink);
   font-family:Tajawal,sans-serif;
   font-size:clamp(48px,10vw,72px);
   font-weight:800;
-  letter-spacing:0px;
+  letter-spacing:0;
   transform-origin:left center;
   animation:welcomeTextClose 5.85s ease-in forwards;
 }
 
 .wasla-welcome .welcome-elcome span{
-  display:inline-block;
+  display:block;
+  position:relative;
+  flex:0 0 auto;
+  min-width:.55em;
+  text-align:center;
+  line-height:1.2;
   animation:welcomeLetterWave 1.35s ease-in-out infinite;
 }
 
 .wasla-welcome .welcome-elcome span:nth-child(1){animation-delay:0s}
-.wasla-welcome .welcome-elcome span:nth-child(2){animation-delay:.10s}
-.wasla-welcome .welcome-elcome span:nth-child(3){animation-delay:.20s}
-.wasla-welcome .welcome-elcome span:nth-child(4){animation-delay:.30s}
-.wasla-welcome .welcome-elcome span:nth-child(5){animation-delay:.40s}
-.wasla-welcome .welcome-elcome span:nth-child(6){animation-delay:.50s}
-
+.wasla-welcome .welcome-elcome span:nth-child(2){animation-delay:.12s}
+.wasla-welcome .welcome-elcome span:nth-child(3){animation-delay:.24s}
+.wasla-welcome .welcome-elcome span:nth-child(4){animation-delay:.36s}
+.wasla-welcome .welcome-elcome span:nth-child(5){animation-delay:.48s}
+.wasla-welcome .welcome-elcome span:nth-child(6){animation-delay:.60s}
 .wasla-welcome .welcome-name{
   margin:0;
   color:var(--ink);
