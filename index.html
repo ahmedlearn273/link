@@ -1501,8 +1501,66 @@ function authView(){
       }
 function serviceCard(x){return '<article class="card"><div class="icon">✦</div><h3>'+esc(x.name_ar)+'</h3><p>'+esc(x.description||"خدمة متاحة")+'</p>'+btn("request","اطلب الخدمة","gold",x.id)+'</article>'}
 function providerCard(p){const names=(p.provider_services||[]).filter(x=>x.is_active).map(x=>x.services?.name_ar).filter(Boolean).join("، ");return '<article class="card"><div class="provider"><div class="avatar">'+esc((p.display_name||"م").slice(0,1))+'</div><div><h3>'+esc(p.display_name||"مزوّد خدمة")+'</h3><p>'+esc([p.city,p.country].filter(Boolean).join("، "))+'</p></div></div><p>'+esc(p.bio||"مزوّد معتمد")+'</p><p>خبرة '+fmt(p.experience_years)+' سنة · ⭐ '+fmt(p.average_rating)+' ('+fmt(p.total_reviews)+')</p><p>'+esc(names)+'</p>'+btn("request","اطلب من هذا المزوّد","gold",p.id)+'</article>'}
-function landing(){return header("اكتشف الخدمات ومزوّدي الخدمة المعتمدين")+'<main class="wrap"><section class="hero"><h1>الخدمة المناسبة، من الشخص المناسب.</h1><p>تصفّح الخدمات، قارن مزوّدي الخدمة، واطلب الخدمة بسهولة.</p>'+btn("showauth","ابدأ الآن","gold")+'</section><section class="section"><h2>التصنيفات</h2><div class="grid small">'+(s.cats.slice(0,8).map(c=>'<div class="card"><div class="icon">'+esc(c.icon||"✦")+'</div><b>'+esc(c.name_ar)+'</b></div>').join("")||empty("لا توجد تصنيفات"))+'</div></section><section class="section"><h2>خدمات مختارة</h2><div class="grid">'+(s.services.slice(0,8).map(serviceCard).join("")||empty("لا توجد خدمات"))+'</div></section><section class="section"><h2>مزوّدو خدمة معتمدون</h2><div class="grid">'+(s.providers.slice(0,4).map(providerCard).join("")||empty("لا يوجد مزوّدون معتمدون بعد"))+'</div></section></main>'}
-function welcomeView(){
+function landing(){
+ const categories=s.cats.slice(0,8).map(c=>'<article class="wl-category"><span class="wl-category-icon">'+esc(c.icon||"✦")+'</span><b>'+esc(c.name_ar)+'</b></article>').join("")||empty("لا توجد تصنيفات");
+ const services=s.services.slice(0,6).map(serviceCard).join("")||empty("لا توجد خدمات متاحة حاليًا");
+ const providers=s.providers.slice(0,4).map(providerCard).join("")||empty("لا يوجد مزوّدون معتمدون بعد");
+ return '<style>'+
+ '.wasla-landing{padding-bottom:35px}'+
+ '.wasla-landing .wl-hero{position:relative;overflow:hidden;margin:22px 0 30px;padding:clamp(25px,5vw,48px);border:1px solid var(--line);border-radius:25px;background:var(--card);color:var(--ink)}'+
+ '.wasla-landing .wl-hero:before{content:"";position:absolute;width:210px;height:210px;border-radius:50%;border:35px solid var(--line);opacity:.55;left:-65px;top:-95px;pointer-events:none}'+
+ '.wasla-landing .wl-hero-content{position:relative;z-index:1;max-width:650px}'+
+ '.wasla-landing .wl-eyebrow{display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:30px;background:var(--line);color:var(--ink);font-size:12px;font-weight:700;margin-bottom:15px}'+
+ '.wasla-landing .wl-dot{width:8px;height:8px;border-radius:50%;background:var(--green)}'+
+ '.wasla-landing .wl-hero h1{font:800 clamp(29px,5vw,46px) Tajawal,sans-serif;line-height:1.35;margin:0 0 12px;max-width:580px}'+
+ '.wasla-landing .wl-hero h1 span{color:var(--gold)}'+
+ '.wasla-landing .wl-hero p{color:var(--muted);font-size:15px;max-width:490px;margin:0 0 22px}'+
+ '.wasla-landing .wl-hero-actions{display:flex;gap:10px;flex-wrap:wrap}'+
+ '.wasla-landing .wl-hero-actions .btn{min-width:145px;padding:12px 18px;border-radius:12px}'+
+ '.wasla-landing .wl-section{margin:30px 0}'+
+ '.wasla-landing .wl-heading{display:flex;align-items:end;justify-content:space-between;gap:12px;margin-bottom:15px}'+
+ '.wasla-landing .wl-heading h2{font:800 22px Tajawal,sans-serif;color:var(--ink);margin:0}'+
+ '.wasla-landing .wl-heading p{font-size:12px;color:var(--muted);margin:3px 0 0}'+
+ '.wasla-landing .wl-categories{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px}'+
+ '.wasla-landing .wl-category{min-height:105px;padding:15px 10px;border:1px solid var(--line);border-radius:16px;background:var(--card);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;text-align:center;color:var(--ink)}'+
+ '.wasla-landing .wl-category-icon{width:39px;height:39px;border-radius:13px;background:var(--line);display:grid;place-items:center;font-size:19px;color:var(--gold)}'+
+ '.wasla-landing .wl-category b{font-size:13px}'+
+ '.wasla-landing .wl-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}'+
+ '.wasla-landing .wl-cards>.card{min-width:0;transition:transform .2s,border-color .2s}'+
+ '.wasla-landing .wl-cards>.card:active{transform:scale(.985)}'+
+ '.wasla-landing .wl-trust{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:32px 0}'+
+ '.wasla-landing .wl-trust-item{padding:16px;border:1px solid var(--line);border-radius:15px;background:var(--card);text-align:center}'+
+ '.wasla-landing .wl-trust-item strong{display:block;font:800 22px Tajawal;color:var(--gold)}'+
+ '.wasla-landing .wl-trust-item span{font-size:12px;color:var(--muted)}'+
+ '.wasla-landing .wl-bottom{margin-top:35px;padding:22px;border:1px solid var(--line);border-radius:18px;background:var(--card);display:flex;align-items:center;justify-content:space-between;gap:15px}'+
+ '.wasla-landing .wl-bottom h2{font:800 20px Tajawal;margin:0 0 5px;color:var(--ink)}'+
+ '.wasla-landing .wl-bottom p{margin:0;color:var(--muted);font-size:13px}'+
+ '@media(max-width:700px){.wasla-landing .wl-cards{grid-template-columns:repeat(2,minmax(0,1fr))}.wasla-landing .wl-categories{grid-template-columns:repeat(4,minmax(0,1fr))}}'+
+ '@media(max-width:480px){.wasla-landing .wl-categories{grid-template-columns:repeat(2,minmax(0,1fr))}.wasla-landing .wl-trust{gap:7px}.wasla-landing .wl-trust-item{padding:12px 5px}.wasla-landing .wl-bottom{align-items:flex-start;flex-direction:column}.wasla-landing .wl-hero{border-radius:19px}}'+
+ '</style>'+
+ header("اكتشف الخدمات ومزوّدي الخدمة المعتمدين")+
+ '<main class="wrap wasla-landing">'+
+ '<section class="wl-hero"><div class="wl-hero-content">'+
+ '<div class="wl-eyebrow"><span class="wl-dot"></span> منصتك للخدمات في مكان واحد</div>'+
+ '<h1>كل ما تحتاجه من خدمات، <span>تجده عبر وصلة.</span></h1>'+
+ '<p>اكتشف خدمات متنوعة، وتعرّف على مزوّدي الخدمة المعتمدين، واختر الشخص المناسب لاحتياجك بكل سهولة.</p>'+
+ '<div class="wl-hero-actions">'+btn("showauth","ابدأ رحلتك الآن","gold")+btn("showauth","تصفّح الخدمات","light")+'</div>'+
+ '</div></section>'+
+ '<section class="wl-section"><div class="wl-heading"><div><h2>تصفّح حسب التصنيف</h2><p>اختار المجال المناسب لاحتياجك</p></div></div>'+
+ '<div class="wl-categories">'+categories+'</div></section>'+
+ '<section class="wl-section"><div class="wl-heading"><div><h2>خدمات مختارة</h2><p>خدمات متاحة لتلبية احتياجاتك</p></div></div>'+
+ '<div class="wl-cards">'+services+'</div></section>'+
+ '<section class="wl-trust">'+
+ '<div class="wl-trust-item"><strong>سهولة</strong><span>في الوصول للخدمة</span></div>'+
+ '<div class="wl-trust-item"><strong>تنوع</strong><span>في الخدمات المتاحة</span></div>'+
+ '<div class="wl-trust-item"><strong>ثقة</strong><span>في مزوّدي الخدمة</span></div>'+
+ '</section>'+
+ '<section class="wl-section"><div class="wl-heading"><div><h2>مزوّدو خدمة معتمدون</h2><p>تعرّف على أصحاب الخبرة</p></div></div>'+
+ '<div class="wl-cards">'+providers+'</div></section>'+
+ '<section class="wl-bottom"><div><h2>جاهز تبدأ؟</h2><p>أنشئ حسابك وابدأ رحلتك مع وصلة.</p></div>'+btn("showauth","انضم إلى وصلة","gold")+'</section>'+
+ '</main>';
+  }
+      function welcomeView(){
  return '<main class="wasla-welcome">'+
  '<div class="welcome-wordmark">'+
  '<svg class="welcome-logo" viewBox="0 0 64 64" aria-label="W">'+
