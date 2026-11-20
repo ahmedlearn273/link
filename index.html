@@ -1508,58 +1508,71 @@ function landing(){
  return '<style>'+
  '.wasla-landing{padding-bottom:35px}'+
  '.wasla-landing .wl-hero{position:relative;overflow:hidden;margin:22px 0 30px;padding:clamp(25px,5vw,48px);border:1px solid var(--line);border-radius:25px;background:var(--card);color:var(--ink)}'+
- '.wasla-landing .wl-hero:before{content:"";position:absolute;width:210px;height:210px;border-radius:50%;border:35px solid var(--line);opacity:.55;left:-65px;top:-95px;pointer-events:none}'+
- '.wasla-landing .wl-hero-content{position:relative;z-index:1;max-width:650px}'+
- '.wasla-landing .wl-eyebrow{display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:30px;background:var(--line);color:var(--ink);font-size:12px;font-weight:700;margin-bottom:15px}'+
- '.wasla-landing .wl-dot{width:8px;height:8px;border-radius:50%;background:var(--green)}'+
- '.wasla-landing .wl-hero h1{font:800 clamp(29px,5vw,46px) Tajawal,sans-serif;line-height:1.35;margin:0 0 12px;max-width:580px}'+
+
+function landing(){
+ const categories=s.cats.slice(0,6).map(c=>'<article class="wl-category"><span class="wl-category-icon">'+esc(c.icon||"✦")+'</span><b>'+esc(c.name_ar)+'</b></article>').join("")||empty("لا توجد أقسام متاحة حاليًا");
+ const services=s.services.slice(0,4).map(serviceCard).join("")||empty("لا توجد خدمات متاحة حاليًا");
+ const providers=s.providers.slice().sort((a,b)=>Number(b.average_rating||0)-Number(a.average_rating||0)).slice(0,3).map(providerCard).join("")||empty("لا يوجد مزوّدون متاحون حاليًا");
+
+ return '<style>'+
+ '.wasla-landing{padding-bottom:30px}'+
+ '.wasla-landing .wl-hero{position:relative;overflow:hidden;margin:18px 0 22px;padding:clamp(22px,4vw,38px);border:1px solid var(--line);border-radius:22px;background:var(--card);color:var(--ink)}'+
+ '.wasla-landing .wl-hero-content{position:relative;z-index:1;max-width:620px}'+
+ '.wasla-landing .wl-eyebrow{display:inline-flex;align-items:center;gap:8px;padding:6px 11px;border-radius:30px;background:var(--line);color:var(--ink);font-size:12px;font-weight:700;margin-bottom:12px}'+
+ '.wasla-landing .wl-dot{width:7px;height:7px;border-radius:50%;background:var(--green)}'+
+ '.wasla-landing .wl-hero h1{font:800 clamp(27px,5vw,42px) Tajawal,sans-serif;line-height:1.35;margin:0 0 10px}'+
  '.wasla-landing .wl-hero h1 span{color:var(--gold)}'+
- '.wasla-landing .wl-hero p{color:var(--muted);font-size:15px;max-width:490px;margin:0 0 22px}'+
- '.wasla-landing .wl-hero-actions{display:flex;gap:10px;flex-wrap:wrap}'+
- '.wasla-landing .wl-hero-actions .btn{min-width:145px;padding:12px 18px;border-radius:12px}'+
- '.wasla-landing .wl-section{margin:30px 0}'+
- '.wasla-landing .wl-heading{display:flex;align-items:end;justify-content:space-between;gap:12px;margin-bottom:15px}'+
- '.wasla-landing .wl-heading h2{font:800 22px Tajawal,sans-serif;color:var(--ink);margin:0}'+
+ '.wasla-landing .wl-hero p{color:var(--muted);font-size:14px;max-width:470px;margin:0 0 18px}'+
+ '.wasla-landing .wl-hero-actions{display:flex;gap:9px;flex-wrap:wrap}'+
+ '.wasla-landing .wl-hero-actions .btn{min-width:135px;padding:11px 17px;border-radius:11px}'+
+ '.wasla-landing .wl-promo{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:18px 0 27px;padding:17px 20px;border:1px solid var(--line);border-radius:16px;background:var(--line)}'+
+ '.wasla-landing .wl-promo h3{font:800 17px Tajawal;margin:0 0 4px;color:var(--ink)}'+
+ '.wasla-landing .wl-promo p{font-size:12px;color:var(--muted);margin:0}'+
+ '.wasla-landing .wl-promo-mark{font-size:27px;color:var(--gold);flex-shrink:0}'+
+ '.wasla-landing .wl-section{margin:27px 0}'+
+ '.wasla-landing .wl-heading{display:flex;align-items:end;justify-content:space-between;gap:10px;margin-bottom:13px}'+
+ '.wasla-landing .wl-heading h2{font:800 21px Tajawal,sans-serif;color:var(--ink);margin:0}'+
  '.wasla-landing .wl-heading p{font-size:12px;color:var(--muted);margin:3px 0 0}'+
- '.wasla-landing .wl-categories{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px}'+
- '.wasla-landing .wl-category{min-height:105px;padding:15px 10px;border:1px solid var(--line);border-radius:16px;background:var(--card);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;text-align:center;color:var(--ink)}'+
- '.wasla-landing .wl-category-icon{width:39px;height:39px;border-radius:13px;background:var(--line);display:grid;place-items:center;font-size:19px;color:var(--gold)}'+
- '.wasla-landing .wl-category b{font-size:13px}'+
- '.wasla-landing .wl-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}'+
+ '.wasla-landing .wl-categories{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}'+
+ '.wasla-landing .wl-category{min-height:91px;padding:12px 8px;border:1px solid var(--line);border-radius:14px;background:var(--card);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;color:var(--ink)}'+
+ '.wasla-landing .wl-category-icon{width:36px;height:36px;border-radius:12px;background:var(--line);display:grid;place-items:center;font-size:18px;color:var(--gold)}'+
+ '.wasla-landing .wl-category b{font-size:12px}'+
+ '.wasla-landing .wl-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}'+
  '.wasla-landing .wl-cards>.card{min-width:0;transition:transform .2s,border-color .2s}'+
  '.wasla-landing .wl-cards>.card:active{transform:scale(.985)}'+
- '.wasla-landing .wl-trust{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:32px 0}'+
- '.wasla-landing .wl-trust-item{padding:16px;border:1px solid var(--line);border-radius:15px;background:var(--card);text-align:center}'+
- '.wasla-landing .wl-trust-item strong{display:block;font:800 22px Tajawal;color:var(--gold)}'+
- '.wasla-landing .wl-trust-item span{font-size:12px;color:var(--muted)}'+
- '.wasla-landing .wl-bottom{margin-top:35px;padding:22px;border:1px solid var(--line);border-radius:18px;background:var(--card);display:flex;align-items:center;justify-content:space-between;gap:15px}'+
- '.wasla-landing .wl-bottom h2{font:800 20px Tajawal;margin:0 0 5px;color:var(--ink)}'+
- '.wasla-landing .wl-bottom p{margin:0;color:var(--muted);font-size:13px}'+
- '@media(max-width:700px){.wasla-landing .wl-cards{grid-template-columns:repeat(2,minmax(0,1fr))}.wasla-landing .wl-categories{grid-template-columns:repeat(4,minmax(0,1fr))}}'+
- '@media(max-width:480px){.wasla-landing .wl-categories{grid-template-columns:repeat(2,minmax(0,1fr))}.wasla-landing .wl-trust{gap:7px}.wasla-landing .wl-trust-item{padding:12px 5px}.wasla-landing .wl-bottom{align-items:flex-start;flex-direction:column}.wasla-landing .wl-hero{border-radius:19px}}'+
+ '.wasla-landing .wl-trust{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:27px 0}'+
+ '.wasla-landing .wl-trust-item{padding:13px 7px;border:1px solid var(--line);border-radius:13px;background:var(--card);text-align:center}'+
+ '.wasla-landing .wl-trust-item strong{display:block;font:800 17px Tajawal;color:var(--gold)}'+
+ '.wasla-landing .wl-trust-item span{font-size:11px;color:var(--muted)}'+
+ '.wasla-landing .wl-bottom{margin-top:28px;padding:20px;border:1px solid var(--line);border-radius:17px;background:var(--card);display:flex;align-items:center;justify-content:space-between;gap:13px}'+
+ '.wasla-landing .wl-bottom h2{font:800 19px Tajawal;margin:0 0 5px;color:var(--ink)}'+
+ '.wasla-landing .wl-bottom p{margin:0;color:var(--muted);font-size:12px}'+
+ '@media(max-width:480px){.wasla-landing .wl-categories{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.wasla-landing .wl-category{min-height:83px;padding:9px 4px}.wasla-landing .wl-cards{gap:8px}.wasla-landing .wl-promo{padding:14px}.wasla-landing .wl-bottom{align-items:flex-start;flex-direction:column}.wasla-landing .wl-hero{border-radius:17px}}'+
  '</style>'+
  header("اكتشف الخدمات ومزوّدي الخدمة المعتمدين")+
  '<main class="wrap wasla-landing">'+
  '<section class="wl-hero"><div class="wl-hero-content">'+
  '<div class="wl-eyebrow"><span class="wl-dot"></span> منصتك للخدمات في مكان واحد</div>'+
- '<h1>كل ما تحتاجه من خدمات، <span>تجده عبر وصلة.</span></h1>'+
- '<p>اكتشف خدمات متنوعة، وتعرّف على مزوّدي الخدمة المعتمدين، واختر الشخص المناسب لاحتياجك بكل سهولة.</p>'+
- '<div class="wl-hero-actions">'+btn("showauth","ابدأ رحلتك الآن","gold")+btn("showauth","تصفّح الخدمات","light")+'</div>'+
+ '<h1>الخدمة المناسبة، <span>من الشخص المناسب.</span></h1>'+
+ '<p>اختار احتياجك، تصفّح الأقسام، وقارن بين مزوّدي الخدمة المعتمدين بسهولة.</p>'+
+ '<div class="wl-hero-actions">'+btn("showauth","ابدأ الآن","gold")+'</div>'+
  '</div></section>'+
- '<section class="wl-section"><div class="wl-heading"><div><h2>تصفّح حسب التصنيف</h2><p>اختار المجال المناسب لاحتياجك</p></div></div>'+
+ '<section class="wl-promo"><div><h3>اكتشف خدمات جديدة تناسب احتياجك</h3><p>تصفّح الأقسام وتعرّف على الخدمات المتاحة عبر وصلة.</p></div><span class="wl-promo-mark">✦</span></section>'+
+ '<section class="wl-section"><div class="wl-heading"><div><h2>الأقسام</h2><p>اختار القسم المناسب ليظهر لك ما بداخله</p></div></div>'+
  '<div class="wl-categories">'+categories+'</div></section>'+
- '<section class="wl-section"><div class="wl-heading"><div><h2>خدمات مختارة</h2><p>خدمات متاحة لتلبية احتياجاتك</p></div></div>'+
+ '<section class="wl-section"><div class="wl-heading"><div><h2>خدمات مختارة</h2><p>مجموعة من الخدمات المتاحة</p></div></div>'+
  '<div class="wl-cards">'+services+'</div></section>'+
  '<section class="wl-trust">'+
  '<div class="wl-trust-item"><strong>سهولة</strong><span>في الوصول للخدمة</span></div>'+
- '<div class="wl-trust-item"><strong>تنوع</strong><span>في الخدمات المتاحة</span></div>'+
- '<div class="wl-trust-item"><strong>ثقة</strong><span>في مزوّدي الخدمة</span></div>'+
+ '<div class="wl-trust-item"><strong>تنوع</strong><span>في الاختيارات</span></div>'+
+ '<div class="wl-trust-item"><strong>ثقة</strong><span>في التعامل</span></div>'+
  '</section>'+
- '<section class="wl-section"><div class="wl-heading"><div><h2>مزوّدو خدمة معتمدون</h2><p>تعرّف على أصحاب الخبرة</p></div></div>'+
+ '<section class="wl-section"><div class="wl-heading"><div><h2>أفضل مزوّدي الخدمة</h2><p>مرتّبون حسب التقييمات المتاحة</p></div></div>'+
  '<div class="wl-cards">'+providers+'</div></section>'+
- '<section class="wl-bottom"><div><h2>جاهز تبدأ؟</h2><p>أنشئ حسابك وابدأ رحلتك مع وصلة.</p></div>'+btn("showauth","انضم إلى وصلة","gold")+'</section>'+
+ '<section class="wl-bottom"><div><h2>جاهز تبدأ مع وصلة؟</h2><p>أنشئ حسابك واكتشف عالمًا من الخدمات.</p></div>'+btn("showauth","انضم إلى وصلة","gold")+'</section>'+
  '</main>';
-  }
+}
+ 
       function welcomeView(){
  return '<main class="wasla-welcome">'+
  '<div class="welcome-wordmark">'+
