@@ -984,12 +984,20 @@ input[type="radio"] {
   accent-color: var(--gold);
 }
 
-/* Icons and avatars */
+/* WASLA - Dynamic Icons & Avatars */
 .icon,
-.avatar {
-  background: color-mix(in srgb, var(--navy) 12%, var(--card)) !important;
-  color: var(--ink) !important;
-  border: 1px solid var(--line);
+.avatar{
+  background:color-mix(in srgb,var(--navy2) 14%,var(--card)) !important;
+  color:var(--ink) !important;
+  border:1px solid var(--line) !important;
+}
+
+.icon{
+  border-radius:14px;
+}
+
+.avatar{
+  border-radius:50%;
 }
 /* WASLA - Dynamic Status Labels & Notifications */
 .tag{
