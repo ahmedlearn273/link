@@ -1225,11 +1225,18 @@ a:focus-visible{
 }
 .wasla-welcome .welcome-wordmark{
   display:flex;
+  direction:ltr;
+  flex-direction:row;
   align-items:center;
   justify-content:center;
   gap:0;
   transform-origin:center center;
   animation:welcomeWordOrbit 2.8s ease-in-out both;
+}
+.wasla-welcome .welcome-wordmark .welcome-logo{
+  flex-shrink:0;
+  margin:0;
+  animation:waslaLogoFloat 3.2s ease-in-out 2.8s infinite;
 }
 .wasla-welcome .welcome-wordmark .welcome-logo{
   flex-shrink:0;
@@ -1285,10 +1292,11 @@ a:focus-visible{
   75%{transform:translateY(-9px) rotate(3deg)}
 }
 @keyframes welcomeWordOrbit{
-  0%{transform:rotate(-12deg) scale(.85)}
-  45%{transform:rotate(360deg) scale(1.12)}
-  75%{transform:rotate(360deg) scale(1)}
-  100%{transform:rotate(360deg) scale(1)}
+  0%{transform:translate(0,0) rotate(0deg) scale(.8)}
+  25%{transform:translate(26px,-24px) rotate(90deg) scale(1.05)}
+  50%{transform:translate(0,-42px) rotate(180deg) scale(1.12)}
+  75%{transform:translate(-26px,-24px) rotate(270deg) scale(1.05)}
+  100%{transform:translate(0,0) rotate(360deg) scale(1)}
 }
 @keyframes welcomeTextFade{
   0%,55%{opacity:1;transform:translateX(0)}
