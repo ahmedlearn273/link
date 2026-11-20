@@ -1083,6 +1083,86 @@ body,
   background: var(--bg) !important;
   color: var(--ink) !important;
 }
+/* WASLA - Final Theme Buttons & Tabs */
+:root{
+  --button-bg:var(--navy);
+  --button-text:var(--card);
+  --button-active-bg:var(--gold);
+  --button-active-text:var(--ink);
+}
+
+/* Main buttons */
+.btn{
+  background:var(--button-bg) !important;
+  color:var(--button-text) !important;
+  border-color:var(--button-bg) !important;
+}
+
+/* Button variants */
+.btn.gold{
+  background:var(--gold) !important;
+  color:var(--ink) !important;
+  border-color:var(--gold) !important;
+}
+
+.btn.light{
+  background:var(--card) !important;
+  color:var(--ink) !important;
+  border-color:var(--line) !important;
+}
+
+.btn.green{
+  background:var(--green) !important;
+  color:var(--card) !important;
+  border-color:var(--green) !important;
+}
+
+.btn.danger{
+  background:var(--red) !important;
+  color:var(--card) !important;
+  border-color:var(--red) !important;
+}
+
+/* Internal tabs */
+.tabs button{
+  background:var(--card) !important;
+  color:var(--ink) !important;
+  border:1px solid var(--line) !important;
+}
+
+.tabs button.active,
+.tabs button[aria-selected="true"]{
+  background:var(--button-active-bg) !important;
+  color:var(--button-active-text) !important;
+  border-color:var(--button-active-bg) !important;
+}
+
+/* Header navigation */
+.top .nav button{
+  background:color-mix(in srgb,var(--card) 16%,transparent) !important;
+  color:var(--ink) !important;
+  border-color:color-mix(in srgb,var(--gold) 45%,transparent) !important;
+}
+
+.top .nav button.active{
+  background:var(--gold) !important;
+  color:var(--ink) !important;
+  border-color:var(--gold) !important;
+}
+
+/* Hover and disabled states */
+.btn:not(:disabled):hover,
+.tabs button:not(:disabled):hover,
+.top .nav button:not(:disabled):hover{
+  filter:brightness(1.08);
+}
+
+.btn:disabled,
+.tabs button:disabled,
+.top .nav button:disabled{
+  opacity:.5;
+  cursor:not-allowed;
+}
 </style>
 </head>
 <body><div id="app"><main class="wrap"><div class="empty">جاري تحميل المنصة...</div></main></div>
