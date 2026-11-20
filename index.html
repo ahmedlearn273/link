@@ -1267,53 +1267,156 @@ a:focus-visible{
 .wasla-welcome .welcome-tagline{
   color:var(--muted);
   margin:12px 0 30px;
-  font-size:15px;
-  animation:waslaWelcomeText 1.5s ease both;
+
+/* WASLA - Welcome Screen */
+.wasla-welcome{
+  min-height:100vh;
+  min-height:100dvh;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding:30px 20px;
+  text-align:center;
+  overflow:hidden;
+  background:radial-gradient(ellipse at center,var(--navy2),var(--bg) 75%);
+  color:var(--ink);
 }
+
+.wasla-welcome .welcome-wordmark{
+  position:relative;
+  display:block;
+  width:100%;
+  height:130px;
+  flex:0 0 130px;
+  direction:ltr;
+  overflow:visible;
+}
+
+.wasla-welcome .welcome-logo{
+  position:absolute;
+  left:50%;
+  top:50%;
+  width:110px;
+  height:110px;
+  margin:0;
+  transform:translate(calc(-50% - 120px),-50%);
+  filter:drop-shadow(0 0 18px color-mix(in srgb,var(--gold) 35%,transparent));
+  animation:welcomeLogoCenter 5.85s cubic-bezier(.2,.75,.25,1) forwards;
+}
+
+.wasla-welcome .welcome-elcome{
+  position:absolute;
+  left:calc(50% - 60px);
+  top:50%;
+  display:inline-flex;
+  align-items:center;
+  transform:translateY(-50%);
+  white-space:nowrap;
+  color:var(--ink);
+  font-family:Tajawal,sans-serif;
+  font-size:clamp(48px,10vw,72px);
+  font-weight:800;
+  letter-spacing:-4px;
+  transform-origin:left center;
+  animation:welcomeTextClose 5.85s ease-in forwards;
+}
+
+.wasla-welcome .welcome-elcome span{
+  display:inline-block;
+  animation:welcomeLetterWave 1.35s ease-in-out infinite;
+}
+
+.wasla-welcome .welcome-elcome span:nth-child(1){animation-delay:0s}
+.wasla-welcome .welcome-elcome span:nth-child(2){animation-delay:.10s}
+.wasla-welcome .welcome-elcome span:nth-child(3){animation-delay:.20s}
+.wasla-welcome .welcome-elcome span:nth-child(4){animation-delay:.30s}
+.wasla-welcome .welcome-elcome span:nth-child(5){animation-delay:.40s}
+.wasla-welcome .welcome-elcome span:nth-child(6){animation-delay:.50s}
+
+.wasla-welcome .welcome-name{
+  margin:0;
+  color:var(--ink);
+  font:800 clamp(38px,8vw,58px) Tajawal,sans-serif;
+  opacity:0;
+  animation:waslaWelcomeText .7s ease 5.05s forwards;
+}
+
+.wasla-welcome .welcome-en{
+  color:var(--gold);
+  font:700 12px Arial,sans-serif;
+  letter-spacing:6px;
+  margin-top:3px;
+  opacity:0;
+  animation:waslaWelcomeText .7s ease 5.35s forwards;
+}
+
+.wasla-welcome .welcome-tagline{
+  color:var(--muted);
+  margin:12px 0 30px;
+  font-size:15px;
+  opacity:0;
+  animation:waslaWelcomeText .7s ease 5.55s forwards;
+}
+
 .wasla-welcome .welcome-actions{
   display:flex;
   justify-content:center;
   flex-wrap:wrap;
   gap:12px;
-  animation:waslaWelcomeText 1.8s ease both;
+  opacity:0;
+  animation:waslaWelcomeText .7s ease 5.75s forwards;
 }
+
 .wasla-welcome .welcome-actions .btn{
   min-width:155px;
   min-height:48px;
 }
-@keyframes waslaWelcomeLogo{
-  from{opacity:0;transform:translateY(-20px) scale(.75)}
-  to{opacity:1;transform:translateY(0) scale(1)}
+
+@keyframes welcomeLetterWave{
+  0%,100%{transform:translateY(0)}
+  25%{transform:translateY(-13px)}
+  50%{transform:translateY(2px)}
+  75%{transform:translateY(-7px)}
 }
-@keyframes waslaLogoFloat{
-  0%,100%{transform:translateY(0) rotate(0deg)}
-  25%{transform:translateY(-9px) rotate(-3deg)}
-  50%{transform:translateY(-3px) rotate(0deg)}
-  75%{transform:translateY(-9px) rotate(3deg)}
+
+@keyframes welcomeTextClose{
+  0%,82%{
+    opacity:1;
+    transform:translateY(-50%) scaleX(1);
+    max-width:400px;
+  }
+  100%{
+    opacity:0;
+    transform:translateY(-50%) scaleX(0);
+    max-width:0;
+  }
 }
-@keyframes welcomeWordOrbit{
-  0%{transform:translate(0,0) rotate(0deg) scale(.8)}
-  25%{transform:translate(26px,-24px) rotate(90deg) scale(1.05)}
-  50%{transform:translate(0,-42px) rotate(180deg) scale(1.12)}
-  75%{transform:translate(-26px,-24px) rotate(270deg) scale(1.05)}
-  100%{transform:translate(0,0) rotate(360deg) scale(1)}
+
+@keyframes welcomeLogoCenter{
+  0%,82%{transform:translate(calc(-50% - 120px),-50%)}
+  100%{transform:translate(-50%,-50%)}
 }
-@keyframes welcomeTextFade{
-  0%,55%{opacity:1;transform:translateX(0)}
-  80%{opacity:.5;transform:translateX(15px)}
-  100%{opacity:0;transform:translateX(35px)}
-}
- @keyframes waslaWelcomeText{
+
+@keyframes waslaWelcomeText{
   from{opacity:0;transform:translateY(14px)}
   to{opacity:1;transform:translateY(0)}
 }
+
 @media(prefers-reduced-motion:reduce){
+  .wasla-welcome .welcome-logo,
+  .wasla-welcome .welcome-elcome,
+  .wasla-welcome .welcome-elcome span,
   .wasla-welcome .welcome-name,
+  .wasla-welcome .welcome-en,
   .wasla-welcome .welcome-tagline,
   .wasla-welcome .welcome-actions{
     animation:none;
+    opacity:1;
+    transform:none;
   }
 }
+ 
 </style>
 </head>
 <body><div id="app"><main class="wrap"><div class="empty">جاري تحميل المنصة...</div></main></div>
