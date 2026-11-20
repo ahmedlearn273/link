@@ -493,10 +493,10 @@ hr {
   min-height:46px;
   margin-top:7px;
   padding:11px 14px;
-  border:1px solid #d6a64245;
+  border:1px solid var(--line);
   border-radius:13px;
-  background:linear-gradient(145deg,#252d37,#1d2530);
-  color:#f5f1e8;
+  background:var(--bg);
+  color:var(--ink);
   font-family:inherit;
   font-size:14px;
   transition:border-color .2s ease,
@@ -511,7 +511,7 @@ hr {
 
 .field input::placeholder,
 .field textarea::placeholder{
-  color:#9da8b5;
+  color:var(--muted);
   opacity:1;
 }
 
@@ -520,13 +520,12 @@ hr {
 .field textarea:focus{
   outline:none;
   border-color:var(--gold);
-  background:#252d37;
-  box-shadow:0 0 0 3px #d6a64225;
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--gold) 15%,transparent);
 }
 
 .field select option{
-  background:#1d2530;
-  color:#f5f1e8;
+  background:var(--card);
+  color:var(--ink);
 }
 
 input[type="checkbox"],
@@ -551,8 +550,8 @@ textarea:disabled{
 }
 
 .modal{
-  border:1px solid #d6a64245;
-  box-shadow:0 18px 55px #0007;
+  border:1px solid var(--line);
+  box-shadow:0 18px 55px color-mix(in srgb,var(--ink) 35%,transparent);
 }
 
 @media(max-width:600px){
