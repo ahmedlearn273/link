@@ -1532,8 +1532,47 @@ function serviceCard(x){
   '</div>'+
  '</article>';
 }
-      
-function providerCard(p){const names=(p.provider_services||[]).filter(x=>x.is_active).map(x=>x.services?.name_ar).filter(Boolean).join("، ");return '<article class="card"><div class="provider"><div class="avatar">'+esc((p.display_name||"م").slice(0,1))+'</div><div><h3>'+esc(p.display_name||"مزوّد خدمة")+'</h3><p>'+esc([p.city,p.country].filter(Boolean).join("، "))+'</p></div></div><p>'+esc(p.bio||"مزوّد معتمد")+'</p><p>خبرة '+fmt(p.experience_years)+' سنة · ⭐ '+fmt(p.average_rating)+' ('+fmt(p.total_reviews)+')</p><p>'+esc(names)+'</p>'+btn("request","اطلب من هذا المزوّد","gold",p.id)+'</article>'}
+   function providerCard(p){
+ const names=(p.provider_services||[])
+  .filter(x=>x.is_active)
+  .map(x=>x.services?.name_ar)
+  .filter(Boolean)
+  .slice(0,3)
+  .join(" · ");
+
+ const initial=esc((p.display_name||"م").trim().slice(0,1));
+ const available=!!p.is_available;
+
+ return '<article class="card wl-provider-card">'+
+  '<div class="wl-provider-cover">'+
+   '<div class="wl-provider-orbit"></div>'+
+   '<div class="wl-provider-avatar">'+initial+'</div>'+
+   '<span class="wl-provider-verified">✓ مزوّد معتمد</span>'+
+  '</div>'+
+  '<div class="wl-provider-info">'+
+   '<div class="wl-provider-name-row">'+
+    '<h3>'+esc(p.display_name||"مزوّد خدمة")+'</h3>'+
+    '<span class="wl-provider-status '+(available?'is-available':'is-busy')+'">'+
+     (available?'متاح الآن':'غير متاح')+
+    '</span>'+
+   '</div>'+
+   '<p class="wl-provider-location">'+
+    '⌖ '+esc([p.city,p.country].filter(Boolean).join("، ")||"مصر")+
+   '</p>'+
+   '<p class="wl-provider-bio">'+
+    esc(p.bio||"مزوّد خدمة معتمد على وصلة")+
+   '</p>'+
+   '<div class="wl-provider-stats">'+
+    '<span>⭐ '+fmt(p.average_rating||0)+' <small>('+fmt(p.total_reviews||0)+' تقييم)</small></span>'+
+    '<span>خبرة '+fmt(p.experience_years||0)+' سنة</span>'+
+   '</div>'+
+   (names?'<div class="wl-provider-services">'+esc(names)+'</div>':'')+
+   '<div class="wl-provider-action">'+
+    btn("request","اطلب الخدمة","gold",p.id)+
+   '</div>'+
+  '</div>'+
+ '</article>';
+   }   
 function landing(){
  const selected=s.cats.find(c=>c.id===s.selectedCategory);
  const categories=s.cats.map(c=>
