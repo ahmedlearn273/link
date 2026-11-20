@@ -1923,7 +1923,82 @@ if(m.type==="addstaff"){
   app.insertAdjacentHTML("beforeend",'<div class="modalback" data-a="close"><div class="modal" onclick="event.stopPropagation()">'+btn("close","إغلاق","light")+'<hr>'+c+'</div></div>');
  }
 }
-function vals(f){return Object.fromEntries(new FormData(f).entries())}
+
+async function prepareServiceImage(file){
+ if(!file)return null;
+
+ if(!["image/jpeg","image/png","image/webp"].includes(file.type))
+  throw Error("اختار صورة JPG أو PNG أو WebP");
+
+ if(typeof createImageBitmap!=="function")
+  throw Error("المتصفح لا يدعم ضغط الصور. جرّب Chrome محدث.");
+
+ const bitmap=await createImageBitmap(file);
+ const scale=Math.min(1,1600/Math.max(bitmap.width,bitmap.height));
+
+ const canvas=document.createElement("canvas");
+ canvas.width=Math.max(1,Math.round(bitmap.width*scale));
+ canvas.height=Math.max(1,Math.round(bitmap.height*scale));
+
+ const ctx=canvas.getContext("2d");
+ ctx.drawImage(bitmap,0,0,canvas.width,canvas.height);
+ bitmap.close?.();
+
+ const blob=await new Promise(resolve=>
+  canvas.toBlob(resolve,"image/webp",.82)
+ );
+
+ if(!blob)throw Error("تعذّر تجهيز الصورة");
+ if(blob.size>4*1024*1024)
+  throw Error("حجم الصورة بعد الضغط أكبر من 4 ميجابايت");
+
+ return new File([blob],"service-"+Date.now()+".webp",{
+  type:"image/webp"
+ });
+}
+
+async function saveServiceImage(serviceId,file,oldUrl){
+ const imageFile=await prepareServiceImage(file);
+ if(!imageFile)return null;
+
+ const path="services/"+serviceId+"/"+Date.now()+"-"+Math.random().toString(36).slice(2)+".webp";
+ const bucket=db.storage.from("service-images");
+
+ const uploaded=await bucket.upload(path,imageFile,{
+  contentType:"image/webp",
+  cacheControl:"31536000",
+  upsert:false
+ });
+
+ if(uploaded.error)throw uploaded.error;
+
+ const publicUrl=bucket.getPublicUrl(path).data.publicUrl;
+
+ const updated=await db.from("services")
+  .update({image_url:publicUrl})
+  .eq("id",serviceId);
+
+ if(updated.error){
+  await bucket.remove([path]);
+  throw updated.error;
+ }
+
+ const marker="/storage/v1/object/public/service-images/";
+
+ if(oldUrl&&String(oldUrl).includes(marker)){
+  const oldPath=decodeURIComponent(String(oldUrl).split(marker).pop());
+
+  if(oldPath.startsWith("services/")&&oldPath!==path)
+   await bucket.remove([oldPath]);
+ }
+
+ return publicUrl;
+}
+
+function vals(f){
+ return Object.fromEntries(new FormData(f).entries())
+}
+      
 async function submit(e){
  const f=e.target;if(!f.id)return;e.preventDefault();
  try{
