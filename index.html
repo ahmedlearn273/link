@@ -1284,6 +1284,17 @@ a:focus-visible{
   50%{transform:translateY(-3px) rotate(0deg)}
   75%{transform:translateY(-9px) rotate(3deg)}
 }
+@keyframes welcomeWordOrbit{
+  0%{transform:rotate(-12deg) scale(.85)}
+  45%{transform:rotate(360deg) scale(1.12)}
+  75%{transform:rotate(360deg) scale(1)}
+  100%{transform:rotate(360deg) scale(1)}
+}
+@keyframes welcomeTextFade{
+  0%,55%{opacity:1;transform:translateX(0)}
+  80%{opacity:.5;transform:translateX(15px)}
+  100%{opacity:0;transform:translateX(35px)}
+}
  @keyframes waslaWelcomeText{
   from{opacity:0;transform:translateY(14px)}
   to{opacity:1;transform:translateY(0)}
