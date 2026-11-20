@@ -1723,7 +1723,8 @@ if(f.id==="addStaffForm"){
 async function action(a,id,b){
  try{
   if(a==="showauth"){s.mode="login";render();return}
-if(a==="mode"){s.mode=id;s.notice="";render();return}
+if(a==="showexplore"){s.mode="explore";render();return}
+  if(a==="mode"){s.mode=id;s.notice="";render();return}
 if(a==="tab"){s.tab=id;render();return}
 if(a==="theme-save-local"){
  localStorage.setItem("wasla_theme_draft",JSON.stringify({themeDraft:s.themeDraft,themeStyle:s.themeStyle}));
