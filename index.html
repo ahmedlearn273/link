@@ -364,8 +364,9 @@ hr {
 .top{
   padding:20px max(18px,calc((100% - 1080px)/2));
   border-radius:0 0 22px 22px;
-  background:linear-gradient(125deg,#102b3b 0%,#173e55 65%,#102b3b 100%);
-  box-shadow:0 8px 24px #07192320;
+  background:linear-gradient(125deg,var(--card) 0%,var(--bg) 100%);
+  border-bottom:1px solid var(--line);
+  box-shadow:0 8px 24px color-mix(in srgb,var(--ink) 12%,transparent);
 }
 .topline{
   align-items:center;
@@ -389,21 +390,21 @@ hr {
 }
 .brand{
   font:800 30px Tajawal,sans-serif;
-  color:#fff;
+  color:var(--ink);
 }
 .brand-en{
-  color:#D6A642;
+  color:var(--gold);
   font:700 11px Arial,sans-serif;
   letter-spacing:4px;
   margin-top:3px;
 }
 .brand-tagline{
-  color:#d9e3e9;
+  color:var(--muted);
   font-size:11px;
   margin-top:5px;
 }
 .header-sub{
-  color:#c5d5df;
+  color:var(--muted);
   font-size:13px;
   margin-top:14px;
 }
