@@ -2082,6 +2082,7 @@ async function action(a,id,b){
  try{
   if(a==="showauth"){s.mode="login";render();return}
 if(a==="showexplore"){s.mode="explore";render();return}
+if(a==="showadmin"){s.mode="app";s.tab="home";render();return}
   if(a==="mode"){s.mode=id;s.notice="";render();return}
 if(a==="tab"){s.tab=id;render();return}
 if(a==="category-open"){s.selectedCategory=id;render();return}
