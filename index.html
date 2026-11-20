@@ -1045,34 +1045,38 @@ input[type="radio"] {
   border-color:var(--red) !important;
 }
 
-/* Borders and separators */
+/* WASLA - Dynamic Borders, Separators & Prices */
 hr,
-.divider,
+.divider{
+  border:0;
+  border-top:1px solid var(--line);
+}
+
 .card,
 .item,
 .modal,
 .field input,
 .field select,
-.field textarea {
-  border-color: var(--line);
-}
-
-/* Focus and hover */
-button:focus-visible,
-input:focus-visible,
-select:focus-visible,
-textarea:focus-visible {
-  outline: 2px solid var(--navy2);
-  outline-offset: 2px;
+.field textarea{
+  border-color:var(--line) !important;
 }
 
 .card:hover,
-.item:hover {
-  border-color: var(--navy2) !important;
+.item:hover{
+  border-color:var(--gold) !important;
 }
-/* Price and highlights */
-.price {
-  color: var(--green) !important;
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible{
+  outline:2px solid var(--gold);
+  outline-offset:2px;
+}
+
+.price{
+  color:var(--green) !important;
+  font-weight:800;
 }
 
 /* Keep brand header tied to theme */
