@@ -1581,10 +1581,11 @@ function landing(){
   '<b>'+esc(c.name_ar)+'</b>'+
   '<small>'+fmt(s.services.filter(x=>x.category_id===c.id).length)+' خدمة</small></button>'
  ).join("")||empty("لا توجد أقسام متاحة حاليًا");
-
- const shown=selected?s.services.filter(x=>x.category_id===selected.id):s.services.slice(0,6);
- const services=shown.map(serviceCard).join("")||empty("لا توجد خدمات في هذا القسم حاليًا");
- const providers=s.providers.slice()
+const query=(s.filter||"").trim().toLowerCase();
+ const shown=(selected?s.services.filter(x=>x.category_id===selected.id):s.services.slice(0,6))
+  .filter(x=>!query||[x.name_ar,x.name_en,x.description].some(v=>String(v||"").toLowerCase().includes(query)));
+ const services=shown.map(serviceCard).join("")||empty("لا توجد خدمات مطابقة لبحثك حاليًا");
+  const providers=s.providers.slice()
   .sort((a,b)=>Number(b.average_rating||0)-Number(a.average_rating||0))
   .slice(0,4).map(providerCard).join("")||empty("لا يوجد مزوّدون معتمدون حاليًا");
 
