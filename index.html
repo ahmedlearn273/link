@@ -1874,7 +1874,9 @@ async function action(a,id,b){
 if(a==="showexplore"){s.mode="explore";render();return}
   if(a==="mode"){s.mode=id;s.notice="";render();return}
 if(a==="tab"){s.tab=id;render();return}
-if(a==="theme-save-local"){
+if(a==="category-open"){s.selectedCategory=id;render();return}
+if(a==="category-back"){s.selectedCategory=null;render();return}
+  if(a==="theme-save-local"){
  localStorage.setItem("wasla_theme_draft",JSON.stringify({themeDraft:s.themeDraft,themeStyle:s.themeStyle}));
  note("تم حفظ الثيم على هذا الجهاز.","success");
  return;
