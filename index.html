@@ -1524,7 +1524,17 @@ function landing(){
 
  return '<style>'+
  '.wasla-landing{padding-bottom:38px;overflow:hidden}'+
- '.wasla-landing .wl-hero{position:relative;overflow:hidden;margin:18px 0 25px;min-height:245px;padding:clamp(24px,5vw,42px);border:1px solid var(--line);border-radius:24px;background:linear-gradient(125deg,var(--navy),var(--navy2) 60%,var(--card));color:var(--ink);display:flex;align-items:center}'+
+'.wasla-landing .wl-service-card{padding:0!important;overflow:hidden;display:flex;flex-direction:column;gap:0}'+
+'.wasla-landing .wl-service-image{height:180px;position:relative;overflow:hidden;background:linear-gradient(135deg,var(--line),var(--bg));border-bottom:1px solid var(--line)}'+
+'.wasla-landing .wl-service-image img{width:100%;height:100%;display:block;object-fit:cover;transition:transform .35s ease}'+
+'.wasla-landing .wl-service-card:hover .wl-service-image img{transform:scale(1.045)}'+
+'.wasla-landing .wl-service-image-empty{height:100%;display:grid;place-items:center;color:var(--muted);font-size:12px;background:linear-gradient(135deg,var(--bg),var(--card))}'+
+'.wasla-landing .wl-service-info{padding:15px;display:flex;flex:1;flex-direction:column}'+
+'.wasla-landing .wl-service-info h3{margin:0 0 5px;font:800 17px Tajawal;color:var(--ink)}'+
+'.wasla-landing .wl-service-info p{margin:0;color:var(--muted);font-size:12px;line-height:1.8;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}'+
+'.wasla-landing .wl-service-action{margin-top:auto;padding-top:13px}'+
+'.wasla-landing .wl-service-action .btn{width:100%}'+
+  '.wasla-landing .wl-hero{position:relative;overflow:hidden;margin:18px 0 25px;min-height:245px;padding:clamp(24px,5vw,42px);border:1px solid var(--line);border-radius:24px;background:linear-gradient(125deg,var(--navy),var(--navy2) 60%,var(--card));color:var(--ink);display:flex;align-items:center}'+
  '.wasla-landing .wl-hero:after{content:"";position:absolute;width:260px;height:260px;inset-inline-end:-75px;top:-100px;border-radius:50%;background:radial-gradient(circle,var(--gold),transparent 68%);opacity:.2}'+
  '.wasla-landing .wl-hero-content{position:relative;z-index:1;max-width:590px}'+
  '.wasla-landing .wl-eyebrow{display:inline-block;padding:7px 12px;border-radius:30px;background:var(--line);color:var(--gold);font-size:12px;margin-bottom:13px}'+
