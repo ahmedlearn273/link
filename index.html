@@ -1462,7 +1462,7 @@ await auditEvent("ACCOUNT_SESSION_LOADED","profiles",u.id,"success",{
  s.provider=pp||null;
 s.staffAccess=null;
 await publicData(p.role==="admin"||p.role==="owner"||p.role==="staff");
-s.requests=[];s.offers=[];s.apps=[];s.allRequests=[];s.adminProfiles=[];s.chats=[];s.messages=[];s.activeChat=null;
+s.requests=[];s.offers=[];s.apps=[];s.allRequests=[];s.adminProfiles=[];s.chats=[];s.messages=[];s.activeChat=null;s.auditLogs=[];
 
 if(p.role==="staff"){
  const {data:staffAccess,error:staffError}=await db.from("staff_permissions").select("permissions,is_active").eq("user_id",u.id).maybeSingle();
