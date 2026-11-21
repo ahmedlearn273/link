@@ -1845,7 +1845,7 @@ function render(){
    if(s.mode==="recovery"){app.innerHTML=recoveryView();return}
 
 if(s.mode==="explore"){
- app.innerHTML=(s.profile?.role==="admin"?'<main class="wrap" style="padding-bottom:0">'+btn("showadmin","العودة إلى لوحة الإدارة","light")+'</main>':'')+landing();
+app.innerHTML=(s.profile?.role==="admin"?'<main class="wrap" style="padding:8px 16px 0">'+btn("showadmin","العودة إلى لوحة الإدارة","light")+'</main>':'')+landing();
  return;
 }
  
