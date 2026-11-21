@@ -2140,27 +2140,16 @@ async function submit(e){
    return;
   }
 
-  if(f.id==="login"){
+if(f.id==="login"){
  let v=vals(f);
- let r=await db.auth.signInWithPassword({email:v.email.trim(),password:v.password});
+ let r=await db.auth.signInWithPassword({
+  email:v.email.trim(),
+  password:v.password
+ });
  if(r.error)throw r.error;
  await loadUser(r.data.user);
-await auditEvent("USER_LOGIN","application",r.data.user.id);
-  }
-
- try{
-  if(!s.user)return;
-  const {error}=await db.rpc("record_audit_event",{
-   p_action:action,
-   p_entity_table:entityTable,
-   p_entity_id:entityId?String(entityId):null,
-   p_result:result,
-   p_metadata:metadata
-  });
-  if(error)console.warn("Audit log failed:",error.message);
- }catch(e){
-  console.warn("Audit log failed:",e);
- }
+ await auditEvent("USER_LOGIN","application",r.data.user.id);
+ return;
 }
   if(f.id==="signup"){let v=vals(f);if(v.password.length<8)throw Error("كلمة المرور يجب ألا تقل عن 8 أحرف");let r=await db.auth.signUp({email:v.email.trim(),password:v.password,options:{data:{full_name:v.full_name,phone:v.phone||null,country:v.country,city:v.city,account_type:v.account_type,experience_years:v.experience_years||0,bio:v.bio||"",service_area:v.service_area||""}}});if(r.error)throw r.error;if(r.data.session){await loadUser(r.data.user);note("تم إنشاء الحساب.","success")}else{s.mode="login";note("تم إنشاء الحساب. راجع بريدك لتأكيده ثم سجّل الدخول.","success")}return}
   if(f.id==="requestForm"){let v=vals(f),r=await db.rpc("create_service_request",{p_service_id:v.service_id,p_title:v.title,p_description:v.description||null,p_country:v.country,p_city:v.city,p_address:v.address,p_budget:v.budget?Number(v.budget):null,p_provider_id:v.provider_id||null});if(r.error)throw r.error;s.modal=null;await loadUser(s.user);note("تم إرسال طلب الخدمة.","success");return}
