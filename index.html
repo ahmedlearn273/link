@@ -1451,7 +1451,15 @@ async function loadUser(u){
   return;
  }
  const m=u.user_metadata||{},patch={};["full_name","phone","country","city","address"].forEach(k=>{if(!p[k]&&m[k])patch[k]=m[k]});
- if(Object.keys(patch).length){await db.from("profiles").update(patch).eq("id",u.id);Object.assign(p,patch)}
+ if(Object.keys(patch).length){
+ const {error:profileUpdateError}=await db.rpc("update_own_profile",{p_patch:patch});
+ if(profileUpdateError){
+  console.error(profileUpdateError);
+  note("تعذّر تحديث بعض بيانات الحساب تلقائيًا.","error");
+ }else{
+  Object.assign(p,patch);
+ }
+ }
  s.profile=p;
 await auditEvent("ACCOUNT_SESSION_LOADED","profiles",u.id,"success",{
  role:p.role
