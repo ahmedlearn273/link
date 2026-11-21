@@ -1937,21 +1937,26 @@ if(m.type==="addstaff"){
  '</form>';
 }
   
- if(m.type==="customerDetails"){
+ 
+if(m.type==="customerDetails"){
  const x=s.customers.find(y=>y.id===m.userId);
  if(!x)throw Error("العميل غير موجود");
  const orders=s.allRequests.filter(q=>q.customer_id===x.id);
- c='<h3>ملف العميل</h3>'+
- '<div class="item"><b>'+esc(x.full_name||"عميل بدون اسم")+'</b>'+
- '<p>'+esc(x.phone||"لا يوجد رقم هاتف")+'</p>'+
- '<p>'+esc([x.city,x.country].filter(Boolean).join("، ")||"الموقع غير محدد")+'</p>'+
- '<p>'+tag(x.status==="active"?"نشط":"موقوف")+'</p></div>'+
- '<h4>سجل الطلبات ('+fmt(orders.length)+')</h4>'+
- '<div class="list">'+(orders.map(q=>'<article class="item"><div class="row"><b>'+esc(q.title||q.services?.name_ar||"طلب")+'</b>'+tag(q.status)+'</div><p>'+esc([q.city,q.country].filter(Boolean).join("، ")||"الموقع غير محدد")+'</p><p>'+esc(q.description||"")+'</p></article>').join("")||empty("لا توجد طلبات لهذا العميل"))+'</div>';
- }
-  if(m.type==="review")c='<h3>تقييم الخدمة</h3><form id="reviewForm"><input type="hidden" name="request_id" value="'+esc(m.requestId)+'"><input type="hidden" name="provider_id" value="'+esc(m.providerId)+'">'+select("التقييم","rating",[1,2,3,4,5].map(n=>({value:n,label:n+" من 5"})),5)+'<label class="field">تعليق<textarea name="comment"></textarea></label><button class="btn gold">إرسال التقييم</button></form>';
-  app.insertAdjacentHTML("beforeend",'<div class="modalback" data-a="close"><div class="modal" onclick="event.stopPropagation()">'+btn("close","إغلاق","light")+'<hr>'+c+'</div></div>');
- }
+ c='<div class="modal-title"><h3>ملف العميل</h3><p class="muted">بيانات الحساب وسجل طلبات الخدمات.</p></div>'+
+ '<section class="section"><div class="item">'+
+ '<div class="row"><b>'+esc(x.full_name||"عميل بدون اسم")+'</b>'+tag(x.status==="active"?"نشط":"موقوف")+'</div>'+
+ '<p class="small">رقم التواصل</p><p>'+esc(x.phone||"لا يوجد رقم هاتف")+'</p>'+
+ '<p class="small">الموقع</p><p>'+esc([x.city,x.country].filter(Boolean).join("، ")||"الموقع غير محدد")+'</p>'+
+ '</div></section>'+
+ '<section class="section"><div class="sectionhead"><h4>سجل الطلبات</h4><span class="tag">'+fmt(orders.length)+' طلب</span></div>'+
+ '<div class="list">'+(orders.map(q=>'<article class="item">'+
+ '<div class="row"><b>'+esc(q.title||q.services?.name_ar||"طلب خدمة")+'</b>'+tag(q.status)+'</div>'+
+ '<p class="small">موقع الطلب</p><p>'+esc([q.city,q.country].filter(Boolean).join("، ")||"الموقع غير محدد")+'</p>'+
+ (q.description?'<p>'+esc(q.description)+'</p>':'')+
+ '</article>').join("")||empty("لا توجد طلبات لهذا العميل"))+
+ '</div></section>';
+}
+  
 }
 
 async function prepareServiceImage(file){
