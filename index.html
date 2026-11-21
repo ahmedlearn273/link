@@ -2360,7 +2360,7 @@ if(f.id==="login"){
 if(tokenError)throw tokenError;
 if(!tokenData?.token)throw Error("تعذّر تجهيز تسجيل مزوّد الخدمة. حاول مرة أخرى.");
 signupData.provider_signup_token=tokenData.token;
-
+ } 
  let r=await db.auth.signUp({
   email:v.email.trim(),
   password:v.password,
