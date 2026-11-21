@@ -1859,7 +1859,7 @@ if(s.tab==="profile")body='<section class="section"><div class="card"><div class
 
 
 function chatContent(){
- const isAdmin=s.profile?.role==="admin";
+ const isAdmin=s.profile?.role==="admin"||s.profile?.role==="owner";
 
  if(s.activeChat){
   return '<section class="section">'+
