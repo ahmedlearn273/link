@@ -2246,6 +2246,7 @@ if(f.id==="login"){
 if(f.id==="addStaffForm"){
  let v=vals(f);
  let permissions=Array.from(f.querySelectorAll('input[name="permissions"]:checked')).map(x=>x.value);
+
  if(!v.full_name.trim())throw Error("اكتب اسم الموظف");
  if(!v.email.trim())throw Error("اكتب البريد الإلكتروني");
  if(!permissions.length)throw Error("اختر صلاحية واحدة على الأقل");
@@ -2257,15 +2258,22 @@ if(f.id==="addStaffForm"){
    permissions
   }
  });
+
  if(r.error)throw r.error;
  if(r.data?.error)throw Error(r.data.error);
+ if(!r.data?.temporary_password)throw Error("تم إنشاء الحساب لكن تعذّر استلام كلمة المرور المؤقتة. تواصل مع الدعم.");
 
  s.modal=null;
  await loadUser(s.user);
- note("تم إرسال دعوة الموظف بنجاح.","success");
- return;
 
-  }
+ prompt(
+  "تم إنشاء حساب الموظف بنجاح.\nانسخ كلمة المرور المؤقتة وسلمها للموظف:\n\n"+r.data.account_code,
+  r.data.temporary_password
+ );
+
+ note("تم إنشاء حساب الموظف بنجاح. كلمة المرور المؤقتة ظهرت لك مرة واحدة.","success");
+ return;
+}
   if(f.id==="editStaffForm"){
  let userId=f.elements.user_id.value;
  let permissions=Array.from(f.querySelectorAll('input[name="permissions"]:checked')).map(x=>x.value);
