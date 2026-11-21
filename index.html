@@ -1897,7 +1897,11 @@ s.messages=r.data||[];
 await auditEvent("CONVERSATION_VIEWED","conversations",c.id,"success",{
  messages_count:s.messages.length
 });
-render();
+if(s.tab==="account"){
+ app.innerHTML=accountSettingsView();
+ return;
+}
+ render();
 }
 function applications(){return s.apps.map(p=>{const u=s.adminProfiles.find(x=>x.id===p.user_id)||{};return '<article class="item"><div class="row"><b>'+esc(p.display_name||u.full_name||"مزوّد خدمة")+'</b>'+tag(p.verification_status)+'</div><p>'+esc([p.city||u.city,p.country||u.country].filter(Boolean).join("، "))+' · '+fmt(p.experience_years)+' سنوات خبرة</p><p>'+esc(p.bio||"")+'</p><p>'+esc(u.phone||"")+'</p><div class="actions">'+btn("reviewprovider","موافقة","green",p.user_id,"data-decision='approved'")+btn("reviewprovider","رفض","danger",p.user_id,"data-decision='rejected'")+'</div></article>'}).join("")||empty("لا توجد طلبات معلّقة")}
 function admin(){
