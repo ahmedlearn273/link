@@ -1831,8 +1831,8 @@ function staff(){
   '</div></section>';
  }
 
- const nav=navItems.map(x=>'<button data-a="tab" data-id="'+x[0]+'" class="'+(s.tab===x[0]?"active":"")+'">'+x[1]+'</button>').join("");
-
+const nav=navItems.map(x=>'<button data-a="tab" data-id="'+x[0]+'" class="'+(s.tab===x[0]?"active":"")+'">'+x[1]+'</button>').join("")+'<button data-a="showexplore">الصفحة الرئيسية</button>';
+ 
  return header("لوحة الموظف",nav)+
  '<main class="wrap">'+msg()+
  '<div class="sectionhead"><h2>لوحة الموظف</h2>'+tag("موظف")+'</div>'+
