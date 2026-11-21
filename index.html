@@ -1779,12 +1779,53 @@ if(s.tab==="profile")body='<section class="section"><div class="card"><div class
  return header("مرحبًا "+(s.provider.display_name||s.profile.full_name),nav)+'<main class="wrap">'+msg()+'<div class="sectionhead"><div><h2>لوحة مزوّد الخدمة</h2><p class="small">تابع طلباتك، وأدر خدماتك، وطوّر حضورك على وصلة.</p></div>'+tag(s.provider.verification_status)+'</div>'+body+'</main>';
 }
 
+
 function chatContent(){
+ const isAdmin=s.profile?.role==="admin";
+
  if(s.activeChat){
-  return '<section class="section"><div class="sectionhead"><div><h2>المحادثة</h2><p class="small">تابع الرسائل وتواصل مع الطرف الآخر بخصوص طلب الخدمة.</p></div>'+btn("chatback","رجوع","light")+'</div><div class="list" style="gap:10px">'+(s.messages.map(m=>'<article class="item" style="max-width:85%;'+(m.sender_id===s.user.id?'margin-right:auto;':'')+'"><p style="white-space:pre-wrap;overflow-wrap:anywhere">'+esc(m.message_text)+'</p><small class="small">'+new Date(m.created_at).toLocaleString("ar-SA")+'</small></article>').join("")||empty("لا توجد رسائل بعد. ابدأ المحادثة برسالة"))+'</div><form id="sendMessage" class="row" style="margin-top:12px;align-items:center"><input name="message_text" placeholder="اكتب رسالتك هنا..." required style="flex:1;min-width:180px"><button class="btn gold">إرسال</button></form></section>';
+  return '<section class="section">'+
+   '<div class="sectionhead"><div><h2>المحادثة</h2>'+
+   '<p class="small">'+(isAdmin?"عرض إداري للمحادثة":"تابع الرسائل وتواصل مع الطرف الآخر")+
+   '</p></div>'+btn("chatback","رجوع","light")+'</div>'+
+   '<div class="list" style="gap:10px">'+
+   (s.messages.map(m=>
+    '<article class="item" style="max-width:85%;'+
+    (m.sender_id===s.user.id?'margin-right:auto;':'')+'">'+
+    (isAdmin?'<b class="small">'+
+     (m.sender_id===s.activeChat.customer_id?"العميل":"مزوّد الخدمة")+
+     '</b>':'')+
+    '<p style="white-space:pre-wrap;overflow-wrap:anywhere">'+
+    esc(m.message_text)+'</p>'+
+    '<small class="small">'+new Date(m.created_at).toLocaleString("ar-SA")+
+    '</small></article>'
+   ).join("")||empty("لا توجد رسائل بعد"))+
+   '</div>'+
+   (isAdmin?
+    '<p class="muted">هذه المحادثة للعرض الإداري فقط.</p>':
+    '<form id="sendMessage" class="row" style="margin-top:12px;align-items:center">'+
+    '<input name="message_text" placeholder="اكتب رسالتك هنا..." required style="flex:1;min-width:180px">'+
+    '<button class="btn gold">إرسال</button></form>'
+   )+
+   '</section>';
  }
- return '<section class="section"><div class="sectionhead"><div><h2>الرسائل والمحادثات</h2><p class="small">استعرض المحادثات المرتبطة بطلبات الخدمات وتابع آخر تحديثاتها.</p></div><span class="tag">'+fmt(s.chats.length)+' محادثة</span></div><div class="list">'+(s.chats.map(c=>'<article class="item"><div class="row"><b>'+esc(c.service_requests?.title||"محادثة طلب خدمة")+'</b></div><p class="small">آخر تحديث للمحادثة</p><p>'+ (c.last_message_at?new Date(c.last_message_at).toLocaleString("ar-SA"):"لا توجد رسائل بعد")+'</p><div class="actions">'+btn("chatopen","فتح المحادثة","light",c.id)+'</div></article>').join("")||empty("لا توجد محادثات حتى الآن. ستظهر المحادثة بعد قبول طلب خدمة."))+'</div></section>';
+
+ return '<section class="section">'+
+  '<div class="sectionhead"><div><h2>الرسائل والمحادثات</h2>'+
+  '<p class="small">استعرض المحادثات المرتبطة بطلبات الخدمات.</p></div>'+
+  '<span class="tag">'+fmt(s.chats.length)+' محادثة</span></div>'+
+  '<div class="list">'+
+  (s.chats.map(c=>
+   '<article class="item"><div class="row"><b>'+
+   esc(c.service_requests?.title||"محادثة طلب خدمة")+
+   '</b></div><p class="small">آخر تحديث للمحادثة</p><p>'+
+   (c.last_message_at?new Date(c.last_message_at).toLocaleString("ar-SA"):"لا توجد رسائل بعد")+
+   '</p><div class="actions">'+btn("chatopen","عرض المحادثة","light",c.id)+
+   '</div></article>'
+  ).join("")||empty("لا توجد محادثات حتى الآن."))+
+  '</div></section>';
 }
+      
       
 async function openChatForRequest(requestId){
  let c=s.chats.find(x=>x.request_id===requestId);
