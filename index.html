@@ -1990,7 +1990,11 @@ app.innerHTML=(s.profile?.role==="admin"?'<main class="wrap" style="padding:0 16
  return;
 }
  
- if(!s.user){app.innerHTML=(s.mode==="welcome"?welcomeView():s.mode==="explore"?landing():authView())+'<div class="foot">منصة الخدمات · جميع الحقوق محفوظة</div>';return}
+ if(!s.user){app.innerHTML=(s.mode==="welcome"?welcomeView():s.mode==="explore"?landing():authView())+'<div class="foot">منصة وصله · جميع الحقوق محفوظة</div>';return}
+if(s.tab==="account"){
+ app.innerHTML=accountSettingsView()+'<main class="wrap">'+btn("logout","تسجيل الخروج","light")+'</main>';
+ return;
+}
  if(s.profile?.role==="admin")app.innerHTML=admin()+'<main class="wrap">'+btn("logout","تسجيل الخروج","light")+'</main>';
 else if(s.profile?.role==="staff")app.innerHTML=staff()+'<main class="wrap">'+btn("logout","تسجيل الخروج","light")+'</main>';
  else if(s.profile?.role==="provider"&&s.provider?.verification_status==="approved")app.innerHTML=provider()+'<main class="wrap">'+btn("logout","تسجيل الخروج","light")+'</main>';
