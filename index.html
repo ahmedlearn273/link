@@ -1936,7 +1936,19 @@ if(s.tab==="requests")body='<section class="section"><div class="sectionhead"><d
 
 const nav=[["home","نظرة عامة"],["requests","الطلبات"],["messages","الرسائل"],["customers","العملاء"],["providers","المزوّدون"],["services","الخدمات"],["categories","التصنيفات"],["staff","الموظفون"],["appearance","المظهر والثيمات"]].map(x=>'<button data-a="tab" data-id="'+x[0]+'" class="'+(s.tab===x[0]?"active":"")+'">'+x[1]+'</button>').join("")+'<button data-a="showexplore" class="nav-home">الصفحة الرئيسية</button>';
  
- return header("لوحة إدارة المنصة",nav)+'<main class="wrap">'+msg()+'<div class="sectionhead"><h2>الإدارة</h2><span class="tag ok">مدير</span></div>'+body+'</main>';
+ 
+const isOwner=s.profile?.role==="owner";
+
+return header(
+ isOwner?"مركز تحكم مالك المنصة":"لوحة إدارة المنصة",
+ nav
+)+'<main class="wrap">'+msg()+
+ '<div class="sectionhead">'+
+ '<div><h2>'+(isOwner?"مركز تحكم المالك":"الإدارة")+'</h2>'+
+ '<p class="small">'+(isOwner?"تحكم كامل في منصة وصلة ومتابعة أنظمتها":"إدارة خدمات ومستخدمين المنصة")+'</p></div>'+
+ '<span class="tag ok">'+(isOwner?"OWNER · مالك المنصة":"مدير")+'</span>'+
+ '</div>'+body+'</main>';
+ 
 }
       
 function staff(){
