@@ -1935,18 +1935,15 @@ function staff(){
 
  let body="";
 
- if(s.tab==="home"){
+ 
+if(s.tab==="home"){
   body='<section class="section"><div class="card">'+
   '<h2>أهلًا '+esc(s.profile?.full_name||"بك")+'</h2>'+
-  '<p class="muted">لوحة الموظف وإدارة الصلاحيات</p>'+
+  '<p class="muted">لوحة الموظف في منصة وصلة</p>'+
   '<div class="row"><span>حالة الحساب</span>'+tag("نشط")+'</div>'+
-  '<div class="row"><span>عدد الصلاحيات</span><b>'+permissions.length+'</b></div>'+
-  '</div></section>'+
-  '<section class="section"><h2>الصلاحيات الممنوحة لك</h2>'+
-  '<div class="grid small">'+
-  (permissions.map(p=>'<div class="card">✓ '+esc(p)+'</div>').join("")||empty("لا توجد صلاحيات ممنوحة"))+
   '</div></section>';
- }
+}
+ 
 
  if(s.tab==="services"&&canServices){
   body='<section class="section">'+
