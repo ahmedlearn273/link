@@ -2396,6 +2396,89 @@ if(f.id==="addStaffForm"){
   if(f.id==="categoryForm"){let v=vals(f),r=await db.from("categories").insert({name_ar:v.name_ar,name_en:v.name_en||null,slug:v.slug,icon:v.icon||null,is_active:true});if(r.error)throw r.error;s.modal=null;await loadUser(s.user);note("تمت إضافة التصنيف.","success");return}
   if(f.id==="reviewForm"){let v=vals(f),r=await db.from("reviews").insert({request_id:v.request_id,provider_id:v.provider_id,customer_id:s.user.id,rating:Number(v.rating),comment:v.comment||null});if(r.error)throw r.error;s.modal=null;note("تم إرسال تقييمك.","success");return}
   if(f.id==="sendMessage"){let v=vals(f);let r=await db.from("messages").insert({conversation_id:s.activeChat.id,sender_id:s.user.id,message_text:v.message_text.trim()});if(r.error)throw r.error;let q=await db.from("messages").select("id,sender_id,message_text,is_read,created_at").eq("conversation_id",s.activeChat.id).order("created_at");if(q.error)throw q.error;s.messages=q.data||[];render();return}
+if(f.id==="accountPhotoForm"){
+ const file=f.elements.avatar_file.files?.[0];
+
+ if(!file)throw Error("اختر صورة أولًا");
+
+ if(!["image/jpeg","image/png","image/webp"].includes(file.type))
+  throw Error("اختار صورة JPG أو PNG أو WEBP");
+
+ if(file.size>5*1024*1024)
+  throw Error("حجم الصورة يجب ألا يتجاوز 5 ميجابايت");
+
+ if(typeof createImageBitmap!=="function")
+  throw Error("المتصفح لا يدعم معالجة الصور. حدّث Chrome.");
+
+ const bitmap=await createImageBitmap(file);
+ const scale=Math.min(1,512/Math.max(bitmap.width,bitmap.height));
+
+ const canvas=document.createElement("canvas");
+ canvas.width=Math.max(1,Math.round(bitmap.width*scale));
+ canvas.height=Math.max(1,Math.round(bitmap.height*scale));
+
+ const ctx=canvas.getContext("2d");
+ ctx.drawImage(bitmap,0,0,canvas.width,canvas.height);
+ bitmap.close?.();
+
+ const imageBlob=await new Promise(resolve=>
+  canvas.toBlob(resolve,"image/webp",.85)
+ );
+
+ if(!imageBlob)throw Error("تعذّر تجهيز الصورة");
+ if(imageBlob.size>5*1024*1024)
+  throw Error("حجم الصورة بعد المعالجة كبير جدًا");
+
+ const bucket=db.storage.from("profile-photos");
+ const oldUrl=s.profile.avatar_url||"";
+ const path=s.user.id+"/avatar-"+Date.now()+".webp";
+
+ const uploaded=await bucket.upload(path,imageBlob,{
+  contentType:"image/webp",
+  cacheControl:"31536000",
+  upsert:false
+ });
+
+ if(uploaded.error)throw uploaded.error;
+
+ const publicUrl=bucket.getPublicUrl(path).data.publicUrl;
+
+ const updated=await db.from("profiles")
+  .update({avatar_url:publicUrl})
+  .eq("id",s.user.id);
+
+ if(updated.error){
+  await bucket.remove([path]);
+  throw updated.error;
+ }
+
+ s.profile.avatar_url=publicUrl;
+
+ const marker="/storage/v1/object/public/profile-photos/";
+
+ if(oldUrl&&oldUrl.includes(marker)){
+  try{
+   const oldPath=decodeURIComponent(oldUrl.split(marker).pop());
+
+   if(oldPath.startsWith(s.user.id+"/")&&oldPath!==path)
+    await bucket.remove([oldPath]);
+  }catch(e){
+   console.warn("تعذّر حذف الصورة القديمة:",e);
+  }
+ }
+
+ await auditEvent(
+  "PROFILE_PHOTO_UPDATED",
+  "profiles",
+  s.user.id,
+  "success",
+  {content_type:"image/webp",size_bytes:imageBlob.size}
+ );
+
+ render();
+ note("تم تحديث الصورة الشخصية بنجاح.","success");
+ return;
+}
   if(f.id==="providerProfile"){let v=vals(f),r=await db.from("provider_profiles").update({display_name:v.display_name,country:v.country,city:v.city,service_area:v.service_area||null,experience_years:Number(v.experience_years||0),bio:v.bio||null,updated_at:new Date().toISOString()}).eq("id",s.provider.id);if(r.error)throw r.error;await loadUser(s.user);note("تم حفظ ملفك.","success");return}
  }catch(x){console.error(x);note(x.message||"حدث خطأ.","error")}
 }
