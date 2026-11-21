@@ -2411,7 +2411,21 @@ render();
   if(a==="logout"){await db.auth.signOut();s.user=null;s.profile=null;s.provider=null;s.mode="welcome";render();return}
   
 if(a==="forgot"){let email=document.querySelector('#login [name="email"]')?.value;if(!email)throw Error("اكتب بريدك الإلكتروني أولًا");let r=await db.auth.resetPasswordForEmail(email,{redirectTo:location.origin+"/?mode=recovery"});if(r.error)throw r.error;note("تم إرسال رابط استعادة كلمة المرور.","success");return}
-  if(a==="addstaff"){s.modal={type:"addstaff"};render();return}
+ if(a==="addstaff"){
+ s.modal={type:"addstaff"};
+ render();
+
+ db.rpc("admin_preview_staff_code").then(({data,error})=>{
+  const input=document.querySelector('#addStaffForm [name="account_code_preview"]');
+  if(!input)return;
+  input.value=error?"تعذّر تحميل الكود الوظيفي":(data||"—");
+ }).catch(()=>{
+  const input=document.querySelector('#addStaffForm [name="account_code_preview"]');
+  if(input)input.value="تعذّر تحميل الكود الوظيفي";
+ });
+
+ return;
+ }
   if(a==="editstaff"){s.modal={type:"editstaff",userId:id};render();return}
 if(a==="viewcustomer"){s.modal={type:"customerDetails",userId:id};render();return}
   if(a==="removestaff"){
