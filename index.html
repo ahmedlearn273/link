@@ -2317,7 +2317,22 @@ if(a==="viewcustomer"){s.modal={type:"customerDetails",userId:id};render();retur
   if(a==="review"){let q=s.requests.find(x=>x.id===id);if(q){s.modal={type:"review",requestId:q.id,providerId:q.provider_id};render()}return}
   if(a==="close"){s.modal=null;render();return}
   if(a==="chat"){await openChatForRequest(id);return}
-  if(a==="chatopen"){let c=s.chats.find(x=>x.id===id);if(!c)throw Error("المحادثة غير موجودة");s.activeChat=c;let q=await db.from("messages").select("id,sender_id,message_text,is_read,created_at").eq("conversation_id",c.id).order("created_at");if(q.error)throw q.error;s.messages=q.data||[];render();return}
+  if(a==="chatopen"){
+ let c=s.chats.find(x=>x.id===id);
+ if(!c)throw Error("المحادثة غير موجودة");
+ s.activeChat=c;
+ let q=await db.from("messages")
+  .select("id,sender_id,message_text,is_read,created_at")
+  .eq("conversation_id",c.id)
+  .order("created_at");
+ if(q.error)throw q.error;
+ s.messages=q.data||[];
+ await auditEvent("CONVERSATION_VIEWED","conversations",c.id,"success",{
+  messages_count:s.messages.length
+ });
+ render();
+ return;
+  }
   if(a==="chatback"){s.activeChat=null;s.messages=[];render();return}
   if(a==="cancelrequest"){if(!confirm("هل تريد إلغاء الطلب؟"))return;let r=await db.rpc("cancel_service_request",{p_request_id:id});if(r.error)throw r.error;await loadUser(s.user);note("تم إلغاء الطلب.","success");return}
   if(a==="claim"){let r=await db.rpc("claim_service_request",{p_request_id:id});if(r.error)throw r.error;await loadUser(s.user);note("تم قبول الطلب وإسناده إليك.","success");return}
