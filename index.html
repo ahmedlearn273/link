@@ -1767,6 +1767,7 @@ const query=(s.filter||"").trim().toLowerCase();
  return '<article class="item"><div class="row"><b>'+esc(q.title||q.services?.name_ar||"طلب خدمة")+'</b>'+tag(q.status)+'</div><p>'+esc([q.city,q.country].filter(Boolean).join("، "))+'</p><p>'+esc(q.description||"")+'</p><p>الميزانية: '+(q.budget?fmt(q.budget):"غير محددة")+'</p><div class="actions">'+a+(!provider&&["pending","accepted"].includes(q.status)?btn("cancelrequest","إلغاء الطلب","danger",q.id):"")+(q.status==="completed"&&q.provider_id&&!provider?btn("review","تقييم الخدمة","light",q.id):"")+(q.provider_id&&["accepted","in_progress"].includes(q.status)&&(!provider||s.chats.some(c=>c.request_id===q.id))?btn("chat","محادثة","light",q.id):"")+'</div></article>';
  }).join("")||empty("لا توجد طلبات حتى الآن");
 }
+
 function accountSettingsView(){
  const p=s.profile||{};
 
@@ -1815,10 +1816,27 @@ function accountSettingsView(){
  '<div class="actions"><button class="btn gold">حفظ الصورة الشخصية</button></div>'+
  '</form>'+
  '<div class="notice">شعار وصلة هو الصورة الافتراضية. لا يستطيع تغيير صورتك الشخصية إلا صاحب الحساب نفسه.</div>'+
+ '<section class="section">'+
+ '<h3>تغيير كلمة المرور</h3>'+
+ '<p class="muted">يمكنك تغيير كلمة المرور في أي وقت. لن يتم فرض تغييرها عند تسجيل الدخول.</p>'+
+ '<form id="accountPasswordForm">'+
+ '<label class="field">كلمة المرور الحالية'+
+ '<input name="current_password" type="password" autocomplete="current-password" required>'+
+ '</label>'+
+ '<label class="field">كلمة المرور الجديدة'+
+ '<input name="new_password" type="password" autocomplete="new-password" minlength="8" required>'+
+ '</label>'+
+ '<label class="field">تأكيد كلمة المرور الجديدة'+
+ '<input name="confirm_password" type="password" autocomplete="new-password" minlength="8" required>'+
+ '</label>'+
+ '<div class="actions"><button class="btn gold">تحديث كلمة المرور</button></div>'+
+ '</form>'+
+ '</section>'+
  '</div>'+
  '</section>'+
  '</main>';
 }
+      
       function customer(){
  let body="";
  if(s.tab==="home")body='<section class="section"><h2>التصنيفات</h2><div class="grid small">'+s.cats.map(c=>'<div class="card"><div class="icon">'+esc(c.icon||"✦")+'</div><b>'+esc(c.name_ar)+'</b></div>').join("")+'</div></section><section class="section"><div class="sectionhead"><h2>الخدمات</h2><input id="search" placeholder="ابحث عن خدمة" value="'+esc(s.filter)+'"></div><div class="grid">'+(s.services.filter(x=>{let q=(s.filter||"").trim().toLowerCase();return !q||[x.name_ar,x.name_en,x.description].some(v=>String(v||"").toLowerCase().includes(q))}).map(serviceCard).join("")||empty("لا توجد خدمات مطابقة لبحثك"))+'</div></section><section class="section"><h2>مزوّدو الخدمة المعتمدون</h2><div class="grid">'+(s.providers.map(providerCard).join("")||empty("لا يوجد مزوّدون معتمدون بعد"))+'</div></section>';
