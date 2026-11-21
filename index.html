@@ -1475,26 +1475,35 @@ if(p.role==="staff"){
   const [r,o,ch]=await Promise.all([db.from("service_requests").select("*,services(name_ar)").or("provider_id.eq."+pp.id+",provider_id.is.null").order("created_at",{ascending:false}),db.from("provider_services").select("*,services(name_ar)").eq("provider_id",pp.id),db.from("conversations").select("id,request_id,customer_id,provider_id,last_message_at,service_requests(title)").eq("provider_id",pp.id).order("last_message_at",{ascending:false})]);
   s.requests=r.data||[];s.offers=o.data||[];s.chats=ch.data||[];
 }else if(p.role==="admin"){
-  const [a,r,profiles,permissions]=await Promise.all([
-    db.from("provider_profiles").select("*").eq("verification_status","pending").order("created_at",{ascending:false}),
-    db.from("service_requests").select("*,services(name_ar)").order("created_at",{ascending:false}).limit(100),
-    db.from("profiles").select("id,full_name,phone,city,country,role,status").in("role",["customer","staff"]),
-    db.from("staff_permissions").select("*")
-  ]);
-  if(a.error)throw a.error;
-  if(r.error)throw r.error;
-  if(profiles.error)throw profiles.error;
-  if(permissions.error)throw permissions.error;
-  s.apps=a.data||[];
-  s.allRequests=r.data||[];
-  const people=profiles.data||[];
-  const perms=permissions.data||[];
-  s.staff=people.filter(x=>x.role==="staff").map(x=>({...x,staff_permissions:perms.find(p=>p.user_id===x.id)||null}));
- s.staffCandidates=people.filter(x=>x.role==="customer"&&x.status==="active");
-s.customers=people.filter(x=>x.role==="customer");
-  const ids=[...new Set(s.apps.map(x=>x.user_id).concat(s.allRequests.map(x=>x.customer_id)))];
-  if(ids.length){
+  const [a,r,profiles,permissions,chats]=await Promise.all([
+  db.from("provider_profiles").select("*").eq("verification_status","pending").order("created_at",{ascending:false}),
+  db.from("service_requests").select("*,services(name_ar)").order("created_at",{ascending:false}).limit(100),
+  db.from("profiles").select("id,full_name,phone,city,country,role,status").in("role",["customer","staff"]),
+  db.from("staff_permissions").select("*"),
+  db.from("conversations").select("id,request_id,customer_id,provider_id,last_message_at,service_requests(title)").order("last_message_at",{ascending:false})
+]);
 
+if(a.error)throw a.error;
+if(r.error)throw r.error;
+if(profiles.error)throw profiles.error;
+if(permissions.error)throw permissions.error;
+if(chats.error)throw chats.error;
+
+s.apps=a.data||[];
+s.allRequests=r.data||[];
+s.chats=chats.data||[];
+
+const people=profiles.data||[];
+const perms=permissions.data||[];
+
+s.staff=people.filter(x=>x.role==="staff").map(x=>({...x,staff_permissions:perms.find(p=>p.user_id===x.id)||null}));
+s.staffCandidates=people.filter(x=>x.role==="customer"&&x.status==="active");
+s.customers=people.filter(x=>x.role==="customer");
+
+const ids=[...new Set(s.apps.map(x=>x.user_id).concat(s.allRequests.map(x=>x.customer_id)))];
+if(ids.length){
+  // سيب هنا كود تحميل adminProfiles الأصلي عندك بدون تغيير
+}
     s.adminProfiles=x.data||[];
   }
 }
