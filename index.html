@@ -1461,7 +1461,7 @@ await auditEvent("ACCOUNT_SESSION_LOADED","profiles",u.id,"success",{
  if(p.role==="provider"&&!pp)throw Error("تعذر تحميل ملف مزوّد الخدمة. يرجى التواصل مع الدعم.");
  s.provider=pp||null;
 s.staffAccess=null;
-await publicData(p.role==="admin"||p.role==="staff");
+await publicData(p.role==="admin"||p.role==="owner"||p.role==="staff");
 s.requests=[];s.offers=[];s.apps=[];s.allRequests=[];s.adminProfiles=[];s.chats=[];s.messages=[];s.activeChat=null;
 
 if(p.role==="staff"){
@@ -1482,7 +1482,7 @@ if(p.role==="staff"){
  }else if(p.role==="provider"&&pp){
   const [r,o,ch]=await Promise.all([db.from("service_requests").select("*,services(name_ar)").or("provider_id.eq."+pp.id+",provider_id.is.null").order("created_at",{ascending:false}),db.from("provider_services").select("*,services(name_ar)").eq("provider_id",pp.id),db.from("conversations").select("id,request_id,customer_id,provider_id,last_message_at,service_requests(title)").eq("provider_id",pp.id).order("last_message_at",{ascending:false})]);
   s.requests=r.data||[];s.offers=o.data||[];s.chats=ch.data||[];
-}else if(p.role==="admin"){
+}else if(p.role==="admin"||p.role==="owner"){
   const [a,r,profiles,permissions,chats]=await Promise.all([
     db.from("provider_profiles").select("*").eq("verification_status","pending").order("created_at",{ascending:false}),
     db.from("service_requests").select("*,services(name_ar)").order("created_at",{ascending:false}).limit(100),
