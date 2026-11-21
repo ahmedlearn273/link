@@ -2260,18 +2260,34 @@ if(f.id==="login"){
   if(f.id==="offerForm"){let v=vals(f),r=await db.from("provider_services").insert({provider_id:s.provider.id,service_id:v.service_id,price:Number(v.price),currency:v.currency,price_type:v.price_type,is_active:true});if(r.error)throw r.error;s.modal=null;await loadUser(s.user);note("تمت إضافة الخدمة.","success");return}
   if(f.id==="serviceForm"){let v=vals(f),r=await db.from("services").insert({category_id:v.category_id,name_ar:v.name_ar,name_en:v.name_en||null,description:v.description||null,is_active:true});if(r.error)throw r.error;s.modal=null;await loadUser(s.user);note("تمت إضافة الخدمة.","success");return}
   
+
 if(f.id==="addStaffForm"){
  let v=vals(f);
  let permissions=Array.from(f.querySelectorAll('input[name="permissions"]:checked')).map(x=>x.value);
 
+ const hierarchy={
+  ASV:"مشرف منطقة",
+  OPS:"العمليات",
+  FIN:"المالية",
+  SUP:"خدمة العملاء",
+  MKT:"التسويق",
+  TEC:"التقنية"
+ };
+
+ let staffRoleCode=v.staff_role_code;
+ let staffTitle=hierarchy[staffRoleCode];
+
  if(!v.full_name.trim())throw Error("اكتب اسم الموظف");
  if(!v.email.trim())throw Error("اكتب البريد الإلكتروني");
+ if(!staffTitle)throw Error("اختر الرتبة الوظيفية");
  if(!permissions.length)throw Error("اختر صلاحية واحدة على الأقل");
 
  let r=await db.functions.invoke("admin-create-staff",{
   body:{
    full_name:v.full_name.trim(),
    email:v.email.trim(),
+   staff_title:staffTitle,
+   staff_role_code:staffRoleCode,
    permissions
   }
  });
@@ -2284,13 +2300,18 @@ if(f.id==="addStaffForm"){
  await loadUser(s.user);
 
  prompt(
-  "تم إنشاء حساب الموظف بنجاح.\nانسخ كلمة المرور المؤقتة وسلمها للموظف:\n\n"+r.data.account_code,
+  "تم إنشاء حساب الموظف بنجاح.\n"+
+  "الكود الوظيفي: "+r.data.account_code+"\n"+
+  "الرتبة: "+r.data.staff_title+"\n"+
+  "كود الرول: "+r.data.staff_role_code+
+  "\n\nانسخ كلمة المرور المؤقتة وسلمها للموظف:",
   r.data.temporary_password
  );
 
  note("تم إنشاء حساب الموظف بنجاح. كلمة المرور المؤقتة ظهرت لك مرة واحدة.","success");
  return;
 }
+  
   if(f.id==="editStaffForm"){
  let userId=f.elements.user_id.value;
  let permissions=Array.from(f.querySelectorAll('input[name="permissions"]:checked')).map(x=>x.value);
