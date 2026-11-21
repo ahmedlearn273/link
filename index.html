@@ -1961,7 +1961,41 @@ if(m.type==="addstaff"){
  '</form>';
 }
   
- 
+ if(m.type==="editstaff"){
+ const x=s.staff.find(y=>y.id===m.userId);
+ if(!x)throw Error("الموظف غير موجود");
+ const permissions=[
+ ["dashboard.view","عرض لوحة المعلومات"],
+ ["customers.view","عرض العملاء"],
+ ["customers.manage","إدارة العملاء"],
+ ["providers.view","عرض المزوّدين"],
+ ["providers.review","مراجعة طلبات المزوّدين"],
+ ["requests.view","عرض الطلبات"],
+ ["requests.manage","إدارة الطلبات"],
+ ["services.view","عرض الخدمات"],
+ ["services.manage","إدارة الخدمات"],
+ ["categories.view","عرض التصنيفات"],
+ ["categories.manage","إدارة التصنيفات"],
+ ["messages.view","عرض المحادثات"],
+ ["payments.view","عرض المدفوعات"],
+ ["payments.manage","إدارة المدفوعات"],
+ ["reports.view","عرض التقارير"],
+ ["ads.view","عرض الإعلانات"],
+ ["ads.manage","إدارة الإعلانات"],
+ ["settings.view","عرض الإعدادات"],
+ ["settings.manage","إدارة الإعدادات"]
+ ];
+ const selected=x.staff_permissions?.permissions||[];
+ c='<div class="modal-title"><h3>إدارة صلاحيات الموظف</h3><p class="muted">حدد الصلاحيات وحالة حساب الموظف.</p></div>'+
+ '<form id="editStaffForm"><input type="hidden" name="user_id" value="'+esc(x.id)+'">'+
+ '<section class="section"><b>'+esc(x.full_name||"موظف بدون اسم")+'</b>'+
+ '<p class="muted">'+esc(x.email||"")+'</p></section>'+
+ '<section class="section"><h4>الصلاحيات</h4><div class="list">'+
+ permissions.map(p=>'<label class="item"><input type="checkbox" name="permissions" value="'+p[0]+'" '+(selected.includes(p[0])?"checked":"")+'> '+p[1]+'</label>').join("")+
+ '</div></section>'+
+ '<section class="section">'+select("حالة الحساب","is_active",[{value:"true",label:"نشط"},{value:"false",label:"موقوف"}],x.staff_permissions?.is_active?"true":"false")+'</section>'+
+ '<div class="actions"><button class="btn gold">حفظ الصلاحيات</button></div></form>';
+ }
 if(m.type==="customerDetails"){
  const x=s.customers.find(y=>y.id===m.userId);
  if(!x)throw Error("العميل غير موجود");
