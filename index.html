@@ -2470,7 +2470,37 @@ if(f.id==="addStaffForm"){
   if(f.id==="categoryForm"){let v=vals(f),r=await db.from("categories").insert({name_ar:v.name_ar,name_en:v.name_en||null,slug:v.slug,icon:v.icon||null,is_active:true});if(r.error)throw r.error;s.modal=null;await loadUser(s.user);note("تمت إضافة التصنيف.","success");return}
   if(f.id==="reviewForm"){let v=vals(f),r=await db.from("reviews").insert({request_id:v.request_id,provider_id:v.provider_id,customer_id:s.user.id,rating:Number(v.rating),comment:v.comment||null});if(r.error)throw r.error;s.modal=null;note("تم إرسال تقييمك.","success");return}
   if(f.id==="sendMessage"){let v=vals(f);let r=await db.from("messages").insert({conversation_id:s.activeChat.id,sender_id:s.user.id,message_text:v.message_text.trim()});if(r.error)throw r.error;let q=await db.from("messages").select("id,sender_id,message_text,is_read,created_at").eq("conversation_id",s.activeChat.id).order("created_at");if(q.error)throw q.error;s.messages=q.data||[];render();return}
+if(f.id==="accountProfileForm"){
+ const v=vals(f);
 
+ const patch={
+  full_name:(v.full_name||"").trim(),
+  phone:(v.phone||"").trim()||null
+ };
+
+ if(!patch.full_name)
+  throw Error("اكتب الاسم الكامل");
+
+ const {data,error}=await db.rpc("update_own_profile",{
+  p_patch:patch
+ });
+
+ if(error)throw error;
+
+ Object.assign(s.profile,patch);
+
+ await auditEvent(
+  "PROFILE_UPDATED",
+  "profiles",
+  s.user.id,
+  "success",
+  {fields:Object.keys(patch)}
+ );
+
+ render();
+ note("تم تحديث بياناتك بنجاح.","success");
+ return;
+}
 if(f.id==="accountPasswordForm"){
  const v=vals(f);
 
