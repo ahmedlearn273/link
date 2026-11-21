@@ -1980,7 +1980,11 @@ if(m.type==="customerDetails"){
  '</article>').join("")||empty("لا توجد طلبات لهذا العميل"))+
  '</div></section>';
 }
-}  
+ '</div></section>';
+}
+app.insertAdjacentHTML("beforeend",'<div class="modalback"><div class="modal">'+c+'<div class="actions"><button type="button" class="btn light" data-a="close">إغلاق</button></div></div></div>');
+
+ }  
 }
 
 async function prepareServiceImage(file){
