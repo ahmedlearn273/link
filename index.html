@@ -2415,7 +2415,53 @@ if(f.id==="addStaffForm"){
   if(f.id==="categoryForm"){let v=vals(f),r=await db.from("categories").insert({name_ar:v.name_ar,name_en:v.name_en||null,slug:v.slug,icon:v.icon||null,is_active:true});if(r.error)throw r.error;s.modal=null;await loadUser(s.user);note("تمت إضافة التصنيف.","success");return}
   if(f.id==="reviewForm"){let v=vals(f),r=await db.from("reviews").insert({request_id:v.request_id,provider_id:v.provider_id,customer_id:s.user.id,rating:Number(v.rating),comment:v.comment||null});if(r.error)throw r.error;s.modal=null;note("تم إرسال تقييمك.","success");return}
   if(f.id==="sendMessage"){let v=vals(f);let r=await db.from("messages").insert({conversation_id:s.activeChat.id,sender_id:s.user.id,message_text:v.message_text.trim()});if(r.error)throw r.error;let q=await db.from("messages").select("id,sender_id,message_text,is_read,created_at").eq("conversation_id",s.activeChat.id).order("created_at");if(q.error)throw q.error;s.messages=q.data||[];render();return}
-if(f.id==="accountPhotoForm"){
+
+if(f.id==="accountPasswordForm"){
+ const v=vals(f);
+
+ if(!v.current_password)
+  throw Error("اكتب كلمة المرور الحالية");
+
+ if(v.new_password.length<8)
+  throw Error("كلمة المرور الجديدة يجب ألا تقل عن 8 أحرف");
+
+ if(v.new_password!==v.confirm_password)
+  throw Error("تأكيد كلمة المرور غير مطابق");
+
+ if(v.current_password===v.new_password)
+  throw Error("اختر كلمة مرور جديدة مختلفة عن الحالية");
+
+ const verified=await db.auth.signInWithPassword({
+  email:s.user.email,
+  password:v.current_password
+ });
+
+ if(verified.error)
+  throw Error("كلمة المرور الحالية غير صحيحة");
+
+ const changed=await db.auth.updateUser({
+  password:v.new_password
+ });
+
+ if(changed.error)
+  throw changed.error;
+
+ s.user=changed.data.user||verified.data.user;
+
+ await auditEvent(
+  "PASSWORD_CHANGED",
+  "auth.users",
+  s.user.id,
+  "success",
+  {method:"account_settings"}
+ );
+
+ render();
+ note("تم تغيير كلمة المرور بنجاح.","success");
+ return;
+}
+
+  if(f.id==="accountPhotoForm"){
  const file=f.elements.avatar_file.files?.[0];
 
  if(!file)throw Error("اختر صورة أولًا");
