@@ -2039,7 +2039,7 @@ function render(){
    if(s.mode==="recovery"){app.innerHTML=recoveryView();return}
 
 if(s.mode==="explore"){
-app.innerHTML=(s.profile?.role==="admin"||s.profile?.role==="owner")?'<main class="wrap" style="padding:0 16px 0">'+btn("showadmin","العودة إلى لوحة الإدارة","light")+'</main>':'')+landing();
+app.innerHTML=((s.profile?.role==="admin"||s.profile?.role==="owner")?'<main class="wrap" style="padding:0 16px 0">'+btn("showadmin","العودة إلى لوحة الإدارة","light")+'</main>':'')+landing();
  return;
 }
  
