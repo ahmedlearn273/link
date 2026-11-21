@@ -1500,7 +1500,16 @@ if(p.role==="staff"){
   s.apps=a.data||[];
   s.allRequests=r.data||[];
   s.chats=chats.data||[];
+if(p.role==="owner"){
+ const {data:logs,error:logsError}=await db
+  .from("audit_logs")
+  .select("id,actor_id,actor_role,actor_code,action,entity_table,entity_id,event_source,created_at,result")
+  .order("created_at",{ascending:false})
+  .limit(100);
 
+ if(logsError)throw logsError;
+ s.auditLogs=logs||[];
+}
   const people=profiles.data||[];
   const perms=permissions.data||[];
 
