@@ -1403,7 +1403,22 @@ function msg(){
 function btn(a,t,k,id,extra){return '<button class="btn '+(k||"")+'" data-a="'+a+'" data-id="'+esc(id||"")+'" '+(extra||"")+'>'+t+'</button>'}
 function field(l,n,type,ph,v,req){return '<label class="field">'+l+'<input name="'+n+'" type="'+(type||"text")+'" placeholder="'+esc(ph||"")+'" value="'+esc(v||"")+'" '+(req?"required":"")+'></label>'}
 function select(l,n,opts,v){return '<label class="field">'+l+'<select name="'+n+'">'+opts.map(o=>'<option value="'+esc(o.value)+'" '+(String(o.value)===String(v)?"selected":"")+'>'+esc(o.label)+'</option>').join("")+'</select></label>'}
+function empty(x){return '<div class="empty">'+esc(x)+'</div>'}
 
+async function auditEvent(action,entityTable="application",entityId=null,result="success",metadata={}){
+ try{
+  if(!s.user)return;
+  const {error}=await db.rpc("record_audit_event",{
+   p_action:action,
+   p_entity_table:entityTable,
+   p_entity_id:entityId?String(entityId):null,
+   p_result:result,
+   p_metadata:metadata
+  });
+  if(error)console.warn("Audit log failed:",error.message);
+ }catch(e){
+  console.warn("Audit log failed:",e);
+ }
 }
       async function publicData(includeInactive=false){
  let serviceQuery=db.from("services").select("id,category_id,name_ar,description,image_url,is_active").order("sort_order");
