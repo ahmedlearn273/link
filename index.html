@@ -1824,7 +1824,17 @@ function accountSettingsView(){
  '<p class="small">الكود الوظيفي / الحساب</p>'+
  '<b>'+esc(p.account_code||"غير متاح")+'</b>'+
  '</div>'+
- '<form id="accountPhotoForm">'+
+'<form id="accountProfileForm">'+
+'<h3>تعديل البيانات الشخصية</h3>'+
+'<label class="field">الاسم الكامل'+
+'<input name="full_name" type="text" value="'+esc(p.full_name||"")+'" maxlength="120" required>'+
+'</label>'+
+'<label class="field">رقم الجوال'+
+'<input name="phone" type="tel" value="'+esc(p.phone||"")+'" maxlength="30">'+
+'</label>'+
+'<div class="actions"><button class="btn gold">حفظ البيانات</button></div>'+
+'</form>'+
+  '<form id="accountPhotoForm">'+
  '<h3>تغيير الصورة الشخصية</h3>'+
  '<label class="field">اختر صورة جديدة'+
  '<input type="file" name="avatar_file" accept="image/jpeg,image/png,image/webp" required>'+
