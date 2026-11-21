@@ -2200,7 +2200,45 @@ if(f.id==="login"){
  await auditEvent("USER_LOGIN","application",r.data.user.id);
  return;
 }
-  if(f.id==="signup"){let v=vals(f);if(v.password.length<8)throw Error("كلمة المرور يجب ألا تقل عن 8 أحرف");let r=await db.auth.signUp({email:v.email.trim(),password:v.password,options:{data:{full_name:v.full_name,phone:v.phone||null,country:v.country,city:v.city,account_type:v.account_type,experience_years:v.experience_years||0,bio:v.bio||"",service_area:v.service_area||""}}});if(r.error)throw r.error;if(r.data.session){await loadUser(r.data.user);note("تم إنشاء الحساب.","success")}else{s.mode="login";note("تم إنشاء الحساب. راجع بريدك لتأكيده ثم سجّل الدخول.","success")}return}
+  if(f.id==="signup"){
+ let v=vals(f);
+ if(v.password.length<8)throw Error("كلمة المرور يجب ألا تقل عن 8 أحرف");
+
+ const signupData={
+  full_name:v.full_name,
+  phone:v.phone||null,
+  country:v.country,
+  city:v.city,
+  account_type:v.account_type,
+  experience_years:v.experience_years||0,
+  bio:v.bio||"",
+  service_area:v.service_area||""
+ };
+
+ if(v.account_type==="provider"){
+  const tokenResult=await db.rpc("issue_provider_signup_token");
+  if(tokenResult.error)throw tokenResult.error;
+  if(!tokenResult.data)throw Error("تعذّر تجهيز تسجيل مزوّد الخدمة. حاول مرة أخرى.");
+  signupData.provider_signup_token=tokenResult.data;
+ }
+
+ let r=await db.auth.signUp({
+  email:v.email.trim(),
+  password:v.password,
+  options:{data:signupData}
+ });
+
+ if(r.error)throw r.error;
+
+ if(r.data.session){
+  await loadUser(r.data.user);
+  note("تم إنشاء الحساب.","success");
+ }else{
+  s.mode="login";
+  note("تم إنشاء الحساب. راجع بريدك لتأكيده ثم سجّل الدخول.","success");
+ }
+ return;
+  }
   if(f.id==="requestForm"){let v=vals(f),r=await db.rpc("create_service_request",{p_service_id:v.service_id,p_title:v.title,p_description:v.description||null,p_country:v.country,p_city:v.city,p_address:v.address,p_budget:v.budget?Number(v.budget):null,p_provider_id:v.provider_id||null});if(r.error)throw r.error;s.modal=null;await loadUser(s.user);note("تم إرسال طلب الخدمة.","success");return}
   if(f.id==="offerForm"){let v=vals(f),r=await db.from("provider_services").insert({provider_id:s.provider.id,service_id:v.service_id,price:Number(v.price),currency:v.currency,price_type:v.price_type,is_active:true});if(r.error)throw r.error;s.modal=null;await loadUser(s.user);note("تمت إضافة الخدمة.","success");return}
   if(f.id==="serviceForm"){let v=vals(f),r=await db.from("services").insert({category_id:v.category_id,name_ar:v.name_ar,name_en:v.name_en||null,description:v.description||null,is_active:true});if(r.error)throw r.error;s.modal=null;await loadUser(s.user);note("تمت إضافة الخدمة.","success");return}
