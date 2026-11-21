@@ -1427,6 +1427,9 @@ async function loadUser(u){
  const m=u.user_metadata||{},patch={};["full_name","phone","country","city","address"].forEach(k=>{if(!p[k]&&m[k])patch[k]=m[k]});
  if(Object.keys(patch).length){await db.from("profiles").update(patch).eq("id",u.id);Object.assign(p,patch)}
  s.profile=p;
+await auditEvent("ACCOUNT_SESSION_LOADED","profiles",u.id,"success",{
+ role:p.role
+});
  let {data:pp}=await db.from("provider_profiles").select("*").eq("user_id",u.id).maybeSingle();
  if(!pp&&m.account_type==="provider"){
   const r=await db.from("provider_profiles").insert({user_id:u.id,display_name:p.full_name||"مزوّد خدمة",bio:m.bio||null,experience_years:Number(m.experience_years||0),country:p.country,city:p.city,service_area:m.service_area||null,verification_status:"pending",is_available:false}).select("*").single();
