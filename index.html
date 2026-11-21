@@ -1446,11 +1446,9 @@ async function loadUser(u){
 await auditEvent("ACCOUNT_SESSION_LOADED","profiles",u.id,"success",{
  role:p.role
 });
- let {data:pp}=await db.from("provider_profiles").select("*").eq("user_id",u.id).maybeSingle();
- if(!pp&&m.account_type==="provider"){
-  const r=await db.from("provider_profiles").insert({user_id:u.id,display_name:p.full_name||"مزوّد خدمة",bio:m.bio||null,experience_years:Number(m.experience_years||0),country:p.country,city:p.city,service_area:m.service_area||null,verification_status:"pending",is_available:false}).select("*").single();
-  if(!r.error)pp=r.data;else console.error(r.error);
- }
+  let {data:pp,error:ppError}=await db.from("provider_profiles").select("*").eq("user_id",u.id).maybeSingle();
+ if(ppError)throw ppError;
+ if(p.role==="provider"&&!pp)throw Error("تعذر تحميل ملف مزوّد الخدمة. يرجى التواصل مع الدعم.");
  s.provider=pp||null;
 s.staffAccess=null;
 await publicData(p.role==="admin"||p.role==="staff");
