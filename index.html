@@ -1404,7 +1404,15 @@ function btn(a,t,k,id,extra){return '<button class="btn '+(k||"")+'" data-a="'+a
 function field(l,n,type,ph,v,req){return '<label class="field">'+l+'<input name="'+n+'" type="'+(type||"text")+'" placeholder="'+esc(ph||"")+'" value="'+esc(v||"")+'" '+(req?"required":"")+'></label>'}
 function select(l,n,opts,v){return '<label class="field">'+l+'<select name="'+n+'">'+opts.map(o=>'<option value="'+esc(o.value)+'" '+(String(o.value)===String(v)?"selected":"")+'>'+esc(o.label)+'</option>').join("")+'</select></label>'}
 function empty(x){return '<div class="empty">'+esc(x)+'</div>'}
-async function publicData(includeInactive=false){
+if(f.id==="login"){
+ let v=vals(f);
+ let r=await db.auth.signInWithPassword({email:v.email.trim(),password:v.password});
+ if(r.error)throw r.error;
+ await loadUser(r.data.user);
+ await auditEvent("USER_LOGIN","application",r.data.user.id);
+ return;
+}
+      async function publicData(includeInactive=false){
  let serviceQuery=db.from("services").select("id,category_id,name_ar,description,image_url,is_active").order("sort_order");
  if(!includeInactive)serviceQuery=serviceQuery.eq("is_active",true);
  const [c,v,p]=await Promise.all([
