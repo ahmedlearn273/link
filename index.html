@@ -1899,33 +1899,44 @@ if(m.type==="addstaff"){
  '<button class="btn gold">إنشاء الموظف وإرسال الدعوة</button>'+
  '</form>';
 }                                                                                                                                                                                                                                                                                                                                                                                     
- if(m.type==="editstaff"){
- const x=s.staff.find(y=>y.id===m.userId);
- if(!x)throw Error("الموظف غير موجود");
+ 
+if(m.type==="addstaff"){
  const permissions=[
- ["dashboard.view","لوحة المعلومات"],
+ ["dashboard.view","عرض لوحة المعلومات"],
  ["customers.view","عرض العملاء"],
  ["customers.manage","إدارة العملاء"],
  ["providers.view","عرض المزوّدين"],
- ["providers.review","مراجعة المزوّدين"],
+ ["providers.review","مراجعة طلبات المزوّدين"],
  ["requests.view","عرض الطلبات"],
  ["requests.manage","إدارة الطلبات"],
  ["services.view","عرض الخدمات"],
  ["services.manage","إدارة الخدمات"],
  ["categories.view","عرض التصنيفات"],
  ["categories.manage","إدارة التصنيفات"],
- ["messages.view","المحادثات"],
+ ["messages.view","عرض المحادثات"],
  ["payments.view","عرض المدفوعات"],
  ["payments.manage","إدارة المدفوعات"],
- ["reports.view","التقارير"],
+ ["reports.view","عرض التقارير"],
  ["ads.view","عرض الإعلانات"],
  ["ads.manage","إدارة الإعلانات"],
  ["settings.view","عرض الإعدادات"],
  ["settings.manage","إدارة الإعدادات"]
  ];
- const current=x.staff_permissions?.permissions||[];
- c='<h3>تعديل صلاحيات '+esc(x.full_name||"الموظف")+'</h3><form id="editStaffForm"><input type="hidden" name="user_id" value="'+esc(x.id)+'">'+select("حالة الموظف","is_active",[{value:"true",label:"نشط"},{value:"false",label:"موقوف"}],String(x.staff_permissions?.is_active!==false))+'<p><b>الصلاحيات</b></p><div class="list">'+permissions.map(p=>'<label class="item"><input type="checkbox" name="permissions" value="'+p[0]+'" '+(current.includes(p[0])?"checked":"")+'> '+p[1]+'</label>').join("")+'</div><button class="btn gold">حفظ التعديلات</button></form>';
- }
+ c='<div class="modal-title"><h3>إنشاء حساب موظف جديد</h3><p class="muted">أضف بيانات الموظف وحدد الصلاحيات المناسبة لمسؤولياته.</p></div>'+
+ '<form id="addStaffForm">'+
+ '<div class="section"><h4>بيانات الموظف</h4>'+
+ field("اسم الموظف","full_name","text","الاسم الكامل","",true)+
+ field("البريد الإلكتروني","email","email","employee@example.com","",true)+
+ '</div>'+
+ '<div class="section"><h4>الصلاحيات الممنوحة</h4>'+
+ '<p class="muted">حدد الأقسام والمهام التي يُسمح للموظف بالوصول إليها.</p>'+
+ '<div class="grid small">'+
+ permissions.map(x=>'<label class="item"><input type="checkbox" name="permissions" value="'+x[0]+'"> '+x[1]+'</label>').join("")+
+ '</div></div>'+
+ '<div class="actions"><button class="btn gold">إنشاء الموظف وإرسال الدعوة</button></div>'+
+ '</form>';
+}
+  
  if(m.type==="customerDetails"){
  const x=s.customers.find(y=>y.id===m.userId);
  if(!x)throw Error("العميل غير موجود");
