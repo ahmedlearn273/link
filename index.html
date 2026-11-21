@@ -1957,7 +1957,7 @@ if(s.tab==="audit"&&s.profile?.role==="owner"){
  (x.entity_id?" · "+esc(x.entity_id):"")+'</p>'+
  '<p class="small">المصدر: '+esc(x.event_source||"—")+'</p>'+
  '<p class="muted">'+(x.created_at?new Date(x.created_at).toLocaleString("ar-SA"):"وقت غير محدد")+'</p>'+
- '</article>').join("")||empty("لا توجد سجلات تدقيق حتى الآن")+
+ '</article>').join("")||empty("لا توجد سجلات تدقيق حتى الآن"))+
  '</div></section>';
 }
 const nav=[["home","نظرة عامة"],["requests","الطلبات"],["messages","الرسائل"],["customers","العملاء"],["providers","المزوّدون"],["services","الخدمات"],["categories","التصنيفات"],["staff","الموظفون"],["appearance","المظهر والثيمات"],...(s.profile?.role==="owner"?[["audit","سجل التدقيق"]]:[])].map(x=>'<button data-a="tab" data-id="'+x[0]+'" class="'+(s.tab===x[0]?"active":"")+'">'+x[1]+'</button>').join("")+'<button data-a="showexplore" class="nav-home">الصفحة الرئيسية</button>';
