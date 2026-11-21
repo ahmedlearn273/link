@@ -2592,7 +2592,12 @@ if(a==="showexplore"){s.mode="explore";render();return}
 if(a==="showadmin"){s.mode="app";s.tab="home";render();return}
   if(a==="showadmin"){s.mode="app";s.tab="home";render();return}
   if(a==="mode"){s.mode=id;s.notice="";render();return}
-if(a==="tab"){s.tab=id;render();return}
+if(a==="tab"){
+ if(id==="audit"&&s.profile?.role!=="owner")return;
+ s.tab=id;
+ render();
+ return;
+}
 if(a==="category-open"){s.selectedCategory=id;render();return}
 if(a==="category-back"){s.selectedCategory=null;render();return}
   if(a==="theme-save-local"){
