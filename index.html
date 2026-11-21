@@ -1998,7 +1998,7 @@ if(m.type==="addstaff"){
  '<button class="btn gold">إنشاء الموظف وإرسال الدعوة</button>'+
  '</form>';
 }                                                                                                                                                                                                                                                                                                                                                                                     
- 
+
 if(m.type==="addstaff"){
  const permissions=[
  ["dashboard.view","عرض لوحة المعلومات"],
@@ -2021,20 +2021,37 @@ if(m.type==="addstaff"){
  ["settings.view","عرض الإعدادات"],
  ["settings.manage","إدارة الإعدادات"]
  ];
- c='<div class="modal-title"><h3>إنشاء حساب موظف جديد</h3><p class="muted">أضف بيانات الموظف وحدد الصلاحيات المناسبة لمسؤولياته.</p></div>'+
+
+ const hierarchy=[
+  {value:"ASV",label:"مشرف منطقة — ASV"},
+  {value:"OPS",label:"العمليات — OPS"},
+  {value:"FIN",label:"المالية — FIN"},
+  {value:"SUP",label:"خدمة العملاء — SUP"},
+  {value:"MKT",label:"التسويق — MKT"},
+  {value:"TEC",label:"التقنية — TEC"}
+ ];
+
+ c='<div class="modal-title"><h3>إنشاء حساب موظف جديد</h3><p class="muted">أدخل بيانات الموظف وحدد رتبته وصلاحياته.</p></div>'+
  '<form id="addStaffForm">'+
  '<div class="section"><h4>بيانات الموظف</h4>'+
  field("اسم الموظف","full_name","text","الاسم الكامل","",true)+
  field("البريد الإلكتروني","email","email","employee@example.com","",true)+
+ '<label class="field">الكود الوظيفي المتوقع<input name="account_code_preview" type="text" value="جارٍ تحديد الكود..." readonly></label>'+
+ '<p class="muted">الكود النهائي يُثبت تلقائيًا عند إنشاء الحساب، وقد تتغير المعاينة إذا أُنشئ حساب آخر بالتزامن.</p>'+
+ '</div>'+
+ '<div class="section"><h4>الرتبة الوظيفية</h4>'+
+ select("المسمى الوظيفي وكود الرول","staff_role_code",hierarchy,"ASV")+
  '</div>'+
  '<div class="section"><h4>الصلاحيات الممنوحة</h4>'+
- '<p class="muted">حدد الأقسام والمهام التي يُسمح للموظف بالوصول إليها.</p>'+
+ '<p class="muted">الرتبة الوظيفية مستقلة عن الصلاحيات؛ اختر الصلاحيات التي يحتاجها الموظف.</p>'+
  '<div class="list">'+
  permissions.map(x=>'<label class="item"><input type="checkbox" name="permissions" value="'+x[0]+'"> '+x[1]+'</label>').join("")+
  '</div></div>'+
- '<div class="actions"><button class="btn gold">إنشاء الموظف وإرسال الدعوة</button></div>'+
+ '<div class="notice">الصورة الشخصية الافتراضية ستكون شعار وصلة، ويمكن للموظف تغييرها من حسابه بعد تسجيل الدخول.</div>'+
+ '<div class="actions"><button class="btn gold">إنشاء حساب الموظف</button></div>'+
  '</form>';
 }
+  
   
  if(m.type==="editstaff"){
  const x=s.staff.find(y=>y.id===m.userId);
