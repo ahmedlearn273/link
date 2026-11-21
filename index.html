@@ -1767,7 +1767,59 @@ const query=(s.filter||"").trim().toLowerCase();
  return '<article class="item"><div class="row"><b>'+esc(q.title||q.services?.name_ar||"طلب خدمة")+'</b>'+tag(q.status)+'</div><p>'+esc([q.city,q.country].filter(Boolean).join("، "))+'</p><p>'+esc(q.description||"")+'</p><p>الميزانية: '+(q.budget?fmt(q.budget):"غير محددة")+'</p><div class="actions">'+a+(!provider&&["pending","accepted"].includes(q.status)?btn("cancelrequest","إلغاء الطلب","danger",q.id):"")+(q.status==="completed"&&q.provider_id&&!provider?btn("review","تقييم الخدمة","light",q.id):"")+(q.provider_id&&["accepted","in_progress"].includes(q.status)&&(!provider||s.chats.some(c=>c.request_id===q.id))?btn("chat","محادثة","light",q.id):"")+'</div></article>';
  }).join("")||empty("لا توجد طلبات حتى الآن");
 }
-function customer(){
+function accountSettingsView(){
+ const p=s.profile||{};
+
+ const roles={
+  customer:"عميل",
+  provider:"مزوّد خدمة",
+  staff:"موظف",
+  admin:"إدارة المنصة",
+  owner:"مالك المنصة"
+ };
+
+ const avatar=p.avatar_url?
+  '<img src="'+esc(p.avatar_url)+'" alt="الصورة الشخصية" style="width:100%;height:100%;object-fit:cover">':
+  '<svg viewBox="0 0 64 64" width="70" height="70" aria-label="شعار وصلة">'+
+  '<path d="M7 17 L19 46 L31 25 L43 46 L57 17" fill="none" stroke="var(--ink)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>'+
+  '<path d="M5 39 C17 57 46 9 59 27" fill="none" stroke="#D6A642" stroke-width="4" stroke-linecap="round"/>'+
+  '<circle cx="55" cy="15" r="5" fill="#D6A642"/>'+
+  '</svg>';
+
+ return header(
+  "إعدادات الحساب",
+  '<button data-a="tab" data-id="home">العودة إلى الحساب</button>'
+ )+
+ '<main class="wrap">'+msg()+
+ '<section class="section">'+
+ '<div class="card">'+
+ '<div class="sectionhead"><div>'+
+ '<h2>بيانات حسابك</h2>'+
+ '<p class="small">إدارة صورتك الشخصية وبيانات حسابك.</p>'+
+ '</div><span class="tag">'+esc(roles[p.role]||p.role||"حساب")+'</span></div>'+
+ '<div style="text-align:center;padding:18px 0">'+
+ '<div style="width:112px;height:112px;border-radius:50%;overflow:hidden;background:var(--bg);border:1px solid var(--line);display:grid;place-items:center;margin:0 auto 12px">'+avatar+'</div>'+
+ '<h3>'+esc(p.full_name||"مستخدم وصلة")+'</h3>'+
+ '<p class="muted">'+esc(s.user?.email||"")+'</p>'+
+ '</div>'+
+ '<div class="item">'+
+ '<p class="small">الكود الوظيفي / الحساب</p>'+
+ '<b>'+esc(p.account_code||"غير متاح")+'</b>'+
+ '</div>'+
+ '<form id="accountPhotoForm">'+
+ '<h3>تغيير الصورة الشخصية</h3>'+
+ '<label class="field">اختر صورة جديدة'+
+ '<input type="file" name="avatar_file" accept="image/jpeg,image/png,image/webp" required>'+
+ '</label>'+
+ '<p class="muted">الصيغ المدعومة JPG وPNG وWEBP، والحد الأقصى 5 ميجابايت.</p>'+
+ '<div class="actions"><button class="btn gold">حفظ الصورة الشخصية</button></div>'+
+ '</form>'+
+ '<div class="notice">شعار وصلة هو الصورة الافتراضية. لا يستطيع تغيير صورتك الشخصية إلا صاحب الحساب نفسه.</div>'+
+ '</div>'+
+ '</section>'+
+ '</main>';
+}
+      function customer(){
  let body="";
  if(s.tab==="home")body='<section class="section"><h2>التصنيفات</h2><div class="grid small">'+s.cats.map(c=>'<div class="card"><div class="icon">'+esc(c.icon||"✦")+'</div><b>'+esc(c.name_ar)+'</b></div>').join("")+'</div></section><section class="section"><div class="sectionhead"><h2>الخدمات</h2><input id="search" placeholder="ابحث عن خدمة" value="'+esc(s.filter)+'"></div><div class="grid">'+(s.services.filter(x=>{let q=(s.filter||"").trim().toLowerCase();return !q||[x.name_ar,x.name_en,x.description].some(v=>String(v||"").toLowerCase().includes(q))}).map(serviceCard).join("")||empty("لا توجد خدمات مطابقة لبحثك"))+'</div></section><section class="section"><h2>مزوّدو الخدمة المعتمدون</h2><div class="grid">'+(s.providers.map(providerCard).join("")||empty("لا يوجد مزوّدون معتمدون بعد"))+'</div></section>';
  if(s.tab==="messages")body=chatContent();
