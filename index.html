@@ -2356,11 +2356,10 @@ if(f.id==="login"){
  };
 
  if(v.account_type==="provider"){
-  const tokenResult=await db.rpc("issue_provider_signup_token");
-  if(tokenResult.error)throw tokenResult.error;
-  if(!tokenResult.data)throw Error("تعذّر تجهيز تسجيل مزوّد الخدمة. حاول مرة أخرى.");
-  signupData.provider_signup_token=tokenResult.data;
- }
+  const {data:tokenData,error:tokenError}=await db.functions.invoke("provider-signup-token",{body:{}});
+if(tokenError)throw tokenError;
+if(!tokenData?.token)throw Error("تعذّر تجهيز تسجيل مزوّد الخدمة. حاول مرة أخرى.");
+signupData.provider_signup_token=tokenData.token;
 
  let r=await db.auth.signUp({
   email:v.email.trim(),
