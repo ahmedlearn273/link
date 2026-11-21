@@ -2010,7 +2010,7 @@ if(s.tab==="account"){
  app.innerHTML=accountSettingsView()+'<main class="wrap">'+btn("logout","تسجيل الخروج","light")+'</main>';
  return;
 }
- if(s.profile?.role==="admin")app.innerHTML=admin()+'<main class="wrap">'+btn("logout","تسجيل الخروج","light")+'</main>';
+ if(s.profile?.role==="admin"||s.profile?.role==="owner")app.innerHTML=admin()+'<main class="wrap">'+btn("logout","تسجيل الخروج","light")+'</main>';
 else if(s.profile?.role==="staff")app.innerHTML=staff()+'<main class="wrap">'+btn("logout","تسجيل الخروج","light")+'</main>';
  else if(s.profile?.role==="provider"&&s.provider?.verification_status==="approved")app.innerHTML=provider()+'<main class="wrap">'+btn("logout","تسجيل الخروج","light")+'</main>';
  else if(s.provider&&s.provider.verification_status!=="approved")app.innerHTML=header(s.provider.verification_status==="pending"?"طلب الانضمام قيد المراجعة":s.provider.verification_status==="rejected"?"تم رفض طلب الانضمام":"حالة طلب الانضمام")+'<main class="wrap"><div class="auth card"><div class="icon">⏳</div><h2>'+(s.provider.verification_status==="pending"?"طلبك قيد المراجعة":s.provider.verification_status==="rejected"?"تم رفض طلب الانضمام":"حالة الطلب")+'</h2><p class="muted">'+(s.provider.verification_status==="pending"?"ستتم مراجعة بياناتك من الإدارة، وبعد الموافقة ستتمكن من إضافة خدماتك واستقبال الطلبات.":"يمكنك التواصل مع إدارة المنصة لمعرفة التفاصيل.")+'</p>'+tag(s.provider.verification_status)+btn("logout","تسجيل الخروج","light")+'</div></main>';
