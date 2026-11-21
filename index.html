@@ -1857,7 +1857,31 @@ else if(s.profile?.role==="staff")app.innerHTML=staff()+'<main class="wrap">'+bt
  else app.innerHTML=customer()+'<main class="wrap">'+btn("logout","تسجيل الخروج","light")+'</main>';
  if(s.modal){
   const m=s.modal;let c="";
-  if(m.type==="request"){let ps=s.providers.filter(p=>!m.providerId||p.id===m.providerId);c='<h3>إنشاء طلب خدمة</h3><form id="requestForm">'+select("الخدمة","service_id",s.services.map(x=>({value:x.id,label:x.name_ar})),m.serviceId||"")+select("مزوّد الخدمة (اختياري)","provider_id",[{value:"",label:"اترك الطلب متاحًا للمزوّدين"}].concat(ps.map(x=>({value:x.id,label:(x.display_name||"مزوّد")+" - "+(x.city||"")}))),m.providerId||"")+field("عنوان الطلب","title","text","عنوان مختصر","",true)+'<label class="field">التفاصيل<textarea name="description"></textarea></label>'+field("الدولة","country","text","الدولة",s.profile.country,true)+field("المدينة","city","text","المدينة",s.profile.city,true)+field("العنوان","address","text","الحي والشارع","",true)+field("الميزانية (اختياري)","budget","number","المبلغ","",false)+'<button class="btn gold">إرسال الطلب</button></form>'}
+
+if(m.type==="request"){
+ let ps=s.providers.filter(p=>!m.providerId||p.id===m.providerId);
+ c='<div class="modal-title"><h3>إنشاء طلب خدمة</h3><p class="muted">أدخل تفاصيل الخدمة المطلوبة حتى يتمكن المزوّد من فهم احتياجك والتواصل معك.</p></div>'+
+ '<form id="requestForm">'+
+ '<section class="section"><h4>الخدمة والمزوّد</h4>'+
+ select("الخدمة","service_id",s.services.map(x=>({value:x.id,label:x.name_ar})),m.serviceId||"")+
+ select("مزوّد الخدمة (اختياري)","provider_id",[{value:"",label:"اترك الطلب متاحًا للمزوّدين"}].concat(ps.map(x=>({value:x.id,label:(x.display_name||"مزوّد")+" - "+(x.city||"")}))),m.providerId||"")+
+ '</section>'+
+ '<section class="section"><h4>تفاصيل الطلب</h4>'+
+ field("عنوان الطلب","title","text","مثال: صيانة مكيف المنزل","",true)+
+ '<label class="field">وصف المشكلة أو الخدمة المطلوبة<textarea name="description" placeholder="اشرح ما تحتاج إليه بالتفصيل..."></textarea></label>'+
+ '</section>'+
+ '<section class="section"><h4>موقع تنفيذ الخدمة</h4>'+
+ field("الدولة","country","text","الدولة",s.profile.country,true)+
+ field("المدينة","city","text","المدينة",s.profile.city,true)+
+ field("العنوان","address","text","الحي والشارع", "",true)+
+ '</section>'+
+ '<section class="section"><h4>الميزانية</h4>'+
+ field("الميزانية (اختياري)","budget","number","المبلغ المتوقع","",false)+
+ '</section>'+
+ '<div class="actions"><button class="btn gold">إرسال طلب الخدمة</button></div>'+
+ '</form>';
+}
+  
   if(m.type==="offer")c='<h3>إضافة خدمة إلى ملفك</h3><form id="offerForm">'+select("الخدمة","service_id",s.services.map(x=>({value:x.id,label:x.name_ar})),"")+field("السعر","price","number","السعر","",true)+select("العملة","currency",[{value:"SAR",label:"ريال سعودي"},{value:"EGP",label:"جنيه مصري"},{value:"AED",label:"درهم إماراتي"}],"SAR")+select("نوع السعر","price_type",[{value:"fixed",label:"ثابت"},{value:"starting_from",label:"يبدأ من"},{value:"negotiable",label:"قابل للتفاوض"}],"fixed")+'<button class="btn gold">إضافة</button></form>';
 
 
