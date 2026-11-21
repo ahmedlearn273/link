@@ -2553,9 +2553,9 @@ if(f.id==="accountPasswordForm"){
 
  const publicUrl=bucket.getPublicUrl(path).data.publicUrl;
 
- const updated=await db.from("profiles")
-  .update({avatar_url:publicUrl})
-  .eq("id",s.user.id);
+ const updated=await db.rpc("update_own_profile",{
+  p_patch:{avatar_url:publicUrl}
+});
 
  if(updated.error){
   await bucket.remove([path]);
