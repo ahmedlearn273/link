@@ -25,11 +25,9 @@ security definer
 set search_path = ''
 as $function$
 begin
-  -- Only trusted database administration sessions may
-  -- create, promote, demote, suspend, or delete an owner.
   if TG_OP = 'INSERT' then
     if NEW.role = 'owner'
-       and session_user not in ('postgres', 'supabase_admin') then
+       and session_user <> 'postgres' then
       raise exception 'Owner creation is restricted';
     end if;
 
@@ -38,7 +36,7 @@ begin
 
   if TG_OP = 'DELETE' then
     if OLD.role = 'owner'
-       and session_user not in ('postgres', 'supabase_admin') then
+       and session_user <> 'postgres' then
       raise exception 'Owner account cannot be deleted';
     end if;
 
@@ -51,7 +49,7 @@ begin
          NEW.role is distinct from OLD.role
          or NEW.status is distinct from OLD.status
        )
-       and session_user not in ('postgres', 'supabase_admin') then
+       and session_user <> 'postgres' then
       raise exception 'Owner role and status are protected';
     end if;
 
@@ -82,7 +80,7 @@ security definer
 set search_path = ''
 as $function$
 begin
-  if session_user not in ('postgres', 'supabase_admin')
+  if session_user <> 'postgres'
      and exists (
        select 1
        from public.profiles p
@@ -111,4 +109,3 @@ execute function private.guard_owner_auth_deletion();
 -- =========================================================
 -- End of owner protection migration
 -- =========================================================
-
