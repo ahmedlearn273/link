@@ -2803,7 +2803,7 @@ if(a==="viewcustomer"){s.modal={type:"customerDetails",userId:id};render();retur
   if(a==="claim"){let r=await db.rpc("claim_service_request",{p_request_id:id});if(r.error)throw r.error;await loadUser(s.user);note("تم قبول الطلب وإسناده إليك.","success");return}
   if(a==="advance"){let r=await db.rpc("advance_service_request",{p_request_id:id,p_next_status:b.dataset.next});if(r.error)throw r.error;await loadUser(s.user);note("تم تحديث حالة الطلب.","success");return}
   if(a==="availability"){let r=await db.rpc("toggle_own_provider_availability");if(r.error)throw r.error;await loadUser(s.user);note("تم تحديث التوفر.","success");return}
-  if(a==="toggleoffer"){let o=s.offers.find(x=>x.id===id),r=await db.from("provider_services").update({is_active:!o.is_active}).eq("id",id);if(r.error)throw r.error;await loadUser(s.user);return}
+  if(a==="toggleoffer"){let r=await db.rpc("toggle_own_provider_service",{p_provider_service_id:id});if(r.error)throw r.error;await loadUser(s.user);return}
   if(a==="reviewprovider"){let r=await db.rpc("admin_review_provider_application",{p_user_id:id,p_decision:b.dataset.decision});if(r.error)throw r.error;await loadUser(s.user);note("تم تحديث طلب الانضمام.","success");return}
  if(a==="toggleservice"){let r=await db.rpc("toggle_service_active",{p_service_id:id});if(r.error)throw r.error;await loadUser(s.user);note("تم تحديث الخدمة.","success");return}
   if(a==="togglecategory"){let r=await db.rpc("toggle_category_active",{p_category_id:id});if(r.error)throw r.error;await loadUser(s.user);note("تم تحديث التصنيف.","success");return}
