@@ -2131,7 +2131,7 @@ async function submit(e){
  await loadUser(r.data.user);
 await auditEvent("USER_LOGIN","application",r.data.user.id);
   }
-async function auditEvent(action,entityTable="application",entityId=null,result="success",metadata={}){
+
  try{
   if(!s.user)return;
   const {error}=await db.rpc("record_audit_event",{
