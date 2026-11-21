@@ -2300,15 +2300,15 @@ async function saveServiceImage(serviceId,file,oldUrl){
 
  const publicUrl=bucket.getPublicUrl(path).data.publicUrl;
 
- const updated=await db.from("services")
-  .update({image_url:publicUrl})
-  .eq("id",serviceId);
+ const updated=await db.rpc("admin_set_service_image",{
+ p_service_id:serviceId,
+ p_image_url:publicUrl
+});
 
- if(updated.error){
-  await bucket.remove([path]);
-  throw updated.error;
- }
-
+if(updated.error){
+ await bucket.remove([path]);
+ throw updated.error;
+}
  const marker="/storage/v1/object/public/service-images/";
 
  if(oldUrl&&String(oldUrl).includes(marker)){
