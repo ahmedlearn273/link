@@ -9,7 +9,84 @@
  
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#f3f6f8;--card:#fff;--ink:#102a3a;--muted:#71818c;--line:#e1e8ed;--navy:#102b3b;--navy2:#19445a;--gold:#d6a642;--green:#16845d;--red:#c44545}
+
+:root {
+  color-scheme: light;
+
+  /* Trust & Poise — Light Mode */
+  --bg-main: #FAF9F6;
+  --bg-surface: #FFFFFF;
+  --bg-subtle: #F3F2EE;
+
+  --primary: #0F4C5C;
+  --primary-hover: #0B3945;
+
+  --accent: #EA580C;
+  --accent-hover: #C2410C;
+
+  --text-primary: #111827;
+  --text-secondary: #6B7280;
+  --border-color: #E5E7EB;
+
+  /* Semantic states */
+  --success: #16A34A;
+  --success-bg: #DCFCE7;
+  --warning: #D97706;
+  --warning-bg: #FEF3C7;
+  --danger: #DC2626;
+  --danger-bg: #FEE2E2;
+
+  /* Existing variable compatibility */
+  --bg: var(--bg-main);
+  --card: var(--bg-surface);
+  --ink: var(--text-primary);
+  --muted: var(--text-secondary);
+  --line: var(--border-color);
+  --navy: var(--primary);
+  --navy2: var(--primary-hover);
+  --gold: var(--accent);
+  --green: var(--success);
+  --red: var(--danger);
+
+  --card-radius: 12px;
+  --control-radius: 8px;
+  --surface-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+
+  --transition-theme:
+    background-color 0.25s ease,
+    color 0.25s ease,
+    border-color 0.25s ease;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  /* Trust & Poise — Dark Mode */
+  --bg-main: #121417;
+  --bg-surface: #1C1F24;
+  --bg-subtle: #252930;
+
+  --primary: #2A9D8F;
+  --primary-hover: #21867A;
+
+  --accent: #F59E0B;
+  --accent-hover: #D97706;
+
+  --text-primary: #F9FAFB;
+  --text-secondary: #9CA3AF;
+  --border-color: #2D3139;
+
+  /* Semantic states */
+  --success: #4ADE80;
+  --success-bg: rgba(74, 222, 128, 0.15);
+  --warning: #FBBF24;
+  --warning-bg: rgba(251, 191, 36, 0.15);
+  --danger: #F87171;
+  --danger-bg: rgba(248, 113, 113, 0.15);
+
+  --surface-shadow: none;
+}
+ 
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans Arabic",Tahoma,sans-serif;line-height:1.65}button,input,select,textarea{font:inherit}button{cursor:pointer}
 
 
