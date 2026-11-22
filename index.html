@@ -2428,16 +2428,19 @@ if(f.id==="addStaffForm"){
  if(!staffTitle)throw Error("اختر الرتبة الوظيفية");
  if(!permissions.length)throw Error("اختر صلاحية واحدة على الأقل");
 
- let r=await db.functions.invoke("admin-create-staff",{
+ 
+let r=await db.functions.invoke("admin-create-staff",{
   body:{
    full_name:v.full_name.trim(),
    email:v.email.trim(),
+   birth_date:v.birth_date,
+   adult_confirmation:v.adult_confirmation==="true",
    staff_title:staffTitle,
    staff_role_code:staffRoleCode,
    permissions
   }
- });
-
+});
+ 
  if(r.error)throw r.error;
  if(r.data?.error)throw Error(r.data.error);
  if(!r.data?.temporary_password)throw Error("تم إنشاء الحساب لكن تعذّر استلام كلمة المرور المؤقتة. تواصل مع الدعم.");
