@@ -2916,7 +2916,13 @@ if(a==="tab"){
  if(id==="knowledge")loadPrimeKnowledge();
  return;
 }
-if(a==="knowledge-new"){
+if(a==="knowledge-create-release"){
+ if(s.profile?.role!=="owner")return;
+ s.modal={type:"knowledgeRelease"};
+ render();
+ return;
+}
+  if(a==="knowledge-new"){
  if(s.profile?.role!=="admin")return;
  s.knowledgeSelectedDoc=null;
  s.modal={type:"knowledgeDocument"};
