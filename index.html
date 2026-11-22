@@ -2364,16 +2364,20 @@ if(f.id==="login"){
  let v=vals(f);
  if(v.password.length<8)throw Error("كلمة المرور يجب ألا تقل عن 8 أحرف");
 
- const signupData={
+ 
+const signupData={
   full_name:v.full_name,
   phone:v.phone||null,
   country:v.country,
   city:v.city,
+  birth_date:v.birth_date,
+  adult_confirmation:v.adult_confirmation==="true",
   account_type:v.account_type,
   experience_years:v.experience_years||0,
   bio:v.bio||"",
   service_area:v.service_area||""
  };
+   
 
  if(v.account_type==="provider"){
   const {data:tokenData,error:tokenError}=await db.functions.invoke("provider-signup-token",{body:{}});
