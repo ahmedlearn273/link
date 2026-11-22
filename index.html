@@ -2820,6 +2820,13 @@ if(a==="tab"){
  if(id==="knowledge")loadPrimeKnowledge();
  return;
 }
+if(a==="knowledge-new"){
+ if(s.profile?.role!=="admin")return;
+ s.knowledgeSelectedDoc=null;
+ s.modal={type:"knowledgeDocument"};
+ render();
+ return;
+}
 if(a==="knowledge-refresh"){
  if(s.tab==="knowledge")loadPrimeKnowledge();
  return;
