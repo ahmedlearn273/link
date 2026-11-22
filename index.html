@@ -2578,6 +2578,164 @@ if(f.id==="primeKnowledgeDocumentForm"){
  return;
 }
 
+if(f.id==="primeKnowledgeReleaseForm"){
+ if(s.profile?.role!=="owner")
+  throw Error("إنشاء إصدارات المعرفة متاح للمالك فقط");
+
+ const formData=new FormData(f);
+ const releaseVersion=Number(formData.get("release_version"));
+ const platformCommit=String(formData.get("platform_commit")||"").trim()||null;
+ const documentIds=[...new Set(formData.getAll("documents").map(String))];
+
+ const latestVersion=Math.max(
+  0,
+  ...s.knowledgeReleases.map(x=>Number(x.release_version)||0)
+ );
+
+ if(!Number.isInteger(releaseVersion)||releaseVersion<=latestVersion)
+  throw Error("رقم الإصدار يجب أن يكون أكبر من أحدث إصدار موجود");
+
+ if(!documentIds.length)
+  throw Error("اختر مستندًا معتمدًا واحدًا على الأقل");
+
+ if(platformCommit&&platformCommit.length>100)
+  throw Error("معرّف Commit أطول من المسموح");
+
+ const documents=[];
+
+ for(const documentId of documentIds){
+  const {data,error}=await db.functions.invoke("prime-knowledge-admin",{
+   body:{
+    action:"get_document",
+    document_id:documentId
+   }
+  });
+
+  if(error)throw error;
+  if(data?.error)throw Error(data.error);
+
+  const doc=data?.document;
+  if(!doc||doc.status!=="approved")
+   throw Error("أحد المستندات المختارة لم يعد معتمدًا");
+
+  const listed=s.knowledgeDocs.find(x=>x.id===documentId);
+  if(!listed||Number(listed.document_version)!==Number(doc.document_version))
+   throw Error("تغيّرت نسخة أحد المستندات. حدّث البيانات وأعد المحاولة");
+
+  const content=String(doc.content||"").trim();
+  if(!content||content.length>100000)
+   throw Error("محتوى المستند غير صالح أو يتجاوز الحد المسموح");
+
+  const chunks=[];
+  let current="";
+
+  const paragraphs=content.split(/\n\s*\n/);
+
+  for(const paragraph of paragraphs){
+   const part=paragraph.trim();
+   if(!part)continue;
+
+   if(part.length>15000){
+    if(current){
+     chunks.push(current);
+     current="";
+    }
+
+    for(let i=0;i<part.length;i+=15000){
+     chunks.push(part.slice(i,i+15000));
+    }
+    continue;
+   }
+
+   if(current&&current.length+part.length+2>15000){
+    chunks.push(current);
+    current=part;
+   }else{
+    current=current?current+"\n\n"+part:part;
+   }
+  }
+
+  if(current)chunks.push(current);
+
+  if(!chunks.length||chunks.length>1000)
+   throw Error("تعذّر تقسيم محتوى أحد المستندات");
+
+  documents.push({
+   id:doc.id,
+   title:doc.title,
+   slug:doc.slug,
+   version:Number(doc.document_version),
+   chunks
+  });
+ }
+
+ const manifest=documents.map(doc=>({
+  document_id:doc.id,
+  document_version:doc.version,
+  chunk_count:doc.chunks.length
+ }));
+
+ const created=await db.functions.invoke("prime-knowledge-admin",{
+  body:{
+   action:"create_release",
+   release_version:releaseVersion,
+   platform_commit:platformCommit,
+   document_manifest:manifest
+  }
+ });
+
+ if(created.error)throw created.error;
+ if(created.data?.error)throw Error(created.data.error);
+ if(!created.data?.success||!created.data?.release_id)
+  throw Error("لم يتم تأكيد إنشاء مسودة الإصدار");
+
+ const releaseId=created.data.release_id;
+ let addedChunks=0;
+
+ try{
+  for(const doc of documents){
+   for(let i=0;i<doc.chunks.length;i++){
+    const chunk=doc.chunks[i];
+
+    const result=await db.functions.invoke("prime-knowledge-admin",{
+     body:{
+      action:"add_chunk",
+      release_id:releaseId,
+      document_id:doc.id,
+      document_version:doc.version,
+      chunk_index:i,
+      content:chunk,
+      token_estimate:Math.ceil(chunk.length/4),
+      metadata:{
+       title:doc.title,
+       slug:doc.slug,
+       category:s.knowledgeDocs.find(x=>x.id===doc.id)?.category||null
+      }
+     }
+    });
+
+    if(result.error)throw result.error;
+    if(result.data?.error)throw Error(result.data.error);
+    if(!result.data?.success)throw Error("لم يتم تأكيد إضافة جزء من المحتوى");
+
+    addedChunks++;
+   }
+  }
+ }catch(chunkError){
+  throw Error(
+   "تم إنشاء الإصدار كمسودة، لكن تعذّرت إضافة جميع الأجزاء. "+
+   "معرّف المسودة: "+releaseId+
+   " — الأجزاء المضافة: "+addedChunks+
+   ". لم يتم نشر الإصدار أو حذف المسودة."
+  );
+ }
+
+ s.modal=null;
+ await loadPrimeKnowledge();
+ note("تم تجهيز الإصدار كمسودة وإضافة جميع أجزاء المحتوى. لم يتم نشره.", "success");
+ return;
+}
+ 
   if(f.id==="recoveryForm"){
    let v=vals(f);
    if(v.password.length<8)throw Error("كلمة المرور يجب ألا تقل عن 8 أحرف");
