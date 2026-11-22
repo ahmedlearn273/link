@@ -2032,7 +2032,30 @@ async function loadPrimeKnowledge(){
   note("تعذّر تحميل المستند للتعديل.","error");
  }
    }   
-  async function resumePrimeKnowledgeRelease(releaseId){
+async function viewPrimeKnowledgeDocument(documentId){
+ if(s.profile?.role!=="owner")return;
+
+ try{
+  const result=await db.functions.invoke("prime-knowledge-admin",{
+   body:{
+    action:"get_document",
+    document_id:documentId
+   }
+  });
+
+  if(result.error)throw result.error;
+  if(result.data?.error)throw Error(result.data.error);
+  if(!result.data?.document)throw Error("لم يتم العثور على المستند");
+
+  s.knowledgeSelectedDoc=result.data.document;
+  s.modal={type:"knowledgeDocumentView"};
+  render();
+ }catch(err){
+  console.error("PRIME knowledge document viewing failed:",err);
+  note("تعذّر عرض محتوى المستند.","error");
+ }
+}
+      async function resumePrimeKnowledgeRelease(releaseId){
  if(s.profile?.role!=="owner")
   throw Error("استكمال الإصدارات متاح للمالك فقط");
 
