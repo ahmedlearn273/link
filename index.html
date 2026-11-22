@@ -2850,7 +2850,12 @@ if(a==="knowledge-new"){
  render();
  return;
 }
-if(a==="knowledge-refresh"){
+if(a==="knowledge-edit"){
+ if(s.profile?.role!=="admin")return;
+ await loadPrimeKnowledgeDocument(id);
+ return;
+}
+  if(a==="knowledge-refresh"){
  if(s.tab==="knowledge")loadPrimeKnowledge();
  return;
 }
