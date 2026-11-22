@@ -2373,7 +2373,40 @@ if(m.type==="knowledgeDocument"){
  '<div class="actions"><button class="btn gold" type="submit">حفظ المسودة</button></div>'+
  '</form>';
 }
-  
+  if(m.type==="knowledgeRelease"){
+ if(s.profile?.role!=="owner")
+  throw Error("إنشاء إصدارات المعرفة متاح للمالك فقط");
+
+ const approvedDocs=s.knowledgeDocs.filter(x=>x.status==="approved");
+ const latestVersion=Math.max(
+  0,
+  ...s.knowledgeReleases.map(x=>Number(x.release_version)||0)
+ );
+
+ c='<div class="modal-title"><h3>إنشاء إصدار قاعدة معرفة</h3>'+
+ '<p class="muted">اختر المستندات المعتمدة التي تريد تضمينها في الإصدار.</p></div>'+
+ (approvedDocs.length?
+ '<form id="primeKnowledgeReleaseForm">'+
+ '<label class="field">رقم الإصدار'+
+ '<input name="release_version" type="number" min="'+(latestVersion+1)+'" step="1" required value="'+(latestVersion+1)+'"></label>'+
+ '<label class="field">Platform Commit (اختياري)'+
+ '<input name="platform_commit" maxlength="100" placeholder="معرّف commit المعتمد"></label>'+
+ '<section class="section"><h4>المستندات المعتمدة</h4>'+
+ '<div class="list">'+
+ approvedDocs.map(x=>
+ '<label class="item">'+
+ '<input type="checkbox" name="documents" value="'+esc(x.id)+'">'+
+ '<b>'+esc(x.title||"مستند بدون عنوان")+'</b>'+
+ '<p class="small">الفئة: '+esc(x.category||"غير محددة")+
+ ' · النسخة: '+fmt(x.document_version)+'</p>'+
+ '</label>'
+ ).join("")+
+ '</div></section>'+
+ '<p class="muted">سيتم تجهيز أجزاء المحتوى والتحقق منها قبل إتاحة النشر.</p>'+
+ '<div class="actions"><button class="btn gold" type="submit">تجهيز الإصدار</button></div>'+
+ '</form>'
+ :'<p class="muted">لا توجد مستندات معتمدة حاليًا. يجب اعتماد مستند واحد على الأقل أولًا.</p>');
+  }
   if(m.type==="customerDetails"){
  const x=s.customers.find(y=>y.id===m.userId);
  if(!x)throw Error("العميل غير موجود");
