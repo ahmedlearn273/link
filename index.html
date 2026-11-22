@@ -3294,7 +3294,12 @@ if(a==="knowledge-submit"){
  note("تم إرسال المستند للمراجعة بنجاح.","success");
  return;
 }
-if(a==="knowledge-approve"){
+if(a==="knowledge-view"){
+ if(s.profile?.role!=="owner")return;
+ await viewPrimeKnowledgeDocument(id);
+ return;
+}
+  if(a==="knowledge-approve"){
  if(s.profile?.role!=="owner")return;
 
  const {data,error}=await db.functions.invoke("prime-knowledge-admin",{
