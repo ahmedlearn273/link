@@ -3189,7 +3189,15 @@ if(a==="tab"){
  if(id==="knowledge")loadPrimeKnowledge();
  return;
 }
-if(a==="knowledge-publish-release"){
+if(a==="knowledge-resume-release"){
+ if(s.profile?.role!=="owner")return;
+
+ if(!confirm("هل تريد استكمال تجهيز مسودة الإصدار؟ سيتم التحقق من المستندات وإعادة استخدام الأجزاء المحفوظة دون تكرارها."))return;
+
+ await resumePrimeKnowledgeRelease(id);
+ return;
+}
+  if(a==="knowledge-publish-release"){
  if(s.profile?.role!=="owner")return;
 
  if(!confirm("هل أنت متأكد من نشر إصدار قاعدة المعرفة؟ سيتم استبدال الإصدار الحالي."))return;
