@@ -2032,6 +2032,121 @@ async function loadPrimeKnowledge(){
   note("تعذّر تحميل المستند للتعديل.","error");
  }
    }   
+  async function resumePrimeKnowledgeRelease(releaseId){
+ if(s.profile?.role!=="owner")
+  throw Error("استكمال الإصدارات متاح للمالك فقط");
+
+ const release=s.knowledgeReleases.find(x=>x.id===releaseId);
+
+ if(!release||release.status!=="draft")
+  throw Error("مسودة الإصدار غير موجودة أو لم تعد قابلة للاستكمال");
+
+ const manifest=release.document_manifest;
+
+ if(!Array.isArray(manifest)||!manifest.length||manifest.length>100)
+  throw Error("قائمة مستندات الإصدار غير صالحة");
+
+ const seen=new Set();
+
+ for(const entry of manifest){
+  if(!entry||typeof entry!=="object"||
+     typeof entry.document_id!=="string"||
+     !Number.isInteger(Number(entry.document_version))||
+     Number(entry.document_version)<1||
+     !Number.isInteger(Number(entry.chunk_count))||
+     Number(entry.chunk_count)<1||
+     Number(entry.chunk_count)>1000)
+   throw Error("بيانات أحد مستندات الإصدار غير صالحة");
+
+  if(seen.has(entry.document_id))
+   throw Error("الإصدار يحتوي على مستند مكرر");
+
+  seen.add(entry.document_id);
+
+  const {data,error}=await db.functions.invoke("prime-knowledge-admin",{
+   body:{
+    action:"get_document",
+    document_id:entry.document_id
+   }
+  });
+
+  if(error)throw error;
+  if(data?.error)throw Error(data.error);
+
+  const doc=data?.document;
+
+  if(!doc||doc.status!=="approved"||
+     Number(doc.document_version)!==Number(entry.document_version))
+   throw Error("أحد المستندات لم يعد معتمدًا بنفس النسخة. لن يتم استكمال الإصدار.");
+
+  const content=String(doc.content||"").trim();
+
+  if(!content||content.length>100000)
+   throw Error("محتوى أحد المستندات غير صالح");
+
+  const chunks=[];
+  let current="";
+
+  const paragraphs=content.split(/\n\s*\n/);
+
+  for(const paragraph of paragraphs){
+   const part=paragraph.trim();
+   if(!part)continue;
+
+   if(part.length>15000){
+    if(current){
+     chunks.push(current);
+     current="";
+    }
+
+    for(let i=0;i<part.length;i+=15000){
+     chunks.push(part.slice(i,i+15000));
+    }
+    continue;
+   }
+
+   if(current&&current.length+part.length+2>15000){
+    chunks.push(current);
+    current=part;
+   }else{
+    current=current?current+"\n\n"+part:part;
+   }
+  }
+
+  if(current)chunks.push(current);
+
+  if(chunks.length!==Number(entry.chunk_count))
+   throw Error("عدد أجزاء المستند تغيّر. أوقفنا الاستكمال لحماية الإصدار.");
+
+  for(let i=0;i<chunks.length;i++){
+   const result=await db.functions.invoke("prime-knowledge-admin",{
+    body:{
+     action:"add_chunk",
+     release_id:releaseId,
+     document_id:doc.id,
+     document_version:Number(entry.document_version),
+     chunk_index:i,
+     content:chunks[i],
+     token_estimate:Math.ceil(chunks[i].length/4),
+     metadata:{
+      title:doc.title,
+      slug:doc.slug,
+      category:doc.category
+     }
+    }
+   });
+
+   if(result.error)throw result.error;
+   if(result.data?.error)throw Error(result.data.error);
+   if(!result.data?.success)
+    throw Error("لم يتم تأكيد استكمال أحد أجزاء المحتوى");
+  }
+ }
+
+ await loadPrimeKnowledge();
+
+ note("تم استكمال تجهيز الإصدار كمسودة. لم يتم نشره.","success");
+  }
       function admin(){
  let body="";
 if(s.tab==="home")body='<section class="section"><div class="grid small"><div class="card"><div class="small">التصنيفات</div><div class="stat">'+fmt(s.cats.length)+'</div><p class="small">إجمالي تصنيفات المنصة</p></div><div class="card"><div class="small">الخدمات</div><div class="stat">'+fmt(s.services.length)+'</div><p class="small">الخدمات المسجلة بالمنصة</p></div><div class="card"><div class="small">طلبات الانضمام</div><div class="stat">'+fmt(s.apps.length)+'</div><p class="small">طلبات المزوّدين للمراجعة</p></div><div class="card"><div class="small">طلبات العملاء</div><div class="stat">'+fmt(s.allRequests.length)+'</div><p class="small">إجمالي طلبات الخدمات</p></div></div></section><section class="section"><div class="sectionhead"><div><h2>طلبات الانضمام</h2><p class="small">راجع طلبات المزوّدين واتخذ قرار الاعتماد.</p></div></div><div class="list">'+applications()+'</div></section>';
