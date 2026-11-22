@@ -3755,23 +3755,32 @@ boot().catch(e=>{console.error(e);app.innerHTML='<main class="wrap">'+empty("ت�
     );
   }
 };
+  
   const addButton = () => {
     const header = app.querySelector(".topline");
-    if (!header || header.querySelector(".theme-toggle")) return;
+    const welcome = app.querySelector(".wasla-welcome");
+    const target = header || welcome;
+
+    if (!target || target.querySelector(".theme-toggle")) return;
 
     const button = document.createElement("button");
     button.type = "button";
     button.className = "theme-toggle";
+    button.setAttribute("aria-label", "تبديل الوضع");
     button.addEventListener("click", () => {
       mode = mode === "dark" ? "light" : "dark";
       applyTheme();
     });
 
-    const brand = header.querySelector(".brand-lockup");
-    if (brand) {
-      brand.insertAdjacentElement("afterend", button);
+    if (header) {
+      const brand = header.querySelector(".brand-lockup");
+      if (brand) {
+        brand.insertAdjacentElement("afterend", button);
+      } else {
+        header.appendChild(button);
+      }
     } else {
-      header.appendChild(button);
+      welcome.prepend(button);
     }
 
     applyTheme();
@@ -3785,6 +3794,7 @@ boot().catch(e=>{console.error(e);app.innerHTML='<main class="wrap">'+empty("ت�
     subtree: true
   });
 })();
+ 
 </script>
 </body></html>
 
