@@ -2912,6 +2912,24 @@ if(a==="knowledge-submit"){
  note("تم إرسال المستند للمراجعة بنجاح.","success");
  return;
 }
+if(a==="knowledge-approve"){
+ if(s.profile?.role!=="owner")return;
+
+ const {data,error}=await db.functions.invoke("prime-knowledge-admin",{
+  body:{
+   action:"approve_document",
+   document_id:id
+  }
+ });
+
+ if(error)throw error;
+ if(data?.error)throw Error(data.error);
+ if(!data?.success)throw Error("لم يتم تأكيد اعتماد المستند");
+
+ await loadPrimeKnowledge();
+ note("تم اعتماد المستند بنجاح.","success");
+ return;
+}
   if(a==="knowledge-refresh"){
  if(s.tab==="knowledge")loadPrimeKnowledge();
  return;
