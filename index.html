@@ -2024,7 +2024,8 @@ if(s.tab==="requests")body='<section class="section"><div class="sectionhead"><d
 if(s.tab==="knowledge"){
  body='<section class="section">'+
  '<div class="sectionhead"><div><h2>قاعدة معرفة PRIME</h2>'+
- '<p class="small">إدارة ومتابعة المستندات المعتمدة ومراجعات المعرفة.</p></div>'+
+ '<p class="small">إدارة ومتابعة مستندات المعرفة ومراجعاتها.</p></div>'+
+ (s.profile?.role==="admin"?'<button class="btn gold" data-a="knowledge-new">مستند جديد</button>':'')+
  '<button class="btn light" data-a="knowledge-refresh">تحديث البيانات</button></div>'+
  '<div class="grid small">'+
  '<div class="card"><div class="small">إجمالي المستندات</div><div class="stat">'+fmt(s.knowledgeDocs.length)+'</div></div>'+
@@ -2037,7 +2038,7 @@ if(s.tab==="knowledge"){
  (s.knowledgeDocs.map(x=>'<article class="item"><div class="row"><b>'+esc(x.title||"مستند بدون عنوان")+'</b>'+tag(x.status||"غير محدد")+'</div><p class="small">الفئة: '+esc(x.category||"غير محددة")+'</p><p class="small">الإصدار: '+fmt(x.document_version||1)+'</p></article>').join("")||empty("لا توجد مستندات معرفة حتى الآن.")))+
  '</div><div class="card"><h3>إصدارات قاعدة المعرفة</h3>'+
  (s.knowledgeReleases.map(x=>'<article class="item"><div class="row"><b>'+esc(x.release_version||"إصدار غير محدد")+'</b>'+tag(x.status||"غير محدد")+'</div><p class="small">'+(x.is_current?"الإصدار الحالي":"إصدار سابق")+'</p></article>').join("")||empty("لا توجد إصدارات منشورة حتى الآن."))+
- '</div><p class="muted">هذه الشاشة للعرض فقط حاليًا. الاعتماد والنشر متاحان للمالك عبر مسارات آمنة منفصلة.</p></section>';
+ '</div><p class="muted">إدارة المستندات متاحة للمسؤول، أما الاعتماد والنشر فلم تتم إتاحتهما من الواجهة بعد.</p></section>';
 }
 
  if(s.tab==="audit"&&s.profile?.role==="owner"){
