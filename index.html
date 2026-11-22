@@ -2504,7 +2504,46 @@ if(f.id==="waslaAiForm"){
 }
 
 try{
-  
+
+if(f.id==="primeKnowledgeDocumentForm"){
+ if(s.profile?.role!=="admin")
+  throw Error("غير مصرح لك بحفظ مستندات المعرفة");
+
+ const v=vals(f);
+ const permissions=[...new Set(
+  String(v.required_permissions||"")
+   .split(",")
+   .map(x=>x.trim())
+   .filter(Boolean)
+ )];
+
+ if(!v.title.trim())throw Error("اكتب عنوان المستند");
+ if(!v.slug.trim())throw Error("اكتب الرابط المختصر");
+ if(!v.content.trim())throw Error("اكتب محتوى المستند");
+
+ const {data,error}=await db.functions.invoke("prime-knowledge-admin",{
+  body:{
+   action:"save_document",
+   document_id:s.knowledgeSelectedDoc?.id||undefined,
+   title:v.title.trim(),
+   slug:v.slug.trim(),
+   category:v.category,
+   content:v.content,
+   required_permissions:permissions
+  }
+ });
+
+ if(error)throw error;
+ if(data?.error)throw Error(data.error);
+ if(!data?.success)throw Error("لم يتم تأكيد حفظ المستند");
+
+ s.modal=null;
+ s.knowledgeSelectedDoc=null;
+ await loadPrimeKnowledge();
+ note("تم حفظ مستند المعرفة كمسودة بنجاح.","success");
+ return;
+}
+
   if(f.id==="recoveryForm"){
    let v=vals(f);
    if(v.password.length<8)throw Error("كلمة المرور يجب ألا تقل عن 8 أحرف");
