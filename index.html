@@ -2313,7 +2313,43 @@ if(m.type==="addstaff"){
  '<section class="section">'+select("حالة الحساب","is_active",[{value:"true",label:"نشط"},{value:"false",label:"موقوف"}],x.staff_permissions?.is_active?"true":"false")+'</section>'+
  '<div class="actions"><button class="btn gold">حفظ الصلاحيات</button></div></form>';
  }
-if(m.type==="customerDetails"){
+
+if(m.type==="knowledgeDocument"){
+ if(s.profile?.role!=="admin")throw Error("غير مصرح لك بإنشاء مستندات المعرفة");
+
+ const x=s.knowledgeSelectedDoc||{};
+ const categories=[
+  ["platform","صفحات ومزايا المنصة"],
+  ["roles","الأدوار"],
+  ["permissions","الصلاحيات"],
+  ["workflows","الإجراءات ومسارات العمل"],
+  ["live_data","البيانات الحية"],
+  ["releases","التحديثات والإصدارات"],
+  ["troubleshooting","حل المشكلات"]
+ ];
+
+ c='<div class="modal-title"><h3>'+(x.id?"تعديل مستند معرفة":"مستند معرفة جديد")+'</h3>'+
+ '<p class="muted">أدخل بيانات المستند ومحتواه ليتم حفظه كمسودة.</p></div>'+
+ '<form id="primeKnowledgeDocumentForm">'+
+ '<label class="field">عنوان المستند'+
+ '<input name="title" required maxlength="180" value="'+esc(x.title||"")+'" placeholder="مثال: إدارة حسابات الموظفين"></label>'+
+ '<label class="field">الرابط المختصر (Slug)'+
+ '<input name="slug" required maxlength="180" value="'+esc(x.slug||"")+'" placeholder="employee-account-management"></label>'+
+ '<label class="field">فئة المعرفة'+
+ '<select name="category" required>'+
+ '<option value="">اختر الفئة</option>'+
+ categories.map(q=>'<option value="'+q[0]+'" '+(x.category===q[0]?"selected":"")+'>'+q[1]+'</option>').join("")+
+ '</select></label>'+
+ '<label class="field">الصلاحيات المطلوبة'+
+ '<input name="required_permissions" value="'+esc(Array.isArray(x.required_permissions)?x.required_permissions.join(", "):"")+'" placeholder="مثال: dashboard.view, staff.view">'+
+ '<span class="small">اتركه فارغًا إذا لم تكن هناك صلاحيات إضافية مطلوبة.</span></label>'+
+ '<label class="field">محتوى المستند'+
+ '<textarea name="content" required maxlength="100000" rows="10" placeholder="اكتب المعلومات المعتمدة التي سيستخدمها PRIME...">'+esc(x.content||"")+'</textarea></label>'+
+ '<div class="actions"><button class="btn gold" type="submit">حفظ المسودة</button></div>'+
+ '</form>';
+}
+  
+  if(m.type==="customerDetails"){
  const x=s.customers.find(y=>y.id===m.userId);
  if(!x)throw Error("العميل غير موجود");
  const orders=s.allRequests.filter(q=>q.customer_id===x.id);
