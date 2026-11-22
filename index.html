@@ -2008,7 +2008,30 @@ async function loadPrimeKnowledge(){
   render();
  }
 }
-      
+   async function loadPrimeKnowledgeDocument(documentId){
+ if(s.profile?.role!=="admin")return;
+
+ try{
+  s.knowledgeError="";
+  const result=await db.functions.invoke("prime-knowledge-admin",{
+   body:{
+    action:"get_document",
+    document_id:documentId
+   }
+  });
+
+  if(result.error)throw result.error;
+  if(result.data?.error)throw Error(result.data.error);
+  if(!result.data?.document)throw Error("لم يتم العثور على المستند");
+
+  s.knowledgeSelectedDoc=result.data.document;
+  s.modal={type:"knowledgeDocument"};
+  render();
+ }catch(err){
+  console.error("PRIME knowledge document loading failed:",err);
+  note("تعذّر تحميل المستند للتعديل.","error");
+ }
+   }   
       function admin(){
  let body="";
 if(s.tab==="home")body='<section class="section"><div class="grid small"><div class="card"><div class="small">التصنيفات</div><div class="stat">'+fmt(s.cats.length)+'</div><p class="small">إجمالي تصنيفات المنصة</p></div><div class="card"><div class="small">الخدمات</div><div class="stat">'+fmt(s.services.length)+'</div><p class="small">الخدمات المسجلة بالمنصة</p></div><div class="card"><div class="small">طلبات الانضمام</div><div class="stat">'+fmt(s.apps.length)+'</div><p class="small">طلبات المزوّدين للمراجعة</p></div><div class="card"><div class="small">طلبات العملاء</div><div class="stat">'+fmt(s.allRequests.length)+'</div><p class="small">إجمالي طلبات الخدمات</p></div></div></section><section class="section"><div class="sectionhead"><div><h2>طلبات الانضمام</h2><p class="small">راجع طلبات المزوّدين واتخذ قرار الاعتماد.</p></div></div><div class="list">'+applications()+'</div></section>';
