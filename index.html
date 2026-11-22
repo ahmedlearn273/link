@@ -2476,7 +2476,25 @@ if(m.type==="addstaff"){
  '<section class="section">'+select("حالة الحساب","is_active",[{value:"true",label:"نشط"},{value:"false",label:"موقوف"}],x.staff_permissions?.is_active?"true":"false")+'</section>'+
  '<div class="actions"><button class="btn gold">حفظ الصلاحيات</button></div></form>';
  }
+if(m.type==="knowledgeDocumentView"){
+ if(s.profile?.role!=="owner")
+  throw Error("غير مصرح لك بعرض المستند");
 
+ const x=s.knowledgeSelectedDoc;
+
+ if(!x)throw Error("لم يتم العثور على المستند");
+
+ c='<div class="modal-title"><h3>'+esc(x.title||"مستند معرفة")+'</h3>'+
+ '<p class="muted">عرض محتوى المستند · قراءة فقط</p></div>'+
+ '<div class="item">'+
+ '<p><b>الرابط المختصر:</b> '+esc(x.slug||"—")+'</p>'+
+ '<p><b>الفئة:</b> '+esc(x.category||"—")+'</p>'+
+ '<p><b>الحالة:</b> '+esc(x.status||"—")+'</p>'+
+ '<p><b>رقم النسخة:</b> '+esc(x.document_version||"—")+'</p>'+
+ '<hr><div style="white-space:pre-wrap;overflow-wrap:anywhere">'+esc(x.content||"لا يوجد محتوى")+'</div>'+
+ '</div>'+
+ '<div class="actions"><button class="btn" data-a="close">إغلاق</button></div>';
+}
 if(m.type==="knowledgeDocument"){
  if(s.profile?.role!=="admin")throw Error("غير مصرح لك بإنشاء مستندات المعرفة");
 
