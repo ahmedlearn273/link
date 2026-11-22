@@ -1470,7 +1470,7 @@ if(!window.supabase?.createClient){
 }
 const db=window.supabase.createClient("https://hnnomaiohwyuqpfzlcol.supabase.co","sb_publishable_I4IfNkGvcxDxzz3xdGeKxw_TAzgc3ck");
 
-const s={user:null,profile:null,provider:null,staffAccess:null,auditLogs:[],knowledgeDocs:[],knowledgeReleases:[],knowledgeSelectedDoc:null,knowledgeLoading:false,knowledgeError:"",themeDraft:{bg:"#111111",card:"#1d1d1d",ink:"#f5f1e8",muted:"#aaa18f",line:"#393328",navy:"#171717",navy2:"#29231a",gold:"#d6a642",green:"#16845d",red:"#c44545"},themeStyle:"auto",mode:"welcome",type:"customer",tab:"home",cats:[],services:[],providers:[],requests:[],offers:[],apps:[],allRequests:[],adminProfiles:[],staff:[],staffCandidates:[],customers:[],chats:[],messages:[],activeChat:null,notice:"",noticeType:"",modal:null,filter:"",aiMessages:[],aiBusy:false};
+const s={user:null,profile:null,provider:null,staffAccess:null,auditLogs:[],knowledgeDocs:[],knowledgeReleases:[],knowledgeSelectedDoc:null,knowledgeLoading:false,knowledgeError:"",mode:"welcome",type:"customer",tab:"home",cats:[],services:[],providers:[],requests:[],offers:[],apps:[],allRequests:[],adminProfiles:[],staff:[],staffCandidates:[],customers:[],chats:[],messages:[],activeChat:null,notice:"",noticeType:"",modal:null,filter:"",aiMessages:[],aiBusy:false};
       
 const esc=x=>String(x??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])),fmt=x=>Number(x||0).toLocaleString("ar-SA");
 function note(x,t){
