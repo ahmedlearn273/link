@@ -2351,7 +2351,39 @@ function vals(f){
       
 async function submit(e){
  const f=e.target;if(!f.id)return;e.preventDefault();
+
+if(f.id==="waslaAiForm"){
+ const value=String(vals(f).message||"").trim();
+ if(!value||s.aiBusy)return;
+
+ s.aiBusy=true;
+ s.aiMessages.push({role:"user",text:value});
+ render();
+
  try{
+  const {data,error}=await db.functions.invoke("wasla-ai",{
+   body:{message:value}
+  });
+  if(error)throw error;
+  if(data?.error)throw Error(data.error);
+
+  s.aiMessages.push({
+   role:"assistant",
+   text:String(data?.reply||"لم يصل رد من المساعد.")
+  });
+ }catch(err){
+  s.aiMessages.push({
+   role:"assistant",
+   text:"تعذّر الاتصال بالمساعد: "+(err.message||"خطأ غير معروف")
+  });
+ }finally{
+  s.aiBusy=false;
+  render();
+ }
+ return;
+}
+
+try{
   
   if(f.id==="recoveryForm"){
    let v=vals(f);
