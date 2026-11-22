@@ -1893,8 +1893,7 @@ function accountSettingsView(){
 if(s.tab==="assistant")body=assistantView();
        if(s.tab==="requests")body='<section class="section"><div class="sectionhead"><h2>طلباتي</h2>'+btn("request","طلب جديد","gold")+'</div><div class="list">'+(s.requests.map(q=>'<article class="item"><div class="row"><b>'+esc(q.title||q.services?.name_ar||"طلب")+'</b>'+tag(q.status)+'</div><p>'+esc(q.city||"")+' · '+esc(q.provider_profiles?.display_name||"بانتظار مزوّد")+'</p><p>'+esc(q.description||"")+'</p><div class="actions">'+(["pending","accepted"].includes(q.status)?btn("cancelrequest","إلغاء","danger",q.id):"")+(q.status==="completed"&&q.provider_id?btn("review","تقييم الخدمة","light",q.id):"")+(q.provider_id&&["accepted","in_progress"].includes(q.status)?btn("chat","محادثة","light",q.id):"")+'</div></article>').join("")||empty("لا توجد طلبات حتى الآن"))+'</div></section>';
 
-const nav=[["home","الرئيسية"],["requests","طلباتي"],["messages","الرسائل"]].map(x=>'<button data-a="tab" data-id="'+x[0]+'" class="'+(s.tab===x[0]?"active":"")+'">'+x[1]+'</button>').join("")+'<button data-a="showexplore">الصفحة الرئيسية</button>';
- 
+const nav=[["home","الرئيسية"],["requests","طلباتي"],["messages","الرسائل"],["assistant","مساعد وصلة"]].map(x=>'<button data-a="tab" data-id="'+x[0]+'" class="'+(s.tab===x[0]?"active":"")+'">'+x[1]+'</button>').join("")+'<button data-a="showexplore">الصفحة الرئيسية</button>'; 
  return header("أهلًا "+(s.profile.full_name||"بك"),nav)+'<main class="wrap">'+msg()+'<div class="sectionhead"><h2>حساب العميل</h2><span class="tag">عميل</span></div>'+body+'</main>';
 }
 function provider(){
