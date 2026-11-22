@@ -3074,7 +3074,27 @@ if(a==="tab"){
  if(id==="knowledge")loadPrimeKnowledge();
  return;
 }
-if(a==="knowledge-create-release"){
+if(a==="knowledge-publish-release"){
+ if(s.profile?.role!=="owner")return;
+
+ if(!confirm("هل أنت متأكد من نشر إصدار قاعدة المعرفة؟ سيتم استبدال الإصدار الحالي."))return;
+
+ const {data,error}=await db.functions.invoke("prime-knowledge-admin",{
+  body:{
+   action:"publish_release",
+   release_id:id
+  }
+ });
+
+ if(error)throw error;
+ if(data?.error)throw Error(data.error);
+ if(!data?.success)throw Error("لم يتم تأكيد نشر الإصدار");
+
+ await loadPrimeKnowledge();
+ note("تم نشر إصدار قاعدة المعرفة بنجاح.","success");
+ return;
+}
+  if(a==="knowledge-create-release"){
  if(s.profile?.role!=="owner")return;
  s.modal={type:"knowledgeRelease"};
  render();
