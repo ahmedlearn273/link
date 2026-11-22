@@ -2049,6 +2049,7 @@ if(s.tab==="knowledge"){
  '<div class="sectionhead"><div><h2>قاعدة معرفة PRIME</h2>'+
  '<p class="small">إدارة ومتابعة مستندات المعرفة ومراجعاتها.</p></div>'+
  (s.profile?.role==="admin"?'<button class="btn gold" data-a="knowledge-new">مستند جديد</button>':'')+
+ (s.profile?.role==="owner"?'<button class="btn gold" data-a="knowledge-create-release">إنشاء إصدار جديد</button>':'')+
  '<button class="btn light" data-a="knowledge-refresh">تحديث البيانات</button></div>'+
  '<div class="grid small">'+
  '<div class="card"><div class="small">إجمالي المستندات</div><div class="stat">'+fmt(s.knowledgeDocs.length)+'</div></div>'+
