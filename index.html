@@ -1422,7 +1422,46 @@ a:focus-visible{
 }
 
 }
- 
+ /* WASLA — Trust & Poise UI Foundation */
+.card,
+.item {
+  border-radius: var(--card-radius) !important;
+  box-shadow: var(--surface-shadow) !important;
+}
+
+.modal {
+  border-radius: var(--card-radius) !important;
+}
+
+button,
+.btn,
+.tabs button,
+.top .nav button,
+input,
+select,
+textarea {
+  border-radius: var(--control-radius);
+  transition: var(--transition-theme);
+}
+
+body,
+.top,
+.card,
+.item,
+.modal,
+.empty,
+.field input,
+.field select,
+.field textarea {
+  transition: var(--transition-theme);
+}
+
+.price,
+.stat,
+input[type="number"],
+time {
+  font-variant-numeric: tabular-nums;
+}
 </style>
 </head>
 <body><div id="app"></div>
