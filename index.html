@@ -2369,7 +2369,7 @@ if(f.id==="waslaAiForm"){
 
   s.aiMessages.push({
    role:"assistant",
-   text:String(data?.reply||"لم يصل رد من المساعد.")
+   text:String(data?.answer||"لم يصل رد من PRIME.")
   });
  }catch(err){
   s.aiMessages.push({
