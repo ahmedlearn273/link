@@ -2129,10 +2129,12 @@ if(m.type==="addstaff"){
  ["settings.view","عرض الإعدادات"],
  ["settings.manage","إدارة الإعدادات"]
  ];
- c='<h3>إنشاء حساب موظف جديد</h3>'+
+c='<h3>إنشاء حساب موظف جديد</h3>'+
  '<form id="addStaffForm">'+
  field("اسم الموظف","full_name","text","الاسم الكامل","",true)+
  field("البريد الإلكتروني","email","email","employee@example.com","",true)+
+ field("تاريخ الميلاد","birth_date","date","","",true)+
+ '<label class="field"><span><input type="checkbox" name="adult_confirmation" value="true" required> أقر بأن الموظف يبلغ 18 سنة أو أكثر</span></label>'+
  '<p><b>الصلاحيات الممنوحة</b></p>'+
  '<p class="muted">اختر الصلاحيات التي سيُسمح للموظف باستخدامها.</p>'+
  '<div class="list">'+
@@ -2140,8 +2142,8 @@ if(m.type==="addstaff"){
  '</div>'+
  '<button class="btn gold">إنشاء الموظف وإرسال الدعوة</button>'+
  '</form>';
-}                                                                                                                                                                                                                                                                                                                                                                                     
-
+}
+  
 if(m.type==="addstaff"){
  const permissions=[
  ["dashboard.view","عرض لوحة المعلومات"],
