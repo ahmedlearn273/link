@@ -1984,7 +1984,27 @@ if(s.tab==="categories")body='<section class="section"><div class="sectionhead">
  if(s.tab==="messages")body=chatContent();
 if(s.tab==="requests")body='<section class="section"><div class="sectionhead"><div><h2>طلبات العملاء</h2><p class="small">تابع جميع طلبات الخدمات المسجلة على المنصة وحالة كل طلب.</p></div><span class="tag">'+fmt(s.allRequests.length)+' طلب</span></div><div class="list">'+(s.allRequests.map(x=>'<article class="item"><div class="row"><b>'+esc(x.title||x.services?.name_ar||"طلب خدمة")+'</b>'+tag(x.status)+'</div><div class="small">موقع الطلب</div><p>'+esc([x.city,x.country].filter(Boolean).join("، ")||"الموقع غير محدد")+'</p></article>').join("")||empty("لا توجد طلبات عملاء حتى الآن"))+'</div></section>';
  if(s.tab==="appearance")body='<section class="section"><div class="card"><h2>المظهر والثيمات</h2><p>اختار الألوان المناسبة لهوية وصلة.</p><label class="field">نمط التصميم<select id="themeStyle" data-theme-style><option value="auto" '+(s.themeStyle==="auto"?"selected":"")+'>تلقائي</option><option value="modern" '+(s.themeStyle==="modern"?"selected":"")+'>عصري</option><option value="minimal" '+(s.themeStyle==="minimal"?"selected":"")+'>بسيط وهادئ</option><option value="luxury" '+(s.themeStyle==="luxury"?"selected":"")+'>فاخر</option><option value="corporate" '+(s.themeStyle==="corporate"?"selected":"")+'>رسمي واحترافي</option><option value="nature" '+(s.themeStyle==="nature"?"selected":"")+'>طبيعي</option><option value="tech" '+(s.themeStyle==="tech"?"selected":"")+'>تقني</option></select></label><div class="grid"><label class="field">خلفية المنصة<input type="color" data-theme-key="bg" value="'+s.themeDraft.bg+'"></label><label class="field">لون البطاقات<input type="color" data-theme-key="card" value="'+s.themeDraft.card+'"></label><label class="field">لون النصوص<input type="color" data-theme-key="ink" value="'+s.themeDraft.ink+'"></label><label class="field">اللون الرئيسي<input type="color" data-theme-key="navy" value="'+s.themeDraft.navy+'"></label><label class="field">اللون المميز<input type="color" data-theme-key="gold" value="'+s.themeDraft.gold+'"></label><label class="field">لون النصوص الثانوية<input type="color" data-theme-key="muted" value="'+s.themeDraft.muted+'"></label><label class="field">لون الحدود<input type="color" data-theme-key="line" value="'+s.themeDraft.line+'"></label><label class="field">اللون الرئيسي الثانوي<input type="color" data-theme-key="navy2" value="'+s.themeDraft.navy2+'"></label><label class="field">لون النجاح<input type="color" data-theme-key="green" value="'+s.themeDraft.green+'"></label><label class="field">لون التنبيهات<input type="color" data-theme-key="red" value="'+s.themeDraft.red+'"></label></div><div class="actions"><button class="btn gold" data-a="theme-suggest">✨ اقترح ألوان متناسقة</button><button class="btn gold" data-a="theme-preview">معاينة الألوان</button><button class="btn gold" data-a="theme-save-local">حفظ على هذا الجهاز</button><button class="btn light" data-a="theme-reset">استعادة الألوان</button></div><p class="muted">التغييرات لن تُعتمد إلا بعد المعاينة والموافقة.</p></div></section>';
-if(s.tab==="audit"&&s.profile?.role==="owner"){
+
+if(s.tab==="knowledge"){
+ body='<section class="section">'+
+ '<div class="sectionhead"><div><h2>قاعدة معرفة PRIME</h2>'+
+ '<p class="small">إدارة ومتابعة المستندات المعتمدة ومراجعات المعرفة.</p></div>'+
+ '<button class="btn light" data-a="knowledge-refresh">تحديث البيانات</button></div>'+
+ '<div class="grid small">'+
+ '<div class="card"><div class="small">إجمالي المستندات</div><div class="stat">'+fmt(s.knowledgeDocs.length)+'</div></div>'+
+ '<div class="card"><div class="small">قيد المراجعة</div><div class="stat">'+fmt(s.knowledgeDocs.filter(x=>x.status==="in_review").length)+'</div></div>'+
+ '<div class="card"><div class="small">الإصدارات</div><div class="stat">'+fmt(s.knowledgeReleases.length)+'</div></div>'+
+ '</div>'+
+ (s.knowledgeError?'<div class="card">'+esc(s.knowledgeError)+'</div>':'')+
+ '<div class="card"><h3>المستندات</h3>'+
+ (s.knowledgeLoading?'<p>جارٍ تحميل البيانات...</p>':
+ (s.knowledgeDocs.map(x=>'<article class="item"><div class="row"><b>'+esc(x.title||"مستند بدون عنوان")+'</b>'+tag(x.status||"غير محدد")+'</div><p class="small">الفئة: '+esc(x.category||"غير محددة")+'</p><p class="small">الإصدار: '+fmt(x.document_version||1)+'</p></article>').join("")||empty("لا توجد مستندات معرفة حتى الآن.")))+
+ '</div><div class="card"><h3>إصدارات قاعدة المعرفة</h3>'+
+ (s.knowledgeReleases.map(x=>'<article class="item"><div class="row"><b>'+esc(x.release_version||"إصدار غير محدد")+'</b>'+tag(x.status||"غير محدد")+'</div><p class="small">'+(x.is_current?"الإصدار الحالي":"إصدار سابق")+'</p></article>').join("")||empty("لا توجد إصدارات منشورة حتى الآن."))+
+ '</div><p class="muted">هذه الشاشة للعرض فقط حاليًا. الاعتماد والنشر متاحان للمالك عبر مسارات آمنة منفصلة.</p></section>';
+}
+
+ if(s.tab==="audit"&&s.profile?.role==="owner"){
  body='<section class="section">'+
  '<div class="sectionhead"><div><h2>سجل تدقيق المنصة</h2>'+
  '<p class="small">متابعة العمليات التي نُفذت داخل منصة وصلة.</p></div>'+
