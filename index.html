@@ -1867,18 +1867,18 @@ function accountSettingsView(){
       function assistantView(){
  return '<section class="section">'+
   '<div class="card">'+
-   '<h2>مساعد وصلة الذكي</h2>'+
-   '<p class="small">اسأل عن الخدمات أو طريقة استخدام المنصة.</p>'+
+   '<h2>PRIME AI</h2>'+
+   '<p class="small">مساعدك الذكي داخل منصة وصلة.</p>'+
    '<div class="list" style="margin:16px 0">'+
     (s.aiMessages.map(m=>
      '<article class="item">'+
-      '<b>'+(m.role==="user"?"أنت":"مساعد وصلة")+'</b>'+
+      '<b>'+(m.role==="user"?"أنت":"PRIME")+'</b>'+
       '<p style="white-space:pre-wrap">'+esc(m.text)+'</p>'+
      '</article>'
-    ).join("")||'<p class="small">أهلًا بك! كيف أقدر أساعدك؟</p>')+
+    ).join("")||'<p class="small">أهلًا بك، أنا PRIME. كيف أقدر أساعدك؟</p>')+
    '</div>'+
    '<form id="waslaAiForm">'+
-    '<input name="message" maxlength="250" placeholder="اكتب سؤالك هنا..." required>'+
+    '<input name="message" maxlength="250" placeholder="اسأل PRIME..." required>'+
     '<button class="btn gold" '+(s.aiBusy?"disabled":"")+'>'+
      (s.aiBusy?"جارٍ الرد...":"إرسال")+
     '</button>'+
