@@ -1973,7 +1973,43 @@ if(s.tab==="account"){
  render();
 }
 function applications(){return s.apps.map(p=>{const u=s.adminProfiles.find(x=>x.id===p.user_id)||{};return '<article class="item"><div class="row"><b>'+esc(p.display_name||u.full_name||"مزوّد خدمة")+'</b>'+tag(p.verification_status)+'</div><p>'+esc([p.city||u.city,p.country||u.country].filter(Boolean).join("، "))+' · '+fmt(p.experience_years)+' سنوات خبرة</p><p>'+esc(p.bio||"")+'</p><p>'+esc(u.phone||"")+'</p><div class="actions">'+btn("reviewprovider","موافقة","green",p.user_id,"data-decision='approved'")+btn("reviewprovider","رفض","danger",p.user_id,"data-decision='rejected'")+'</div></article>'}).join("")||empty("لا توجد طلبات معلّقة")}
-function admin(){
+
+async function loadPrimeKnowledge(){
+ if(!["admin","owner"].includes(s.profile?.role))return;
+
+ s.knowledgeLoading=true;
+ s.knowledgeError="";
+ render();
+
+ try{
+  const [docsResult,releasesResult]=await Promise.all([
+   db.functions.invoke("prime-knowledge-admin",{
+    body:{action:"list_documents",limit:100,offset:0}
+   }),
+   db.functions.invoke("prime-knowledge-admin",{
+    body:{action:"list_releases",limit:30,offset:0}
+   })
+  ]);
+
+  if(docsResult.error)throw docsResult.error;
+  if(releasesResult.error)throw releasesResult.error;
+  if(docsResult.data?.error)throw Error(docsResult.data.error);
+  if(releasesResult.data?.error)throw Error(releasesResult.data.error);
+
+  s.knowledgeDocs=Array.isArray(docsResult.data?.documents)
+   ?docsResult.data.documents:[];
+  s.knowledgeReleases=Array.isArray(releasesResult.data?.releases)
+   ?releasesResult.data.releases:[];
+ }catch(err){
+  console.error("PRIME knowledge loading failed:",err);
+  s.knowledgeError="تعذّر تحميل بيانات قاعدة المعرفة. حاول تحديث البيانات.";
+ }finally{
+  s.knowledgeLoading=false;
+  render();
+ }
+}
+      
+      function admin(){
  let body="";
 if(s.tab==="home")body='<section class="section"><div class="grid small"><div class="card"><div class="small">التصنيفات</div><div class="stat">'+fmt(s.cats.length)+'</div><p class="small">إجمالي تصنيفات المنصة</p></div><div class="card"><div class="small">الخدمات</div><div class="stat">'+fmt(s.services.length)+'</div><p class="small">الخدمات المسجلة بالمنصة</p></div><div class="card"><div class="small">طلبات الانضمام</div><div class="stat">'+fmt(s.apps.length)+'</div><p class="small">طلبات المزوّدين للمراجعة</p></div><div class="card"><div class="small">طلبات العملاء</div><div class="stat">'+fmt(s.allRequests.length)+'</div><p class="small">إجمالي طلبات الخدمات</p></div></div></section><section class="section"><div class="sectionhead"><div><h2>طلبات الانضمام</h2><p class="small">راجع طلبات المزوّدين واتخذ قرار الاعتماد.</p></div></div><div class="list">'+applications()+'</div></section>';
 if(s.tab==="providers")body='<section class="section"><div class="sectionhead"><div><h2>مراجعة المزوّدين</h2><p class="small">راجع طلبات التسجيل وتحقق من بيانات المتقدمين قبل اعتمادهم.</p></div><span class="tag">'+fmt(s.apps.length)+' طلب</span></div><div class="list">'+(applications()||empty("لا توجد طلبات انضمام للمراجعة حاليًا"))+'</div></section>';
