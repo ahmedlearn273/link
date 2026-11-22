@@ -1864,7 +1864,28 @@ function accountSettingsView(){
  '</section>'+
  '</main>';
 }
-      
+      function assistantView(){
+ return '<section class="section">'+
+  '<div class="card">'+
+   '<h2>مساعد وصلة الذكي</h2>'+
+   '<p class="small">اسأل عن الخدمات أو طريقة استخدام المنصة.</p>'+
+   '<div class="list" style="margin:16px 0">'+
+    (s.aiMessages.map(m=>
+     '<article class="item">'+
+      '<b>'+(m.role==="user"?"أنت":"مساعد وصلة")+'</b>'+
+      '<p style="white-space:pre-wrap">'+esc(m.text)+'</p>'+
+     '</article>'
+    ).join("")||'<p class="small">أهلًا بك! كيف أقدر أساعدك؟</p>')+
+   '</div>'+
+   '<form id="waslaAiForm">'+
+    '<input name="message" maxlength="250" placeholder="اكتب سؤالك هنا..." required>'+
+    '<button class="btn gold" '+(s.aiBusy?"disabled":"")+'>'+
+     (s.aiBusy?"جارٍ الرد...":"إرسال")+
+    '</button>'+
+   '</form>'+
+  '</div>'+
+ '</section>';
+      }
       function customer(){
  let body="";
  if(s.tab==="home")body='<section class="section"><h2>التصنيفات</h2><div class="grid small">'+s.cats.map(c=>'<div class="card"><div class="icon">'+esc(c.icon||"✦")+'</div><b>'+esc(c.name_ar)+'</b></div>').join("")+'</div></section><section class="section"><div class="sectionhead"><h2>الخدمات</h2><input id="search" placeholder="ابحث عن خدمة" value="'+esc(s.filter)+'"></div><div class="grid">'+(s.services.filter(x=>{let q=(s.filter||"").trim().toLowerCase();return !q||[x.name_ar,x.name_en,x.description].some(v=>String(v||"").toLowerCase().includes(q))}).map(serviceCard).join("")||empty("لا توجد خدمات مطابقة لبحثك"))+'</div></section><section class="section"><h2>مزوّدو الخدمة المعتمدون</h2><div class="grid">'+(s.providers.map(providerCard).join("")||empty("لا يوجد مزوّدون معتمدون بعد"))+'</div></section>';
