@@ -3673,5 +3673,88 @@ async function boot(){
 
 boot().catch(e=>{console.error(e);app.innerHTML='<main class="wrap">'+empty("تعذّر تحميل المنصة. تحقق من الاتصال ثم أعد المحاولة.")+'</main>'});
 })();
-</script></body></html>
+</script>
+<style>
+.theme-toggle {
+  border: 1px solid var(--border-color);
+  background: var(--bg-subtle);
+  color: var(--text-primary);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.theme-toggle:hover {
+  background: var(--primary);
+  color: #fff;
+}
+</style>
+
+<script>
+(() => {
+  const root = document.documentElement;
+  const app = document.getElementById("app");
+  if (!app) return;
+
+  let mode = "light";
+
+  try {
+    mode = localStorage.getItem("wasla_color_mode") === "dark"
+      ? "dark"
+      : "light";
+  } catch (e) {}
+
+  const applyTheme = () => {
+    root.setAttribute("data-theme", mode);
+    try {
+      localStorage.setItem("wasla_color_mode", mode);
+    } catch (e) {}
+
+    const button = app.querySelector(".theme-toggle");
+    if (button) {
+      button.textContent = mode === "dark"
+        ? "☀ الوضع النهاري"
+        : "☾ الوضع الليلي";
+      button.setAttribute(
+        "aria-label",
+        mode === "dark" ? "التبديل للوضع النهاري" : "التبديل للوضع الليلي"
+      );
+    }
+  };
+
+  const addButton = () => {
+    const header = app.querySelector(".topline");
+    if (!header || header.querySelector(".theme-toggle")) return;
+
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "theme-toggle";
+    button.addEventListener("click", () => {
+      mode = mode === "dark" ? "light" : "dark";
+      applyTheme();
+    });
+
+    const brand = header.querySelector(".brand-lockup");
+    if (brand) {
+      brand.insertAdjacentElement("afterend", button);
+    } else {
+      header.appendChild(button);
+    }
+
+    applyTheme();
+  };
+
+  applyTheme();
+  addButton();
+
+  new MutationObserver(addButton).observe(app, {
+    childList: true,
+    subtree: true
+  });
+})();
+</script>
+</body></html>
 
