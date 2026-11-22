@@ -3598,7 +3598,28 @@ boot().catch(e=>{console.error(e);app.innerHTML='<main class="wrap">'+empty("ت�
       : "light";
   } catch (e) {}
 
-  
+  const applyTheme = () => {
+  root.setAttribute("data-theme", mode);
+
+  try {
+    localStorage.setItem("wasla_color_mode", mode);
+    localStorage.removeItem("wasla_theme_draft");
+  } catch (e) {}
+
+  const button = app.querySelector(".theme-toggle");
+  if (button) {
+    button.textContent = mode === "dark"
+      ? "☀ الوضع النهاري"
+      : "☾ الوضع الليلي";
+
+    button.setAttribute(
+      "aria-label",
+      mode === "dark"
+        ? "التبديل للوضع النهاري"
+        : "التبديل للوضع الليلي"
+    );
+  }
+};
   const addButton = () => {
     const header = app.querySelector(".topline");
     if (!header || header.querySelector(".theme-toggle")) return;
