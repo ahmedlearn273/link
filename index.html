@@ -2894,6 +2894,24 @@ if(a==="knowledge-edit"){
  await loadPrimeKnowledgeDocument(id);
  return;
 }
+if(a==="knowledge-submit"){
+ if(s.profile?.role!=="admin")return;
+
+ const {data,error}=await db.functions.invoke("prime-knowledge-admin",{
+  body:{
+   action:"submit_document",
+   document_id:id
+  }
+ });
+
+ if(error)throw error;
+ if(data?.error)throw Error(data.error);
+ if(!data?.success)throw Error("لم يتم تأكيد إرسال المستند");
+
+ await loadPrimeKnowledge();
+ note("تم إرسال المستند للمراجعة بنجاح.","success");
+ return;
+}
   if(a==="knowledge-refresh"){
  if(s.tab==="knowledge")loadPrimeKnowledge();
  return;
