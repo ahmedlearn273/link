@@ -3599,63 +3599,6 @@ boot().catch(e=>{console.error(e);app.innerHTML='<main class="wrap">'+empty("ت�
   } catch (e) {}
 
   
-const legacyKeys = [
-  "bg", "card", "ink", "muted", "line",
-  "navy", "navy2", "gold", "green", "red"
-];
-
-const originalValues = {};
-legacyKeys.forEach(key => {
-  originalValues[key] = root.style.getPropertyValue("--" + key);
-});
-
-const applyTheme = () => {
-  root.setAttribute("data-theme", mode);
-
-  const darkValues = {
-    bg: "#121417",
-    card: "#1C1F24",
-    ink: "#F9FAFB",
-    muted: "#9CA3AF",
-    line: "#2D3139",
-    navy: "#2A9D8F",
-    navy2: "#21867A",
-    gold: "#F59E0B",
-    green: "#4ADE80",
-    red: "#F87171"
-  };
-
-  legacyKeys.forEach(key => {
-    const value = mode === "dark"
-      ? darkValues[key]
-      : originalValues[key];
-
-    if (value) {
-      root.style.setProperty("--" + key, value);
-    } else {
-      root.style.removeProperty("--" + key);
-    }
-  });
-
-  try {
-    localStorage.setItem("wasla_color_mode", mode);
-  } catch (e) {}
-
-  const button = app.querySelector(".theme-toggle");
-  if (button) {
-    button.textContent = mode === "dark"
-      ? "☀ الوضع النهاري"
-      : "☾ الوضع الليلي";
-    button.setAttribute(
-      "aria-label",
-      mode === "dark"
-        ? "التبديل للوضع النهاري"
-        : "التبديل للوضع الليلي"
-    );
-  }
-};
- 
-
   const addButton = () => {
     const header = app.querySelector(".topline");
     if (!header || header.querySelector(".theme-toggle")) return;
