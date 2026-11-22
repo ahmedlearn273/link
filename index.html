@@ -2780,6 +2780,11 @@ if(a==="tab"){
  if(id==="audit"&&s.profile?.role!=="owner")return;
  s.tab=id;
  render();
+ if(id==="knowledge")loadPrimeKnowledge();
+ return;
+}
+if(a==="knowledge-refresh"){
+ if(s.tab==="knowledge")loadPrimeKnowledge();
  return;
 }
 if(a==="category-open"){s.selectedCategory=id;render();return}
