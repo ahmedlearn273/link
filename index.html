@@ -1732,7 +1732,32 @@ button, input, select, textarea,
   grid-template-columns:1fr 1fr;
  }
 }
-</style>
+
+/* WASLA mobile header alignment */
+@media(max-width:600px){
+ .topline{
+  flex-direction:row;
+  align-items:center;
+  justify-content:space-between;
+  flex-wrap:wrap;
+  gap:10px;
+ }
+ .brand-lockup{
+  flex:0 1 auto;
+  min-width:0;
+ }
+ .topline > .theme-toggle{
+  flex:0 0 auto;
+  margin-inline-start:auto;
+ }
+ .topline > .nav{
+  width:100%;
+  flex:1 0 100%;
+  margin:6px 0 0;
+ }
+}
+  
+ </style>
 </head>
 <body><div id="app"></div>
 
