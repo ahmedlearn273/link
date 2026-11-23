@@ -2265,7 +2265,8 @@ function customerBottomNav(){
  '</nav>';
 }
       
-      function customer(){
+      
+function customer(){
 
  if(s.tab==="home")return landing(true);
 
@@ -2276,37 +2277,197 @@ function customerBottomNav(){
  if(s.tab==="assistant")body=assistantView();
 
  if(s.tab==="requests"){
-  body='<section class="section">'+
-   '<div class="sectionhead"><h2>طلباتي</h2>'+
-   btn("request","طلب جديد","gold")+
-   '</div>'+
-   '<div class="list">'+
-   (s.requests.map(q=>
-    '<article class="item">'+
-     '<div class="row"><b>'+esc(q.title||q.services?.name_ar||"طلب")+'</b>'+tag(q.status)+'</div>'+
-     '<p>'+esc(q.city||"")+' · '+esc(q.provider_profiles?.display_name||"بانتظار مزوّد")+'</p>'+
-     '<p>'+esc(q.description||"")+'</p>'+
-     '<div class="actions">'+
-      (["pending","accepted"].includes(q.status)?btn("cancelrequest","إلغاء","danger",q.id):"")+
-      (q.status==="completed"&&q.provider_id?btn("review","تقييم الخدمة","light",q.id):"")+
-      (q.provider_id&&["accepted","in_progress"].includes(q.status)?btn("chat","محادثة","light",q.id):"")+
+
+  const filters=[
+   ["all","الكل"],
+   ["pending","جديدة"],
+   ["accepted","مقبولة"],
+   ["in_progress","قيد التنفيذ"],
+   ["completed","مكتملة"],
+   ["cancelled","ملغاة"]
+  ];
+
+  const selected=s.requestFilter||"all";
+
+  const filteredRequests=selected==="all"
+   ?s.requests
+   :s.requests.filter(q=>q.status===selected);
+
+  const activeCount=s.requests.filter(q=>
+   ["pending","accepted","in_progress"].includes(q.status)
+  ).length;
+
+  const completedCount=s.requests.filter(q=>
+   q.status==="completed"
+  ).length;
+
+  const requestCards=filteredRequests.map(q=>{
+
+   const requestTitle=
+    q.title||q.services?.name_ar||"طلب خدمة";
+
+   const parsedDate=q.created_at
+    ?new Date(q.created_at)
+    :null;
+
+   const requestDate=parsedDate&&!isNaN(parsedDate.getTime())
+    ?parsedDate.toLocaleDateString("ar-EG",{
+      year:"numeric",
+      month:"short",
+      day:"numeric"
+     })
+    :"—";
+
+   const location=[q.city,q.country]
+    .filter(Boolean)
+    .join("، ");
+
+   const providerName=
+    q.provider_profiles?.display_name||
+    "بانتظار تعيين مقدم خدمة";
+
+   return '<article class="item wasla-request-card">'+
+
+    '<div class="wasla-request-card-head">'+
+
+     '<div class="wasla-request-title">'+
+      '<b>'+esc(requestTitle)+'</b>'+
+      '<span class="small">تاريخ الطلب: '+
+       esc(requestDate)+
+      '</span>'+
      '</div>'+
-    '</article>'
-   ).join("")||empty("لا توجد طلبات حتى الآن"))+
-   '</div>'+
-  '</section>';
+
+     tag(q.status)+
+
+    '</div>'+
+
+    '<div class="wasla-request-meta">'+
+
+     (location
+      ?'<span><b>الموقع:</b> '+esc(location)+'</span>'
+      :"")+
+
+     '<span><b>مقدم الخدمة:</b> '+
+      esc(providerName)+
+     '</span>'+
+
+    '</div>'+
+
+    (q.description
+     ?'<p class="wasla-request-description">'+
+       esc(q.description)+
+      '</p>'
+     :"")+
+
+    '<div class="actions">'+
+
+     (["pending","accepted"].includes(q.status)
+      ?btn("cancelrequest","إلغاء الطلب","danger",q.id)
+      :"")+
+
+     (q.status==="completed"&&q.provider_id
+      ?btn("review","تقييم الخدمة","light",q.id)
+      :"")+
+
+     (q.provider_id&&["accepted","in_progress"].includes(q.status)
+      ?btn("chat","المحادثة","light",q.id)
+      :"")+
+
+    '</div>'+
+
+   '</article>';
+
+  }).join("");
+
+  body=
+   '<section class="section wasla-requests-section">'+
+
+    '<div class="sectionhead wasla-requests-heading">'+
+
+     '<div>'+
+      '<h2>كل طلباتك في مكان واحد</h2>'+
+      '<p class="small">تابع حالة كل طلب وتفاصيله بسهولة.</p>'+
+     '</div>'+
+
+     btn("request","طلب خدمة جديدة","gold")+
+
+    '</div>'+
+
+    '<div class="wasla-request-summary">'+
+
+     '<div class="wasla-request-stat">'+
+      '<span>إجمالي الطلبات</span>'+
+      '<b>'+fmt(s.requests.length)+'</b>'+
+     '</div>'+
+
+     '<div class="wasla-request-stat">'+
+      '<span>طلبات نشطة</span>'+
+      '<b>'+fmt(activeCount)+'</b>'+
+     '</div>'+
+
+     '<div class="wasla-request-stat">'+
+      '<span>طلبات مكتملة</span>'+
+      '<b>'+fmt(completedCount)+'</b>'+
+     '</div>'+
+
+    '</div>'+
+
+    '<div class="wasla-request-filters" role="group" aria-label="تصفية الطلبات">'+
+
+     filters.map(f=>
+      '<button type="button" class="wasla-request-filter '+
+       (selected===f[0]?"active":"")+
+       '" data-a="request-filter" data-id="'+f[0]+'">'+
+       f[1]+
+       ' <span>'+
+        fmt(
+         f[0]==="all"
+          ?s.requests.length
+          :s.requests.filter(q=>q.status===f[0]).length
+        )+
+       '</span>'+
+      '</button>'
+     ).join("")+
+
+    '</div>'+
+
+    '<div class="list wasla-request-list">'+
+
+     (requestCards||
+      empty(
+       selected==="all"
+        ?"لا توجد طلبات حتى الآن"
+        :"لا توجد طلبات في هذه الحالة."
+      )
+     )+
+
+    '</div>'+
+
+   '</section>';
  }
 
  return header("حساب العميل","",true)+
+
   '<main class="wrap wasla-customer-page">'+
+
    msg()+
+
    '<div class="sectionhead"><h2>'+
-   (s.tab==="requests"?"طلباتي":s.tab==="messages"?"الرسائل":"PRIME")+
+    (s.tab==="requests"
+     ?"طلباتي"
+     :s.tab==="messages"
+      ?"الرسائل"
+      :"PRIME"
+    )+
    '</h2><span class="tag">عميل</span></div>'+
+
    body+
+
   '</main>'+
+
   customerBottomNav();
 }
+      
 function provider(){
  let body="";
  if(s.tab==="messages")body=chatContent();
