@@ -3733,11 +3733,38 @@ if(a==="knowledge-view"){
 if(a==="category-open"){s.selectedCategory=id;render();return}
 if(a==="category-back"){s.selectedCategory=null;render();return}
   
-  if(a==="logout"){
- if(!confirm("هل أنت متأكد أنك تريد تسجيل الخروج من حسابك؟"))return;
+  
+if(a==="logout"){
+ app.insertAdjacentHTML("beforeend",
+  '<div class="modalback wasla-logout-backdrop" role="presentation">'+
+   '<section class="modal wasla-logout-dialog" role="dialog" aria-modal="true" aria-labelledby="logoutConfirmTitle">'+
+    '<div class="wasla-logout-icon" aria-hidden="true">↪</div>'+
+    '<div class="modal-title"><h3 id="logoutConfirmTitle">تأكيد تسجيل الخروج</h3>'+
+     '<p class="muted">هل أنت متأكد أنك تريد تسجيل الخروج من حسابك؟</p></div>'+
+    '<div class="actions wasla-logout-actions">'+
+     '<button type="button" class="btn light" data-a="logout-cancel">إلغاء</button>'+
+     '<button type="button" class="btn danger" data-a="logout-confirm">تسجيل الخروج</button>'+
+    '</div>'+
+   '</section>'+
+  '</div>'
+ );
+ return;
+}
+
+if(a==="logout-cancel"){
+ app.querySelector(".wasla-logout-backdrop")?.remove();
+ return;
+}
+
+if(a==="logout-confirm"){
+ const confirmButton=app.querySelector('[data-a="logout-confirm"]');
+ if(confirmButton)confirmButton.disabled=true;
 
  const {error}=await db.auth.signOut();
- if(error)throw error;
+ if(error){
+  if(confirmButton)confirmButton.disabled=false;
+  throw error;
+ }
 
  s.user=null;
  s.profile=null;
@@ -3745,7 +3772,8 @@ if(a==="category-back"){s.selectedCategory=null;render();return}
  s.mode="welcome";
  render();
  return;
-  }
+}
+  
   
 if(a==="forgot"){let email=document.querySelector('#login [name="email"]')?.value;if(!email)throw Error("اكتب بريدك الإلكتروني أولًا");let r=await db.auth.resetPasswordForEmail(email,{redirectTo:location.origin+"/?mode=recovery"});if(r.error)throw r.error;note("تم إرسال رابط استعادة كلمة المرور.","success");return}
  if(a==="addstaff"){
