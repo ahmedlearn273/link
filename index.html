@@ -3,33 +3,1606 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#102b3b">
- وصله 
+<meta name="theme-color" content="#171717">
+ 
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#f3f6f8;--card:#fff;--ink:#102a3a;--muted:#71818c;--line:#e1e8ed;--navy:#102b3b;--navy2:#19445a;--gold:#d6a642;--green:#16845d;--red:#c44545}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans Arabic",Tahoma,sans-serif;line-height:1.65}button,input,select,textarea{font:inherit}button{cursor:pointer}
-.top{background:linear-gradient(135deg,var(--navy),var(--navy2));color:white;padding:18px max(16px,calc((100% - 1080px)/2));border-radius:0 0 25px 25px}.topline{display:flex;justify-content:space-between;align-items:center;gap:12px}.brand{font:800 25px Tajawal}.brand span{color:var(--gold)}.top p{margin:2px 0 0;color:#c5d5df;font-size:13px}.wrap{max-width:1080px;margin:auto;padding:16px}.hero{padding:25px 0 12px}.hero h1{font:800 clamp(27px,5vw,40px) Tajawal;margin:0 0 8px}.hero p{color:#d5e1e8;margin:0 0 16px}.btn{border:0;border-radius:11px;background:var(--navy);color:white;padding:9px 14px;font-weight:700}.btn.gold{background:var(--gold);color:#172b38}.btn.light{background:#edf2f5;color:var(--ink)}.btn.green{background:var(--green)}.btn.danger{background:#fff0f0;color:var(--red)}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}.grid.small{grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}.card,.item{background:white;border:1px solid var(--line);border-radius:16px;padding:14px}.card h3{margin:0 0 5px;font-size:17px}.card p,.item p{margin:4px 0;color:var(--muted);font-size:13px}.icon{width:39px;height:39px;background:#edf3f6;border-radius:12px;display:grid;place-items:center;margin-bottom:8px}.section{margin:22px 0}.sectionhead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}.sectionhead h2{font:800 20px Tajawal;margin:0}.field{display:block;margin:10px 0;font-size:13px;font-weight:600}.field input,.field select,.field textarea{display:block;width:100%;border:1px solid var(--line);border-radius:10px;padding:10px;margin-top:5px;background:white;color:var(--ink)}.field textarea{min-height:80px}.hidden{display:none!important}.auth{max-width:480px;margin:24px auto}.tabs,.nav{display:flex;gap:7px;flex-wrap:wrap;margin:12px 0}.tabs button{border:1px solid var(--line);border-radius:9px;padding:7px 12px;background:white}.tabs button.active,.nav button.active{background:var(--navy);color:white}.nav button{border:1px solid #ffffff40;background:#ffffff16;color:white;border-radius:9px;padding:6px 10px}.notice{padding:10px 13px;border-radius:10px;margin:10px 0;background:#e8f3f7;color:#24536a}.notice.error{background:#fff0f0;color:#a53030}.notice.success{background:#e9f7ef;color:#176c4b}.tag{display:inline-block;padding:3px 9px;border-radius:20px;background:#edf3f6;font-size:12px;color:#476170}.tag.ok{background:#e6f5ee;color:#14754f}.tag.wait{background:#fff4dd;color:#956b12}.tag.bad{background:#ffeded;color:#ad3333}.list{display:grid;gap:9px}.actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}.actions .btn{font-size:12px;padding:7px 10px}.empty{text-align:center;padding:24px;color:var(--muted);background:white;border:1px dashed #cbd7df;border-radius:14px}.muted,.small{color:var(--muted);font-size:12px}.stat{font-size:25px;font-weight:800}.provider{display:flex;gap:10px;align-items:center}.avatar{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:#e7eff3;font-weight:800}.price{color:var(--green);font-weight:800}.modalback{position:fixed;inset:0;background:#07192399;display:grid;place-items:center;padding:14px;z-index:10}.modal{width:min(100%,510px);max-height:90vh;overflow:auto;background:white;border-radius:16px;padding:17px}.foot{text-align:center;padding:22px;color:var(--muted);font-size:12px}
+
+
+.top{background:linear-gradient(135deg,var(--navy),var(--navy2));color:white;padding:18px max(16px,calc((100% - 1080px)/2));border-radius:0 0 25px 25px}.topline{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}.brand-lockup{display:flex;align-items:center;gap:10px;flex-shrink:0}.brand{font:800 25px Tajawal}.brand span{color:var(--gold)}.top p{margin:2px 0 0;color:#c5d5df;font-size:13px}.wrap{max-width:1080px;margin:auto;padding:16px}.hero{padding:25px 0 12px}.hero h1{font:800 clamp(27px,5vw,40px) Tajawal;margin:0 0 8px}.hero p{color:var(--muted);margin:0 0 16px}.btn{border:0;border-radius:11px;background:var(--navy2);color:var(--card);padding:9px 14px;font-weight:700}.btn.gold{background:var(--gold);color:var(--ink)}.btn.light{background:var(--line);color:var(--ink)}.btn.green{background:var(--green);color:var(--card)}.btn.danger{background:var(--card);color:var(--red);border:1px solid var(--line)}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}.grid.small{grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}.card,.item{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px}.card h3{margin:0 0 5px;font-size:17px}.card p,.item p{margin:4px 0;color:var(--muted);font-size:13px}.icon{width:39px;height:39px;background:var(--line);border-radius:12px;display:grid;place-items:center;margin-bottom:8px}.section{margin:22px 0}.sectionhead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}.sectionhead h2{font:800 20px Tajawal;margin:0}.field{display:block;margin:10px 0;font-size:13px;font-weight:600}.field input,.field select,.field textarea{display:block;width:100%;border:1px solid var(--line);border-radius:10px;padding:10px;margin-top:5px;background:var(--card);color:var(--ink)}.field textarea{min-height:80px}.hidden{display:none!important}.auth{max-width:480px;margin:24px auto}.tabs,.nav{display:flex;gap:7px;flex-wrap:wrap;margin:12px 0}.tabs button{border:1px solid var(--line);border-radius:9px;padding:7px 12px;background:var(--card);color:var(--ink)}.tabs button.active,.nav button.active{background:var(--navy2);color:var(--card)}.nav button{border:1px solid #ffffff40;background:#ffffff16;color:white;border-radius:9px;padding:6px 10px}.notice{padding:10px 13px;border-radius:10px;margin:10px 0;background:var(--card);color:var(--ink);border:1px solid var(--line)}.notice.error{background:var(--card);color:var(--red)}.notice.success{background:var(--card);color:var(--green)}.tag{display:inline-block;padding:3px 9px;border-radius:20px;background:var(--line);font-size:12px;color:var(--ink)}.tag.ok{background:var(--card);color:var(--green)}.tag.wait{background:var(--card);color:var(--gold)}.tag.bad{background:var(--card);color:var(--red)}.list{display:grid;gap:9px}.actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}.actions .btn{font-size:12px;padding:7px 10px}.empty{text-align:center;padding:24px;color:var(--muted);background:var(--card);border:1px dashed var(--line);border-radius:14px}.muted,.small{color:var(--muted);font-size:12px}.stat{font-size:25px;font-weight:800}.provider{display:flex;gap:10px;align-items:center}.avatar{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:var(--line);font-weight:800}.price{color:var(--green);font-weight:800}.modalback{position:fixed;inset:0;background:#07192399;display:grid;place-items:center;padding:14px;z-index:10}.modal{width:min(100%,510px);max-height:90dvh;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:16px;padding:17px;box-shadow:0 18px 55px color-mix(in srgb,var(--ink) 35%,transparent)}.foot{text-align:center;padding:22px;color:var(--muted);font-size:12px}
+ 
 @media(max-width:600px){.top{padding:15px}.topline{align-items:flex-start;flex-direction:column}.nav{width:100%}.nav button{flex:1}.wrap{padding:12px}.grid{grid-template-columns:1fr 1fr}}@media(max-width:370px){.grid{grid-template-columns:1fr}}
+
+/* WASLA - Default Theme Variables */
+body{background:var(--bg);color:var(--ink)}
+.card,.item,.modal,.empty{
+  background:var(--card);
+  color:var(--ink);
+  border-color:var(--line);
+}
+.card h3,.sectionhead h2{color:var(--ink)}
+.field input,.field select,.field textarea{
+  background:var(--card);
+  color:var(--ink);
+  border-color:var(--line);
+}
+.tabs button{
+  background:var(--card);
+  color:var(--ink);
+  border-color:var(--line);
+}
+.btn.light{background:var(--line);color:var(--ink)}
+.btn.danger{background:var(--card);color:var(--red)}
+.icon,.avatar{background:var(--line);color:var(--ink)}
+.notice{background:var(--card);color:var(--ink);border:1px solid var(--line)}
+ 
+
+.notice.error{background:var(--card);color:var(--red);border-color:var(--red)}
+.notice.success{background:var(--card);color:var(--green);border-color:var(--green)}
+.tag{background:var(--line);color:var(--ink)}
+.tag.ok{background:var(--card);color:var(--green)}
+.tag.wait{background:var(--card);color:var(--gold)}
+.tag.bad{background:var(--card);color:var(--red)}
+ 
+.empty{border-color:var(--line)}
+
+/* WASLA - UI Polish */
+.btn{
+  transition:background .2s ease,transform .2s ease,box-shadow .2s ease;
+}
+.btn:not(:disabled):hover{
+  transform:translateY(-2px);
+  box-shadow:0 5px 14px #0005;
+}
+.btn.gold:hover{
+  background:var(--gold);
+}
+.card,.item{
+  transition:border-color .2s ease,transform .2s ease,box-shadow .2s ease;
+}
+.card:hover,.item:hover{
+  border-color:var(--navy2);
+  box-shadow:0 5px 18px #0003;
+}
+.tabs button.active,.nav button.active{
+  background:var(--navy2);
+  color:var(--card);
+  border-color:var(--navy2);
+}
+.field input:focus,.field select:focus,.field textarea:focus{
+  outline:none;
+  border-color:var(--navy2);
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--navy2) 18%,transparent);
+}
+button:focus-visible{
+  outline:2px solid var(--navy2);
+  outline-offset:3px;
+}
+hr{
+  border:0;
+  border-top:1px solid var(--line);
+}
+::selection{
+  background:var(--line);
+  color:var(--ink);
+}
+ 
+/* WASLA - Navigation Design */
+.top .nav{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  flex-wrap:wrap;
+  margin:14px 0 0;
+  padding:5px 0;
+}
+
+.top .nav button{
+  flex:0 0 auto;
+  min-height:40px;
+  padding:8px 17px;
+  border:1px solid color-mix(in srgb,var(--gold) 40%,transparent);
+  border-radius:12px;
+  background:color-mix(in srgb,var(--navy2) 85%,transparent);
+  color:var(--gold);
+  font-size:13px;
+  font-weight:700;
+  white-space:nowrap;
+  transition:all .2s ease;
+}
+
+.top .nav button:hover{
+  background:var(--navy2);
+  border-color:var(--gold);
+  transform:translateY(-2px);
+}
+
+.top .nav button.active{
+  background:var(--gold);
+  color:var(--bg);
+  border-color:var(--gold);
+  box-shadow:0 3px 12px color-mix(in srgb,var(--gold) 25%,transparent);
+}
+
+@media(max-width:600px){
+  .top .nav{
+    width:100%;
+    flex-wrap:nowrap;
+    overflow-x:auto;
+    overflow-y:hidden;
+    padding:8px 2px 12px;
+    gap:8px;
+    scrollbar-width:none;
+    -webkit-overflow-scrolling:touch;
+  }
+
+  .top .nav::-webkit-scrollbar{
+    display:none;
+  }
+
+  .top .nav button{
+    flex:0 0 auto;
+    min-width:100px;
+    padding:9px 14px;
+  }
+}
+
+/* WASLA - Dashboard Statistics Cards */
+.grid.small > .card{
+  position:relative;
+  overflow:hidden;
+  min-height:105px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  gap:5px;
+  border:1px solid var(--line);
+  border-radius:16px;
+  background:var(--card);
+  box-shadow:0 8px 22px color-mix(in srgb,var(--ink) 12%,transparent);
+}
+
+.grid.small > .card .small{
+  color:var(--muted);
+  font-weight:600;
+}
+
+.grid.small > .card .stat{
+  color:var(--ink);
+  font:800 30px Tajawal;
+  line-height:1.2;
+}
+
+@media(max-width:600px){
+  .grid.small > .card{
+    min-height:95px;
+    padding:12px;
+  }
+}
+ 
+ 
+
+/* WASLA - Unified Button Polish */
+.btn,
+.tabs button,
+.top .nav button{
+  min-height:40px;
+  border-radius:12px;
+  font-weight:700;
+  transition:background .2s ease,
+             color .2s ease,
+             border-color .2s ease,
+             transform .2s ease,
+             box-shadow .2s ease;
+}
+
+.btn{
+  padding:9px 17px;
+  border:1px solid transparent;
+  box-shadow:0 2px 7px color-mix(in srgb,var(--ink) 12%,transparent);
+}
+
+.btn:not(:disabled):active,
+.tabs button:not(:disabled):active,
+.top .nav button:not(:disabled):active{
+  transform:scale(.97);
+}
+
+.btn:disabled,
+.tabs button:disabled,
+.top .nav button:disabled{
+  opacity:.5;
+  cursor:not-allowed;
+  box-shadow:none;
+  transform:none;
+}
+
+.btn.gold{
+  background:var(--gold);
+  color:var(--ink);
+}
+
+.btn.gold:not(:disabled):hover{
+  box-shadow:0 5px 16px color-mix(in srgb,var(--gold) 28%,transparent);
+}
+
+@media(max-width:600px){
+  .btn{
+    min-height:42px;
+    padding:9px 14px;
+  }
+}
+ 
+/* WASLA - Complete Theme Contrast System */
+
+body {
+  background: var(--bg) !important;
+  color: var(--ink) !important;
+}
+
+.card, .item, .modal, .empty {
+  background: var(--card) !important;
+  color: var(--ink) !important;
+  border-color: var(--line) !important;
+}
+
+.card p, .item p, .muted, .small, .foot {
+  color: var(--muted) !important;
+}
+
+.field, label, .modal label {
+  color: var(--ink);
+}
+
+.field input, .field select, .field textarea,
+input, select, textarea {
+  background: var(--bg);
+  color: var(--ink);
+  border-color: var(--line);
+}
+
+.field input::placeholder,
+.field textarea::placeholder,
+input::placeholder,
+textarea::placeholder {
+  color: var(--muted);
+  opacity: 1;
+}
+
+.tabs button {
+  background: var(--bg);
+  color: var(--ink);
+  border-color: var(--line);
+}
+
+.tabs button.active,
+.nav button.active {
+  background: var(--gold);
+  color: #17202b;
+  border-color: var(--gold);
+}
+
+.btn {
+  background: var(--navy);
+  color: #fff;
+}
+
+.btn.light {
+  background: var(--navy2);
+  color: #fff;
+}
+
+.btn.gold {
+  background: var(--gold);
+  color: #17202b;
+}
+
+.btn.danger {
+  background: #642f38;
+  color: #fff;
+}
+
+.modal {
+  color: var(--ink) !important;
+}
+
+.modal h2, .modal h3, .modal p,
+.modal span, .modal strong {
+  color: inherit;
+}
+
+.icon, .avatar {
+  background: var(--navy2);
+  color: var(--gold);
+}
+
+.notice {
+  background: var(--navy2);
+  color: var(--ink);
+}
+
+.notice.error {
+  background: #642f38;
+  color: #fff;
+}
+
+.notice.success {
+  background: #175c49;
+  color: #fff;
+}
+
+.tag {
+  background: var(--navy2);
+  color: var(--ink);
+}
+
+.tag.ok {
+  background: #175c49;
+  color: #fff;
+}
+
+.tag.wait {
+  background: #72551c;
+  color: #fff;
+}
+
+.tag.bad {
+  background: #642f38;
+  color: #fff;
+}
+
+.price {
+  color: var(--green);
+}
+
+hr {
+  border-color: var(--line);
+}
+ 
+/* WASLA - Official Brand Header */
+.top{
+  padding:20px max(18px,calc((100% - 1080px)/2));
+  border-radius:0 0 22px 22px;
+  background:linear-gradient(125deg,var(--card) 0%,var(--bg) 100%);
+  border-bottom:1px solid var(--line);
+  box-shadow:0 8px 24px color-mix(in srgb,var(--ink) 12%,transparent);
+}
+.topline{
+  align-items:center;
+  gap:24px;
+}
+.brand-lockup{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  min-width:0;
+}
+.wasla-mark{
+  width:58px;
+  height:58px;
+  flex:0 0 58px;
+}
+.brand-copy{
+  display:flex;
+  flex-direction:column;
+  line-height:1.2;
+}
+.brand{
+  font:800 30px Tajawal,sans-serif;
+  color:var(--ink);
+}
+.brand-en{
+  color:var(--gold);
+  font:700 11px Arial,sans-serif;
+  letter-spacing:4px;
+  margin-top:3px;
+}
+.brand-tagline{
+  color:var(--muted);
+  font-size:11px;
+  margin-top:5px;
+}
+.header-sub{
+  color:var(--muted);
+  font-size:13px;
+  margin-top:14px;
+}
+@media(max-width:600px){
+  .top{
+    padding:15px 16px;
+    border-radius:0 0 18px 18px;
+  }
+  .topline{
+    align-items:flex-start;
+    gap:12px;
+  }
+  .wasla-mark{
+    width:50px;
+    height:50px;
+    flex-basis:50px;
+  }
+  .brand{
+    font-size:26px;
+  }
+  .brand-tagline{
+    font-size:10px;
+  }
+}
+/* WASLA - Premium Content Cards */
+.card,
+.item{
+  position:relative;
+  border:1px solid var(--line) !important;
+  border-radius:18px !important;
+  padding:17px !important;
+  background:linear-gradient(145deg,var(--card),var(--bg)) !important;
+  color:var(--ink) !important;
+  box-shadow:0 5px 18px color-mix(in srgb,var(--ink) 12%,transparent);
+  transition:transform .22s ease,
+             border-color .22s ease,
+             box-shadow .22s ease;
+}
+
+.card:hover,
+.item:hover{
+  transform:translateY(-3px);
+  border-color:var(--gold) !important;
+  box-shadow:0 10px 25px color-mix(in srgb,var(--ink) 20%,transparent);
+}
+
+.card h3,
+.item h3{
+  color:var(--ink);
+  font-weight:800;
+}
+
+.card p,
+.item p{
+  color:var(--muted);
+  line-height:1.8;
+}
+
+.card .icon{
+  border:1px solid var(--line);
+  border-radius:14px;
+  background:var(--navy2);
+  color:var(--gold);
+}
+
+@media(max-width:600px){
+  .card,
+  .item{
+    border-radius:15px !important;
+    padding:14px !important;
+  }
+}
+/* WASLA - Premium Forms & Input Fields */
+.field{
+  display:block;
+  margin:15px 0;
+  color:var(--ink);
+  font-size:13px;
+  font-weight:700;
+}
+
+.field input:not([type="checkbox"]):not([type="radio"]),
+.field select,
+.field textarea{
+  width:100%;
+  min-height:46px;
+  margin-top:7px;
+  padding:11px 14px;
+  border:1px solid var(--line);
+  border-radius:13px;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:inherit;
+  font-size:14px;
+  transition:border-color .2s ease,
+             box-shadow .2s ease,
+             background .2s ease;
+}
+
+.field textarea{
+  min-height:105px;
+  resize:vertical;
+}
+
+.field input::placeholder,
+.field textarea::placeholder{
+  color:var(--muted);
+  opacity:1;
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus{
+  outline:none;
+  border-color:var(--gold);
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--gold) 15%,transparent);
+}
+
+.field select option{
+  background:var(--card);
+  color:var(--ink);
+}
+
+input[type="checkbox"],
+input[type="radio"]{
+  accent-color:var(--gold);
+}
+
+input:disabled,
+select:disabled,
+textarea:disabled{
+  opacity:.55;
+  cursor:not-allowed;
+}
+
+.auth{
+  width:min(100%,480px);
+  margin:28px auto;
+}
+
+.auth > .card{
+  padding:22px !important;
+}
+
+.modal{
+  border:1px solid var(--line);
+  box-shadow:0 18px 55px color-mix(in srgb,var(--ink) 35%,transparent);
+}
+
+@media(max-width:600px){
+  .field input:not([type="checkbox"]):not([type="radio"]),
+  .field select,
+  .field textarea{
+    min-height:45px;
+    font-size:16px;
+  }
+
+  .auth > .card{
+    padding:17px !important;
+  }
+}
+/* WASLA - Unified Buttons & Navigation */
+.btn,
+.tabs button,
+.top .nav button{
+  border-radius:12px;
+  font-family:inherit;
+  font-weight:700;
+  transition:transform .2s ease,
+             box-shadow .2s ease,
+             border-color .2s ease;
+}
+
+.btn:not(:disabled):hover,
+.tabs button:not(:disabled):hover,
+.top .nav button:not(:disabled):hover{
+  transform:translateY(-2px);
+  box-shadow:0 5px 14px #0003;
+}
+
+.btn:focus-visible,
+.tabs button:focus-visible,
+.top .nav button:focus-visible{
+  outline:2px solid var(--gold);
+  outline-offset:3px;
+}
+
+.tabs button{
+  padding:9px 14px;
+  border:1px solid var(--line);
+
+}
+ 
+ /* WASLA - Theme Responsive Design */
+
+/* Main surfaces */
+body{
+  background:var(--bg);
+  color:var(--ink);
+}
+
+.card,
+.item,
+.modal,
+.empty{
+  background:var(--card) !important;
+  color:var(--ink);
+  border:1px solid var(--line) !important;
+  border-radius:18px;
+  box-shadow:0 5px 18px #00000012;
+  transition:background .2s ease,
+             border-color .2s ease,
+             color .2s ease,
+             box-shadow .2s ease;
+}
+
+.card h2,
+.card h3,
+.item h3,
+.sectionhead h2{
+  color:var(--ink);
+}
+
+.card p,
+.item p,
+.muted,
+.small{
+  color:var(--muted);
+}
+
+.card:hover,
+.item:hover{
+  border-color:var(--gold) !important;
+  box-shadow:0 9px 24px #00000018;
+}
+
+.card .icon,
+.avatar{
+  background:var(--bg);
+  color:var(--navy);
+  border:1px solid var(--line);
+}
+
+/* Forms */
+.field{
+  color:var(--ink);
+  font-weight:700;
+}
+
+.field input:not([type="checkbox"]):not([type="radio"]),
+.field select,
+.field textarea,
+input:not([type="checkbox"]):not([type="radio"]),
+select,
+textarea{
+  background:var(--card);
+  color:var(--ink);
+  border:1px solid var(--line);
+  border-radius:12px;
+}
+
+.field input::placeholder,
+.field textarea::placeholder,
+input::placeholder,
+textarea::placeholder{
+  color:var(--muted);
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus,
+input:focus,
+select:focus,
+textarea:focus{
+  outline:none;
+  border-color:var(--gold);
+  box-shadow:0 0 0 3px var(--gold)25;
+}
+
+select option{
+  background:var(--card);
+  color:var(--ink);
+}
+
+input[type="checkbox"],
+input[type="radio"]{
+  accent-color:var(--gold);
+}
+
+/* Buttons */
+.btn{
+  background:var(--navy);
+  color:#fff;
+  border:1px solid transparent;
+  border-radius:12px;
+  font-family:inherit;
+  font-weight:700;
+  transition:transform .2s ease,
+             background .2s ease,
+             box-shadow .2s ease;
+}
+
+.btn.gold{
+  background:var(--gold);
+  color:var(--ink);
+}
+
+.btn.light{
+  background:var(--card);
+  color:var(--ink);
+  border-color:var(--line);
+}
+
+.btn.green{
+  background:var(--green);
+  color:#fff;
+}
+
+.btn.danger{
+  background:var(--red);
+  color:#fff;
+}
+
+.btn:not(:disabled):hover,
+.tabs button:not(:disabled):hover{
+  transform:translateY(-2px);
+  box-shadow:0 5px 14px #00000020;
+}
+
+/* Navigation and tabs */
+.tabs button{
+  background:var(--card);
+  color:var(--ink);
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:9px 14px;
+}
+
+.tabs button.active{
+  background:var(--navy);
+  color:#fff;
+  border-color:var(--navy);
+}
+
+.top .nav button{
+  background:transparent;
+  color:#fff;
+  border:1px solid #ffffff55;
+  border-radius:12px;
+}
+
+.top .nav button.active{
+  background:var(--gold);
+  color:var(--ink);
+  border-color:var(--gold);
+}
+
+/* Status labels */
+.tag{
+  background:var(--bg);
+  color:var(--ink);
+  border:1px solid var(--line);
+}
+
+.tag.ok{
+  background:var(--green);
+  color:#fff;
+}
+
+.tag.wait{
+  background:var(--gold);
+  color:var(--ink);
+}
+
+.tag.bad{
+  background:var(--red);
+  color:#fff;
+}
+
+/* Notices */
+.notice{
+  background:var(--bg);
+  color:var(--ink);
+  border:1px solid var(--line);
+}
+
+.notice.success{
+  background:var(--green);
+  color:#fff;
+}
+
+.notice.error{
+  background:var(--red);
+  color:#fff;
+}
+
+/* Disabled and focus states */
+.btn:disabled,
+input:disabled,
+select:disabled,
+textarea:disabled{
+  opacity:.55;
+  cursor:not-allowed;
+}
+
+.btn:focus-visible,
+.tabs button:focus-visible,
+.top .nav button:focus-visible{
+  outline:2px solid var(--gold);
+  outline-offset:3px;
+}
+
+.auth{
+  width:min(100%,480px);
+  margin:28px auto;
+}
+
+.modal{
+  box-shadow:0 18px 55px #00000030;
+}
+
+@media(max-width:600px){
+  .card,
+  .item,
+  .modal{
+    border-radius:15px;
+  }
+
+  .btn{
+    min-height:42px;
+  }
+
+  .field input:not([type="checkbox"]):not([type="radio"]),
+  .field select,
+  .field textarea{
+    min-height:45px;
+    font-size:16px;
+  }
+
+  .tabs{
+    gap:6px;
+  }
+}
+
+/* WASLA - Full Dynamic Theme Enforcement */
+:root {
+  color-scheme: normal;
+}
+
+/* Main backgrounds and text */
+body,
+#app,
+.wrap,
+.section {
+  background-color: var(--bg);
+  color: var(--ink);
+}
+
+.card,
+.item,
+.modal,
+.empty,
+.auth,
+.stat,
+.provider {
+  background: var(--card) !important;
+  color: var(--ink) !important;
+  border-color: var(--line) !important;
+}
+
+/* All headings and content text */
+h1, h2, h3, h4, h5, h6,
+.sectionhead h2,
+.card h3,
+.item h3,
+label,
+.field,
+.modal,
+.modal p,
+.card p,
+.item p,
+.list,
+.stat {
+  color: var(--ink);
+}
+
+p,
+.muted,
+.small,
+.caption,
+.card p,
+.item p,
+.foot {
+  color: var(--muted);
+}
+
+.tabs button.active,
+.tabs button[aria-selected="true"] {
+  background: var(--gold) !important;
+  color: var(--navy) !important;
+  border-color: var(--gold) !important;
+}
+
+/* Navigation */
+.top .nav button {
+  background: color-mix(in srgb, var(--card) 16%, transparent) !important;
+  color: var(--ink) !important;
+  border-color: color-mix(in srgb, var(--gold) 45%, transparent) !important;
+}
+
+.top .nav button.active {
+  background: var(--card) !important;
+  color: var(--ink) !important;
+  border-color: var(--card) !important;
+}
+
+/* All button variants */
+.btn {
+  background: var(--navy) !important;
+  color: var(--card) !important;
+  border-color: var(--navy) !important;
+}
+
+.btn.gold {
+  background: var(--gold) !important;
+  color: var(--ink) !important;
+  border-color: var(--gold) !important;
+}
+
+.btn.light {
+  background: var(--card) !important;
+  color: var(--ink) !important;
+  border-color: var(--line) !important;
+}
+
+.btn.green {
+  background: var(--green) !important;
+  color: var(--card) !important;
+  border-color: var(--green) !important;
+}
+
+.btn.danger {
+  background: var(--red) !important;
+  color: var(--card) !important;
+  border-color: var(--red) !important;
+}
+/* Form fields */
+input:not([type="checkbox"]):not([type="radio"]),
+select,
+textarea {
+  background: var(--card) !important;
+  color: var(--ink) !important;
+  border: 1px solid var(--line) !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--muted) !important;
+  opacity: 1;
+}
+
+select option {
+  background: var(--card);
+  color: var(--ink);
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+  accent-color: var(--gold);
+}
+
+/* WASLA - Dynamic Icons & Avatars */
+.icon,
+.avatar{
+  background:color-mix(in srgb,var(--navy2) 14%,var(--card)) !important;
+  color:var(--ink) !important;
+  border:1px solid var(--line) !important;
+}
+
+.icon{
+  border-radius:14px;
+}
+
+.avatar{
+  border-radius:50%;
+}
+/* WASLA - Dynamic Status Labels & Notifications */
+.tag{
+  display:inline-block;
+  background:var(--card) !important;
+  color:var(--ink) !important;
+  border:1px solid var(--line) !important;
+  border-radius:20px;
+}
+
+.tag.ok{
+  background:color-mix(in srgb,var(--green) 18%,var(--card)) !important;
+  color:var(--green) !important;
+  border-color:var(--green) !important;
+}
+
+.tag.wait{
+  background:color-mix(in srgb,var(--gold) 18%,var(--card)) !important;
+  color:var(--ink) !important;
+  border-color:var(--gold) !important;
+}
+
+.tag.bad{
+  background:color-mix(in srgb,var(--red) 18%,var(--card)) !important;
+  color:var(--red) !important;
+  border-color:var(--red) !important;
+}
+
+/* Notifications */
+.notice{
+  background:var(--card) !important;
+  color:var(--ink) !important;
+  border:1px solid var(--line) !important;
+}
+
+.notice.success{
+  background:color-mix(in srgb,var(--green) 14%,var(--card)) !important;
+  color:var(--ink) !important;
+  border-color:var(--green) !important;
+}
+
+.notice.error{
+  background:color-mix(in srgb,var(--red) 14%,var(--card)) !important;
+  color:var(--ink) !important;
+  border-color:var(--red) !important;
+}
+
+/* WASLA - Dynamic Borders, Separators & Prices */
+hr,
+.divider{
+  border:0;
+  border-top:1px solid var(--line);
+}
+
+.card,
+.item,
+.modal,
+.field input,
+.field select,
+.field textarea{
+  border-color:var(--line) !important;
+}
+
+.card:hover,
+.item:hover{
+  border-color:var(--gold) !important;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible{
+  outline:2px solid var(--gold);
+  outline-offset:2px;
+}
+
+.price{
+  color:var(--green) !important;
+  font-weight:800;
+}
+
+/* Keep brand header tied to theme */
+.top {
+  background: linear-gradient(125deg, var(--card), var(--bg)) !important;
+  color: var(--ink) !important;
+}
+
+.top p {
+  color: var(--muted) !important;
+}
+
+.brand span,
+.brand-en {
+  color: var(--gold) !important;
+}
+
+@media (max-width: 600px) {
+  .tabs button {
+    white-space: nowrap;
+  }
+}
+ /* WASLA - Dynamic Page Background Fix */
+html,
+body,
+#app {
+  min-height: 100vh !important;
+  background: var(--bg) !important;
+  color: var(--ink) !important;
+}
+/* WASLA - Final Theme Buttons & Tabs */
+:root{
+  --button-bg:var(--navy);
+  --button-text:var(--card);
+  --button-active-bg:var(--navy);
+--button-active-text:var(--card);
+}
+/* Main buttons */
+.btn{
+  background:var(--button-bg) !important;
+  color:var(--button-text) !important;
+  border-color:var(--button-bg) !important;
+}
+
+/* Button variants */
+.btn.gold{
+  background:var(--button-active-bg) !important;
+  color:var(--button-active-text) !important;
+  border-color:var(--button-active-bg) !important;
+}
+
+.btn.light{
+  background:var(--card) !important;
+  color:var(--ink) !important;
+  border-color:var(--line) !important;
+}
+
+.btn.green{
+  background:var(--green) !important;
+  color:var(--card) !important;
+  border-color:var(--green) !important;
+}
+
+.btn.danger{
+  background:var(--red) !important;
+  color:var(--card) !important;
+  border-color:var(--red) !important;
+}
+
+/* Internal tabs */
+.tabs button{
+  background:var(--card) !important;
+  color:var(--ink) !important;
+  border:1px solid var(--line) !important;
+}
+
+.tabs button.active,
+.tabs button[aria-selected="true"]{
+  background:var(--button-active-bg) !important;
+  color:var(--button-active-text) !important;
+  border-color:var(--button-active-bg) !important;
+}
+
+/* Header navigation */
+.top .nav button{
+  background:var(--card) !important;
+  color:var(--ink) !important;
+  border:1px solid var(--line) !important;
+}
+
+.top .nav button.active{
+  background:var(--navy) !important;
+  color:var(--card) !important;
+  border-color:var(--navy) !important;
+}
+/* Hover and disabled states */
+.btn:not(:disabled):hover,
+.tabs button:not(:disabled):hover,
+.top .nav button:not(:disabled):hover{
+  filter:brightness(1.08);
+}
+
+.btn:disabled,
+.tabs button:disabled,
+.top .nav button:disabled{
+  opacity:.5;
+  cursor:not-allowed;
+}
+/* WASLA - Dynamic Links */
+a{
+  color:var(--navy) !important;
+  text-decoration-color:var(--navy);
+}
+
+a:hover{
+  color:var(--button-active-bg) !important;
+}
+
+a:focus-visible{
+  outline:2px solid var(--gold);
+  outline-offset:3px;
+  border-radius:4px;
+}
+/* WASLA - Dynamic Theme Focus */
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+a:focus-visible{
+  outline:2px solid var(--button-active-bg) !important;
+  outline-offset:3px;
+}
+
+/* WASLA - Welcome Screen */
+.wasla-welcome{
+  min-height:100vh;
+  min-height:100dvh;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding:30px 20px;
+  text-align:center;
+  overflow:hidden;
+  background:radial-gradient(ellipse at center,var(--navy2),var(--bg) 75%);
+  color:var(--ink);
+}
+
+.wasla-welcome .welcome-wordmark{
+  position:relative;
+  display:block;
+  width:100%;
+  height:130px;
+  flex:0 0 130px;
+  direction:ltr;
+  overflow:visible;
+}
+
+.wasla-welcome .welcome-logo{
+  position:absolute;
+  left:50%;
+  top:50%;
+  width:110px;
+  height:110px;
+  margin:0;
+  transform:translate(calc(-50% - 120px),-50%);
+  filter:drop-shadow(0 0 18px color-mix(in srgb,var(--gold) 35%,transparent));
+  animation:welcomeLogoCenter 5.85s cubic-bezier(.2,.75,.25,1) forwards;
+}
+.wasla-welcome .welcome-elcome{
+  position:absolute;
+  left:calc(50% - 60px);
+  top:50%;
+  display:flex;
+  flex-direction:row;
+  align-items:center;
+  justify-content:flex-start;
+  gap:3px;
+  transform:translateY(-50%);
+  white-space:nowrap;
+  direction:ltr;
+  color:var(--ink);
+  font-family:Tajawal,sans-serif;
+  font-size:clamp(48px,10vw,72px);
+  font-weight:800;
+  letter-spacing:0;
+  transform-origin:left center;
+  animation:welcomeTextClose 5.85s ease-in forwards;
+}
+
+.wasla-welcome .welcome-elcome span{
+  display:block;
+  position:relative;
+  flex:0 0 auto;
+  min-width:.55em;
+  text-align:center;
+  line-height:1.2;
+  animation:welcomeLetterWave 1.35s ease-in-out infinite;
+}
+
+.wasla-welcome .welcome-elcome span:nth-child(1){animation-delay:0s}
+.wasla-welcome .welcome-elcome span:nth-child(2){animation-delay:.12s}
+.wasla-welcome .welcome-elcome span:nth-child(3){animation-delay:.24s}
+.wasla-welcome .welcome-elcome span:nth-child(4){animation-delay:.36s}
+.wasla-welcome .welcome-elcome span:nth-child(5){animation-delay:.48s}
+.wasla-welcome .welcome-elcome span:nth-child(6){animation-delay:.60s}
+.wasla-welcome .welcome-name{
+  margin:0;
+  color:var(--ink);
+  font:800 clamp(38px,8vw,58px) Tajawal,sans-serif;
+  opacity:0;
+  animation:waslaWelcomeText .7s ease 5.05s forwards;
+}
+
+.wasla-welcome .welcome-en{
+  color:var(--gold);
+  font:700 12px Arial,sans-serif;
+  letter-spacing:6px;
+  margin-top:3px;
+  opacity:0;
+  animation:waslaWelcomeText .7s ease 5.35s forwards;
+}
+
+.wasla-welcome .welcome-tagline{
+  color:var(--muted);
+  margin:12px 0 30px;
+  font-size:15px;
+  opacity:0;
+  animation:waslaWelcomeText .7s ease 5.55s forwards;
+}
+
+.wasla-welcome .welcome-actions{
+  display:flex;
+  justify-content:center;
+  flex-wrap:wrap;
+  gap:12px;
+  opacity:0;
+  animation:waslaWelcomeText .7s ease 5.75s forwards;
+}
+
+.wasla-welcome .welcome-actions .btn{
+  min-width:155px;
+  min-height:48px;
+}
+
+@keyframes welcomeLetterWave{
+  0%,100%{transform:translateY(0)}
+  25%{transform:translateY(-13px)}
+  50%{transform:translateY(2px)}
+  75%{transform:translateY(-7px)}
+}
+
+@keyframes welcomeTextClose{
+  0%,82%{
+    opacity:1;
+    transform:translateY(-50%) scaleX(1);
+    max-width:400px;
+  }
+  100%{
+    opacity:0;
+    transform:translateY(-50%) scaleX(0);
+    max-width:0;
+  }
+}
+
+@keyframes welcomeLogoCenter{
+  0%,82%{transform:translate(calc(-50% - 120px),-50%)}
+  100%{transform:translate(-50%,-50%)}
+}
+
+@keyframes waslaWelcomeText{
+  from{opacity:0;transform:translateY(14px)}
+  to{opacity:1;transform:translateY(0)}
+}
+ 
+
+/* WASLA CUSTOMER UI - STEP 2 */
+.customer-shell{padding-bottom:100px}
+.customer-hero{padding:20px;margin:14px 0 22px;border-radius:22px;background:linear-gradient(135deg,var(--navy),var(--navy2));color:white}
+.customer-hero h1{font:800 clamp(23px,4vw,32px) Tajawal;margin:0 0 5px}
+.customer-hero p{margin:0;color:#d4e0e7;font-size:13px}
+.customer-search{display:flex;gap:8px;margin-top:16px}
+.customer-search input{min-width:0;flex:1;padding:12px 14px;border:1px solid var(--line);border-radius:13px;background:var(--card);color:var(--ink)}
+.customer-section{margin:25px 0}
+.customer-section-title{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}
+.customer-section-title h2{font:800 20px Tajawal;margin:0;color:var(--ink)}
+.customer-category-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.customer-category{min-height:105px;padding:12px 6px;border:1px solid var(--line);border-radius:15px;background:var(--card);color:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;text-align:center}
+.customer-category .icon{margin:0;width:38px;height:38px}
+.customer-category b{font-size:12px}
+.customer-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.customer-cards>.card{min-width:0}
+.customer-bottom-nav{position:fixed;z-index:8;bottom:0;left:0;right:0;display:grid;grid-template-columns:repeat(4,1fr);gap:5px;padding:9px 10px calc(9px + env(safe-area-inset-bottom));background:var(--card);border-top:1px solid var(--line);box-shadow:0 -5px 20px color-mix(in srgb,var(--ink) 10%,transparent)}
+.customer-bottom-nav button{border:0;background:transparent;color:var(--muted);border-radius:11px;padding:7px 3px;font-size:11px;font-weight:700}
+.customer-bottom-nav button.active{background:var(--line);color:var(--navy2)}
+.customer-profile-card{display:flex;align-items:center;gap:13px;padding:17px}
+.customer-profile-avatar{width:54px;height:54px;border-radius:50%;display:grid;place-items:center;background:var(--line);font:800 22px Tajawal;color:var(--ink)}
+@media(max-width:600px){
+ .customer-category-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+ .customer-cards{gap:9px}
+ .customer-hero{padding:18px}
+}
+@media(max-width:370px){.customer-category-grid,.customer-cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+
+/* WASLA CUSTOMER ACCOUNT - STEP 5 */
+.customer-request-summary{margin:12px 0}
+.customer-request-summary .item{padding:12px;text-align:center}
+.customer-request-summary .item b{font-size:22px;color:var(--navy2)}
+.customer-request-summary .item p{font-size:11px;margin:4px 0 0;color:var(--muted)}
+
+
+/* WASLA CUSTOMER CARDS - STEP 2 */
+.wl-service-image-empty,.card{min-width:0;overflow:hidden;border:1px solid var(--line);border-radius:17px;background:var(--card);color:var(--ink);transition:transform .18s ease,box-shadow .18s ease}
+.wl-service-image-empty img,.card img{max-width:100%;object-fit:cover}
+.wl-service-image-empty h3,.card h3{font-size:15px;line-height:1.5;margin:8px 0;color:var(--ink)}
+.wl-service-image-empty p,.card p{font-size:12px;line-height:1.7;color:var(--muted)}
+.wl-service-image-empty button,.card button{max-width:100%}
+@media(hover:hover){.wl-service-image-empty:hover,.card:hover{transform:translateY(-2px);box-shadow:0 8px 22px color-mix(in srgb,var(--ink) 9%,transparent)}}
+@media(max-width:600px){.wl-service-image-empty,.card{border-radius:14px}}
+
+
+/* WASLA CUSTOMER REQUESTS - STEP 4 */
+.customer-shell .customer-section .list{
+ display:grid;
+ gap:12px;
+}
+.customer-shell .customer-section .list .item{
+ min-width:0;
+ padding:15px;
+ border:1px solid var(--line);
+ border-radius:15px;
+ background:var(--card);
+ color:var(--ink);
+ overflow-wrap:anywhere;
+}
+.customer-shell .customer-section .list .item p{
+ line-height:1.8;
+}
+.customer-shell .customer-request-summary .item{
+ border:1px solid var(--line);
+ border-radius:14px;
+ background:var(--card);
+}
+.customer-shell .customer-section button{
+ touch-action:manipulation;
+}
+@media(max-width:600px){
+ .customer-shell .customer-section .list .item{
+  padding:12px;
+  border-radius:13px;
+ }
+ .customer-shell .customer-request-summary{
+  grid-template-columns:repeat(2,minmax(0,1fr));
+ }
+}
+
+
+/* WASLA CUSTOMER ACTIVITY - STEP 5 */
+.customer-activity-stats .item{padding:15px 10px;border:1px solid var(--line);border-radius:15px;background:var(--card);text-align:center}
+.customer-activity-stats .item b{display:block;color:var(--navy2);font-size:23px}
+.customer-activity-stats .item p{margin:5px 0 0;color:var(--muted);font-size:12px}
+
+
+.header-tools{display:flex;align-items:center;gap:9px;margin-inline-start:auto}
+.header-icon-btn{position:relative;width:42px;height:42px;border:1px solid rgba(255,255,255,.35);border-radius:13px;background:rgba(255,255,255,.12);color:#fff;font-size:23px;display:grid;place-items:center}
+.header-icon-btn:active{transform:scale(.96)}
+.header-badge{position:absolute;top:-6px;inset-inline-end:-6px;min-width:18px;height:18px;padding:0 4px;border-radius:20px;background:var(--gold);color:#171717;font-size:11px;font-weight:800;display:grid;place-items:center}
+@media(max-width:520px){.topline{gap:10px}.brand{font-size:22px}.header-tools{gap:6px}.header-icon-btn{width:38px;height:38px}}
 </style>
 </head>
-<body><div id="app"><main class="wrap"><div class="empty">جاري تحميل المنصة...</div></main></div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<body><div id="app"></div>
+
+ <script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js">
+/* WASLA CUSTOMER SEARCH - STEP 4 */
+if(!window.__waslaCustomerSearchBound){
+ window.__waslaCustomerSearchBound=true;
+
+ document.addEventListener("input",function(e){
+  if(!e.target || e.target.id!=="search" || typeof s==="undefined") return;
+  const input=e.target;
+  const value=input.value;
+  const position=input.selectionStart;
+  s.filter=value;
+  render();
+  const next=document.getElementById("search");
+  if(next){
+   next.focus();
+   try{next.setSelectionRange(position,position)}catch(_){}
+  }
+ },true);
+
+ document.addEventListener("click",function(e){
+  const button=e.target.closest('button[data-a="category-open"]');
+  if(!button || typeof s==="undefined") return;
+  const categories=s.categories||s.cats||[];
+  const category=categories.find(c=>String(c.id)===String(button.dataset.id));
+  if(!category) return;
+  e.preventDefault();
+  e.stopPropagation();
+  s.filter=category.name_ar||"";
+  s.tab="home";
+  render();
+ },true);
+}
+
+
+/* WASLA CUSTOMER SMART SEARCH - STEP 3 */
+if(!window.__waslaSmartSearchBound){
+ window.__waslaSmartSearchBound=true;
+
+ function waslaSearchSuggestions(){
+  const input=document.getElementById("search");
+  if(!input || typeof s==="undefined") return;
+
+  input.setAttribute("list","wasla-customer-search-options");
+  let list=document.getElementById("wasla-customer-search-options");
+  if(!list){
+   list=document.createElement("datalist");
+   list.id="wasla-customer-search-options";
+   document.body.appendChild(list);
+  }
+
+  const values=[
+   ...(s.services||[]).flatMap(x=>[x.name_ar,x.name_en]),
+   ...(s.providers||[]).map(x=>x.display_name),
+   ...(s.categories||s.cats||[]).map(x=>x.name_ar)
+  ];
+
+  list.replaceChildren();
+  [...new Set(values.map(x=>String(x||"").trim()).filter(Boolean))]
+   .slice(0,60)
+   .forEach(value=>{
+    const option=document.createElement("option");
+    option.value=value;
+    list.appendChild(option);
+   });
+ }
+
+ document.addEventListener("focusin",function(e){
+  if(e.target && e.target.id==="search") waslaSearchSuggestions();
+ });
+
+ document.addEventListener("keydown",function(e){
+  if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==="k"){
+   const input=document.getElementById("search");
+   if(input){
+    e.preventDefault();
+    input.focus();
+   }
+  }
+
+  if(e.key==="Escape"){
+   const input=document.getElementById("search");
+   if(input && document.activeElement===input && input.value){
+    e.preventDefault();
+    input.value="";
+    input.dispatchEvent(new Event("input",{bubbles:true}));
+   }
+  }
+ });
+}
+
+</script>
 <script>
 (()=>{"use strict";
-const db=window.supabase.createClient("https://hnnomaiohwyuqpfzlcol.supabase.co","sb_publishable_I4IfNkGvcxDxzz3xdGeKxw_TAzgc3ck"),app=document.getElementById("app");
-const s={user:null,profile:null,provider:null,mode:"welcome",type:"customer",tab:"home",cats:[],services:[],providers:[],requests:[],offers:[],apps:[],allRequests:[],adminProfiles:[],chats:[],messages:[],activeChat:null,notice:"",noticeType:"",modal:null,filter:""};
+const app=document.getElementById("app");
+if(!window.supabase?.createClient){
+ app.innerHTML='<main class="wrap"><div class="empty">خطأ: مكتبة Supabase لم يتم تحميلها.</div></main>';
+ return;
+}
+const db=window.supabase.createClient("https://hnnomaiohwyuqpfzlcol.supabase.co","sb_publishable_I4IfNkGvcxDxzz3xdGeKxw_TAzgc3ck");
+const s={user:null,profile:null,provider:null,staffAccess:null,themeDraft:{bg:"#111111",card:"#1d1d1d",ink:"#f5f1e8",muted:"#aaa18f",line:"#393328",navy:"#171717",navy2:"#29231a",gold:"#d6a642",green:"#16845d",red:"#c44545"},themeStyle:"auto",themeMode:"light",mode:"welcome",type:"customer",tab:"home",cats:[],services:[],providers:[],requests:[],notifications:[],offers:[],apps:[],allRequests:[],adminProfiles:[],staff:[],staffCandidates:[],customers:[],chats:[],messages:[],activeChat:null,notice:"",noticeType:"",modal:null,filter:""};
+
+try{
+ const savedTheme=JSON.parse(localStorage.getItem("wasla_theme_draft")||"null");
+ if(savedTheme&&savedTheme.themeDraft&&typeof savedTheme.themeDraft==="object"){
+  Object.keys(s.themeDraft).forEach(key=>{
+   const value=savedTheme.themeDraft[key];
+   if(typeof value==="string"&&/^#[0-9a-fA-F]{6}$/.test(value)){
+    s.themeDraft[key]=value;
+    document.documentElement.style.setProperty("--"+key,value);
+   }
+  });
+  if(["auto","modern","minimal","luxury","corporate","nature","tech"].includes(savedTheme.themeStyle)){
+   s.themeStyle=savedTheme.themeStyle;
+  }
+ }
+}catch(e){
+ console.warn("تعذر استعادة الثيم المحلي",e);
+}
+
+function setThemeMode(mode,persist=true){
+ const palettes={
+  light:{bg:"#f3f6f8",card:"#ffffff",ink:"#102a3a",muted:"#71818c",line:"#e1e8ed",navy:"#102b3b",navy2:"#19445a"},
+  dark:{bg:"#111111",card:"#1d1d1d",ink:"#f5f1e8",muted:"#aaa18f",line:"#393328",navy:"#171717",navy2:"#29231a"}
+ };
+ s.themeMode=mode==="dark"?"dark":"light";
+ Object.entries(palettes[s.themeMode]).forEach(([k,v])=>document.documentElement.style.setProperty("--"+k,v));
+ if(persist)localStorage.setItem("wasla_theme_mode",s.themeMode);
+}
+const savedMode=localStorage.getItem("wasla_theme_mode");
+if(savedMode==="dark"||savedMode==="light")setThemeMode(savedMode,false);
+
 const esc=x=>String(x??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])),fmt=x=>Number(x||0).toLocaleString("ar-SA");
-function note(x,t){s.notice=x;s.noticeType=t||"";render()}
+function note(x,t){
+ s.notice=x;
+ s.noticeType=t||"";
+ const el=document.getElementById("appNotice");
+ if(el){
+  el.textContent=x;
+  el.className="notice "+(s.noticeType==="error"?"error":s.noticeType==="success"?"success":"");
+ }else{
+  render();
+ }
+}
 function tag(x){let a={pending:["قيد المراجعة","wait"],accepted:["مقبول","ok"],in_progress:["قيد التنفيذ","wait"],completed:["مكتمل","ok"],cancelled:["ملغي","bad"],approved:["موثّق","ok"],rejected:["مرفوض","bad"]}[x]||[x||"—",""];return '<span class="tag '+a[1]+'">'+a[0]+'</span>'}
-function header(sub,nav){return '<header class="top"><div class="topline"><div><div class="brand">منصة <span>الخدمات</span></div><p>'+esc(sub||"خدمات موثوقة في مكان واحد")+'</p></div>'+(nav?'<div class="nav">'+nav+'</div>':'')+'</div></header>'}
-function msg(){return s.notice?'<div class="notice '+(s.noticeType==="error"?"error":s.noticeType==="success"?"success":"")+'">'+esc(s.notice)+'</div>':""}
+
+function header(sub,nav){
+ const unread=(s.notifications||[]).filter(n=>!n.is_read).length;
+ const tools=s.user?'<div class="header-tools">'+(s.profile?.role==="customer"?'<button class="header-icon-btn" data-a="notifications-open" aria-label="الإشعارات">♧'+(unread?'<span class="header-badge">'+unread+'</span>':'')+'</button>':'')+'<button class="header-icon-btn" data-a="theme-toggle" aria-label="تبديل المظهر">'+(s.themeMode==="dark"?"☀":"☾")+'</button></div>':'';
+ return '<header class="top"><div class="topline"><div class="brand-lockup"><svg class="wasla-mark" viewBox="0 0 64 64" aria-label="Wasla"><path d="M7 17 L19 46 L31 25 L43 46 L57 17" fill="none" stroke="var(--ink)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 39 C17 57 46 9 59 27" fill="none" stroke="#D6A642" stroke-width="4" stroke-linecap="round"/><circle cx="55" cy="15" r="5" fill="#D6A642"/></svg><div class="brand-copy"><div class="brand">وصلة</div><div class="brand-en">WASLA</div><div class="brand-tagline">كل خدمة تبدأ باتصال</div></div></div>'+tools+(nav?'<div class="nav">'+nav+'</div>':'')+'</div>'+(sub?'<div class="header-sub">'+esc(sub)+'</div>':'')+'</header>';
+}
+      
+function msg(){
+ return s.notice?'<div id="appNotice" class="notice '+(s.noticeType==="error"?"error":s.noticeType==="success"?"success":"")+'">'+esc(s.notice)+'</div>':"";
+}
 function btn(a,t,k,id,extra){return '<button class="btn '+(k||"")+'" data-a="'+a+'" data-id="'+esc(id||"")+'" '+(extra||"")+'>'+t+'</button>'}
 function field(l,n,type,ph,v,req){return '<label class="field">'+l+'<input name="'+n+'" type="'+(type||"text")+'" placeholder="'+esc(ph||"")+'" value="'+esc(v||"")+'" '+(req?"required":"")+'></label>'}
 function select(l,n,opts,v){return '<label class="field">'+l+'<select name="'+n+'">'+opts.map(o=>'<option value="'+esc(o.value)+'" '+(String(o.value)===String(v)?"selected":"")+'>'+esc(o.label)+'</option>').join("")+'</select></label>'}
 function empty(x){return '<div class="empty">'+esc(x)+'</div>'}
 async function publicData(includeInactive=false){
- let serviceQuery=db.from("services").select("id,category_id,name_ar,description,is_active").order("sort_order");
+ let serviceQuery=db.from("services").select("id,category_id,name_ar,description,image_url,is_active").order("sort_order");
  if(!includeInactive)serviceQuery=serviceQuery.eq("is_active",true);
  const [c,v,p]=await Promise.all([
   (()=>{let q=db.from("categories").select("id,name_ar,slug,icon,description,is_active").order("sort_order");return includeInactive?q:q.eq("is_active",true)})(),
@@ -56,18 +1629,54 @@ async function loadUser(u){
   const r=await db.from("provider_profiles").insert({user_id:u.id,display_name:p.full_name||"مزوّد خدمة",bio:m.bio||null,experience_years:Number(m.experience_years||0),country:p.country,city:p.city,service_area:m.service_area||null,verification_status:"pending",is_available:false}).select("*").single();
   if(!r.error)pp=r.data;else console.error(r.error);
  }
- s.provider=pp||null;await publicData(p.role==="admin");s.requests=[];s.offers=[];s.apps=[];s.allRequests=[];s.adminProfiles=[];s.chats=[];s.messages=[];s.activeChat=null;
+ s.provider=pp||null;
+s.staffAccess=null;
+await publicData(p.role==="admin"||p.role==="staff");
+s.requests=[];s.offers=[];s.apps=[];s.allRequests=[];s.adminProfiles=[];s.chats=[];s.messages=[];s.activeChat=null;
+
+if(p.role==="staff"){
+ const {data:staffAccess,error:staffError}=await db.from("staff_permissions").select("permissions,is_active").eq("user_id",u.id).maybeSingle();
+ if(staffError)throw staffError;
+ if(!staffAccess||!staffAccess.is_active){
+  await db.auth.signOut();
+  s.user=null;
+  s.profile=null;
+  app.innerHTML=header("حساب الموظف غير نشط")+'<main class="wrap"><div class="card"><h2>تم إيقاف صلاحيات الموظف</h2><p>يرجى التواصل مع الإدارة.</p></div></main>';
+  return;
+ }
+ s.staffAccess=staffAccess;
+}
  if(p.role==="customer"){
   const [r,ch]=await Promise.all([db.from("service_requests").select("*,services(name_ar),provider_profiles(display_name,city)").eq("customer_id",u.id).order("created_at",{ascending:false}),db.from("conversations").select("id,request_id,customer_id,provider_id,last_message_at,service_requests(title)").eq("customer_id",u.id).order("last_message_at",{ascending:false})]);
   s.requests=r.data||[];s.chats=ch.data||[];
+  const {data:n}=await db.from("notifications").select("*").eq("user_id",u.id).order("created_at",{ascending:false}).limit(100);s.notifications=n||[];
  }else if(p.role==="provider"&&pp){
   const [r,o,ch]=await Promise.all([db.from("service_requests").select("*,services(name_ar)").or("provider_id.eq."+pp.id+",provider_id.is.null").order("created_at",{ascending:false}),db.from("provider_services").select("*,services(name_ar)").eq("provider_id",pp.id),db.from("conversations").select("id,request_id,customer_id,provider_id,last_message_at,service_requests(title)").eq("provider_id",pp.id).order("last_message_at",{ascending:false})]);
   s.requests=r.data||[];s.offers=o.data||[];s.chats=ch.data||[];
- }else if(p.role==="admin"){
-  const [a,r]=await Promise.all([db.from("provider_profiles").select("*").eq("verification_status","pending").order("created_at",{ascending:false}),db.from("service_requests").select("*,services(name_ar)").order("created_at",{ascending:false}).limit(100)]);
-  s.apps=a.data||[];s.allRequests=r.data||[];const ids=[...new Set(s.apps.map(x=>x.user_id).concat(s.allRequests.map(x=>x.customer_id)))];
-  if(ids.length){const x=await db.from("profiles").select("id,full_name,phone,city,country").in("id",ids);s.adminProfiles=x.data||[]}
- }
+}else if(p.role==="admin"){
+  const [a,r,profiles,permissions]=await Promise.all([
+    db.from("provider_profiles").select("*").eq("verification_status","pending").order("created_at",{ascending:false}),
+    db.from("service_requests").select("*,services(name_ar)").order("created_at",{ascending:false}).limit(100),
+    db.from("profiles").select("id,full_name,phone,city,country,role,status").in("role",["customer","staff"]),
+    db.from("staff_permissions").select("*")
+  ]);
+  if(a.error)throw a.error;
+  if(r.error)throw r.error;
+  if(profiles.error)throw profiles.error;
+  if(permissions.error)throw permissions.error;
+  s.apps=a.data||[];
+  s.allRequests=r.data||[];
+  const people=profiles.data||[];
+  const perms=permissions.data||[];
+  s.staff=people.filter(x=>x.role==="staff").map(x=>({...x,staff_permissions:perms.find(p=>p.user_id===x.id)||null}));
+ s.staffCandidates=people.filter(x=>x.role==="customer"&&x.status==="active");
+s.customers=people.filter(x=>x.role==="customer");
+  const ids=[...new Set(s.apps.map(x=>x.user_id).concat(s.allRequests.map(x=>x.customer_id)))];
+  if(ids.length){
+
+    s.adminProfiles=x.data||[];
+  }
+}
  render();
 }
 function authView(){
@@ -89,10 +1698,228 @@ function authView(){
  '<button class="btn gold">حفظ كلمة المرور</button>'+
  '</form></div></div></main>';
       }
-function serviceCard(x){return '<article class="card"><div class="icon">✦</div><h3>'+esc(x.name_ar)+'</h3><p>'+esc(x.description||"خدمة متاحة")+'</p>'+btn("request","اطلب الخدمة","gold",x.id)+'</article>'}
-function providerCard(p){const names=(p.provider_services||[]).filter(x=>x.is_active).map(x=>x.services?.name_ar).filter(Boolean).join("، ");return '<article class="card"><div class="provider"><div class="avatar">'+esc((p.display_name||"م").slice(0,1))+'</div><div><h3>'+esc(p.display_name||"مزوّد خدمة")+'</h3><p>'+esc([p.city,p.country].filter(Boolean).join("، "))+'</p></div></div><p>'+esc(p.bio||"مزوّد معتمد")+'</p><p>خبرة '+fmt(p.experience_years)+' سنة · ⭐ '+fmt(p.average_rating)+' ('+fmt(p.total_reviews)+')</p><p>'+esc(names)+'</p>'+btn("request","اطلب من هذا المزوّد","gold",p.id)+'</article>'}
-function landing(){return header("اكتشف الخدمات ومزوّدي الخدمة المعتمدين")+'<main class="wrap"><section class="hero"><h1>الخدمة المناسبة، من الشخص المناسب.</h1><p>تصفّح الخدمات، قارن مزوّدي الخدمة، واطلب الخدمة بسهولة.</p>'+btn("showauth","ابدأ الآن","gold")+'</section><section class="section"><h2>التصنيفات</h2><div class="grid small">'+(s.cats.slice(0,8).map(c=>'<div class="card"><div class="icon">'+esc(c.icon||"✦")+'</div><b>'+esc(c.name_ar)+'</b></div>').join("")||empty("لا توجد تصنيفات"))+'</div></section><section class="section"><h2>خدمات مختارة</h2><div class="grid">'+(s.services.slice(0,8).map(serviceCard).join("")||empty("لا توجد خدمات"))+'</div></section><section class="section"><h2>مزوّدو خدمة معتمدون</h2><div class="grid">'+(s.providers.slice(0,4).map(providerCard).join("")||empty("لا يوجد مزوّدون معتمدون بعد"))+'</div></section></main>'}
-function requestList(provider){
+
+function serviceCard(x){
+ const image=x.image_url&&String(x.image_url).trim();
+
+ const brandFallback =
+ '<div class="wl-service-image-empty">'+
+  '<div class="wl-service-brandmark">'+
+   '<svg viewBox="0 0 64 64" role="img" aria-label="شعار وصلة">'+
+    '<path d="M7 17 L19 46 L31 25 L43 46 L57 17" fill="none" stroke="var(--ink)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>'+
+    '<path d="M5 39 C17 57 46 9 59 27" fill="none" stroke="var(--gold)" stroke-width="4" stroke-linecap="round"/>'+
+    '<circle cx="55" cy="15" r="5" fill="var(--gold)"/>'+
+   '</svg>'+
+   '<strong>وصلة</strong>'+
+   '<small>WASLA</small>'+
+  '</div>'+
+  '<span class="wl-service-brand-caption">كل خدمة تبدأ باتصال</span>'+
+ '</div>';
+
+ return '<article class="card wl-service-card">'+
+  '<div class="wl-service-image">'+
+   (image
+    ? '<img src="'+esc(image)+'" alt="'+esc(x.name_ar)+'" loading="lazy">'
+    : brandFallback)+
+  '</div>'+
+  '<div class="wl-service-info">'+
+   '<h3>'+esc(x.name_ar)+'</h3>'+
+   '<p>'+esc(x.description||"خدمة متاحة للطلب")+'</p>'+
+   '<div class="wl-service-action">'+
+    btn("request","اطلب الخدمة","gold",x.id)+
+   '</div>'+
+  '</div>'+
+ '</article>';
+}
+   function providerCard(p){
+ const names=(p.provider_services||[])
+  .filter(x=>x.is_active)
+  .map(x=>x.services?.name_ar)
+  .filter(Boolean)
+  .slice(0,3)
+  .join(" · ");
+
+ const initial=esc((p.display_name||"م").trim().slice(0,1));
+ const available=!!p.is_available;
+
+ return '<article class="card wl-provider-card">'+
+  '<div class="wl-provider-cover">'+
+   '<div class="wl-provider-orbit"></div>'+
+   '<div class="wl-provider-avatar">'+initial+'</div>'+
+   '<span class="wl-provider-verified">✓ مزوّد معتمد</span>'+
+  '</div>'+
+  '<div class="wl-provider-info">'+
+   '<div class="wl-provider-name-row">'+
+    '<h3>'+esc(p.display_name||"مزوّد خدمة")+'</h3>'+
+    '<span class="wl-provider-status '+(available?'is-available':'is-busy')+'">'+
+     (available?'متاح الآن':'غير متاح')+
+    '</span>'+
+   '</div>'+
+   '<p class="wl-provider-location">'+
+    '⌖ '+esc([p.city,p.country].filter(Boolean).join("، ")||"مصر")+
+   '</p>'+
+   '<p class="wl-provider-bio">'+
+    esc(p.bio||"مزوّد خدمة معتمد على وصلة")+
+   '</p>'+
+   '<div class="wl-provider-stats">'+
+    '<span>⭐ '+fmt(p.average_rating||0)+' <small>('+fmt(p.total_reviews||0)+' تقييم)</small></span>'+
+    '<span>خبرة '+fmt(p.experience_years||0)+' سنة</span>'+
+   '</div>'+
+   (names?'<div class="wl-provider-services">'+esc(names)+'</div>':'')+
+   '<div class="wl-provider-action">'+
+    btn("request","اطلب الخدمة","gold",p.id)+
+   '</div>'+
+  '</div>'+
+ '</article>';
+   }   
+function landing(){
+ const selected=s.cats.find(c=>c.id===s.selectedCategory);
+ const categories=s.cats.map(c=>
+  '<button class="wl-category" data-a="category-open" data-id="'+esc(c.id)+'">'+
+  '<span class="wl-category-icon">'+esc(c.icon||"✦")+'</span>'+
+  '<b>'+esc(c.name_ar)+'</b>'+
+  '<small>'+fmt(s.services.filter(x=>x.category_id===c.id).length)+' خدمة</small></button>'
+ ).join("")||empty("لا توجد أقسام متاحة حاليًا");
+const query=(s.filter||"").trim().toLowerCase();
+ const shown=(selected?s.services.filter(x=>x.category_id===selected.id):s.services.slice(0,6))
+  .filter(x=>!query||[x.name_ar,x.name_en,x.description].some(v=>String(v||"").toLowerCase().includes(query)));
+ const services=shown.map(serviceCard).join("")||empty("لا توجد خدمات مطابقة لبحثك حاليًا");
+  const providers=s.providers.slice()
+  .sort((a,b)=>Number(b.average_rating||0)-Number(a.average_rating||0))
+  .slice(0,4).map(providerCard).join("")||empty("لا يوجد مزوّدون معتمدون حاليًا");
+
+ return '<style>'+
+ '.wasla-landing{padding-bottom:38px;overflow:hidden}'+
+'.wasla-landing .wl-provider-card{padding:0!important;overflow:hidden;display:flex;flex-direction:column}'+
+'.wasla-landing .wl-provider-cover{height:125px;position:relative;display:grid;place-items:center;overflow:hidden;background:linear-gradient(135deg,var(--navy),var(--navy2))}'+
+'.wasla-landing .wl-provider-orbit{position:absolute;width:170px;height:170px;border:1px solid color-mix(in srgb,var(--gold) 35%,transparent);border-radius:50%;box-shadow:0 0 0 22px color-mix(in srgb,var(--gold) 8%,transparent)}'+
+'.wasla-landing .wl-provider-avatar{width:76px;height:76px;border-radius:50%;display:grid;place-items:center;position:relative;z-index:1;background:var(--card);border:3px solid var(--gold);color:var(--ink);font:800 32px Tajawal;box-shadow:0 5px 18px #0004}'+
+'.wasla-landing .wl-provider-verified{position:absolute;top:10px;inset-inline-start:10px;padding:5px 9px;border-radius:20px;background:var(--card);color:var(--green);font-size:10px;font-weight:700}'+
+'.wasla-landing .wl-provider-info{padding:14px;display:flex;flex-direction:column;flex:1}'+
+'.wasla-landing .wl-provider-name-row{display:flex;align-items:center;justify-content:space-between;gap:7px}'+
+'.wasla-landing .wl-provider-name-row h3{margin:0;font:800 16px Tajawal;color:var(--ink)}'+
+'.wasla-landing .wl-provider-status{font-size:10px;white-space:nowrap;font-weight:700}'+
+'.wasla-landing .wl-provider-status:before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;margin-inline-end:4px;background:var(--muted)}'+
+'.wasla-landing .wl-provider-status.is-available{color:var(--green)}'+
+'.wasla-landing .wl-provider-status.is-available:before{background:var(--green)}'+
+'.wasla-landing .wl-provider-location{font-size:11px!important;color:var(--muted);margin:5px 0!important}'+
+'.wasla-landing .wl-provider-bio{font-size:12px!important;color:var(--muted);margin:5px 0!important;line-height:1.8}'+
+'.wasla-landing .wl-provider-stats{display:flex;justify-content:space-between;gap:6px;padding:10px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);font-size:11px;color:var(--ink)}'+
+'.wasla-landing .wl-provider-stats small{color:var(--muted)}'+
+'.wasla-landing .wl-provider-services{font-size:10px;color:var(--muted);padding-top:9px;line-height:1.8}'+
+'.wasla-landing .wl-provider-action{margin-top:12px}'+
+'.wasla-landing .wl-provider-action .btn{width:100%}'+
+  '.wasla-landing .wl-service-card{padding:0!important;overflow:hidden;display:flex;flex-direction:column;gap:0}'+
+'.wasla-landing .wl-service-image{height:180px;position:relative;overflow:hidden;background:linear-gradient(135deg,var(--line),var(--bg));border-bottom:1px solid var(--line)}'+
+'.wasla-landing .wl-service-image img{width:100%;height:100%;display:block;object-fit:cover;transition:transform .35s ease}'+
+'.wasla-landing .wl-service-card:hover .wl-service-image img{transform:scale(1.045)}'+
+
+'.wasla-landing .wl-service-image-empty{height:100%;position:relative;display:grid;place-items:center;overflow:hidden;background:radial-gradient(circle at 50% 42%,color-mix(in srgb,var(--gold) 17%,var(--card)),var(--bg) 72%);color:var(--ink)}'+
+'.wasla-landing .wl-service-image-empty:before,.wasla-landing .wl-service-image-empty:after{content:"";position:absolute;width:190px;height:190px;border:1px solid color-mix(in srgb,var(--gold) 22%,transparent);border-radius:50%}'+
+'.wasla-landing .wl-service-image-empty:after{width:145px;height:145px}'+
+'.wasla-landing .wl-service-brandmark{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:1px}'+
+'.wasla-landing .wl-service-brandmark svg{width:58px;height:58px;filter:drop-shadow(0 5px 10px color-mix(in srgb,var(--ink) 14%,transparent))}'+
+'.wasla-landing .wl-service-brandmark strong{font:800 25px Tajawal;color:var(--ink);line-height:1.1}.wasla-landing .wl-service-brandmark small{font:700 9px Arial;letter-spacing:4px;color:var(--gold)}'+
+'.wasla-landing .wl-service-brand-caption{position:absolute;bottom:10px;z-index:1;color:var(--muted);font-size:10px}'+
+  
+'.wasla-landing .wl-service-info{padding:15px;display:flex;flex:1;flex-direction:column}'+
+'.wasla-landing .wl-service-info h3{margin:0 0 5px;font:800 17px Tajawal;color:var(--ink)}'+
+'.wasla-landing .wl-service-info p{margin:0;color:var(--muted);font-size:12px;line-height:1.8;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}'+
+'.wasla-landing .wl-service-action{margin-top:auto;padding-top:13px}'+
+'.wasla-landing .wl-service-action .btn{width:100%}'+
+  '.wasla-landing .wl-hero{position:relative;overflow:hidden;margin:18px 0 25px;min-height:245px;padding:clamp(24px,5vw,42px);border:1px solid var(--line);border-radius:24px;background:linear-gradient(125deg,var(--navy),var(--navy2) 60%,var(--card));color:var(--ink);display:flex;align-items:center}'+
+ '.wasla-landing .wl-hero:after{content:"";position:absolute;width:260px;height:260px;inset-inline-end:-75px;top:-100px;border-radius:50%;background:radial-gradient(circle,var(--gold),transparent 68%);opacity:.2}'+
+ '.wasla-landing .wl-hero-content{position:relative;z-index:1;max-width:590px}'+
+ '.wasla-landing .wl-eyebrow{display:inline-block;padding:7px 12px;border-radius:30px;background:var(--line);color:var(--gold);font-size:12px;margin-bottom:13px}'+
+ '.wasla-landing .wl-hero h1{font:800 clamp(28px,5.5vw,46px) Tajawal,sans-serif;line-height:1.35;margin:0 0 11px}'+
+ '.wasla-landing .wl-hero h1 span{color:var(--gold)}'+
+ '.wasla-landing .wl-hero p{color:var(--muted);font-size:14px;line-height:1.9;margin:0 0 20px}'+
+ '.wasla-landing .wl-section{margin:30px 0}'+
+ '.wasla-landing .wl-heading{margin-bottom:15px}'+
+ '.wasla-landing .wl-heading h2{font:800 21px Tajawal;color:var(--ink);margin:0}'+
+ '.wasla-landing .wl-heading p{font-size:12px;color:var(--muted);margin:4px 0 0}'+
+ '.wasla-landing .wl-categories{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px}'+
+ '.wasla-landing .wl-category{width:100%;min-width:0;min-height:116px;padding:14px 8px;border:1px solid var(--line);border-radius:17px;background:var(--card);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;color:var(--ink);cursor:pointer;transition:.2s}'+
+ '.wasla-landing .wl-category:hover{transform:translateY(-4px);border-color:var(--gold)}'+
+ '.wasla-landing .wl-category-icon{width:42px;height:42px;border-radius:14px;background:var(--line);display:grid;place-items:center;font-size:20px;color:var(--gold)}'+
+ '.wasla-landing .wl-category b{font-size:13px}'+
+ '.wasla-landing .wl-category small{font-size:10px;color:var(--muted)}'+
+ '.wasla-landing .wl-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}'+
+ '.wasla-landing .wl-cards>.card{min-width:0;border:1px solid var(--line);border-radius:17px;background:var(--card)}'+
+'.wasla-landing .wl-ad-slot{position:relative;min-height:155px;margin:28px 0;padding:22px 25px;border:1px solid color-mix(in srgb,var(--gold) 35%,var(--line));border-radius:22px;overflow:hidden;background:linear-gradient(115deg,var(--card),var(--bg));display:flex;align-items:center;justify-content:space-between;gap:18px}'+
+'.wasla-landing .wl-ad-content{position:relative;z-index:2;max-width:65%}'+
+'.wasla-landing .wl-ad-label{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border:1px solid var(--line);border-radius:20px;color:var(--gold);font-size:10px;margin-bottom:10px}'+
+'.wasla-landing .wl-ad-content strong{display:block;color:var(--ink);font:800 21px Tajawal;margin-bottom:7px}'+
+'.wasla-landing .wl-ad-content p{margin:0;color:var(--muted);font-size:12px;line-height:1.9}'+
+'.wasla-landing .wl-ad-art{width:125px;height:110px;flex-shrink:0;position:relative;display:grid;place-items:center;border-radius:22px;background:color-mix(in srgb,var(--gold) 10%,var(--card))}'+
+'.wasla-landing .wl-ad-art svg{width:78px;height:78px;position:relative;z-index:1}'+
+'.wasla-landing .wl-ad-art:before,.wasla-landing .wl-ad-art:after{content:"";position:absolute;border:1px solid color-mix(in srgb,var(--gold) 30%,transparent);border-radius:50%;width:95px;height:95px}'+
+'.wasla-landing .wl-ad-art:after{width:115px;height:115px}'+
+'@media(max-width:480px){.wasla-landing .wl-ad-slot{padding:17px;min-height:135px}.wasla-landing .wl-ad-content{max-width:70%}.wasla-landing .wl-ad-content strong{font-size:17px}.wasla-landing .wl-ad-art{width:85px;height:85px}.wasla-landing .wl-ad-art svg{width:58px;height:58px}}'+
+ '.wasla-landing .wl-trust{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:26px 0}'+
+ '.wasla-landing .wl-trust-item{padding:13px 7px;border:1px solid var(--line);border-radius:14px;background:var(--card);text-align:center}'+
+ '.wasla-landing .wl-trust-item strong{display:block;color:var(--gold);font:800 15px Tajawal}'+
+ '.wasla-landing .wl-trust-item span{font-size:11px;color:var(--muted)}'+
+ '.wasla-landing .wl-bottom{margin-top:30px;padding:22px;border:1px solid var(--line);border-radius:19px;background:var(--card)}'+
+ '.wasla-landing .wl-bottom h2{font:800 20px Tajawal;color:var(--ink);margin:0 0 6px}'+
+ '.wasla-landing .wl-bottom p{font-size:12px;color:var(--muted);margin:0 0 14px}'+
+ '@keyframes wl-rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}'+
+ '.wasla-landing .wl-hero,.wasla-landing .wl-category{animation:wl-rise .45s ease both}'+
+ '@media(max-width:650px){.wasla-landing .wl-categories{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.wasla-landing .wl-cards{gap:9px}.wasla-landing .wl-hero{min-height:225px;padding:24px 19px}}'+
+ '@media(max-width:380px){.wasla-landing .wl-categories{grid-template-columns:repeat(2,minmax(0,1fr))}.wasla-landing .wl-cards{grid-template-columns:1fr}}'+
+ '@media(prefers-reduced-motion:reduce){.wasla-landing *{animation:none!important;transition:none!important}}'+
+ '</style>'+
+ header(selected?selected.name_ar:"اكتشف الخدمات ومزوّدي الخدمة المعتمدين")+
+ '<main class="wrap wasla-landing">'+
+ (selected?
+  '<div style="margin-bottom:15px">'+btn("category-back","← كل الأقسام","light")+'</div>'+
+  '<section class="wl-section"><div class="wl-heading"><h2>خدمات قسم '+esc(selected.name_ar)+'</h2><p>الخدمات المتاحة داخل هذا القسم</p></div><div class="wl-cards">'+services+'</div></section>'
+ :
+  '<section class="wl-hero"><div class="wl-hero-content"><div class="wl-eyebrow">✦ منصتك للخدمات في مكان واحد</div><h1>كل اللي محتاجه، <span>تلاقيه في وصلة.</span></h1><p>اكتشف خدمات ومزوّدي خدمة في مصر، قارن اختياراتك، وابدأ طلبك بسهولة.</p>'+btn("showauth","ابدأ الآن","gold")+'</div></section>'+
+  '<section class="wl-section"><div class="wl-heading"><h2>اكتشف الأقسام</h2><p>كل التخصصات في مكان واحد — اختار وابدأ</p></div><div class="wl-categories">'+categories+'</div></section>'+
+  '<section class="wl-ad-slot">'+
+ '<div class="wl-ad-content">'+
+  '<span class="wl-ad-label">✦ مساحة إعلانية</span>'+
+  '<strong>مساحة لفرص وعروض مميزة</strong>'+
+  '<p>هنا هتظهر الإعلانات والعروض المعتمدة من إدارة وصلة قريبًا.</p>'+
+ '</div>'+
+ '<div class="wl-ad-art">'+
+  '<svg viewBox="0 0 80 80" fill="none" aria-hidden="true">'+
+   '<path d="M12 53L28 25L42 45L53 32L69 58H12Z" fill="var(--gold)" opacity=".2"/>'+
+   '<path d="M17 54L30 31L42 48L53 36L65 54" stroke="var(--gold)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>'+
+   '<circle cx="53" cy="20" r="7" fill="var(--gold)"/>'+
+  '</svg>'+
+ '</div>'+
+'</section>'+
+  '<section class="wl-section"><div class="wl-heading"><h2>خدمات مختارة</h2><p>خدمات متاحة تقدر تبدأ بطلبها</p></div><div class="wl-cards">'+services+'</div></section>'+
+  '<section class="wl-trust"><div class="wl-trust-item"><strong>اختيارات متنوعة</strong><span>أقسام وخدمات متعددة</span></div><div class="wl-trust-item"><strong>مزوّدون معتمدون</strong><span>ملفات واضحة وتقييمات</span></div><div class="wl-trust-item"><strong>طلب أسهل</strong><span>ابدأ من مكان واحد</span></div></section>'+
+  '<section class="wl-section"><div class="wl-heading"><h2>مزوّدو الخدمة المميزون</h2><p>الأعلى تقييمًا من المزوّدين المعتمدين</p></div><div class="wl-cards">'+providers+'</div></section>'+
+  '<section class="wl-bottom"><h2>جاهز تبدأ مع وصلة؟</h2><p>أنشئ حسابك واكتشف الخدمات المناسبة ليك.</p>'+btn("showauth","انضم إلى وصلة","gold")+'</section>'
+ )+
+ '</main>';
+}
+
+      function welcomeView(){
+ return '<main class="wasla-welcome">'+
+ '<div class="welcome-wordmark">'+
+ '<svg class="welcome-logo" viewBox="0 0 64 64" aria-label="W">'+
+ '<path d="M7 17 L19 46 L31 25 L43 46 L57 17" fill="none" stroke="var(--ink)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>'+
+ '<path d="M5 39 C17 57 46 9 59 27" fill="none" stroke="#D6A642" stroke-width="4" stroke-linecap="round"/>'+
+ '<circle cx="55" cy="15" r="5" fill="#D6A642"/>'+
+ '</svg>'+
+ '<span class="welcome-elcome"><span>e</span><span>l</span><span>c</span><span>o</span><span>m</span><span>e</span></span>'+
+ '</div>'+
+ '<h1 class="welcome-name">وصلة</h1>'+
+ '<div class="welcome-en">WASLA</div>'+
+ '<p class="welcome-tagline">كل خدمة تبدأ باتصال</p>'+
+ '<div class="welcome-actions">'+
+ btn("mode","تسجيل الدخول","gold","login")+
+ btn("mode","إنشاء حساب","light","signup")+
+ btn("showexplore","استكشف الخدمات","light")+
+ '</div>'+
+ '</main>';
+ }
+      function requestList(provider){
  return s.requests.map(q=>{const own=q.provider_id===s.provider?.id;let a="";
  if(provider&&q.status==="pending"&&!q.provider_id)a=btn("claim","قبول الطلب","green",q.id);
  if(provider&&own&&q.status==="accepted")a=btn("advance","بدء التنفيذ","gold",q.id,"data-next='in_progress'");
@@ -102,26 +1929,149 @@ function requestList(provider){
  }).join("")||empty("لا توجد طلبات حتى الآن");
 }
 function customer(){
+ const profile=s.profile||{};
+ const name=profile.full_name||"عميل وصلة";
+ const tab=s.tab||"home";
  let body="";
- if(s.tab==="home")body='<section class="section"><h2>التصنيفات</h2><div class="grid small">'+s.cats.map(c=>'<div class="card"><div class="icon">'+esc(c.icon||"✦")+'</div><b>'+esc(c.name_ar)+'</b></div>').join("")+'</div></section><section class="section"><div class="sectionhead"><h2>الخدمات</h2><input id="search" placeholder="ابحث عن خدمة" value="'+esc(s.filter)+'"></div><div class="grid">'+s.services.filter(x=>(x.name_ar+" "+(x.description||"")).includes(s.filter)).map(serviceCard).join("")+'</div></section><section class="section"><h2>مزوّدو الخدمة المعتمدون</h2><div class="grid">'+(s.providers.map(providerCard).join("")||empty("لا يوجد مزوّدون معتمدون بعد"))+'</div></section>';
- if(s.tab==="messages")body=chatContent();
- if(s.tab==="requests")body='<section class="section"><div class="sectionhead"><h2>طلباتي</h2>'+btn("request","طلب جديد","gold")+'</div><div class="list">'+(s.requests.map(q=>'<article class="item"><div class="row"><b>'+esc(q.title||q.services?.name_ar||"طلب")+'</b>'+tag(q.status)+'</div><p>'+esc(q.city||"")+' · '+esc(q.provider_profiles?.display_name||"بانتظار مزوّد")+'</p><p>'+esc(q.description||"")+'</p><div class="actions">'+(["pending","accepted"].includes(q.status)?btn("cancelrequest","إلغاء","danger",q.id):"")+(q.status==="completed"&&q.provider_id?btn("review","تقييم الخدمة","light",q.id):"")+(q.provider_id&&["accepted","in_progress"].includes(q.status)?btn("chat","محادثة","light",q.id):"")+'</div></article>').join("")||empty("لا توجد طلبات حتى الآن"))+'</div></section>';
- const nav=[["home","الرئيسية"],["requests","طلباتي"],["messages","الرسائل"]].map(x=>'<button data-a="tab" data-id="'+x[0]+'" class="'+(s.tab===x[0]?"active":"")+'">'+x[1]+'</button>').join("");
- return header("أهلًا "+(s.profile.full_name||"بك"),nav)+'<main class="wrap">'+msg()+'<div class="sectionhead"><h2>حساب العميل</h2><span class="tag">عميل</span></div>'+body+'</main>';
+
+ if(tab==="home"){
+  const query=(s.filter||"").trim().toLowerCase();
+  const categories=s.categories||s.cats||[];
+  const services=(s.services||[]).filter(x=>
+   !query||[x.name_ar,x.name_en,x.description].some(v=>String(v||"").toLowerCase().includes(query))
+  );
+  const providers=(s.providers||[]).filter(x=>
+   !query||[x.display_name,x.bio,x.city].some(v=>String(v||"").toLowerCase().includes(query))||
+   (x.provider_services||[]).some(v=>String(v.services?.name_ar||"").toLowerCase().includes(query))
+  ).sort((a,b)=>Number(b.average_rating||0)-Number(a.average_rating||0));
+
+  body=
+   '<section class="customer-hero">'+
+    '<h1>أهلًا، '+esc(name)+'</h1>'+
+    '<p>اكتشف الخدمات المناسبة ليك وابدأ طلبك بسهولة.</p>'+
+    ''+
+    '<div class="customer-search"><input id="search" type="search" placeholder="ابحث عن خدمة أو مقدم خدمة..." value="'+esc(s.filter||"")+'"></div>'+
+   '</section>'+
+   '<section class="customer-section">'+
+    '<div class="customer-section-title"><h2>التصنيفات</h2></div>'+
+    '<div class="customer-category-grid">'+
+     (categories.map(c=>'<button class="customer-category" data-a="category-open" data-id="'+esc(c.id)+'"><span class="icon">'+esc(c.icon||"✦")+'</span><b>'+esc(c.name_ar)+'</b></button>').join("")||empty("لا توجد تصنيفات متاحة حاليًا"))+
+    '</div>'+
+   '</section>'+
+   '<section class="customer-section">'+
+    '<div class="customer-section-title"><h2>الخدمات المختارة</h2></div>'+
+    '<div class="customer-cards">'+(services.slice(0,8).map(serviceCard).join("")||empty("لا توجد خدمات مطابقة حاليًا"))+'</div>'+
+   '</section>'+
+   '<section class="customer-section">'+
+    '<div class="customer-section-title"><h2>مقدمو الخدمة المميزون</h2></div>'+
+    '<div class="customer-cards">'+(providers.slice(0,6).map(providerCard).join("")||empty("لا يوجد مقدمو خدمة متاحون حاليًا"))+'</div>'+
+   '</section>';
+ }
+
+ if(tab==="requests"){
+  const mine=s.requests||[];
+  const counts={
+   pending:mine.filter(x=>x.status==="pending").length,
+   accepted:mine.filter(x=>x.status==="accepted").length,
+   in_progress:mine.filter(x=>x.status==="in_progress").length,
+   completed:mine.filter(x=>x.status==="completed").length,
+   cancelled:mine.filter(x=>x.status==="cancelled").length
+  };
+  body='<section class="customer-section">'+
+   '<div class="customer-section-title"><h2>طلباتي</h2>'+btn("request","طلب جديد","gold")+'</div>'+
+   '<div class="customer-cards customer-request-summary">'+
+    '<article class="item"><b>'+counts.pending+'</b><p>طلبات جديدة</p></article>'+
+    '<article class="item"><b>'+counts.accepted+'</b><p>تم قبولها</p></article>'+
+    '<article class="item"><b>'+counts.in_progress+'</b><p>قيد التنفيذ</p></article>'+
+    '<article class="item"><b>'+counts.completed+'</b><p>مكتملة</p></article>'+
+    '<article class="item"><b>'+counts.cancelled+'</b><p>ملغاة</p></article>'+
+   '</div>'+
+   '<div class="list" style="margin-top:14px">'+requestList(false)+'</div>'+
+  '</section>';
+ }
+
+ if(tab==="messages"){
+  body=chatContent();
+ }
+
+
+ if(tab==="activity"){
+  const requests=s.requests||[];
+  const counts={
+   all:requests.length,
+   active:requests.filter(x=>x.status==="in_progress").length,
+   completed:requests.filter(x=>x.status==="completed").length,
+   cancelled:requests.filter(x=>x.status==="cancelled").length
+  };
+  const labels={pending:"طلب جديد",accepted:"مقبول",in_progress:"قيد التنفيذ",completed:"مكتمل",cancelled:"ملغي"};
+  const recent=[...requests].sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0)).slice(0,8);
+  body='<section class="customer-section">'+
+   '<div class="customer-section-title"><h2>نشاطي</h2></div>'+
+   '<div class="customer-cards customer-activity-stats">'+
+    '<article class="item"><b>'+counts.all+'</b><p>إجمالي الطلبات</p></article>'+
+    '<article class="item"><b>'+counts.active+'</b><p>قيد التنفيذ</p></article>'+
+    '<article class="item"><b>'+counts.completed+'</b><p>مكتملة</p></article>'+
+    '<article class="item"><b>'+counts.cancelled+'</b><p>ملغاة</p></article>'+
+   '</div>'+
+   '<h2 style="margin-top:22px">أحدث نشاط الطلبات</h2>'+
+   '<div class="list">'+(recent.map(r=>
+    '<article class="item"><b>'+esc(r.title||"طلب خدمة")+'</b>'+
+    '<p>رقم الطلب: '+esc(r.id||"—")+'</p>'+
+    '<p>الحالة: '+esc(labels[r.status]||r.status||"غير محددة")+'</p>'+
+    '<p>التاريخ: '+esc(r.created_at?new Date(r.created_at).toLocaleDateString("ar"):"—")+'</p>'+
+    '<button data-a="tab" data-id="requests">عرض الطلبات</button></article>'
+   ).join("")||empty("لا يوجد نشاط حتى الآن"))+'</div></section>';
+ }
+
+ if(tab==="notifications"){
+  const items=s.notifications||[];
+  body='<section class="customer-section"><h2>الإشعارات</h2><button class="btn gold" data-a="notification-read-all">قراءة الكل</button><div class="list">'+(items.map(n=>'<article class="item"><b>'+esc(n.title||"إشعار")+'</b><p>'+esc(n.body||"")+'</p><p class="small">'+esc(n.created_at?new Date(n.created_at).toLocaleString("ar"):"")+'</p><p class="small">'+(n.is_read?"تمت القراءة":"جديد")+'</p>'+(n.is_read?"":'<button class="btn" data-a="notification-read" data-id="'+esc(n.id)+'">تحديد كمقروء</button>')+'</article>').join("")||empty("لا توجد إشعارات حاليًا"))+'</div></section>';
+ }
+ if(tab==="account"){
+  const initial=esc((name.trim().charAt(0)||"ع"));
+  body='<section class="customer-section">'+
+   '<button class="item" data-a="tab" data-id="activity" style="width:100%;text-align:start"><b>نشاطي</b><p class="small">تابع سجل طلباتك ونشاطك داخل وصلة</p></button>'+'<div class="card customer-profile-card">'+
+    (profile.avatar_url?'<img class="customer-profile-avatar" src="'+esc(profile.avatar_url)+'" alt="صورة العميل" style="object-fit:cover">':'<div class="customer-profile-avatar">'+initial+'</div>')+
+    '<div><h2 style="margin:0 0 4px">'+esc(name)+'</h2><p class="small" style="margin:0">'+esc(profile.phone||profile.email||"حساب عميل")+'</p></div>'+
+   '</div>'+
+   '<div class="list" style="margin-top:14px">'+
+    '<article class="item"><b>بيانات الحساب</b><p>الاسم: '+esc(name)+'</p><p>الهاتف: '+esc(profile.phone||"غير مسجل")+'</p><p>البريد: '+esc(s.user?.email||"غير متاح")+'</p></article>'+
+    '<article class="item"><b>العنوان المسجل</b><p>'+esc([profile.address,profile.city,profile.country].filter(Boolean).join("، ")||"لم يتم تسجيل عنوان بعد")+'</p></article>'+
+    '<article class="item"><b>الدعم والمساعدة</b><p class="small">يمكنك التواصل مع إدارة وصلة من قنوات الدعم المتاحة.</p></article>'+
+   '</div>'+
+   '<div style="margin-top:16px">'+btn("logout","تسجيل الخروج","danger")+'</div>'+
+  '</section>';
+ }
+
+ const nav=[
+  ["home","الرئيسية"],
+  ["requests","طلباتي"],
+  ["messages","الرسائل"],
+  ["account","حسابي"]
+ ].map(x=>'<button data-a="tab" data-id="'+x[0]+'" class="'+(tab===x[0]?"active":"")+'">'+x[1]+'</button>').join("");
+
+ return header("حساب العميل")+
+  '<main class="wrap customer-shell">'+msg()+body+'</main>'+
+  '<nav class="customer-bottom-nav" aria-label="تنقل العميل">'+nav+'</nav>';
 }
+
 function provider(){
  let body="";
  if(s.tab==="messages")body=chatContent();
- if(["home","requests"].includes(s.tab))body='<div class="grid small"><div class="card"><div class="small">حالة التوفر</div><div class="stat">'+(s.provider.is_available?"متاح":"غير متاح")+'</div>'+btn("availability",s.provider.is_available?"إيقاف الاستقبال":"تفعيل الاستقبال",s.provider.is_available?"light":"green")+'</div><div class="card"><div class="small">التقييم</div><div class="stat">⭐ '+fmt(s.provider.average_rating)+'</div><p>'+fmt(s.provider.total_reviews)+' تقييم</p></div><div class="card"><div class="small">التوثيق</div>'+tag(s.provider.verification_status)+'</div></div><section class="section"><h2>الطلبات المتاحة والمسندة إليك</h2><div class="list">'+requestList(true)+'</div></section>';
- if(s.tab==="services")body='<section class="section"><div class="sectionhead"><h2>خدماتي وأسعاري</h2>'+btn("addoffer","إضافة خدمة","gold")+'</div><div class="list">'+(s.offers.map(o=>'<article class="item"><b>'+esc(o.services?.name_ar||"خدمة")+'</b> · <span class="price">'+fmt(o.price)+' '+esc(o.currency||"")+'</span><p>'+(o.price_type==="negotiable"?"قابل للتفاوض":o.price_type==="starting_from"?"يبدأ من":"سعر ثابت")+'</p>'+btn("toggleoffer",o.is_active?"إيقاف العرض":"تفعيل العرض","light",o.id)+'</article>').join("")||empty("لم تضف خدمات بعد"))+'</div></section>';
- if(s.tab==="profile")body='<section class="section"><div class="card"><h2>ملفي</h2><form id="providerProfile">'+field("الاسم الظاهر","display_name","text","اسمك",s.provider.display_name||s.profile.full_name,true)+field("الدولة","country","text","الدولة",s.provider.country||s.profile.country,true)+field("المدينة","city","text","المدينة",s.provider.city||s.profile.city,true)+field("نطاق الخدمة","service_area","text","الأحياء",s.provider.service_area||"",false)+field("سنوات الخبرة","experience_years","number","الخبرة",s.provider.experience_years||0,false)+'<label class="field">نبذة<textarea name="bio">'+esc(s.provider.bio||"")+'</textarea></label><button class="btn gold">حفظ الملف</button></form></div></section>';
+if(["home","requests"].includes(s.tab))body='<div class="grid small"><div class="card"><div class="small">حالة التوفر</div><div class="stat">'+(s.provider.is_available?"متاح":"غير متاح")+'</div><p class="small">'+(s.provider.is_available?"يمكن للعملاء إرسال طلبات جديدة إليك":"لن تستقبل طلبات جديدة حاليًا")+'</p>'+btn("availability",s.provider.is_available?"إيقاف الاستقبال":"تفعيل الاستقبال",s.provider.is_available?"light":"green")+'</div><div class="card"><div class="small">التقييم</div><div class="stat">⭐ '+fmt(s.provider.average_rating)+'</div><p class="small">'+fmt(s.provider.total_reviews)+' تقييم من العملاء</p></div><div class="card"><div class="small">التوثيق</div>'+tag(s.provider.verification_status)+'<p class="small">حالة اعتماد حسابك على منصة وصلة</p></div></div><section class="section"><div class="sectionhead"><div><h2>الطلبات المتاحة والمسندة إليك</h2><p class="small">تابع طلبات العملاء وحدّث حالة تنفيذها باستمرار.</p></div></div><div class="list">'+requestList(true)+'</div></section>';
+if(s.tab==="services")body='<section class="section"><div class="sectionhead"><div><h2>خدماتي وأسعاري</h2><p class="small">أدر الخدمات التي تقدمها وأسعارها وحالة ظهورها للعملاء.</p></div>'+btn("addoffer","إضافة خدمة","gold")+'</div><div class="list">'+(s.offers.map(o=>'<article class="item"><div class="row"><b>'+esc(o.services?.name_ar||"خدمة")+'</b>'+tag(o.is_active?"نشط":"متوقف")+'</div><div class="stat price">'+fmt(o.price)+' '+esc(o.currency||"")+'</div><p class="small">'+(o.price_type==="negotiable"?"السعر قابل للتفاوض":o.price_type==="starting_from"?"السعر يبدأ من":"سعر ثابت")+'</p>'+btn("toggleoffer",o.is_active?"إيقاف العرض":"تفعيل العرض","light",o.id)+'</article>').join("")||empty("لم تضف خدمات بعد. أضف خدمتك الأولى ليراها العملاء."))+'</div></section>';
+if(s.tab==="profile")body='<section class="section"><div class="card"><div class="sectionhead"><div><h2>ملفي الشخصي</h2><p class="small">عرّف العملاء بخبراتك ومناطق تقديم خدماتك.</p></div>'+tag(s.provider.verification_status)+'</div><form id="providerProfile">'+field("الاسم الظاهر","display_name","text","الاسم الذي يظهر للعملاء",s.provider.display_name||s.profile.full_name,true)+field("الدولة","country","text","الدولة",s.provider.country||s.profile.country,true)+field("المدينة","city","text","المدينة التي تعمل بها",s.provider.city||s.profile.city,true)+field("نطاق الخدمة","service_area","text","الأحياء والمناطق التي تغطيها",s.provider.service_area||"",false)+field("سنوات الخبرة","experience_years","number","عدد سنوات الخبرة",s.provider.experience_years||0,false)+'<label class="field">نبذة عنك<textarea name="bio" placeholder="اكتب نبذة مختصرة عن خبراتك والخدمات التي تقدمها">'+esc(s.provider.bio||"")+'</textarea><small class="small">اكتب نبذة واضحة تساعد العملاء على التعرف عليك.</small></label><div class="actions"><button class="btn gold">حفظ الملف الشخصي</button></div></form></div></section>';
  const nav=[["home","الرئيسية"],["requests","الطلبات"],["messages","الرسائل"],["services","خدماتي"],["profile","ملفي"]].map(x=>'<button data-a="tab" data-id="'+x[0]+'" class="'+(s.tab===x[0]?"active":"")+'">'+x[1]+'</button>').join("");
- return header("مرحبًا "+(s.provider.display_name||s.profile.full_name),nav)+'<main class="wrap">'+msg()+'<div class="sectionhead"><h2>لوحة مزوّد الخدمة</h2>'+tag(s.provider.verification_status)+'</div>'+body+'</main>';
+ return header("مرحبًا "+(s.provider.display_name||s.profile.full_name),nav)+'<main class="wrap">'+msg()+'<div class="sectionhead"><div><h2>لوحة مزوّد الخدمة</h2><p class="small">تابع طلباتك، وأدر خدماتك، وطوّر حضورك على وصلة.</p></div>'+tag(s.provider.verification_status)+'</div>'+body+'</main>';
 }
+
 function chatContent(){
- if(s.activeChat){return '<section class="section"><div class="sectionhead"><h2>المحادثة</h2>'+btn("chatback","رجوع","light")+'</div><div class="list">'+(s.messages.map(m=>'<article class="item" style="max-width:85%;'+(m.sender_id===s.user.id?'margin-right:auto;background:#edf6f8':'')+'"><p>'+esc(m.message_text)+'</p><small>'+new Date(m.created_at).toLocaleString("ar-SA")+'</small></article>').join("")||empty("ابدأ المحادثة برسالة"))+'</div><form id="sendMessage" class="row" style="margin-top:12px"><input name="message_text" placeholder="اكتب رسالتك..." required style="flex:1;min-width:180px"><button class="btn gold">إرسال</button></form></section>'}
- return '<section class="section"><h2>الرسائل</h2><div class="list">'+(s.chats.map(c=>'<article class="item"><b>'+esc(c.service_requests?.title||"محادثة طلب خدمة")+'</b><p>آخر تحديث: '+(c.last_message_at?new Date(c.last_message_at).toLocaleString("ar-SA"):"—")+'</p>'+btn("chatopen","فتح المحادثة","light",c.id)+'</article>').join("")||empty("لا توجد محادثات حتى الآن. ستظهر المحادثة بعد قبول طلب خدمة."))+'</div></section>';
+ if(s.activeChat){
+  return '<section class="section"><div class="sectionhead"><div><h2>المحادثة</h2><p class="small">تابع الرسائل وتواصل مع الطرف الآخر بخصوص طلب الخدمة.</p></div>'+btn("chatback","رجوع","light")+'</div><div class="list" style="gap:10px">'+(s.messages.map(m=>'<article class="item" style="max-width:85%;'+(m.sender_id===s.user.id?'margin-right:auto;':'')+'"><p style="white-space:pre-wrap;overflow-wrap:anywhere">'+esc(m.message_text)+'</p><small class="small">'+new Date(m.created_at).toLocaleString("ar-SA")+'</small></article>').join("")||empty("لا توجد رسائل بعد. ابدأ المحادثة برسالة"))+'</div><form id="sendMessage" class="row" style="margin-top:12px;align-items:center"><input name="message_text" placeholder="اكتب رسالتك هنا..." required style="flex:1;min-width:180px"><button class="btn gold">إرسال</button></form></section>';
+ }
+ return '<section class="section"><div class="sectionhead"><div><h2>الرسائل والمحادثات</h2><p class="small">استعرض المحادثات المرتبطة بطلبات الخدمات وتابع آخر تحديثاتها.</p></div><span class="tag">'+fmt(s.chats.length)+' محادثة</span></div><div class="list">'+(s.chats.map(c=>'<article class="item"><div class="row"><b>'+esc(c.service_requests?.title||"محادثة طلب خدمة")+'</b></div><p class="small">آخر تحديث للمحادثة</p><p>'+ (c.last_message_at?new Date(c.last_message_at).toLocaleString("ar-SA"):"لا توجد رسائل بعد")+'</p><div class="actions">'+btn("chatopen","فتح المحادثة","light",c.id)+'</div></article>').join("")||empty("لا توجد محادثات حتى الآن. ستظهر المحادثة بعد قبول طلب خدمة."))+'</div></section>';
 }
+      
 async function openChatForRequest(requestId){
  let c=s.chats.find(x=>x.request_id===requestId);
  if(!c){if(s.profile.role!=="customer")throw Error("يجب أن يبدأ العميل المحادثة أولًا");const q=s.requests.find(x=>x.id===requestId);if(!q||!q.provider_id||!["accepted","in_progress"].includes(q.status))throw Error("المحادثة متاحة بعد قبول الطلب");const r=await db.from("conversations").insert({request_id:q.id,customer_id:s.user.id,provider_id:q.provider_id}).select("id,request_id,customer_id,provider_id,last_message_at").single();if(r.error)throw r.error;c=r.data;s.chats.unshift(c)}
@@ -130,33 +2080,333 @@ async function openChatForRequest(requestId){
 function applications(){return s.apps.map(p=>{const u=s.adminProfiles.find(x=>x.id===p.user_id)||{};return '<article class="item"><div class="row"><b>'+esc(p.display_name||u.full_name||"مزوّد خدمة")+'</b>'+tag(p.verification_status)+'</div><p>'+esc([p.city||u.city,p.country||u.country].filter(Boolean).join("، "))+' · '+fmt(p.experience_years)+' سنوات خبرة</p><p>'+esc(p.bio||"")+'</p><p>'+esc(u.phone||"")+'</p><div class="actions">'+btn("reviewprovider","موافقة","green",p.user_id,"data-decision='approved'")+btn("reviewprovider","رفض","danger",p.user_id,"data-decision='rejected'")+'</div></article>'}).join("")||empty("لا توجد طلبات معلّقة")}
 function admin(){
  let body="";
- if(s.tab==="home")body='<div class="grid small">'+[['التصنيفات',s.cats.length],['الخدمات',s.services.length],['طلبات الانضمام',s.apps.length],['طلبات العملاء',s.allRequests.length]].map(x=>'<div class="card"><div class="small">'+x[0]+'</div><div class="stat">'+fmt(x[1])+'</div></div>').join("")+'</div><section class="section"><h2>طلبات الانضمام</h2><div class="list">'+applications()+'</div></section>';
- if(s.tab==="providers")body='<section class="section"><h2>مراجعة المزوّدين</h2><div class="list">'+applications()+'</div></section>';
- if(s.tab==="services")body='<section class="section"><div class="sectionhead"><h2>الخدمات</h2>'+btn("addservice","إضافة خدمة","gold")+'</div><div class="list">'+s.services.map(x=>'<article class="item"><b>'+esc(x.name_ar)+'</b><p>'+esc(x.description||"")+'</p>'+btn("toggleservice",x.is_active?"إيقاف":"تفعيل","light",x.id)+'</article>').join("")+'</div></section>';
- if(s.tab==="categories")body='<section class="section"><div class="sectionhead"><h2>التصنيفات</h2>'+btn("addcategory","إضافة تصنيف","gold")+'</div><div class="list">'+s.cats.map(x=>'<article class="item"><div class="row"><b>'+esc(x.name_ar)+'</b>'+tag(x.is_active?"نشط":"متوقف")+'</div><p>'+esc(x.slug)+'</p>'+btn("togglecategory",x.is_active?"إيقاف":"تفعيل","light",x.id)+'</article>').join("")+'</div></section>';
+if(s.tab==="home")body='<section class="section"><div class="grid small"><div class="card"><div class="small">التصنيفات</div><div class="stat">'+fmt(s.cats.length)+'</div><p class="small">إجمالي تصنيفات المنصة</p></div><div class="card"><div class="small">الخدمات</div><div class="stat">'+fmt(s.services.length)+'</div><p class="small">الخدمات المسجلة بالمنصة</p></div><div class="card"><div class="small">طلبات الانضمام</div><div class="stat">'+fmt(s.apps.length)+'</div><p class="small">طلبات المزوّدين للمراجعة</p></div><div class="card"><div class="small">طلبات العملاء</div><div class="stat">'+fmt(s.allRequests.length)+'</div><p class="small">إجمالي طلبات الخدمات</p></div></div></section><section class="section"><div class="sectionhead"><div><h2>طلبات الانضمام</h2><p class="small">راجع طلبات المزوّدين واتخذ قرار الاعتماد.</p></div></div><div class="list">'+applications()+'</div></section>';
+if(s.tab==="providers")body='<section class="section"><div class="sectionhead"><div><h2>مراجعة المزوّدين</h2><p class="small">راجع طلبات التسجيل وتحقق من بيانات المتقدمين قبل اعتمادهم.</p></div><span class="tag">'+fmt(s.apps.length)+' طلب</span></div><div class="list">'+(applications()||empty("لا توجد طلبات انضمام للمراجعة حاليًا"))+'</div></section>';
+if(s.tab==="services")body='<section class="section"><div class="sectionhead"><div><h2>إدارة الخدمات</h2><p class="small">أضف الخدمات المتاحة على وصلة وتابع وصفها وحالة ظهورها للعملاء.</p></div>'+btn("addservice","إضافة خدمة","gold")+'</div><div class="list">'+(s.services.map(x=>'<article class="item"><div class="row"><b>'+esc(x.name_ar)+'</b>'+tag(x.is_active?"نشطة":"متوقفة")+'</div><p>'+esc(x.description||"لا يوجد وصف مضاف لهذه الخدمة")+'</p><div class="actions">'+btn("toggleservice",x.is_active?"إيقاف الخدمة":"تفعيل الخدمة","light",x.id)+'</div></article>').join("")||empty("لا توجد خدمات مضافة حتى الآن. أضف أول خدمة للمنصة."))+'</div></section>';
+if(s.tab==="categories")body='<section class="section"><div class="sectionhead"><div><h2>إدارة التصنيفات</h2><p class="small">نظّم الخدمات داخل أقسام واضحة تسهّل على العملاء الوصول لما يحتاجونه.</p></div>'+btn("addcategory","إضافة تصنيف","gold")+'</div><div class="list">'+(s.cats.map(x=>'<article class="item"><div class="row"><b>'+esc(x.name_ar)+'</b>'+tag(x.is_active?"نشط":"متوقف")+'</div><div class="small">معرّف التصنيف</div><p class="muted">'+esc(x.slug||"غير محدد")+'</p><div class="actions">'+btn("togglecategory",x.is_active?"إيقاف التصنيف":"تفعيل التصنيف","light",x.id)+'</div></article>').join("")||empty("لا توجد تصنيفات حتى الآن. أضف أول تصنيف للمنصة."))+'</div></section>';
+ if(s.tab==="staff")body='<section class="section"><div class="sectionhead"><div><h2>إدارة الموظفين</h2><p class="small">أدر فريق العمل وتابع صلاحيات كل موظف وحالة حسابه.</p></div>'+btn("addstaff","إضافة موظف","gold")+'</div><div class="list">'+(s.staff.map(x=>'<article class="item"><div class="row"><div><b>'+esc(x.full_name||"موظف بدون اسم")+'</b><p class="small">عضو في فريق إدارة وصلة</p></div>'+tag(x.staff_permissions?.is_active?"نشط":"موقوف")+'</div><div class="small">رقم التواصل</div><p>'+esc(x.phone||"لا يوجد رقم هاتف")+'</p><div class="small">الصلاحيات الممنوحة</div><p class="muted">'+fmt((x.staff_permissions?.permissions||[]).length)+' صلاحية</p><div class="actions">'+btn("editstaff","إدارة الصلاحيات","light",x.id)+btn("removestaff","إزالة الموظف","danger",x.id)+'</div></article>').join("")||empty("لا يوجد موظفون حتى الآن. يمكنك إضافة أول موظف لفريق الإدارة."))+'</div></section>';
+ if(s.tab==="customers")body='<section class="section"><div class="sectionhead"><div><h2>إدارة العملاء</h2><p class="small">استعرض حسابات العملاء وبياناتهم وحالة كل حساب.</p></div><span class="tag">'+fmt(s.customers.length)+' عميل</span></div><div class="list">'+(s.customers.map(x=>'<article class="item"><div class="row"><div><b>'+esc(x.full_name||"عميل بدون اسم")+'</b><p class="small">حساب عميل على منصة وصلة</p></div>'+tag(x.status==="active"?"نشط":"موقوف")+'</div><div class="small">رقم التواصل</div><p>'+esc(x.phone||"لا يوجد رقم هاتف")+'</p><div class="small">الموقع</div><p class="muted">'+esc([x.city,x.country].filter(Boolean).join("، ")||"الموقع غير محدد")+'</p><div class="actions">'+btn("viewcustomer","عرض الملف","light",x.id)+'</div></article>').join("")||empty("لا يوجد عملاء حتى الآن"))+'</div></section>';
  if(s.tab==="messages")body=chatContent();
- if(s.tab==="requests")body='<section class="section"><h2>طلبات العملاء</h2><div class="list">'+(s.allRequests.map(x=>'<article class="item"><div class="row"><b>'+esc(x.title||x.services?.name_ar||"طلب")+'</b>'+tag(x.status)+'</div><p>'+esc([x.city,x.country].filter(Boolean).join("، "))+'</p></article>').join("")||empty("لا توجد طلبات"))+'</div></section>';
- const nav=[["home","نظرة عامة"],["providers","المزوّدون"],["services","الخدمات"],["categories","التصنيفات"],["requests","الطلبات"]].map(x=>'<button data-a="tab" data-id="'+x[0]+'" class="'+(s.tab===x[0]?"active":"")+'">'+x[1]+'</button>').join("");
+if(s.tab==="requests")body='<section class="section"><div class="sectionhead"><div><h2>طلبات العملاء</h2><p class="small">تابع جميع طلبات الخدمات المسجلة على المنصة وحالة كل طلب.</p></div><span class="tag">'+fmt(s.allRequests.length)+' طلب</span></div><div class="list">'+(s.allRequests.map(x=>'<article class="item"><div class="row"><b>'+esc(x.title||x.services?.name_ar||"طلب خدمة")+'</b>'+tag(x.status)+'</div><div class="small">موقع الطلب</div><p>'+esc([x.city,x.country].filter(Boolean).join("، ")||"الموقع غير محدد")+'</p></article>').join("")||empty("لا توجد طلبات عملاء حتى الآن"))+'</div></section>';
+ if(s.tab==="appearance")body='<section class="section"><div class="card"><h2>المظهر والثيمات</h2><p>اختار الألوان المناسبة لهوية وصلة.</p><label class="field">نمط التصميم<select id="themeStyle" data-theme-style><option value="auto" '+(s.themeStyle==="auto"?"selected":"")+'>تلقائي</option><option value="modern" '+(s.themeStyle==="modern"?"selected":"")+'>عصري</option><option value="minimal" '+(s.themeStyle==="minimal"?"selected":"")+'>بسيط وهادئ</option><option value="luxury" '+(s.themeStyle==="luxury"?"selected":"")+'>فاخر</option><option value="corporate" '+(s.themeStyle==="corporate"?"selected":"")+'>رسمي واحترافي</option><option value="nature" '+(s.themeStyle==="nature"?"selected":"")+'>طبيعي</option><option value="tech" '+(s.themeStyle==="tech"?"selected":"")+'>تقني</option></select></label><div class="grid"><label class="field">خلفية المنصة<input type="color" data-theme-key="bg" value="'+s.themeDraft.bg+'"></label><label class="field">لون البطاقات<input type="color" data-theme-key="card" value="'+s.themeDraft.card+'"></label><label class="field">لون النصوص<input type="color" data-theme-key="ink" value="'+s.themeDraft.ink+'"></label><label class="field">اللون الرئيسي<input type="color" data-theme-key="navy" value="'+s.themeDraft.navy+'"></label><label class="field">اللون المميز<input type="color" data-theme-key="gold" value="'+s.themeDraft.gold+'"></label><label class="field">لون النصوص الثانوية<input type="color" data-theme-key="muted" value="'+s.themeDraft.muted+'"></label><label class="field">لون الحدود<input type="color" data-theme-key="line" value="'+s.themeDraft.line+'"></label><label class="field">اللون الرئيسي الثانوي<input type="color" data-theme-key="navy2" value="'+s.themeDraft.navy2+'"></label><label class="field">لون النجاح<input type="color" data-theme-key="green" value="'+s.themeDraft.green+'"></label><label class="field">لون التنبيهات<input type="color" data-theme-key="red" value="'+s.themeDraft.red+'"></label></div><div class="actions"><button class="btn gold" data-a="theme-suggest">✨ اقترح ألوان متناسقة</button><button class="btn gold" data-a="theme-preview">معاينة الألوان</button><button class="btn gold" data-a="theme-save-local">حفظ على هذا الجهاز</button><button class="btn light" data-a="theme-reset">استعادة الألوان</button></div><p class="muted">التغييرات لن تُعتمد إلا بعد المعاينة والموافقة.</p></div></section>';
+
+const nav=[["home","نظرة عامة"],["requests","الطلبات"],["messages","الرسائل"],["customers","العملاء"],["providers","المزوّدون"],["services","الخدمات"],["categories","التصنيفات"],["staff","الموظفون"],["appearance","المظهر والثيمات"]].map(x=>'<button data-a="tab" data-id="'+x[0]+'" class="'+(s.tab===x[0]?"active":"")+'">'+x[1]+'</button>').join("")+'<button data-a="showexplore" class="nav-home">الصفحة الرئيسية</button>';
+ 
  return header("لوحة إدارة المنصة",nav)+'<main class="wrap">'+msg()+'<div class="sectionhead"><h2>الإدارة</h2><span class="tag ok">مدير</span></div>'+body+'</main>';
 }
+      
+function staff(){
+ const permissions=Array.isArray(s.staffAccess?.permissions)?s.staffAccess.permissions:[];
+ const can=p=>permissions.includes(p);
+ const canServices=can("services.view")||can("services.manage");
+ const canCategories=can("categories.view")||can("categories.manage");
+
+ const navItems=[["home","نظرة عامة"]];
+ if(canServices)navItems.push(["services","الخدمات"]);
+ if(canCategories)navItems.push(["categories","التصنيفات"]);
+
+ if(!navItems.some(x=>x[0]===s.tab))s.tab="home";
+
+ let body="";
+
+ if(s.tab==="home"){
+  body='<section class="section"><div class="card">'+
+  '<h2>أهلًا '+esc(s.profile?.full_name||"بك")+'</h2>'+
+  '<p class="muted">لوحة الموظف وإدارة الصلاحيات</p>'+
+  '<div class="row"><span>حالة الحساب</span>'+tag("نشط")+'</div>'+
+  '<div class="row"><span>عدد الصلاحيات</span><b>'+permissions.length+'</b></div>'+
+  '</div></section>'+
+  '<section class="section"><h2>الصلاحيات الممنوحة لك</h2>'+
+  '<div class="grid small">'+
+  (permissions.map(p=>'<div class="card">✓ '+esc(p)+'</div>').join("")||empty("لا توجد صلاحيات ممنوحة"))+
+  '</div></section>';
+ }
+
+ if(s.tab==="services"&&canServices){
+  body='<section class="section">'+
+  '<div class="sectionhead"><h2>إدارة الخدمات</h2>'+
+  (can("services.manage")?btn("addservice","إضافة خدمة","gold"):"")+
+  '</div><div class="list">'+
+  (s.services.map(x=>'<article class="item">'+
+  '<div class="row"><b>'+esc(x.name_ar)+'</b>'+tag(x.is_active?"نشطة":"متوقفة")+'</div>'+
+  '<p>'+esc(x.description||"لا يوجد وصف")+'</p>'+
+  (can("services.manage")?btn("toggleservice",x.is_active?"إيقاف الخدمة":"تفعيل الخدمة","light",x.id):"")+
+  '</article>').join("")||empty("لا توجد خدمات"))+
+  '</div></section>';
+ }
+
+ if(s.tab==="categories"&&canCategories){
+  body='<section class="section">'+
+  '<div class="sectionhead"><h2>إدارة التصنيفات</h2>'+
+  (can("categories.manage")?btn("addcategory","إضافة تصنيف","gold"):"")+
+  '</div><div class="list">'+
+  (s.cats.map(x=>'<article class="item">'+
+  '<div class="row"><b>'+esc(x.name_ar)+'</b>'+tag(x.is_active?"نشط":"متوقف")+'</div>'+
+  '<p>'+esc(x.slug||"")+'</p>'+
+  (can("categories.manage")?btn("togglecategory",x.is_active?"إيقاف التصنيف":"تفعيل التصنيف","light",x.id):"")+
+  '</article>').join("")||empty("لا توجد تصنيفات"))+
+  '</div></section>';
+ }
+
+const nav=navItems.map(x=>'<button data-a="tab" data-id="'+x[0]+'" class="'+(s.tab===x[0]?"active":"")+'">'+x[1]+'</button>').join("")+'<button data-a="showexplore">الصفحة الرئيسية</button>';
+ 
+ return header("لوحة الموظف",nav)+
+ '<main class="wrap">'+msg()+
+ '<div class="sectionhead"><h2>لوحة الموظف</h2>'+tag("موظف")+'</div>'+
+ body+'</main>';
+}
+
 function render(){
    if(s.mode==="recovery"){app.innerHTML=recoveryView();return}
-  if(!s.user){app.innerHTML=(s.mode==="welcome"?landing():authView())+'<div class="foot">منصة الخدمات · جميع الحقوق محفوظة</div>';return}
+
+if(s.mode==="explore"){
+app.innerHTML=(s.profile?.role==="admin"?'<main class="wrap" style="padding:0 16px 0">'+btn("showadmin","العودة إلى لوحة الإدارة","light")+'</main>':'')+landing();
+ return;
+}
+ 
+ if(!s.user){app.innerHTML=(s.mode==="welcome"?welcomeView():s.mode==="explore"?landing():authView())+'<div class="foot">منصة الخدمات · جميع الحقوق محفوظة</div>';return}
  if(s.profile?.role==="admin")app.innerHTML=admin()+'<main class="wrap">'+btn("logout","تسجيل الخروج","light")+'</main>';
+else if(s.profile?.role==="staff")app.innerHTML=staff()+'<main class="wrap">'+btn("logout","تسجيل الخروج","light")+'</main>';
  else if(s.profile?.role==="provider"&&s.provider?.verification_status==="approved")app.innerHTML=provider()+'<main class="wrap">'+btn("logout","تسجيل الخروج","light")+'</main>';
  else if(s.provider&&s.provider.verification_status!=="approved")app.innerHTML=header(s.provider.verification_status==="pending"?"طلب الانضمام قيد المراجعة":s.provider.verification_status==="rejected"?"تم رفض طلب الانضمام":"حالة طلب الانضمام")+'<main class="wrap"><div class="auth card"><div class="icon">⏳</div><h2>'+(s.provider.verification_status==="pending"?"طلبك قيد المراجعة":s.provider.verification_status==="rejected"?"تم رفض طلب الانضمام":"حالة الطلب")+'</h2><p class="muted">'+(s.provider.verification_status==="pending"?"ستتم مراجعة بياناتك من الإدارة، وبعد الموافقة ستتمكن من إضافة خدماتك واستقبال الطلبات.":"يمكنك التواصل مع إدارة المنصة لمعرفة التفاصيل.")+'</p>'+tag(s.provider.verification_status)+btn("logout","تسجيل الخروج","light")+'</div></main>';
  else app.innerHTML=customer()+'<main class="wrap">'+btn("logout","تسجيل الخروج","light")+'</main>';
  if(s.modal){
   const m=s.modal;let c="";
-  if(m.type==="request"){let ps=s.providers.filter(p=>!m.providerId||p.id===m.providerId);c='<h3>إنشاء طلب خدمة</h3><form id="requestForm">'+select("الخدمة","service_id",s.services.map(x=>({value:x.id,label:x.name_ar})),m.serviceId||"")+select("مزوّد الخدمة (اختياري)","provider_id",[{value:"",label:"اترك الطلب متاحًا للمزوّدين"}].concat(ps.map(x=>({value:x.id,label:(x.display_name||"مزوّد")+" - "+(x.city||"")}))),m.providerId||"")+field("عنوان الطلب","title","text","عنوان مختصر","",true)+'<label class="field">التفاصيل<textarea name="description"></textarea></label>'+field("الدولة","country","text","الدولة",s.profile.country,true)+field("المدينة","city","text","المدينة",s.profile.city,true)+field("العنوان","address","text","الحي والشارع","",true)+field("الميزانية (اختياري)","budget","number","المبلغ","",false)+'<button class="btn gold">إرسال الطلب</button></form>'}
-  if(m.type==="offer")c='<h3>إضافة خدمة إلى ملفك</h3><form id="offerForm">'+select("الخدمة","service_id",s.services.map(x=>({value:x.id,label:x.name_ar})),"")+field("السعر","price","number","السعر","",true)+select("العملة","currency",[{value:"SAR",label:"ريال سعودي"},{value:"EGP",label:"جنيه مصري"},{value:"AED",label:"درهم إماراتي"}],"SAR")+select("نوع السعر","price_type",[{value:"fixed",label:"ثابت"},{value:"starting_from",label:"يبدأ من"},{value:"negotiable",label:"قابل للتفاوض"}],"fixed")+'<button class="btn gold">إضافة</button></form>';
-  if(m.type==="service")c='<h3>إضافة خدمة</h3><form id="serviceForm">'+select("التصنيف","category_id",s.cats.map(x=>({value:x.id,label:x.name_ar})),"")+field("اسم الخدمة بالعربية","name_ar","text","الخدمة","",true)+field("الاسم بالإنجليزية","name_en","text","Service","",false)+'<label class="field">الوصف<textarea name="description"></textarea></label><button class="btn gold">حفظ</button></form>';
-  if(m.type==="category")c='<h3>إضافة تصنيف</h3><form id="categoryForm">'+field("اسم التصنيف","name_ar","text","التصنيف","",true)+field("الاسم بالإنجليزية","name_en","text","Category","",false)+field("الرابط المختصر","slug","text","home-maintenance","",true)+field("الأيقونة","icon","text","🔧","",false)+'<button class="btn gold">حفظ</button></form>';
-  if(m.type==="review")c='<h3>تقييم الخدمة</h3><form id="reviewForm"><input type="hidden" name="request_id" value="'+esc(m.requestId)+'"><input type="hidden" name="provider_id" value="'+esc(m.providerId)+'">'+select("التقييم","rating",[1,2,3,4,5].map(n=>({value:n,label:n+" من 5"})),5)+'<label class="field">تعليق<textarea name="comment"></textarea></label><button class="btn gold">إرسال التقييم</button></form>';
-  app.insertAdjacentHTML("beforeend",'<div class="modalback" data-a="close"><div class="modal" onclick="event.stopPropagation()">'+btn("close","إغلاق","light")+'<hr>'+c+'</div></div>');
+
+if(m.type==="request"){
+ let ps=s.providers.filter(p=>!m.providerId||p.id===m.providerId);
+ c='<div class="modal-title"><h3>إنشاء طلب خدمة</h3><p class="muted">أدخل تفاصيل الخدمة المطلوبة حتى يتمكن المزوّد من فهم احتياجك والتواصل معك.</p></div>'+
+ '<form id="requestForm">'+
+ '<section class="section"><h4>الخدمة والمزوّد</h4>'+
+ select("الخدمة","service_id",s.services.map(x=>({value:x.id,label:x.name_ar})),m.serviceId||"")+
+ select("مزوّد الخدمة (اختياري)","provider_id",[{value:"",label:"اترك الطلب متاحًا للمزوّدين"}].concat(ps.map(x=>({value:x.id,label:(x.display_name||"مزوّد")+" - "+(x.city||"")}))),m.providerId||"")+
+ '</section>'+
+ '<section class="section"><h4>تفاصيل الطلب</h4>'+
+ field("عنوان الطلب","title","text","مثال: صيانة مكيف المنزل","",true)+
+ '<label class="field">وصف المشكلة أو الخدمة المطلوبة<textarea name="description" placeholder="اشرح ما تحتاج إليه بالتفصيل..."></textarea></label>'+
+ '</section>'+
+ '<section class="section"><h4>موقع تنفيذ الخدمة</h4>'+
+ field("الدولة","country","text","الدولة",s.profile.country,true)+
+ field("المدينة","city","text","المدينة",s.profile.city,true)+
+ field("العنوان","address","text","الحي والشارع", "",true)+
+ '</section>'+
+ '<section class="section"><h4>الميزانية</h4>'+
+ field("الميزانية (اختياري)","budget","number","المبلغ المتوقع","",false)+
+ '</section>'+
+ '<div class="actions"><button class="btn gold">إرسال طلب الخدمة</button></div>'+
+ '</form>';
+}
+  
+if(m.type==="offer")c='<div class="modal-title"><h3>إضافة خدمة إلى ملفك</h3><p class="muted">أضف الخدمة وحدد سعرها حتى يتمكن العملاء من معرفة عروضك.</p></div><form id="offerForm"><section class="section"><h4>بيانات الخدمة</h4>'+select("اختر الخدمة","service_id",s.services.map(x=>({value:x.id,label:x.name_ar})),"")+'</section><section class="section"><h4>تفاصيل السعر</h4>'+field("السعر","price","number","أدخل السعر","",true)+select("العملة","currency",[{value:"SAR",label:"ريال سعودي"},{value:"EGP",label:"جنيه مصري"},{value:"AED",label:"درهم إماراتي"}],"SAR")+select("نوع السعر","price_type",[{value:"fixed",label:"سعر ثابت"},{value:"starting_from",label:"السعر يبدأ من"},{value:"negotiable",label:"قابل للتفاوض"}],"fixed")+'</section><div class="actions"><button class="btn gold">إضافة الخدمة</button></div></form>';
+  
+
+if(m.type==="service")c='<div class="modal-title"><h3>إضافة خدمة جديدة</h3><p class="muted">أضف بيانات الخدمة لتظهر للعملاء على منصة وصلة.</p></div><form id="serviceForm">'+select("التصنيف","category_id",s.cats.map(x=>({value:x.id,label:x.name_ar})),"")+field("اسم الخدمة بالعربية","name_ar","text","مثال: صيانة التكييف","",true)+field("الاسم بالإنجليزية","name_en","text","Service name","",false)+'<label class="field">وصف الخدمة<textarea name="description" placeholder="اكتب وصفًا مختصرًا يوضح تفاصيل الخدمة..."></textarea></label><label class="field">صورة الخدمة (اختياري)<input type="file" name="service_image" accept="image/jpeg,image/png,image/webp"></label><p class="muted">الصيغ المدعومة: JPG وPNG وWEBP. سيتم ضغط الصورة تلقائيًا قبل الرفع، والحد الأقصى 4 ميجابايت.</p><div class="actions"><button class="btn gold">حفظ الخدمة</button></div></form>';
+  
+if(m.type==="category")c='<div class="modal-title"><h3>إضافة تصنيف جديد</h3><p class="muted">أنشئ تصنيفًا يساعد العملاء على الوصول للخدمات بسهولة.</p></div><form id="categoryForm">'+field("اسم التصنيف بالعربية","name_ar","text","مثال: صيانة منزلية","",true)+field("الاسم بالإنجليزية","name_en","text","Home Maintenance","",false)+field("الرابط المختصر","slug","text","home-maintenance","",true)+field("أيقونة التصنيف","icon","text","🔧","",false)+'<div class="actions"><button class="btn gold">حفظ التصنيف</button></div></form>';
+  
+if(m.type==="addstaff"){
+ const permissions=[
+ ["dashboard.view","عرض لوحة المعلومات"],
+ ["customers.view","عرض العملاء"],
+ ["customers.manage","إدارة العملاء"],
+ ["providers.view","عرض المزوّدين"],
+ ["providers.review","مراجعة طلبات المزوّدين"],
+ ["requests.view","عرض الطلبات"],
+ ["requests.manage","إدارة الطلبات"],
+ ["services.view","عرض الخدمات"],
+ ["services.manage","إدارة الخدمات"],
+ ["categories.view","عرض التصنيفات"],
+ ["categories.manage","إدارة التصنيفات"],
+ ["messages.view","عرض المحادثات"],
+ ["payments.view","عرض المدفوعات"],
+ ["payments.manage","إدارة المدفوعات"],
+ ["reports.view","عرض التقارير"],
+ ["ads.view","عرض الإعلانات"],
+ ["ads.manage","إدارة الإعلانات"],
+ ["settings.view","عرض الإعدادات"],
+ ["settings.manage","إدارة الإعدادات"]
+ ];
+ c='<h3>إنشاء حساب موظف جديد</h3>'+
+ '<form id="addStaffForm">'+
+ field("اسم الموظف","full_name","text","الاسم الكامل","",true)+
+ field("البريد الإلكتروني","email","email","employee@example.com","",true)+
+ '<p><b>الصلاحيات الممنوحة</b></p>'+
+ '<p class="muted">اختر الصلاحيات التي سيُسمح للموظف باستخدامها.</p>'+
+ '<div class="list">'+
+ permissions.map(x=>'<label class="item"><input type="checkbox" name="permissions" value="'+x[0]+'"> '+x[1]+'</label>').join("")+
+ '</div>'+
+ '<button class="btn gold">إنشاء الموظف وإرسال الدعوة</button>'+
+ '</form>';
+}                                                                                                                                                                                                                                                                                                                                                                                     
+ 
+if(m.type==="addstaff"){
+ const permissions=[
+ ["dashboard.view","عرض لوحة المعلومات"],
+ ["customers.view","عرض العملاء"],
+ ["customers.manage","إدارة العملاء"],
+ ["providers.view","عرض المزوّدين"],
+ ["providers.review","مراجعة طلبات المزوّدين"],
+ ["requests.view","عرض الطلبات"],
+ ["requests.manage","إدارة الطلبات"],
+ ["services.view","عرض الخدمات"],
+ ["services.manage","إدارة الخدمات"],
+ ["categories.view","عرض التصنيفات"],
+ ["categories.manage","إدارة التصنيفات"],
+ ["messages.view","عرض المحادثات"],
+ ["payments.view","عرض المدفوعات"],
+ ["payments.manage","إدارة المدفوعات"],
+ ["reports.view","عرض التقارير"],
+ ["ads.view","عرض الإعلانات"],
+ ["ads.manage","إدارة الإعلانات"],
+ ["settings.view","عرض الإعدادات"],
+ ["settings.manage","إدارة الإعدادات"]
+ ];
+ c='<div class="modal-title"><h3>إنشاء حساب موظف جديد</h3><p class="muted">أضف بيانات الموظف وحدد الصلاحيات المناسبة لمسؤولياته.</p></div>'+
+ '<form id="addStaffForm">'+
+ '<div class="section"><h4>بيانات الموظف</h4>'+
+ field("اسم الموظف","full_name","text","الاسم الكامل","",true)+
+ field("البريد الإلكتروني","email","email","employee@example.com","",true)+
+ '</div>'+
+ '<div class="section"><h4>الصلاحيات الممنوحة</h4>'+
+ '<p class="muted">حدد الأقسام والمهام التي يُسمح للموظف بالوصول إليها.</p>'+
+ '<div class="list">'+
+ permissions.map(x=>'<label class="item"><input type="checkbox" name="permissions" value="'+x[0]+'"> '+x[1]+'</label>').join("")+
+ '</div></div>'+
+ '<div class="actions"><button class="btn gold">إنشاء الموظف وإرسال الدعوة</button></div>'+
+ '</form>';
+}
+  
+ if(m.type==="editstaff"){
+ const x=s.staff.find(y=>y.id===m.userId);
+ if(!x)throw Error("الموظف غير موجود");
+ const permissions=[
+ ["dashboard.view","عرض لوحة المعلومات"],
+ ["customers.view","عرض العملاء"],
+ ["customers.manage","إدارة العملاء"],
+ ["providers.view","عرض المزوّدين"],
+ ["providers.review","مراجعة طلبات المزوّدين"],
+ ["requests.view","عرض الطلبات"],
+ ["requests.manage","إدارة الطلبات"],
+ ["services.view","عرض الخدمات"],
+ ["services.manage","إدارة الخدمات"],
+ ["categories.view","عرض التصنيفات"],
+ ["categories.manage","إدارة التصنيفات"],
+ ["messages.view","عرض المحادثات"],
+ ["payments.view","عرض المدفوعات"],
+ ["payments.manage","إدارة المدفوعات"],
+ ["reports.view","عرض التقارير"],
+ ["ads.view","عرض الإعلانات"],
+ ["ads.manage","إدارة الإعلانات"],
+ ["settings.view","عرض الإعدادات"],
+ ["settings.manage","إدارة الإعدادات"]
+ ];
+ const selected=x.staff_permissions?.permissions||[];
+ c='<div class="modal-title"><h3>إدارة صلاحيات الموظف</h3><p class="muted">حدد الصلاحيات وحالة حساب الموظف.</p></div>'+
+ '<form id="editStaffForm"><input type="hidden" name="user_id" value="'+esc(x.id)+'">'+
+ '<section class="section"><b>'+esc(x.full_name||"موظف بدون اسم")+'</b>'+
+ '<p class="muted">'+esc(x.email||"")+'</p></section>'+
+ '<section class="section"><h4>الصلاحيات</h4><div class="list">'+
+ permissions.map(p=>'<label class="item"><input type="checkbox" name="permissions" value="'+p[0]+'" '+(selected.includes(p[0])?"checked":"")+'> '+p[1]+'</label>').join("")+
+ '</div></section>'+
+ '<section class="section">'+select("حالة الحساب","is_active",[{value:"true",label:"نشط"},{value:"false",label:"موقوف"}],x.staff_permissions?.is_active?"true":"false")+'</section>'+
+ '<div class="actions"><button class="btn gold">حفظ الصلاحيات</button></div></form>';
+ }
+if(m.type==="customerDetails"){
+ const x=s.customers.find(y=>y.id===m.userId);
+ if(!x)throw Error("العميل غير موجود");
+ const orders=s.allRequests.filter(q=>q.customer_id===x.id);
+ c='<div class="modal-title"><h3>ملف العميل</h3><p class="muted">بيانات الحساب وسجل طلبات الخدمات.</p></div>'+
+ '<section class="section"><div class="item">'+
+ '<div class="row"><b>'+esc(x.full_name||"عميل بدون اسم")+'</b>'+tag(x.status==="active"?"نشط":"موقوف")+'</div>'+
+ '<p class="small">رقم التواصل</p><p>'+esc(x.phone||"لا يوجد رقم هاتف")+'</p>'+
+ '<p class="small">الموقع</p><p>'+esc([x.city,x.country].filter(Boolean).join("، ")||"الموقع غير محدد")+'</p>'+
+ '</div></section>'+
+ '<section class="section"><div class="sectionhead"><h4>سجل الطلبات</h4><span class="tag">'+fmt(orders.length)+' طلب</span></div>'+
+ '<div class="list">'+(orders.map(q=>'<article class="item">'+
+ '<div class="row"><b>'+esc(q.title||q.services?.name_ar||"طلب خدمة")+'</b>'+tag(q.status)+'</div>'+
+ '<p class="small">موقع الطلب</p><p>'+esc([q.city,q.country].filter(Boolean).join("، ")||"الموقع غير محدد")+'</p>'+
+ (q.description?'<p>'+esc(q.description)+'</p>':'')+
+ '</article>').join("")||empty("لا توجد طلبات لهذا العميل"))+
+ '</div></section>';
+}
+app.insertAdjacentHTML("beforeend",'<div class="modalback"><div class="modal">'+c+'<div class="actions"><button type="button" class="btn light" data-a="close">إغلاق</button></div></div></div>');
  }
 }
-function vals(f){return Object.fromEntries(new FormData(f).entries())}
+async function prepareServiceImage(file){
+ if(!file)return null;
+
+ if(!["image/jpeg","image/png","image/webp"].includes(file.type))
+  throw Error("اختار صورة JPG أو PNG أو WebP");
+
+ if(typeof createImageBitmap!=="function")
+  throw Error("المتصفح لا يدعم ضغط الصور. جرّب Chrome محدث.");
+
+ const bitmap=await createImageBitmap(file);
+ const scale=Math.min(1,1600/Math.max(bitmap.width,bitmap.height));
+
+ const canvas=document.createElement("canvas");
+ canvas.width=Math.max(1,Math.round(bitmap.width*scale));
+ canvas.height=Math.max(1,Math.round(bitmap.height*scale));
+
+ const ctx=canvas.getContext("2d");
+ ctx.drawImage(bitmap,0,0,canvas.width,canvas.height);
+ bitmap.close?.();
+
+ const blob=await new Promise(resolve=>
+  canvas.toBlob(resolve,"image/webp",.82)
+ );
+
+ if(!blob)throw Error("تعذّر تجهيز الصورة");
+ if(blob.size>4*1024*1024)
+  throw Error("حجم الصورة بعد الضغط أكبر من 4 ميجابايت");
+
+ return new File([blob],"service-"+Date.now()+".webp",{
+  type:"image/webp"
+ });
+}
+
+async function saveServiceImage(serviceId,file,oldUrl){
+ const imageFile=await prepareServiceImage(file);
+ if(!imageFile)return null;
+
+ const path="services/"+serviceId+"/"+Date.now()+"-"+Math.random().toString(36).slice(2)+".webp";
+ const bucket=db.storage.from("service-images");
+
+ const uploaded=await bucket.upload(path,imageFile,{
+  contentType:"image/webp",
+  cacheControl:"31536000",
+  upsert:false
+ });
+
+ if(uploaded.error)throw uploaded.error;
+
+ const publicUrl=bucket.getPublicUrl(path).data.publicUrl;
+
+ const updated=await db.from("services")
+  .update({image_url:publicUrl})
+  .eq("id",serviceId);
+
+ if(updated.error){
+  await bucket.remove([path]);
+  throw updated.error;
+ }
+
+ const marker="/storage/v1/object/public/service-images/";
+
+ if(oldUrl&&String(oldUrl).includes(marker)){
+  const oldPath=decodeURIComponent(String(oldUrl).split(marker).pop());
+
+  if(oldPath.startsWith("services/")&&oldPath!==path)
+   await bucket.remove([oldPath]);
+ }
+
+ return publicUrl;
+}
+
+function vals(f){
+ return Object.fromEntries(new FormData(f).entries())
+}
+      
 async function submit(e){
  const f=e.target;if(!f.id)return;e.preventDefault();
  try{
@@ -184,6 +2434,45 @@ async function submit(e){
   if(f.id==="requestForm"){let v=vals(f),r=await db.rpc("create_service_request",{p_service_id:v.service_id,p_title:v.title,p_description:v.description||null,p_country:v.country,p_city:v.city,p_address:v.address,p_budget:v.budget?Number(v.budget):null,p_provider_id:v.provider_id||null});if(r.error)throw r.error;s.modal=null;await loadUser(s.user);note("تم إرسال طلب الخدمة.","success");return}
   if(f.id==="offerForm"){let v=vals(f),r=await db.from("provider_services").insert({provider_id:s.provider.id,service_id:v.service_id,price:Number(v.price),currency:v.currency,price_type:v.price_type,is_active:true});if(r.error)throw r.error;s.modal=null;await loadUser(s.user);note("تمت إضافة الخدمة.","success");return}
   if(f.id==="serviceForm"){let v=vals(f),r=await db.from("services").insert({category_id:v.category_id,name_ar:v.name_ar,name_en:v.name_en||null,description:v.description||null,is_active:true});if(r.error)throw r.error;s.modal=null;await loadUser(s.user);note("تمت إضافة الخدمة.","success");return}
+  
+if(f.id==="addStaffForm"){
+ let v=vals(f);
+ let permissions=Array.from(f.querySelectorAll('input[name="permissions"]:checked')).map(x=>x.value);
+ if(!v.full_name.trim())throw Error("اكتب اسم الموظف");
+ if(!v.email.trim())throw Error("اكتب البريد الإلكتروني");
+ if(!permissions.length)throw Error("اختر صلاحية واحدة على الأقل");
+
+ let r=await db.functions.invoke("admin-create-staff",{
+  body:{
+   full_name:v.full_name.trim(),
+   email:v.email.trim(),
+   permissions
+  }
+ });
+ if(r.error)throw r.error;
+ if(r.data?.error)throw Error(r.data.error);
+
+ s.modal=null;
+ await loadUser(s.user);
+ note("تم إرسال دعوة الموظف بنجاح.","success");
+ return;
+
+  }
+  if(f.id==="editStaffForm"){
+ let userId=f.elements.user_id.value;
+ let permissions=Array.from(f.querySelectorAll('input[name="permissions"]:checked')).map(x=>x.value);
+ let isActive=f.elements.is_active.value==="true";
+ let r=await db.rpc("admin_upsert_staff",{
+  p_user_id:userId,
+  p_permissions:permissions,
+  p_is_active:isActive
+ });
+ if(r.error)throw r.error;
+ s.modal=null;
+ await loadUser(s.user);
+ note("تم تحديث صلاحيات الموظف.","success");
+ return;
+  }
   if(f.id==="categoryForm"){let v=vals(f),r=await db.from("categories").insert({name_ar:v.name_ar,name_en:v.name_en||null,slug:v.slug,icon:v.icon||null,is_active:true});if(r.error)throw r.error;s.modal=null;await loadUser(s.user);note("تمت إضافة التصنيف.","success");return}
   if(f.id==="reviewForm"){let v=vals(f),r=await db.from("reviews").insert({request_id:v.request_id,provider_id:v.provider_id,customer_id:s.user.id,rating:Number(v.rating),comment:v.comment||null});if(r.error)throw r.error;s.modal=null;note("تم إرسال تقييمك.","success");return}
   if(f.id==="sendMessage"){let v=vals(f);let r=await db.from("messages").insert({conversation_id:s.activeChat.id,sender_id:s.user.id,message_text:v.message_text.trim()});if(r.error)throw r.error;let q=await db.from("messages").select("id,sender_id,message_text,is_read,created_at").eq("conversation_id",s.activeChat.id).order("created_at");if(q.error)throw q.error;s.messages=q.data||[];render();return}
@@ -192,11 +2481,120 @@ async function submit(e){
 }
 async function action(a,id,b){
  try{
-  if(a==="showauth"){s.mode="login";render();return}if(a==="mode"){s.mode=id;s.notice="";render();return}if(a==="tab"){s.tab=id;render();return}
+  if(a==="showauth"){s.mode="login";render();return}
+if(a==="showexplore"){s.mode="explore";render();return}
+if(a==="showadmin"){s.mode="app";s.tab="home";render();return}
+  if(a==="showadmin"){s.mode="app";s.tab="home";render();return}
+  if(a==="mode"){s.mode=id;s.notice="";render();return}
+if(a==="notifications-open"){s.tab="notifications";render();return}
+if(a==="theme-toggle"){setThemeMode(s.themeMode==="dark"?"light":"dark");render();return}
+if(a==="notification-read-all"){const {error}=await db.from("notifications").update({is_read:true}).eq("user_id",s.user.id).eq("is_read",false);if(error)throw error;s.notifications.forEach(n=>n.is_read=true);render();return}
+if(a==="notification-read"){const {error}=await db.from("notifications").update({is_read:true}).eq("id",id).eq("user_id",s.user.id);if(error)throw error;const n=s.notifications.find(x=>x.id===id);if(n)n.is_read=true;render();return}
+if(a==="tab"){s.tab=id;render();return}
+if(a==="category-open"){s.selectedCategory=id;render();return}
+if(a==="category-back"){s.selectedCategory=null;render();return}
+  if(a==="theme-save-local"){
+ localStorage.setItem("wasla_theme_draft",JSON.stringify({themeDraft:s.themeDraft,themeStyle:s.themeStyle}));
+ note("تم حفظ الثيم على هذا الجهاز.","success");
+ return;
+}
+if(a==="theme-preview"){
+ Object.entries(s.themeDraft).forEach(([key,value])=>document.documentElement.style.setProperty("--"+key,value));
+ note("تمت معاينة الألوان. التغيير حاليًا للمعاينة فقط.","success");
+ return;
+}
+if(a==="theme-reset"){
+ s.themeDraft={bg:"#111111",card:"#1d1d1d",ink:"#f5f1e8",muted:"#aaa18f",line:"#393328",navy:"#171717",navy2:"#29231a",gold:"#d6a642",green:"#16845d",red:"#c44545"};
+ s.themeStyle="auto";
+ Object.entries(s.themeDraft).forEach(([key,value])=>document.documentElement.style.setProperty("--"+key,value));
+ localStorage.setItem("wasla_theme_draft",JSON.stringify({themeDraft:s.themeDraft,themeStyle:s.themeStyle}));
+ render();
+ note("تمت استعادة الألوان الافتراضية وحفظها على هذا الجهاز.","success");
+ return;
+}
+  
+if(a==="theme-suggest"){
+ const palettes={
+  modern:[
+   "#eef5f8","#ffffff","#183447","#607d8b","#d5e2e9",
+   "#167d91","#249bb0","#e6a23c","#238b70","#d65b5b"
+  ],
+  minimal:[
+   "#f5f5f2","#ffffff","#292d32","#777e85","#e1e3e2",
+   "#596b73","#82939a","#b18b62","#56816d","#bd6666"
+  ],
+  luxury:[
+   "#171522","#242033","#f4efff","#b9aecb","#40364f",
+   "#403052","#59416d","#d6b36a","#5b9c83","#d36b78"
+  ],
+  corporate:[
+   "#edf2f7","#ffffff","#1e344d","#65788e","#d7e0e9",
+   "#244d73","#356b9a","#c58b35","#25836a","#c65353"
+  ],
+  nature:[
+   "#eff5ed","#ffffff","#263d2e","#718575","#d9e5d6",
+   "#426b50","#628b68","#c49a54","#31815d","#bd6258"
+  ],
+  tech:[
+   "#101827","#1b2940","#f1f5ff","#aab9d1","#34445f",
+   "#263e68","#385b91","#42c6d9","#27a77c","#e06470"
+  ],
+  auto:[
+ ...[
+  ["#eef5f8","#ffffff","#183447","#607d8b","#d5e2e9","#167d91","#249bb0","#e6a23c","#238b70","#d65b5b"],
+  ["#f5f5f2","#ffffff","#292d32","#777e85","#e1e3e2","#596b73","#82939a","#b18b62","#56816d","#bd6666"],
+  ["#171522","#242033","#f4efff","#b9aecb","#40364f","#403052","#59416d","#d6b36a","#5b9c83","#d36b78"],
+  ["#edf2f7","#ffffff","#1e344d","#65788e","#d7e0e9","#244d73","#356b9a","#c58b35","#25836a","#c65353"],
+  ["#eff5ed","#ffffff","#263d2e","#718575","#d9e5d6","#426b50","#628b68","#c49a54","#31815d","#bd6258"],
+  ["#101827","#1b2940","#f1f5ff","#aab9d1","#34445f","#263e68","#385b91","#42c6d9","#27a77c","#e06470"]
+ ].flat()
+]
+ };
+
+ const keys=["bg","card","ink","muted","line","navy","navy2","gold","green","red"];
+ const style=s.themeStyle||"auto";
+ const source=palettes[style]||palettes.modern;
+ const count=source.length/10;
+ const index=Math.floor(Math.random()*count);
+ const colors=source.slice(index*10,index*10+10);
+
+ s.themeDraft={};
+ keys.forEach((key,i)=>{
+  s.themeDraft[key]=colors[i];
+  document.documentElement.style.setProperty("--"+key,colors[i]);
+ });
+
+ const names={
+  modern:"العصري",
+  minimal:"البسيط والهادئ",
+  luxury:"الفاخر",
+  corporate:"الرسمي والاحترافي",
+  nature:"الطبيعي",
+  tech:"التقني",
+  auto:"التلقائي"
+ };
+
+ note("تم اقتراح لوحة ألوان "+(names[style]||"العصرية")+" متناسقة.","success");
+render();
+ return;
+}
+  
   if(a==="logout"){await db.auth.signOut();s.user=null;s.profile=null;s.provider=null;s.mode="welcome";render();return}
   
 if(a==="forgot"){let email=document.querySelector('#login [name="email"]')?.value;if(!email)throw Error("اكتب بريدك الإلكتروني أولًا");let r=await db.auth.resetPasswordForEmail(email,{redirectTo:location.origin+"/?mode=recovery"});if(r.error)throw r.error;note("تم إرسال رابط استعادة كلمة المرور.","success");return}
-  
+  if(a==="addstaff"){s.modal={type:"addstaff"};render();return}
+  if(a==="editstaff"){s.modal={type:"editstaff",userId:id};render();return}
+if(a==="viewcustomer"){s.modal={type:"customerDetails",userId:id};render();return}
+  if(a==="removestaff"){
+ let x=s.staff.find(y=>y.id===id);
+ if(!x)throw Error("الموظف غير موجود");
+ if(!confirm("هل تريد إزالة "+(x.full_name||"هذا الموظف")+" من الموظفين؟"))return;
+ let r=await db.rpc("admin_remove_staff",{p_user_id:id});
+ if(r.error)throw r.error;
+ await loadUser(s.user);
+ note("تمت إزالة الموظف بنجاح.","success");
+ return;
+  }
   if(a==="request"){if(!s.user){s.mode="login";note("سجّل الدخول أولًا حتى تتمكن من إرسال طلب خدمة.");return}s.modal={type:"request",providerId:s.providers.some(x=>x.id===id)?id:null,serviceId:s.services.some(x=>x.id===id)?id:null};render();return}
   if(["addoffer","addservice","addcategory"].includes(a)){s.modal={type:a==="addoffer"?"offer":a==="addservice"?"service":"category"};render();return}
   if(a==="review"){let q=s.requests.find(x=>x.id===id);if(q){s.modal={type:"review",requestId:q.id,providerId:q.provider_id};render()}return}
@@ -216,23 +2614,51 @@ if(a==="forgot"){let email=document.querySelector('#login [name="email"]')?.valu
 }
 app.addEventListener("click",e=>{let b=e.target.closest("[data-a]");if(!b)return;if(b.dataset.a==="close"&&e.target!==b&&e.target.closest(".modal"))return;action(b.dataset.a,b.dataset.id,b)});
 app.addEventListener("submit",submit);
-app.addEventListener("change",e=>{if(e.target.name==="account_type"){s.type=e.target.value;const extra=document.getElementById("providerExtra");if(extra)extra.classList.toggle("hidden",s.type!=="provider")}});
-app.addEventListener("input",e=>{if(e.target.id==="search"){s.filter=e.target.value;let pos=e.target.selectionStart;render();let n=document.getElementById("search");if(n){n.focus();n.setSelectionRange(pos,pos)}}});
+app.addEventListener("change",e=>{if(e.target.dataset.themeStyle!==undefined){s.themeStyle=e.target.value;action("theme-suggest");return}if(e.target.name==="account_type"){s.type=e.target.value;const extra=document.getElementById("providerExtra");if(extra)extra.classList.toggle("hidden",s.type!=="provider")}});
+app.addEventListener("input",e=>{if(e.target.dataset.themeKey){s.themeDraft[e.target.dataset.themeKey]=e.target.value;return}if(e.target.id==="search"){s.filter=e.target.value;let pos=e.target.selectionStart;render();let n=document.getElementById("search");if(n){n.focus();n.setSelectionRange(pos,pos)}}});
+
 
 async function boot(){
+ const status=t=>{
+  app.innerHTML='<main class="wrap"><div class="empty">'+t+'</div></main>';
+ };
  const recoveryMode=new URLSearchParams(location.search).get("mode")==="recovery"||new URLSearchParams(location.hash.slice(1)).get("type")==="recovery";
  if(recoveryMode)s.mode="recovery";
- await publicData();
- let r=await db.auth.getSession();
+
+
+ try{
+  await Promise.race([
+   publicData(),
+   new Promise((_,reject)=>setTimeout(()=>reject(new Error("timeout")),15000))
+  ]);
+ }catch(e){
+  status("توقف التحميل في المرحلة 1: بيانات الخدمات والتصنيفات.");
+  return;
+ }
+
+ 
+ let r;
+ try{
+  r=await Promise.race([
+   db.auth.getSession(),
+   new Promise((_,reject)=>setTimeout(()=>reject(new Error("timeout")),15000))
+  ]);
+ }catch(e){
+  status("توقف التحميل في المرحلة 2: جلسة تسجيل الدخول.");
+  return;
+ }
+
  if(recoveryMode){
   s.mode="recovery";
   render();
  }else if(r.data.session?.user){
+  
   await loadUser(r.data.session.user);
  }else{
   s.mode="welcome";
   render();
  }
+
  db.auth.onAuthStateChange((event,session)=>{
   if(event==="PASSWORD_RECOVERY"||(recoveryMode&&session?.user)){
    s.mode="recovery";
@@ -248,6 +2674,7 @@ async function boot(){
   }
  });
 }
+
 boot().catch(e=>{console.error(e);app.innerHTML='<main class="wrap">'+empty("تعذّر تحميل المنصة. تحقق من الاتصال ثم أعد المحاولة.")+'</main>'});
 })();
 </script></body></html>
