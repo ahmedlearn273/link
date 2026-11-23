@@ -3200,40 +3200,60 @@ if(f.id==="login"){
 }
   if(f.id==="signup"){
  let v=vals(f);
- if(v.password.length<8)throw Error("كلمة المرور يجب ألا تقل عن 8 أحرف");
-async function boot(){
- const status=t=>{
-  app.innerHTML='<main class="wrap"><div class="empty">'+t+'</div></main>';
+
+ if(v.password.length<8)
+  throw Error("كلمة المرور يجب ألا تقل عن 8 أحرف");
+
+ const geoCountry=s.geo.countries.find(
+  x=>x.id===v.country_id&&x.country_code==="EG"
+ );
+
+ const geoCity=s.geo.cities.find(
+  x=>x.id===v.city_id&&x.country_id===v.country_id
+ );
+
+ const geoArea=s.geo.areas.find(
+  x=>x.id===v.area_id&&x.city_id===v.city_id
+ );
+
+ if(!geoCountry||!geoCity||!geoArea)
+  throw Error("اختر المحافظة والقسم / المركز بشكل صحيح.");
+
+ if(!v.address?.trim())
+  throw Error("اكتب العنوان التفصيلي.");
+
+ const signupData={
+  full_name:v.full_name,
+  phone:v.phone||null,
+  country:geoCountry.name_ar,
+  city:geoCity.name_ar,
+  address:v.address.trim(),
+  country_id:v.country_id,
+  city_id:v.city_id,
+  area_id:v.area_id,
+  birth_date:v.birth_date,
+  adult_confirmation:v.adult_confirmation==="true",
+  account_type:v.account_type,
+  experience_years:v.experience_years||0,
+  bio:v.bio||"",
+  service_area:v.service_area||""
  };
- const recoveryMode=new URLSearchParams(location.search).get("mode")==="recovery"||new URLSearchParams(location.hash.slice(1)).get("type")==="recovery";
- if(recoveryMode)s.mode="recovery";
-
- try{
-  await Promise.race([
-   publicData(),
-   new Promise((_,reject)=>setTimeout(()=>reject(new Error("timeout")),15000))
-  ]);
- }catch(e){
-  status("توقف التحميل في المرحلة 1: بيانات الخدمات والتصنيفات.");
-  return;
- }
-
- try{
-  await loadGeoCatalog();
- }catch(e){
-  console.warn("Geo catalog loading failed:",e);
- }
-
- let r;
- try{
 
  if(v.account_type==="provider"){
-  const {data:tokenData,error:tokenError}=await db.functions.invoke("provider-signup-token",{body:{}});
-if(tokenError)throw tokenError;
-if(!tokenData?.token)throw Error("تعذّر تجهيز تسجيل مزوّد الخدمة. حاول مرة أخرى.");
-signupData.provider_signup_token=tokenData.token;
- } 
- let r=await db.auth.signUp({
+  const {data:tokenData,error:tokenError}=await db.functions.invoke(
+   "provider-signup-token",
+   {body:{}}
+  );
+
+  if(tokenError)throw tokenError;
+
+  if(!tokenData?.token)
+   throw Error("تعذّر تجهيز تسجيل مزوّد الخدمة. حاول مرة أخرى.");
+
+  signupData.provider_signup_token=tokenData.token;
+ }
+
+ const r=await db.auth.signUp({
   email:v.email.trim(),
   password:v.password,
   options:{data:signupData}
@@ -3248,6 +3268,7 @@ signupData.provider_signup_token=tokenData.token;
   s.mode="login";
   note("تم إنشاء الحساب. راجع بريدك لتأكيده ثم سجّل الدخول.","success");
  }
+
  return;
   }
   if(f.id==="requestForm"){let v=vals(f),r=await db.rpc("create_service_request",{p_service_id:v.service_id,p_title:v.title,p_description:v.description||null,p_country:v.country,p_city:v.city,p_address:v.address,p_budget:v.budget?Number(v.budget):null,p_provider_id:v.provider_id||null});if(r.error)throw r.error;s.modal=null;await loadUser(s.user);note("تم إرسال طلب الخدمة.","success");return}
