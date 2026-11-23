@@ -1599,6 +1599,64 @@ button, input, select, textarea,
   color: var(--success) !important;
 }
 
+/* WASLA branded logout confirmation */
+.wasla-logout-backdrop{
+ z-index:1200;
+ background:rgba(7,25,35,.68);
+ backdrop-filter:blur(5px);
+}
+.wasla-logout-dialog{
+ text-align:center;
+ width:min(100%,410px);
+ padding:26px 22px;
+ border-radius:20px;
+}
+.wasla-logout-icon{
+ width:54px;
+ height:54px;
+ margin:0 auto 14px;
+ display:grid;
+ place-items:center;
+ border-radius:17px;
+ background:var(--danger-bg);
+ color:var(--danger);
+ font-size:27px;
+ font-weight:800;
+}
+.wasla-logout-dialog .modal-title h3{
+ margin:0 0 7px;
+ color:var(--text-primary);
+ font:800 21px Tajawal,sans-serif;
+}
+.wasla-logout-dialog .modal-title p{
+ margin:0;
+ color:var(--text-secondary);
+}
+.wasla-logout-actions{
+ justify-content:center;
+ margin-top:22px;
+}
+.wasla-logout-actions .btn{
+ min-width:125px;
+ padding:10px 16px;
+}
+.wasla-logout-actions .btn.danger{
+ background:var(--danger);
+ color:#fff;
+ border-color:var(--danger);
+}
+.wasla-logout-actions .btn:disabled{
+ opacity:.6;
+ cursor:wait;
+}
+@media(max-width:420px){
+ .wasla-logout-dialog{padding:22px 16px}
+ .wasla-logout-actions{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+ }
+}
+ 
 </style>
 </head>
 <body><div id="app"></div>
