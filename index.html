@@ -2168,7 +2168,8 @@ function accountSettingsView(){
   '</div>'+
  '</section>';
       }
-  function customerBottomNav(){
+  
+function customerBottomNav(){
  const items=[
   ["home","⌂","الرئيسية"],
   ["requests","▤","طلباتي"],
@@ -2177,7 +2178,17 @@ function accountSettingsView(){
   ["account","◎","حسابي"]
  ];
 
- return '<nav class="wasla-bottom-nav" aria-label="التنقل الرئيسي">'+
+ return '<style>'+
+  '.wasla-customer-page{padding-bottom:calc(105px + env(safe-area-inset-bottom))!important}'+
+  '.wasla-bottom-nav{position:fixed;z-index:999;bottom:0;left:0;right:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:3px;padding:9px 8px calc(9px + env(safe-area-inset-bottom));background:color-mix(in srgb,var(--bg-surface) 94%,transparent);border-top:1px solid var(--border-color);box-shadow:0 -5px 24px color-mix(in srgb,var(--text-primary) 9%,transparent);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}'+
+  '.wasla-bottom-nav button{min-width:0;min-height:55px;padding:5px 2px;border:0;border-radius:13px;background:transparent;color:var(--text-secondary);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font:600 10px Tajawal;cursor:pointer;transition:background .2s,color .2s,transform .2s}'+
+  '.wasla-bottom-nav button.active{background:color-mix(in srgb,var(--accent) 13%,var(--bg-surface));color:var(--accent);font-weight:800}'+
+  '.wasla-bottom-nav button:active{transform:scale(.94)}'+
+  '.wasla-bottom-icon{font:700 21px Tajawal;line-height:1.1}'+
+  '@media(min-width:900px){.wasla-bottom-nav{left:50%;right:auto;transform:translateX(-50%);width:min(620px,calc(100% - 40px));border:1px solid var(--border-color);border-bottom:0;border-radius:19px 19px 0 0;padding-left:15px;padding-right:15px}}'+
+  '@media(prefers-reduced-motion:reduce){.wasla-bottom-nav *{transition:none!important}}'+
+ '</style>'+
+ '<nav class="wasla-bottom-nav" aria-label="التنقل الرئيسي">'+
   items.map(x=>
    '<button type="button" data-a="tab" data-id="'+x[0]+'" class="'+
    (s.tab===x[0]?"active":"")+'" aria-label="'+x[2]+'">'+
@@ -2186,7 +2197,8 @@ function accountSettingsView(){
    '</button>'
   ).join("")+
  '</nav>';
-  }
+}
+      
       function customer(){
 
  if(s.tab==="home")return landing(true);
