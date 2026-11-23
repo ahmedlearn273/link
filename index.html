@@ -1887,7 +1887,7 @@ function serviceCard(x){
   '</div>'+
  '</article>';
    }   
-function landing(){
+function landing(isCustomer=s.profile?.role==="customer"){
  const selected=s.cats.find(c=>c.id===s.selectedCategory);
  const categories=s.cats.map(c=>
   '<button class="wl-category" data-a="category-open" data-id="'+esc(c.id)+'">'+
