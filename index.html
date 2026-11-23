@@ -1538,7 +1538,7 @@ if(!window.supabase?.createClient){
  return;
 }
 const db=window.supabase.createClient("https://hnnomaiohwyuqpfzlcol.supabase.co","sb_publishable_I4IfNkGvcxDxzz3xdGeKxw_TAzgc3ck");
-const s={user:null,profile:null,provider:null,staffAccess:null,themeDraft:{bg:"#111111",card:"#1d1d1d",ink:"#f5f1e8",muted:"#aaa18f",line:"#393328",navy:"#171717",navy2:"#29231a",gold:"#d6a642",green:"#16845d",red:"#c44545"},themeStyle:"auto",mode:"welcome",type:"customer",tab:"home",cats:[],services:[],providers:[],requests:[],offers:[],apps:[],allRequests:[],adminProfiles:[],staff:[],staffCandidates:[],customers:[],chats:[],messages:[],activeChat:null,notice:"",noticeType:"",modal:null,filter:""};
+const s={user:null,profile:null,provider:null,staffAccess:null,themeDraft:{bg:"#111111",card:"#1d1d1d",ink:"#f5f1e8",muted:"#aaa18f",line:"#393328",navy:"#171717",navy2:"#29231a",gold:"#d6a642",green:"#16845d",red:"#c44545"},themeStyle:"auto",mode:"welcome",type:"customer",tab:"home",cats:[],services:[],providers:[],requests:[],notifications:[],offers:[],apps:[],allRequests:[],adminProfiles:[],staff:[],staffCandidates:[],customers:[],chats:[],messages:[],activeChat:null,notice:"",noticeType:"",modal:null,filter:""};
 
 try{
  const savedTheme=JSON.parse(localStorage.getItem("wasla_theme_draft")||"null");
@@ -1630,6 +1630,7 @@ if(p.role==="staff"){
  if(p.role==="customer"){
   const [r,ch]=await Promise.all([db.from("service_requests").select("*,services(name_ar),provider_profiles(display_name,city)").eq("customer_id",u.id).order("created_at",{ascending:false}),db.from("conversations").select("id,request_id,customer_id,provider_id,last_message_at,service_requests(title)").eq("customer_id",u.id).order("last_message_at",{ascending:false})]);
   s.requests=r.data||[];s.chats=ch.data||[];
+  const {data:n}=await db.from("notifications").select("*").eq("user_id",u.id).order("created_at",{ascending:false}).limit(100);s.notifications=n||[];
  }else if(p.role==="provider"&&pp){
   const [r,o,ch]=await Promise.all([db.from("service_requests").select("*,services(name_ar)").or("provider_id.eq."+pp.id+",provider_id.is.null").order("created_at",{ascending:false}),db.from("provider_services").select("*,services(name_ar)").eq("provider_id",pp.id),db.from("conversations").select("id,request_id,customer_id,provider_id,last_message_at,service_requests(title)").eq("provider_id",pp.id).order("last_message_at",{ascending:false})]);
   s.requests=r.data||[];s.offers=o.data||[];s.chats=ch.data||[];
@@ -1929,6 +1930,7 @@ function customer(){
    '<section class="customer-hero">'+
     '<h1>أهلًا، '+esc(name)+'</h1>'+
     '<p>اكتشف الخدمات المناسبة ليك وابدأ طلبك بسهولة.</p>'+
+    '<button class="btn gold" data-a="tab" data-id="notifications">🔔 الإشعارات</button>'+
     '<div class="customer-search"><input id="search" type="search" placeholder="ابحث عن خدمة أو مقدم خدمة..." value="'+esc(s.filter||"")+'"></div>'+
    '</section>'+
    '<section class="customer-section">'+
@@ -2002,6 +2004,10 @@ function customer(){
    ).join("")||empty("لا يوجد نشاط حتى الآن"))+'</div></section>';
  }
 
+ if(tab==="notifications"){
+  const items=s.notifications||[];
+  body='<section class="customer-section"><h2>الإشعارات</h2><button class="btn gold" data-a="notification-read-all">قراءة الكل</button><div class="list">'+(items.map(n=>'<article class="item"><b>'+esc(n.title||"إشعار")+'</b><p>'+esc(n.body||"")+'</p><p class="small">'+esc(n.created_at?new Date(n.created_at).toLocaleString("ar"):"")+'</p><p class="small">'+(n.is_read?"تمت القراءة":"جديد")+'</p>'+(n.is_read?"":'<button class="btn" data-a="notification-read" data-id="'+esc(n.id)+'">تحديد كمقروء</button>')+'</article>').join("")||empty("لا توجد إشعارات حاليًا"))+'</div></section>';
+ }
  if(tab==="account"){
   const initial=esc((name.trim().charAt(0)||"ع"));
   body='<section class="customer-section">'+
@@ -2461,6 +2467,8 @@ if(a==="showexplore"){s.mode="explore";render();return}
 if(a==="showadmin"){s.mode="app";s.tab="home";render();return}
   if(a==="showadmin"){s.mode="app";s.tab="home";render();return}
   if(a==="mode"){s.mode=id;s.notice="";render();return}
+if(a==="notification-read-all"){const {error}=await db.from("notifications").update({is_read:true}).eq("user_id",s.user.id).eq("is_read",false);if(error)throw error;s.notifications.forEach(n=>n.is_read=true);render();return}
+if(a==="notification-read"){const {error}=await db.from("notifications").update({is_read:true}).eq("id",id).eq("user_id",s.user.id);if(error)throw error;const n=s.notifications.find(x=>x.id===id);if(n)n.is_read=true;render();return}
 if(a==="tab"){s.tab=id;render();return}
 if(a==="category-open"){s.selectedCategory=id;render();return}
 if(a==="category-back"){s.selectedCategory=null;render();return}
