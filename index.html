@@ -3363,6 +3363,42 @@ if(m.type==="requestDetails"){
   :"");
 }
   
+if(m.type==="cancelRequest"){
+
+ const q=s.requests.find(x=>x.id===m.requestId);
+
+ if(!q||q.customer_id!==s.user?.id||
+    !["pending","accepted"].includes(q.status)){
+  throw Error("هذا الطلب لم يعد قابلًا للإلغاء");
+ }
+
+ c=
+ '<div class="wasla-cancel-content">'+
+  '<div class="wasla-cancel-icon" aria-hidden="true">!</div>'+
+  '<div class="modal-title">'+
+   '<h3 id="cancelRequestTitle">تأكيد إلغاء الطلب</h3>'+
+   '<p>هل تريد إلغاء الطلب <b>'+
+    esc(q.title||q.services?.name_ar||"طلب الخدمة")+
+   '</b>؟ الإلغاء نهائي ولا يمكن إعادة فتح الطلب.</p>'+
+  '</div>'+
+
+  '<form id="cancelRequestForm">'+
+   '<label class="field">سبب الإلغاء '+
+    '<span style="color:var(--danger)">*</span>'+
+    '<textarea name="cancel_reason" minlength="5" maxlength="500" required '+
+     'placeholder="اكتب سبب إلغاء الطلب (5 أحرف على الأقل)..."></textarea>'+
+   '</label>'+
+   '<p class="wasla-cancel-hint">'+
+    'سبب الإلغاء إلزامي وسيتم الاحتفاظ به في سجل الطلب.'+
+   '</p>'+
+   '<div class="actions wasla-cancel-actions">'+
+    '<button type="button" class="btn light" data-a="close">رجوع</button>'+
+    '<button type="submit" class="btn danger">تأكيد الإلغاء</button>'+
+   '</div>'+
+  '</form>'+
+ '</div>';
+}
+  
   if(m.type==="customerDetails"){
  const x=s.customers.find(y=>y.id===m.userId);
  if(!x)throw Error("العميل غير موجود");
