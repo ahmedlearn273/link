@@ -3664,7 +3664,6 @@ async function boot(){
  const recoveryMode=new URLSearchParams(location.search).get("mode")==="recovery"||new URLSearchParams(location.hash.slice(1)).get("type")==="recovery";
  if(recoveryMode)s.mode="recovery";
 
-
  try{
   await Promise.race([
    publicData(),
@@ -3675,7 +3674,12 @@ async function boot(){
   return;
  }
 
- 
+ try{
+  await loadGeoCatalog();
+ }catch(e){
+  console.warn("Geo catalog loading failed:",e);
+ }
+
  let r;
  try{
   r=await Promise.race([
