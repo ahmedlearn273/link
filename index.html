@@ -3665,7 +3665,54 @@ if(a==="viewcustomer"){s.modal={type:"customerDetails",userId:id};render();retur
 }
 app.addEventListener("click",e=>{let b=e.target.closest("[data-a]");if(!b)return;if(b.dataset.a==="close"&&e.target!==b&&e.target.closest(".modal"))return;action(b.dataset.a,b.dataset.id,b)});
 app.addEventListener("submit",submit);
-app.addEventListener("change",e=>{if(e.target.name==="account_type"){s.type=e.target.value;const extra=document.getElementById("providerExtra");if(extra)extra.classList.toggle("hidden",s.type!=="provider")}});
+app.addEventListener("change",async e=>{
+ if(e.target.name==="account_type"){
+  s.type=e.target.value;
+  const extra=document.getElementById("providerExtra");
+  if(extra)extra.classList.toggle("hidden",s.type!=="provider");
+ }
+
+ if(e.target.name==="city_id"){
+  const form=e.target.closest("#signup");
+  if(!form)return;
+
+  const citySelect=e.target;
+  const countryId=form.elements.country_id.value;
+  const cityId=citySelect.value;
+  const areaSelect=form.elements.area_id;
+  const areaStatus=form.querySelector("#geoAreaStatus");
+
+  areaSelect.disabled=true;
+  areaSelect.innerHTML='<option value="">'+(cityId?"جاري تحميل الأقسام...":"اختر المحافظة أولاً")+'</option>';
+
+  if(!cityId){
+   s.geo.areas=[];
+   if(areaStatus)areaStatus.textContent="اختر المحافظة أولاً";
+   return;
+  }
+
+  citySelect.disabled=true;
+  if(areaStatus)areaStatus.textContent="جاري تحميل الأقسام...";
+
+  try{
+   await loadGeoCatalog(countryId,cityId);
+
+   const areas=s.geo.areas.filter(x=>x.city_id===cityId);
+
+   areaSelect.innerHTML='<option value="">اختر القسم / المركز</option>'+
+    areas.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.name_ar)+'</option>').join("");
+
+   areaSelect.disabled=areas.length===0;
+   if(areaStatus)areaStatus.textContent=areas.length?"اختر القسم / المركز":"لا توجد أقسام نشطة لهذه المحافظة";
+  }catch(error){
+   console.warn("Geo areas loading failed:",error);
+   areaSelect.innerHTML='<option value="">تعذر تحميل الأقسام</option>';
+   if(areaStatus)areaStatus.textContent="تعذر تحميل الأقسام. حاول اختيار المحافظة مرة أخرى.";
+  }finally{
+   citySelect.disabled=false;
+  }
+ }
+});
 app.addEventListener("input",e=>{if(e.target.id==="search"){s.filter=e.target.value;let pos=e.target.selectionStart;render();let n=document.getElementById("search");if(n){n.focus();n.setSelectionRange(pos,pos)}}});
 async function boot(){
  const status=t=>{
