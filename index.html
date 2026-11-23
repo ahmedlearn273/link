@@ -4349,7 +4349,27 @@ if(a==="viewcustomer"){s.modal={type:"customerDetails",userId:id};render();retur
  return;
   }
   if(a==="chatback"){s.activeChat=null;s.messages=[];render();return}
-  if(a==="cancelrequest"){if(!confirm("هل تريد إلغاء الطلب؟"))return;let r=await db.rpc("cancel_service_request",{p_request_id:id});if(r.error)throw r.error;await loadUser(s.user);note("تم إلغاء الطلب.","success");return}
+  
+if(a==="cancelrequest"){
+
+ if(s.profile?.role!=="customer")return;
+
+ const q=s.requests.find(x=>x.id===id);
+
+ if(!q||q.customer_id!==s.user?.id||
+    !["pending","accepted"].includes(q.status)){
+  throw Error("هذا الطلب لم يعد قابلًا للإلغاء");
+ }
+
+ s.modal={
+  type:"cancelRequest",
+  requestId:id
+ };
+
+ render();
+ return;
+}
+  
   if(a==="claim"){let r=await db.rpc("claim_service_request",{p_request_id:id});if(r.error)throw r.error;await loadUser(s.user);note("تم قبول الطلب وإسناده إليك.","success");return}
   if(a==="advance"){let r=await db.rpc("advance_service_request",{p_request_id:id,p_next_status:b.dataset.next});if(r.error)throw r.error;await loadUser(s.user);note("تم تحديث حالة الطلب.","success");return}
   if(a==="availability"){let r=await db.rpc("toggle_own_provider_availability");if(r.error)throw r.error;await loadUser(s.user);note("تم تحديث التوفر.","success");return}
