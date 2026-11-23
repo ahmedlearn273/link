@@ -4647,6 +4647,31 @@ boot().catch(e=>{console.error(e);app.innerHTML='<main class="wrap">'+empty("ØªØ
   background: var(--primary);
   color: #fff;
 }
+
+/* WASLA immediate feedback and duplicate-submit protection */
+.wasla-action-pending {
+  cursor: wait !important;
+  opacity: .78;
+}
+.wasla-action-pending::after {
+  content: "";
+  display: inline-block;
+  width: .85em;
+  height: .85em;
+  margin-inline-start: 8px;
+  vertical-align: -.1em;
+  border: 2px solid currentColor;
+  border-inline-end-color: transparent;
+  border-radius: 50%;
+  animation: wasla-action-spin .7s linear infinite;
+}
+@keyframes wasla-action-spin {
+  to { transform: rotate(360deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wasla-action-pending::after { animation-duration: 1.8s; }
+}
+
 </style>
 
 <script>
