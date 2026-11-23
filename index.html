@@ -4491,13 +4491,11 @@ waslaPendingObserver.observe(app, {
   subtree: true
 });
 
+
 app.addEventListener("click", async e => {
 
   // إغلاق النافذة عند الضغط على الخلفية خارج محتواها
-  if (
-    s.modal &&
-    e.target.classList.contains("modalback")
-  ) {
+  if (s.modal && e.target.classList.contains("modalback")) {
     s.modal = null;
     render();
     return;
@@ -4506,12 +4504,28 @@ app.addEventListener("click", async e => {
   const button = e.target.closest("[data-a]");
   if (!button) return;
 
-  // إغلاق النافذة عند اختيار إجراء من خارجها
+  // إغلاق النافذة عند اختيار أي إجراء خارجها
   // مثل الرئيسية أو أي تبويب آخر
+  // من غير عمل render قبل تنفيذ الإجراء
   if (s.modal && !button.closest(".modal")) {
     s.modal = null;
-    render();
   }
+
+  const key = waslaActionKey(button);
+
+  if (waslaPendingActions.has(key)) return;
+
+  waslaPendingActions.add(key);
+  waslaSyncPendingUI();
+
+  try {
+    await action(button.dataset.a, button.dataset.id, button);
+  } finally {
+    waslaPendingActions.delete(key);
+    waslaSyncPendingUI();
+  }
+});
+      
 
   if (
     button.dataset.a === "close" &&
