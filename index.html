@@ -3195,6 +3195,97 @@ if(m.type==="knowledgeDocumentView"){
  '</form>'
  :'<p class="muted">لا توجد مستندات معتمدة حاليًا. يجب اعتماد مستند واحد على الأقل أولًا.</p>');
   }
+
+if(m.type==="requestDetails"){
+
+ if(s.profile?.role!=="customer")
+  throw Error("غير مصرح بعرض تفاصيل الطلب");
+
+ const q=s.requests.find(x=>x.id===m.requestId);
+
+ if(!q)
+  throw Error("الطلب غير موجود");
+
+ const title=q.title||q.services?.name_ar||"طلب خدمة";
+
+ const service=q.services?.name_ar||"غير محددة";
+
+ const provider=
+  q.provider_profiles?.display_name||
+  "لم يتم تعيين مقدم خدمة بعد";
+
+ const location=[
+  q.country,
+  q.city,
+  q.address
+ ].filter(Boolean).join("، ");
+
+ const date=q.created_at
+  ?new Date(q.created_at).toLocaleString("ar-EG",{
+    year:"numeric",
+    month:"long",
+    day:"numeric",
+    hour:"2-digit",
+    minute:"2-digit"
+   })
+  :"—";
+
+ c=
+ '<div class="modal-title">'+
+  '<h3>تفاصيل الطلب</h3>'+
+  '<p class="muted">'+esc(title)+'</p>'+
+ '</div>'+
+
+ '<section class="section">'+
+  '<div class="item">'+
+   '<div class="row">'+
+    '<b>حالة الطلب</b>'+
+    tag(q.status)+
+   '</div>'+
+   '<p class="small">تاريخ إنشاء الطلب</p>'+
+   '<p>'+esc(date)+'</p>'+
+  '</div>'+
+ '</section>'+
+
+ '<section class="section">'+
+  '<h4>بيانات الخدمة</h4>'+
+  '<div class="item">'+
+   '<p class="small">اسم الخدمة</p>'+
+   '<b>'+esc(service)+'</b>'+
+   '<p class="small">عنوان الطلب</p>'+
+   '<p>'+esc(title)+'</p>'+
+   '<p class="small">وصف الطلب</p>'+
+   '<p>'+esc(q.description||"لا يوجد وصف إضافي")+'</p>'+
+  '</div>'+
+ '</section>'+
+
+ '<section class="section">'+
+  '<h4>موقع تنفيذ الخدمة</h4>'+
+  '<div class="item">'+
+   '<p>'+esc(location||"لم يتم تحديد الموقع")+'</p>'+
+  '</div>'+
+ '</section>'+
+
+ '<section class="section">'+
+  '<h4>مقدم الخدمة</h4>'+
+  '<div class="item">'+
+   '<b>'+esc(provider)+'</b>'+
+   (q.provider_profiles?.city
+    ?'<p>'+esc(q.provider_profiles.city)+'</p>'
+    :"")+
+  '</div>'+
+ '</section>'+
+
+ (q.budget!==null&&q.budget!==undefined&&q.budget!==""
+  ?'<section class="section">'+
+    '<h4>الميزانية المسجلة</h4>'+
+    '<div class="item">'+
+     '<b>'+fmt(q.budget)+'</b>'+
+    '</div>'+
+   '</section>'
+  :"");
+}
+  
   if(m.type==="customerDetails"){
  const x=s.customers.find(y=>y.id===m.userId);
  if(!x)throw Error("العميل غير موجود");
