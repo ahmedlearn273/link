@@ -2000,8 +2000,13 @@ const query=(s.filter||"").trim().toLowerCase();
  '@media(max-width:380px){.wasla-landing .wl-categories{grid-template-columns:repeat(2,minmax(0,1fr))}.wasla-landing .wl-cards{grid-template-columns:1fr}}'+
  '@media(prefers-reduced-motion:reduce){.wasla-landing *{animation:none!important;transition:none!important}}'+
  '</style>'+
- header(selected?selected.name_ar:"اكتشف الخدمات ومزوّدي الخدمة المعتمدين")+
- '<main class="wrap wasla-landing">'+
+ header(
+ selected?selected.name_ar:"اكتشف الخدمات ومزوّدي الخدمة المعتمدين",
+ "",
+ isCustomer
+)+
+'<main class="wrap wasla-landing '+(isCustomer?"wasla-customer-shell":"")+'">'+
+'<div class="wl-search"><input id="search" type="search" placeholder="ابحث عن خدمة أو تخصص..." value="'+esc(s.filter||"")+'" aria-label="البحث عن الخدمات"></div>'+
  (selected?
   '<div style="margin-bottom:15px">'+btn("category-back","← كل الأقسام","light")+'</div>'+
   '<section class="wl-section"><div class="wl-heading"><h2>خدمات قسم '+esc(selected.name_ar)+'</h2><p>الخدمات المتاحة داخل هذا القسم</p></div><div class="wl-cards">'+services+'</div></section>'
