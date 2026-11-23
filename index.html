@@ -4410,8 +4410,113 @@ if(a==="cancelrequest"){
   if(a==="togglecategory"){let r=await db.rpc("toggle_category_active",{p_category_id:id});if(r.error)throw r.error;await loadUser(s.user);note("تم تحديث التصنيف.","success");return}
  }catch(x){console.error(x);note(x.message||"تعذّر تنفيذ العملية.","error")}
 }
-app.addEventListener("click",e=>{let b=e.target.closest("[data-a]");if(!b)return;if(b.dataset.a==="close"&&e.target!==b&&e.target.closest(".modal"))return;action(b.dataset.a,b.dataset.id,b)});
-app.addEventListener("submit",submit);
+
+const waslaPendingActions = new Set();
+const waslaPendingForms = new Set();
+const waslaOriginalDisabled = new WeakMap();
+
+function waslaActionKey(button) {
+  return [
+    button.dataset.a || "",
+    button.dataset.id || "",
+    button.dataset.next || "",
+    button.dataset.decision || ""
+  ].join("|");
+}
+
+function waslaSetPending(control, pending) {
+  if (pending) {
+    if (!waslaOriginalDisabled.has(control)) {
+      waslaOriginalDisabled.set(control, !!control.disabled);
+    }
+
+    if ("disabled" in control) control.disabled = true;
+
+    control.classList.add("wasla-action-pending");
+    control.setAttribute("aria-busy", "true");
+  } else {
+    if (waslaOriginalDisabled.has(control)) {
+      if ("disabled" in control) {
+        control.disabled = waslaOriginalDisabled.get(control);
+      }
+      waslaOriginalDisabled.delete(control);
+    }
+
+    control.classList.remove("wasla-action-pending");
+    control.removeAttribute("aria-busy");
+  }
+}
+
+function waslaSyncPendingUI() {
+  app.querySelectorAll("[data-a]").forEach(button => {
+    waslaSetPending(
+      button,
+      waslaPendingActions.has(waslaActionKey(button))
+    );
+  });
+
+  app.querySelectorAll("form[id]").forEach(form => {
+    const pending = waslaPendingForms.has(form.id);
+
+    form.querySelectorAll(
+      'button[type="submit"], button:not([type]), input[type="submit"]'
+    ).forEach(control => {
+      waslaSetPending(control, pending);
+    });
+  });
+}
+
+const waslaPendingObserver = new MutationObserver(waslaSyncPendingUI);
+waslaPendingObserver.observe(app, {
+  childList: true,
+  subtree: true
+});
+
+app.addEventListener("click", async e => {
+  const button = e.target.closest("[data-a]");
+  if (!button) return;
+
+  if (
+    button.dataset.a === "close" &&
+    e.target !== button &&
+    e.target.closest(".modal")
+  ) return;
+
+  const key = waslaActionKey(button);
+
+  if (waslaPendingActions.has(key)) return;
+
+  waslaPendingActions.add(key);
+  waslaSyncPendingUI();
+
+  try {
+    await action(button.dataset.a, button.dataset.id, button);
+  } finally {
+    waslaPendingActions.delete(key);
+    waslaSyncPendingUI();
+  }
+});
+
+app.addEventListener("submit", async e => {
+  const form = e.target;
+  if (!form?.id) return;
+
+  if (waslaPendingForms.has(form.id)) {
+    e.preventDefault();
+    return;
+  }
+
+  waslaPendingForms.add(form.id);
+  waslaSyncPendingUI();
+
+  try {
+    await submit(e);
+  } finally {
+    waslaPendingForms.delete(form.id);
+    waslaSyncPendingUI();
+  }
+});
+      
 app.addEventListener("change",async e=>{
  if(e.target.name==="account_type"){
   s.type=e.target.value;
