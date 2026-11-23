@@ -3361,6 +3361,14 @@ if(m.type==="requestDetails"){
     '</div>'+
    '</section>'
   :"");
+(q.status==="cancelled"
+ ?'<section class="section">'+
+   '<h4>سبب الإلغاء</h4>'+
+   '<div class="item"><p>'+
+    esc(q.cancel_reason||"غير مسجل قبل تفعيل إلزام سبب الإلغاء")+
+   '</p></div>'+
+  '</section>'
+ :"")
 }
   
 if(m.type==="cancelRequest"){
