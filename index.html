@@ -1347,11 +1347,189 @@ a:focus-visible{
 
 }
  
+
+/* WASLA CUSTOMER UI - STEP 2 */
+.customer-shell{padding-bottom:100px}
+.customer-hero{padding:20px;margin:14px 0 22px;border-radius:22px;background:linear-gradient(135deg,var(--navy),var(--navy2));color:white}
+.customer-hero h1{font:800 clamp(23px,4vw,32px) Tajawal;margin:0 0 5px}
+.customer-hero p{margin:0;color:#d4e0e7;font-size:13px}
+.customer-search{display:flex;gap:8px;margin-top:16px}
+.customer-search input{min-width:0;flex:1;padding:12px 14px;border:1px solid var(--line);border-radius:13px;background:var(--card);color:var(--ink)}
+.customer-section{margin:25px 0}
+.customer-section-title{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}
+.customer-section-title h2{font:800 20px Tajawal;margin:0;color:var(--ink)}
+.customer-category-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.customer-category{min-height:105px;padding:12px 6px;border:1px solid var(--line);border-radius:15px;background:var(--card);color:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;text-align:center}
+.customer-category .icon{margin:0;width:38px;height:38px}
+.customer-category b{font-size:12px}
+.customer-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.customer-cards>.card{min-width:0}
+.customer-bottom-nav{position:fixed;z-index:8;bottom:0;left:0;right:0;display:grid;grid-template-columns:repeat(4,1fr);gap:5px;padding:9px 10px calc(9px + env(safe-area-inset-bottom));background:var(--card);border-top:1px solid var(--line);box-shadow:0 -5px 20px color-mix(in srgb,var(--ink) 10%,transparent)}
+.customer-bottom-nav button{border:0;background:transparent;color:var(--muted);border-radius:11px;padding:7px 3px;font-size:11px;font-weight:700}
+.customer-bottom-nav button.active{background:var(--line);color:var(--navy2)}
+.customer-profile-card{display:flex;align-items:center;gap:13px;padding:17px}
+.customer-profile-avatar{width:54px;height:54px;border-radius:50%;display:grid;place-items:center;background:var(--line);font:800 22px Tajawal;color:var(--ink)}
+@media(max-width:600px){
+ .customer-category-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+ .customer-cards{gap:9px}
+ .customer-hero{padding:18px}
+}
+@media(max-width:370px){.customer-category-grid,.customer-cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+
+/* WASLA CUSTOMER ACCOUNT - STEP 5 */
+.customer-request-summary{margin:12px 0}
+.customer-request-summary .item{padding:12px;text-align:center}
+.customer-request-summary .item b{font-size:22px;color:var(--navy2)}
+.customer-request-summary .item p{font-size:11px;margin:4px 0 0;color:var(--muted)}
+
+
+/* WASLA CUSTOMER CARDS - STEP 2 */
+.wl-service-image-empty,.card{min-width:0;overflow:hidden;border:1px solid var(--line);border-radius:17px;background:var(--card);color:var(--ink);transition:transform .18s ease,box-shadow .18s ease}
+.wl-service-image-empty img,.card img{max-width:100%;object-fit:cover}
+.wl-service-image-empty h3,.card h3{font-size:15px;line-height:1.5;margin:8px 0;color:var(--ink)}
+.wl-service-image-empty p,.card p{font-size:12px;line-height:1.7;color:var(--muted)}
+.wl-service-image-empty button,.card button{max-width:100%}
+@media(hover:hover){.wl-service-image-empty:hover,.card:hover{transform:translateY(-2px);box-shadow:0 8px 22px color-mix(in srgb,var(--ink) 9%,transparent)}}
+@media(max-width:600px){.wl-service-image-empty,.card{border-radius:14px}}
+
+
+/* WASLA CUSTOMER REQUESTS - STEP 4 */
+.customer-shell .customer-section .list{
+ display:grid;
+ gap:12px;
+}
+.customer-shell .customer-section .list .item{
+ min-width:0;
+ padding:15px;
+ border:1px solid var(--line);
+ border-radius:15px;
+ background:var(--card);
+ color:var(--ink);
+ overflow-wrap:anywhere;
+}
+.customer-shell .customer-section .list .item p{
+ line-height:1.8;
+}
+.customer-shell .customer-request-summary .item{
+ border:1px solid var(--line);
+ border-radius:14px;
+ background:var(--card);
+}
+.customer-shell .customer-section button{
+ touch-action:manipulation;
+}
+@media(max-width:600px){
+ .customer-shell .customer-section .list .item{
+  padding:12px;
+  border-radius:13px;
+ }
+ .customer-shell .customer-request-summary{
+  grid-template-columns:repeat(2,minmax(0,1fr));
+ }
+}
+
+
+/* WASLA CUSTOMER ACTIVITY - STEP 5 */
+.customer-activity-stats .item{padding:15px 10px;border:1px solid var(--line);border-radius:15px;background:var(--card);text-align:center}
+.customer-activity-stats .item b{display:block;color:var(--navy2);font-size:23px}
+.customer-activity-stats .item p{margin:5px 0 0;color:var(--muted);font-size:12px}
+
 </style>
 </head>
 <body><div id="app"></div>
 
- <script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+ <script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js">
+/* WASLA CUSTOMER SEARCH - STEP 4 */
+if(!window.__waslaCustomerSearchBound){
+ window.__waslaCustomerSearchBound=true;
+
+ document.addEventListener("input",function(e){
+  if(!e.target || e.target.id!=="search" || typeof s==="undefined") return;
+  const input=e.target;
+  const value=input.value;
+  const position=input.selectionStart;
+  s.filter=value;
+  render();
+  const next=document.getElementById("search");
+  if(next){
+   next.focus();
+   try{next.setSelectionRange(position,position)}catch(_){}
+  }
+ },true);
+
+ document.addEventListener("click",function(e){
+  const button=e.target.closest('button[data-a="category-open"]');
+  if(!button || typeof s==="undefined") return;
+  const categories=s.categories||s.cats||[];
+  const category=categories.find(c=>String(c.id)===String(button.dataset.id));
+  if(!category) return;
+  e.preventDefault();
+  e.stopPropagation();
+  s.filter=category.name_ar||"";
+  s.tab="home";
+  render();
+ },true);
+}
+
+
+/* WASLA CUSTOMER SMART SEARCH - STEP 3 */
+if(!window.__waslaSmartSearchBound){
+ window.__waslaSmartSearchBound=true;
+
+ function waslaSearchSuggestions(){
+  const input=document.getElementById("search");
+  if(!input || typeof s==="undefined") return;
+
+  input.setAttribute("list","wasla-customer-search-options");
+  let list=document.getElementById("wasla-customer-search-options");
+  if(!list){
+   list=document.createElement("datalist");
+   list.id="wasla-customer-search-options";
+   document.body.appendChild(list);
+  }
+
+  const values=[
+   ...(s.services||[]).flatMap(x=>[x.name_ar,x.name_en]),
+   ...(s.providers||[]).map(x=>x.display_name),
+   ...(s.categories||s.cats||[]).map(x=>x.name_ar)
+  ];
+
+  list.replaceChildren();
+  [...new Set(values.map(x=>String(x||"").trim()).filter(Boolean))]
+   .slice(0,60)
+   .forEach(value=>{
+    const option=document.createElement("option");
+    option.value=value;
+    list.appendChild(option);
+   });
+ }
+
+ document.addEventListener("focusin",function(e){
+  if(e.target && e.target.id==="search") waslaSearchSuggestions();
+ });
+
+ document.addEventListener("keydown",function(e){
+  if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==="k"){
+   const input=document.getElementById("search");
+   if(input){
+    e.preventDefault();
+    input.focus();
+   }
+  }
+
+  if(e.key==="Escape"){
+   const input=document.getElementById("search");
+   if(input && document.activeElement===input && input.value){
+    e.preventDefault();
+    input.value="";
+    input.dispatchEvent(new Event("input",{bubbles:true}));
+   }
+  }
+ });
+}
+
+</script>
 <script>
 (()=>{"use strict";
 const app=document.getElementById("app");
@@ -1731,15 +1909,127 @@ const query=(s.filter||"").trim().toLowerCase();
  }).join("")||empty("لا توجد طلبات حتى الآن");
 }
 function customer(){
+ const profile=s.profile||{};
+ const name=profile.full_name||"عميل وصلة";
+ const tab=s.tab||"home";
  let body="";
- if(s.tab==="home")body='<section class="section"><h2>التصنيفات</h2><div class="grid small">'+s.cats.map(c=>'<div class="card"><div class="icon">'+esc(c.icon||"✦")+'</div><b>'+esc(c.name_ar)+'</b></div>').join("")+'</div></section><section class="section"><div class="sectionhead"><h2>الخدمات</h2><input id="search" placeholder="ابحث عن خدمة" value="'+esc(s.filter)+'"></div><div class="grid">'+(s.services.filter(x=>{let q=(s.filter||"").trim().toLowerCase();return !q||[x.name_ar,x.name_en,x.description].some(v=>String(v||"").toLowerCase().includes(q))}).map(serviceCard).join("")||empty("لا توجد خدمات مطابقة لبحثك"))+'</div></section><section class="section"><h2>مزوّدو الخدمة المعتمدون</h2><div class="grid">'+(s.providers.map(providerCard).join("")||empty("لا يوجد مزوّدون معتمدون بعد"))+'</div></section>';
- if(s.tab==="messages")body=chatContent();
- if(s.tab==="requests")body='<section class="section"><div class="sectionhead"><h2>طلباتي</h2>'+btn("request","طلب جديد","gold")+'</div><div class="list">'+(s.requests.map(q=>'<article class="item"><div class="row"><b>'+esc(q.title||q.services?.name_ar||"طلب")+'</b>'+tag(q.status)+'</div><p>'+esc(q.city||"")+' · '+esc(q.provider_profiles?.display_name||"بانتظار مزوّد")+'</p><p>'+esc(q.description||"")+'</p><div class="actions">'+(["pending","accepted"].includes(q.status)?btn("cancelrequest","إلغاء","danger",q.id):"")+(q.status==="completed"&&q.provider_id?btn("review","تقييم الخدمة","light",q.id):"")+(q.provider_id&&["accepted","in_progress"].includes(q.status)?btn("chat","محادثة","light",q.id):"")+'</div></article>').join("")||empty("لا توجد طلبات حتى الآن"))+'</div></section>';
 
-const nav=[["home","الرئيسية"],["requests","طلباتي"],["messages","الرسائل"]].map(x=>'<button data-a="tab" data-id="'+x[0]+'" class="'+(s.tab===x[0]?"active":"")+'">'+x[1]+'</button>').join("")+'<button data-a="showexplore">الصفحة الرئيسية</button>';
- 
- return header("أهلًا "+(s.profile.full_name||"بك"),nav)+'<main class="wrap">'+msg()+'<div class="sectionhead"><h2>حساب العميل</h2><span class="tag">عميل</span></div>'+body+'</main>';
+ if(tab==="home"){
+  const query=(s.filter||"").trim().toLowerCase();
+  const categories=s.categories||s.cats||[];
+  const services=(s.services||[]).filter(x=>
+   !query||[x.name_ar,x.name_en,x.description].some(v=>String(v||"").toLowerCase().includes(query))
+  );
+  const providers=(s.providers||[]).filter(x=>
+   !query||[x.display_name,x.bio,x.city].some(v=>String(v||"").toLowerCase().includes(query))||
+   (x.provider_services||[]).some(v=>String(v.services?.name_ar||"").toLowerCase().includes(query))
+  ).sort((a,b)=>Number(b.average_rating||0)-Number(a.average_rating||0));
+
+  body=
+   '<section class="customer-hero">'+
+    '<h1>أهلًا، '+esc(name)+'</h1>'+
+    '<p>اكتشف الخدمات المناسبة ليك وابدأ طلبك بسهولة.</p>'+
+    '<div class="customer-search"><input id="search" type="search" placeholder="ابحث عن خدمة أو مقدم خدمة..." value="'+esc(s.filter||"")+'"></div>'+
+   '</section>'+
+   '<section class="customer-section">'+
+    '<div class="customer-section-title"><h2>التصنيفات</h2></div>'+
+    '<div class="customer-category-grid">'+
+     (categories.map(c=>'<button class="customer-category" data-a="category-open" data-id="'+esc(c.id)+'"><span class="icon">'+esc(c.icon||"✦")+'</span><b>'+esc(c.name_ar)+'</b></button>').join("")||empty("لا توجد تصنيفات متاحة حاليًا"))+
+    '</div>'+
+   '</section>'+
+   '<section class="customer-section">'+
+    '<div class="customer-section-title"><h2>الخدمات المختارة</h2></div>'+
+    '<div class="customer-cards">'+(services.slice(0,8).map(serviceCard).join("")||empty("لا توجد خدمات مطابقة حاليًا"))+'</div>'+
+   '</section>'+
+   '<section class="customer-section">'+
+    '<div class="customer-section-title"><h2>مقدمو الخدمة المميزون</h2></div>'+
+    '<div class="customer-cards">'+(providers.slice(0,6).map(providerCard).join("")||empty("لا يوجد مقدمو خدمة متاحون حاليًا"))+'</div>'+
+   '</section>';
+ }
+
+ if(tab==="requests"){
+  const mine=s.requests||[];
+  const counts={
+   pending:mine.filter(x=>x.status==="pending").length,
+   accepted:mine.filter(x=>x.status==="accepted").length,
+   in_progress:mine.filter(x=>x.status==="in_progress").length,
+   completed:mine.filter(x=>x.status==="completed").length,
+   cancelled:mine.filter(x=>x.status==="cancelled").length
+  };
+  body='<section class="customer-section">'+
+   '<div class="customer-section-title"><h2>طلباتي</h2>'+btn("request","طلب جديد","gold")+'</div>'+
+   '<div class="customer-cards customer-request-summary">'+
+    '<article class="item"><b>'+counts.pending+'</b><p>طلبات جديدة</p></article>'+
+    '<article class="item"><b>'+counts.accepted+'</b><p>تم قبولها</p></article>'+
+    '<article class="item"><b>'+counts.in_progress+'</b><p>قيد التنفيذ</p></article>'+
+    '<article class="item"><b>'+counts.completed+'</b><p>مكتملة</p></article>'+
+    '<article class="item"><b>'+counts.cancelled+'</b><p>ملغاة</p></article>'+
+   '</div>'+
+   '<div class="list" style="margin-top:14px">'+requestList(false)+'</div>'+
+  '</section>';
+ }
+
+ if(tab==="messages"){
+  body=chatContent();
+ }
+
+
+ if(tab==="activity"){
+  const requests=s.requests||[];
+  const counts={
+   all:requests.length,
+   active:requests.filter(x=>x.status==="in_progress").length,
+   completed:requests.filter(x=>x.status==="completed").length,
+   cancelled:requests.filter(x=>x.status==="cancelled").length
+  };
+  const labels={pending:"طلب جديد",accepted:"مقبول",in_progress:"قيد التنفيذ",completed:"مكتمل",cancelled:"ملغي"};
+  const recent=[...requests].sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0)).slice(0,8);
+  body='<section class="customer-section">'+
+   '<div class="customer-section-title"><h2>نشاطي</h2></div>'+
+   '<div class="customer-cards customer-activity-stats">'+
+    '<article class="item"><b>'+counts.all+'</b><p>إجمالي الطلبات</p></article>'+
+    '<article class="item"><b>'+counts.active+'</b><p>قيد التنفيذ</p></article>'+
+    '<article class="item"><b>'+counts.completed+'</b><p>مكتملة</p></article>'+
+    '<article class="item"><b>'+counts.cancelled+'</b><p>ملغاة</p></article>'+
+   '</div>'+
+   '<h2 style="margin-top:22px">أحدث نشاط الطلبات</h2>'+
+   '<div class="list">'+(recent.map(r=>
+    '<article class="item"><b>'+esc(r.title||"طلب خدمة")+'</b>'+
+    '<p>رقم الطلب: '+esc(r.id||"—")+'</p>'+
+    '<p>الحالة: '+esc(labels[r.status]||r.status||"غير محددة")+'</p>'+
+    '<p>التاريخ: '+esc(r.created_at?new Date(r.created_at).toLocaleDateString("ar"):"—")+'</p>'+
+    '<button data-a="tab" data-id="requests">عرض الطلبات</button></article>'
+   ).join("")||empty("لا يوجد نشاط حتى الآن"))+'</div></section>';
+ }
+
+ if(tab==="account"){
+  const initial=esc((name.trim().charAt(0)||"ع"));
+  body='<section class="customer-section">'+
+   '<button class="item" data-a="tab" data-id="activity" style="width:100%;text-align:start"><b>نشاطي</b><p class="small">تابع سجل طلباتك ونشاطك داخل وصلة</p></button>'+'<div class="card customer-profile-card">'+
+    (profile.avatar_url?'<img class="customer-profile-avatar" src="'+esc(profile.avatar_url)+'" alt="صورة العميل" style="object-fit:cover">':'<div class="customer-profile-avatar">'+initial+'</div>')+
+    '<div><h2 style="margin:0 0 4px">'+esc(name)+'</h2><p class="small" style="margin:0">'+esc(profile.phone||profile.email||"حساب عميل")+'</p></div>'+
+   '</div>'+
+   '<div class="list" style="margin-top:14px">'+
+    '<article class="item"><b>بيانات الحساب</b><p>الاسم: '+esc(name)+'</p><p>الهاتف: '+esc(profile.phone||"غير مسجل")+'</p><p>البريد: '+esc(s.user?.email||"غير متاح")+'</p></article>'+
+    '<article class="item"><b>العنوان المسجل</b><p>'+esc([profile.address,profile.city,profile.country].filter(Boolean).join("، ")||"لم يتم تسجيل عنوان بعد")+'</p></article>'+
+    '<article class="item"><b>الدعم والمساعدة</b><p class="small">يمكنك التواصل مع إدارة وصلة من قنوات الدعم المتاحة.</p></article>'+
+   '</div>'+
+   '<div style="margin-top:16px">'+btn("logout","تسجيل الخروج","danger")+'</div>'+
+  '</section>';
+ }
+
+ const nav=[
+  ["home","الرئيسية"],
+  ["requests","طلباتي"],
+  ["messages","الرسائل"],
+  ["account","حسابي"]
+ ].map(x=>'<button data-a="tab" data-id="'+x[0]+'" class="'+(tab===x[0]?"active":"")+'">'+x[1]+'</button>').join("");
+
+ return header("حساب العميل")+
+  '<main class="wrap customer-shell">'+msg()+body+'</main>'+
+  '<nav class="customer-bottom-nav" aria-label="تنقل العميل">'+nav+'</nav>';
 }
+
 function provider(){
  let body="";
  if(s.tab==="messages")body=chatContent();
