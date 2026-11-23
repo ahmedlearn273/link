@@ -3858,7 +3858,28 @@ if(a==="tab"){
  if(id==="knowledge")loadPrimeKnowledge();
  return;
 }
-if(a==="knowledge-resume-release"){
+
+if(a==="request-filter"){
+
+ if(s.profile?.role!=="customer")return;
+
+ if(![
+  "all",
+  "pending",
+  "accepted",
+  "in_progress",
+  "completed",
+  "cancelled"
+ ].includes(id))return;
+
+ s.requestFilter=id;
+
+ render();
+
+ return;
+}
+  
+  if(a==="knowledge-resume-release"){
  if(s.profile?.role!=="owner")return;
 
  if(!confirm("هل تريد استكمال تجهيز مسودة الإصدار؟ سيتم التحقق من المستندات وإعادة استخدام الأجزاء المحفوظة دون تكرارها."))return;
