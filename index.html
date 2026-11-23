@@ -2147,11 +2147,9 @@ function accountSettingsView(){
  '</form>'+
   '</section>'+
  '</div>'+
- (p.role==="customer"?
   '<div class="actions" style="margin:18px 0 10px">'+
-   btn("logout","تسجيل الخروج","danger")+
-  '</div>'
-  :"")+
+  btn("logout","تسجيل الخروج","danger")+
+ '</div>'+
  '</section>'+
  '</main>'+
  (p.role==="customer"?customerBottomNav():"");
