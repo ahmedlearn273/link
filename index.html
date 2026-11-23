@@ -1846,7 +1846,8 @@ function serviceCard(x){
   '</div>'+
  '</article>';
 }
-   function providerCard(p){
+   
+function providerCard(p){
  const names=(p.provider_services||[])
   .filter(x=>x.is_active)
   .map(x=>x.services?.name_ar)
@@ -1861,15 +1862,15 @@ function serviceCard(x){
   '<div class="wl-provider-cover">'+
    '<div class="wl-provider-orbit"></div>'+
    '<div class="wl-provider-avatar">'+initial+'</div>'+
-   '<span class="wl-provider-verified">✓ مزوّد معتمد</span>'+
   '</div>'+
   '<div class="wl-provider-info">'+
    '<div class="wl-provider-name-row">'+
     '<h3>'+esc(p.display_name||"مزوّد خدمة")+'</h3>'+
-    '<span class="wl-provider-status '+(available?'is-available':'is-busy')+'">'+
-     (available?'متاح الآن':'غير متاح')+
-    '</span>'+
+    '<span class="wl-provider-verified">✓ موثّق</span>'+
    '</div>'+
+   '<div class="wl-provider-status-row"><span class="wl-provider-status '+(available?'is-available':'is-busy')+'">'+
+     (available?'متاح الآن':'غير متاح')+
+    '</span></div>'+
    '<p class="wl-provider-location">'+
     '⌖ '+esc([p.city,p.country].filter(Boolean).join("، ")||"مصر")+
    '</p>'+
@@ -1886,7 +1887,8 @@ function serviceCard(x){
    '</div>'+
   '</div>'+
  '</article>';
-   }   
+}
+      
 function landing(isCustomer=s.profile?.role==="customer"){
  const selected=s.cats.find(c=>c.id===s.selectedCategory);
  const categories=s.cats.map(c=>
