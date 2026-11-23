@@ -1640,8 +1640,8 @@ function note(x,t){
 }
 function tag(x){let a={pending:["قيد المراجعة","wait"],accepted:["مقبول","ok"],in_progress:["قيد التنفيذ","wait"],completed:["مكتمل","ok"],cancelled:["ملغي","bad"],approved:["موثّق","ok"],rejected:["مرفوض","bad"]}[x]||[x||"—",""];return '<span class="tag '+a[1]+'">'+a[0]+'</span>'}
 
-function header(sub,nav){
- const accountNav=s.user?
+function header(sub,nav,hideAccountNav=false){
+ const accountNav=(!hideAccountNav&&s.user)?
   '<button data-a="tab" data-id="account" class="'+
   (s.tab==="account"?"active":"")+
   '">إعدادات الحساب</button>':
