@@ -2085,11 +2085,12 @@ function accountSettingsView(){
   '<circle cx="55" cy="15" r="5" fill="#D6A642"/>'+
   '</svg>';
 
- return header(
+  return header(
   "إعدادات الحساب",
-  '<button data-a="tab" data-id="home">العودة إلى الحساب</button>'
+  p.role==="customer"?"":'<button data-a="tab" data-id="home">العودة إلى الحساب</button>',
+  p.role==="customer"
  )+
- '<main class="wrap">'+msg()+
+ '<main class="wrap '+(p.role==="customer"?"wasla-customer-page":"")+'">'+msg()+
  '<section class="section">'+
  '<div class="card">'+
  '<div class="sectionhead"><div>'+
@@ -2142,7 +2143,8 @@ function accountSettingsView(){
  '</section>'+
  '</div>'+
  '</section>'+
- '</main>';
+ '</main>'+
+ (p.role==="customer"?customerBottomNav():"");
 }
       function assistantView(){
  return '<section class="section">'+
