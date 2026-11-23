@@ -3831,7 +3831,35 @@ if(f.id==="login"){
  return;
   }
   if(f.id==="requestForm"){let v=vals(f),r=await db.rpc("create_service_request",{p_service_id:v.service_id,p_title:v.title,p_description:v.description||null,p_country:v.country,p_city:v.city,p_address:v.address,p_budget:v.budget?Number(v.budget):null,p_provider_id:v.provider_id||null});if(r.error)throw r.error;s.modal=null;await loadUser(s.user);note("تم إرسال طلب الخدمة.","success");return}
-  if(f.id==="offerForm"){let v=vals(f),r=await db.rpc("add_own_provider_service",{p_service_id:v.service_id,p_price:Number(v.price),p_currency:v.currency,p_price_type:v.price_type});if(r.error)throw r.error;s.modal=null;await loadUser(s.user);note("تمت إضافة الخدمة.","success");return}
+ 
+if(f.id==="cancelRequestForm"){
+
+ if(s.profile?.role!=="customer"||
+    s.modal?.type!=="cancelRequest"){
+  throw Error("غير مصرح بتنفيذ إلغاء الطلب");
+ }
+
+ const reason=(vals(f).cancel_reason||"").trim();
+
+ if(reason.length<5||reason.length>500){
+  throw Error("سبب الإلغاء إلزامي ويجب أن يكون من 5 إلى 500 حرف");
+ }
+
+ const result=await db.rpc("cancel_service_request",{
+  p_request_id:s.modal.requestId,
+  p_cancel_reason:reason
+ });
+
+ if(result.error)throw result.error;
+
+ s.modal=null;
+ await loadUser(s.user);
+
+ note("تم إلغاء الطلب وحفظ سبب الإلغاء في سجله.","success");
+ return;
+}
+ 
+ if(f.id==="offerForm"){let v=vals(f),r=await db.rpc("add_own_provider_service",{p_service_id:v.service_id,p_price:Number(v.price),p_currency:v.currency,p_price_type:v.price_type});if(r.error)throw r.error;s.modal=null;await loadUser(s.user);note("تمت إضافة الخدمة.","success");return}
   if(f.id==="serviceForm"){let v=vals(f),r=await db.rpc("admin_create_service",{p_category_id:v.category_id,p_name_ar:v.name_ar,p_name_en:v.name_en||null,p_description:v.description||null});if(r.error)throw r.error;s.modal=null;await loadUser(s.user);note("تمت إضافة الخدمة.","success");return}
   
 
