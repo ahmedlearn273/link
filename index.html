@@ -1775,6 +1775,52 @@ button, input, select, textarea,
   margin:6px 0 0;
  }
 }
+
+/* WASLA - Login password visibility */
+.wasla-password-wrap {
+  position: relative;
+}
+
+.wasla-password-wrap input {
+  padding-left: 76px !important;
+}
+
+.wasla-password-toggle {
+  position: absolute;
+  left: 9px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 0;
+  background: transparent;
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 7px;
+  border-radius: 7px;
+}
+
+.wasla-password-toggle:hover {
+  background: var(--bg-subtle);
+  color: var(--text-primary);
+}
+
+.wasla-remember-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 0 16px;
+  color: var(--text-primary);
+  font-size: 13px;
+}
+
+.wasla-remember-row input {
+  width: 17px;
+  height: 17px;
+  accent-color: var(--primary);
+  margin: 0;
+}
   
  </style>
 </head>
