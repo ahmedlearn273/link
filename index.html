@@ -2032,7 +2032,8 @@ const query=(s.filter||"").trim().toLowerCase();
   '<section class="wl-section"><div class="wl-heading"><h2>مزوّدو الخدمة المميزون</h2><p>الأعلى تقييمًا من المزوّدين المعتمدين</p></div><div class="wl-cards">'+providers+'</div></section>'+
   '<section class="wl-bottom"><h2>جاهز تبدأ مع وصلة؟</h2><p>أنشئ حسابك واكتشف الخدمات المناسبة ليك.</p>'+btn("showauth","انضم إلى وصلة","gold")+'</section>'
  )+
- '</main>';
+  '</main>'+
+(isCustomer?customerBottomNav():"");
 }
 
       function welcomeView(){
