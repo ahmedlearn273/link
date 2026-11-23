@@ -4080,6 +4080,23 @@ if(a==="viewcustomer"){s.modal={type:"customerDetails",userId:id};render();retur
   }
   if(a==="request"){if(!s.user){s.mode="login";note("سجّل الدخول أولًا حتى تتمكن من إرسال طلب خدمة.");return}s.modal={type:"request",providerId:s.providers.some(x=>x.id===id)?id:null,serviceId:s.services.some(x=>x.id===id)?id:null};render();return}
   if(["addoffer","addservice","addcategory"].includes(a)){s.modal={type:a==="addoffer"?"offer":a==="addservice"?"service":"category"};render();return}
+ if(a==="request-details"){
+
+ if(s.profile?.role!=="customer")return;
+
+ const request=s.requests.find(x=>x.id===id);
+
+ if(!request)
+  throw Error("الطلب غير موجود");
+
+ s.modal={
+  type:"requestDetails",
+  requestId:id
+ };
+
+ render();
+ return;
+ }
   if(a==="review"){let q=s.requests.find(x=>x.id===id);if(q){s.modal={type:"review",requestId:q.id,providerId:q.provider_id};render()}return}
   if(a==="close"){s.modal=null;render();return}
   if(a==="chat"){await openChatForRequest(id);return}
