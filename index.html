@@ -5491,7 +5491,7 @@ app.addEventListener("change",async e=>{
 let chatAttachmentPreviewUrl=null;
 
 app.addEventListener("change",e=>{
- if(e.target.id!=="chatMediaInput")return;
+ if(e.target.id!=="chatMediaInput"&&e.target.id!=="chatCameraInput")return;
 
  const file=e.target.files?.[0]||null;
  s.chatAttachment=file;
