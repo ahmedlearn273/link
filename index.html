@@ -5510,7 +5510,8 @@ const preview=document.createElement("div");
  if(!file){
   s.chatAttachment=null;
   s.chatMediaDurationSeconds=null;
-  preview?.remove();
+  previewContainer.replaceChildren();
+previewContainer.style.display="none";
   return;
  }
 
@@ -5518,7 +5519,8 @@ const preview=document.createElement("div");
   s.chatAttachment=null;
   s.chatMediaDurationSeconds=null;
   e.target.value="";
-  preview?.remove();
+  previewContainer.replaceChildren();
+previewContainer.style.display="none";
   note("حجم الملف غير صالح أو أكبر من الحد المسموح (50 ميجابايت).","error");
   return;
  }
@@ -5531,7 +5533,8 @@ if(!isVoiceMessage&&
   s.chatAttachment=null;
   s.chatMediaDurationSeconds=null;
   e.target.value="";
-  preview?.remove();
+  previewContainer.replaceChildren();
+previewContainer.style.display="none";
   note("نوع الملف غير مدعوم.","error");
   return;
  }
@@ -5540,7 +5543,8 @@ if(!isVoiceMessage&&
   s.chatMediaDurationSeconds=null;
  }
 
- preview?.remove();
+previewContainer.replaceChildren();
+previewContainer.style.display="none";
 
  
 preview.style.cssText=
