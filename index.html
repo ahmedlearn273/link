@@ -2912,6 +2912,7 @@ s.chatPeerProfile = peerResult.data?.[0] || null;
  .order("created_at");
 if(r.error)throw r.error;
 s.messages=r.data||[];
+await loadChatMediaUrls(s.messages);
 if(["customer","provider"].includes(s.profile?.role)){
  const readResult=await db.rpc("mark_conversation_messages_read",{
   p_conversation_id:c.id
