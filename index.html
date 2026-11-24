@@ -4883,7 +4883,64 @@ app.addEventListener("change",async e=>{
   }
  }
 });
-app.addEventListener("input",e=>{if(e.target.id==="search"){s.filter=e.target.value;let pos=e.target.selectionStart;render();let n=document.getElementById("search");if(n){n.focus();n.setSelectionRange(pos,pos)}}});
+app.addEventListener("change",e=>{
+ if(e.target.id!=="chatMediaInput")return;
+
+ const file=e.target.files?.[0]||null;
+ s.chatAttachment=file;
+
+ const form=e.target.closest("#sendMessage");
+ if(!form)return;
+
+ let preview=form.querySelector("#chatAttachmentPreview");
+
+ if(!file){
+  preview?.remove();
+  return;
+ }
+
+ if(file.size>50*1024*1024){
+  s.chatAttachment=null;
+  e.target.value="";
+  preview?.remove();
+  note("حجم الملف أكبر من الحد المسموح (50 ميجابايت).","error");
+  return;
+ }
+
+ if(!file.type.startsWith("image/")&&
+    !file.type.startsWith("video/")&&
+    !file.type.startsWith("audio/")){
+  s.chatAttachment=null;
+  e.target.value="";
+  preview?.remove();
+  note("نوع الملف غير مدعوم.","error");
+  return;
+ }
+
+ if(preview)preview.remove();
+
+ preview=document.createElement("div");
+ preview.id="chatAttachmentPreview";
+ preview.style.cssText="margin-top:12px;padding:10px 12px;border:1px solid var(--border-color);border-radius:12px;display:flex;align-items:center;justify-content:space-between;gap:10px";
+
+ const info=document.createElement("div");
+ info.style.cssText="min-width:0;overflow-wrap:anywhere";
+ info.textContent="📎 "+file.name+" · "+(file.size/1024/1024).toFixed(2)+" MB";
+
+ const remove=document.createElement("button");
+ remove.type="button";
+ remove.className="btn light";
+ remove.textContent="إزالة";
+ remove.addEventListener("click",()=>{
+  s.chatAttachment=null;
+  e.target.value="";
+  preview.remove();
+ });
+
+ preview.append(info,remove);
+ form.append(preview);
+});
+      app.addEventListener("input",e=>{if(e.target.id==="search"){s.filter=e.target.value;let pos=e.target.selectionStart;render();let n=document.getElementById("search");if(n){n.focus();n.setSelectionRange(pos,pos)}}});
 async function boot(){
  const status=t=>{
   app.innerHTML='<main class="wrap"><div class="empty">'+t+'</div></main>';
