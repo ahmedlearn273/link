@@ -2767,10 +2767,41 @@ function chatContent(){
   .find(r=>r.id===s.activeChat.request_id);
 
  const chatClosed=["completed","cancelled","canceled"].includes(activeRequest?.status);
-  return '<section class="section">'+
-   '<div class="sectionhead"><div><h2>المحادثة</h2>'+
-   '<p class="small">'+(isAdmin?"عرض إداري للمحادثة":"تابع الرسائل وتواصل مع الطرف الآخر")+
-   '</p></div>'+btn("chatback","رجوع","light")+'</div>'+
+  const requestTitle=
+ activeRequest?.title||
+ s.activeChat.service_requests?.title||
+ "طلب خدمة";
+
+const requestRef=s.activeChat.request_id
+ ?String(s.activeChat.request_id).slice(0,8).toUpperCase()
+ :"";
+
+const customerName=
+ s.adminProfiles?.find(x=>x.id===s.activeChat.customer_id)?.full_name||
+ "العميل";
+
+const providerName=
+ s.providers?.find(x=>x.user_id===s.activeChat.provider_id)?.display_name||
+ "مزوّد الخدمة";
+
+const peerName=isAdmin
+ ?customerName+" — "+providerName
+ :(s.chatPeerProfile?.full_name||
+   (s.profile?.role==="customer"?providerName:customerName));
+
+return '<section class="section">'+
+ '<div class="item" style="margin-bottom:14px;padding:15px;border:1px solid var(--border-color);border-radius:16px;background:var(--bg-subtle)">'+
+  '<div class="sectionhead" style="margin:0;align-items:center">'+
+   '<div style="min-width:0">'+
+    '<h2 style="margin:0">'+esc(peerName)+'</h2>'+
+    '<p class="small" style="margin:6px 0 0">'+esc(requestTitle)+'</p>'+
+    (requestRef
+     ?'<p class="small muted" style="margin:5px 0 0">مرجع الطلب: '+esc(requestRef)+'</p>'
+     :'')+
+   '</div>'+
+   btn("chatback","رجوع","light")+
+  '</div>'+
+ '</div>'+
 '<div class="list" style="gap:12px">'+
 (s.messages.map(m=>{
  const own=m.sender_id===s.user.id;
