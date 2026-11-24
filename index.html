@@ -2827,7 +2827,12 @@ async function openChatForRequest(requestId){
  let c=s.chats.find(x=>x.request_id===requestId);
  if(!c){if(s.profile.role!=="customer")throw Error("يجب أن يبدأ العميل المحادثة أولًا");const q=s.requests.find(x=>x.id===requestId);if(!q||!q.provider_id||!["accepted","in_progress"].includes(q.status))throw Error("المحادثة متاحة بعد قبول الطلب");const r=await db.from("conversations").insert({request_id:q.id,customer_id:s.user.id,provider_id:q.provider_id}).select("id,request_id,customer_id,provider_id,last_message_at").single();if(r.error)throw r.error;c=r.data;s.chats.unshift(c)}
  s.activeChat=c;
-const r=await db.from("messages").select("id,sender_id,message_text,is_read,created_at").eq("conversation_id",c.id).order("created_at");
+const peerResult = await db.rpc("get_conversation_peer_profile", {
+  p_conversation_id: c.id
+});
+if (peerResult.error) throw peerResult.error;
+s.chatPeerProfile = peerResult.data?.[0] || null;
+ const r=await db.from("messages").select("id,sender_id,message_text,is_read,created_at").eq("conversation_id",c.id).order("created_at");
 if(r.error)throw r.error;
 s.messages=r.data||[];
 await auditEvent("CONVERSATION_VIEWED","conversations",c.id,"success",{
