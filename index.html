@@ -5544,8 +5544,7 @@ app.addEventListener("dragover",e=>{
  if(!zone)return;
 
  e.preventDefault();
- zone.style.borderColor="var(--gold)";
- zone.style.background="var(--bg-subtle)";
+ zone.classList.add("is-dragging");
 });
 
 app.addEventListener("dragleave",e=>{
