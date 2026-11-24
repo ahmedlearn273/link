@@ -4211,17 +4211,74 @@ let r=await db.functions.invoke("admin-create-staff",{
 if(f.id==="sendMessage"){
  const v=vals(f);
  const messageText=(v.message_text||"").trim();
+ const file=s.chatAttachment;
 
- if(!messageText)throw Error("اكتب رسالتك أولاً");
+ if(!messageText&&!file)
+  throw Error("اكتب رسالة أو اختر ملفًا للإرسال");
 
- const r=await db.from("messages").insert({
+ let attachmentPath=null;
+ let messageType="text";
+
+ if(file){
+  if(file.size>50*1024*1024)
+   throw Error("حجم الملف أكبر من 50 ميجابايت");
+
+  const allowedTypes=[
+   "image/jpeg","image/png","image/webp","image/gif",
+   "video/mp4","video/webm","video/quicktime",
+   "audio/webm","audio/ogg","audio/mp4","audio/mpeg","audio/wav"
+  ];
+
+  if(!allowedTypes.includes(file.type))
+   throw Error("نوع الملف غير مدعوم");
+
+  messageType=file.type.startsWith("image/")
+   ?"image"
+   :file.type.startsWith("video/")
+    ?"video"
+    :"audio";
+
+  const safeExt=(file.name.split(".").pop()||"bin")
+   .toLowerCase().replace(/[^a-z0-9]/g,"");
+
+  const fileName=Date.now()+"-"+Math.random()
+   .toString(36).slice(2)+"."+safeExt;
+
+  attachmentPath=
+   s.activeChat.request_id+"/"+
+   s.activeChat.id+"/"+
+   s.user.id+"/"+
+   fileName;
+
+  const bucket=db.storage.from("conversation-media");
+
+  const uploaded=await bucket.upload(attachmentPath,file,{
+   contentType:file.type,
+   upsert:false
+  });
+
+  if(uploaded.error)throw uploaded.error;
+ }
+
+ const payload={
   conversation_id:s.activeChat.id,
   sender_id:s.user.id,
   message_text:messageText,
-  message_type:"text"
- });
+  message_type:messageType,
+  attachment_path:attachmentPath,
+  attachment_mime_type:file?.type||null,
+  attachment_size_bytes:file?.size||null
+ };
 
- if(r.error)throw r.error;
+ const inserted=await db.from("messages").insert(payload);
+
+ if(inserted.error){
+  if(attachmentPath){
+   await db.storage.from("conversation-media")
+    .remove([attachmentPath]);
+  }
+  throw inserted.error;
+ }
 
  const q=await db.from("messages")
   .select("id,sender_id,message_text,is_read,created_at,message_type,attachment_path,attachment_mime_type,attachment_size_bytes,media_duration_seconds,location_latitude,location_longitude")
