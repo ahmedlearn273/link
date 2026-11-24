@@ -5436,9 +5436,11 @@ app.addEventListener("change",e=>{
   return;
  }
 
- if(!file.type.startsWith("image/")&&
-    !file.type.startsWith("video/")&&
-    !file.type.startsWith("audio/")){
+const isVoiceMessage=file.name.startsWith("voice-message-");
+
+if(!isVoiceMessage&&
+   !file.type.startsWith("image/")&&
+   !file.type.startsWith("video/")){
   s.chatAttachment=null;
   s.chatMediaDurationSeconds=null;
   e.target.value="";
