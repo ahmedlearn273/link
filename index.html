@@ -4549,7 +4549,17 @@ if(a==="viewcustomer"){s.modal={type:"customerDetails",userId:id};render();retur
  let c=s.chats.find(x=>x.id===id);
  if(!c)throw Error("المحادثة غير موجودة");
  s.activeChat=c;
- let q=await db.from("messages")
+s.chatPeerProfile=null;
+
+if(["customer","provider"].includes(s.profile?.role)){
+ const peerResult=await db.rpc("get_conversation_peer_profile",{
+  p_conversation_id:c.id
+ });
+ if(peerResult.error)throw peerResult.error;
+ s.chatPeerProfile=peerResult.data?.[0]||null;
+}
+
+let q=await db.from("messages")
   .select("id,sender_id,message_text,is_read,created_at")
   .eq("conversation_id",c.id)
   .order("created_at");
