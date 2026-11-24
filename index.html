@@ -2810,7 +2810,7 @@ function chatContent(){
  (m.message_text
   ?'<p style="white-space:pre-wrap;overflow-wrap:anywhere;margin:0;color:inherit;font-size:14px">'+esc(m.message_text)+'</p>'
   :'')+
-    esc(m.message_text)+'</p>'+
+    
    '<div style="text-align:left;margin-top:4px;font-size:10px;opacity:.85">'+
     new Date(m.created_at).toLocaleTimeString("ar-SA",{hour:"2-digit",minute:"2-digit"})+
     (own
