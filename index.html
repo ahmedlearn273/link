@@ -5515,27 +5515,6 @@ const previewContainer=form.querySelector("#chatAttachmentPreview");
 previewContainer.style.display="flex";
 previewContainer.replaceChildren(preview);
  
-
- const remove=document.createElement("button");
- remove.type="button";
- remove.className="btn light";
- remove.textContent="حذف المرفق";
- remove.style.alignSelf="flex-start";
-
- remove.addEventListener("click",()=>{
-  s.chatAttachment=null;
-  s.chatMediaDurationSeconds=null;
-  e.target.value="";
-
-  if(chatAttachmentPreviewUrl){
-   URL.revokeObjectURL(chatAttachmentPreviewUrl);
-   chatAttachmentPreviewUrl=null;
-  }
-
-  preview.remove();
- });
-
- preview.append(remove);
 });
        
   
