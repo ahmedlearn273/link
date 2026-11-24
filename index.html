@@ -4625,10 +4625,28 @@ waslaPendingObserver.observe(app, {
   subtree: true
 });
 
-
 app.addEventListener("click", async e => {
 
-  // إغلاق النافذة عند الضغط على الخلفية خارج محتواها
+  // إظهار وإخفاء كلمة المرور
+  const passwordToggle = e.target.closest("[data-password-toggle]");
+  if (passwordToggle) {
+    const passwordInput =
+      passwordToggle.parentElement.querySelector('input[name="password"]');
+
+    if (passwordInput) {
+      const showPassword = passwordInput.type === "password";
+      passwordInput.type = showPassword ? "text" : "password";
+      passwordToggle.textContent = showPassword ? "إخفاء" : "إظهار";
+      passwordToggle.setAttribute(
+        "aria-label",
+        showPassword ? "إخفاء كلمة المرور" : "إظهار كلمة المرور"
+      );
+      passwordToggle.setAttribute("aria-pressed", String(showPassword));
+    }
+    return;
+  }
+
+  // إغلاق النافذة عند الضغط على الخلفية
   if (s.modal && e.target.classList.contains("modalback")) {
     s.modal = null;
     render();
@@ -4638,15 +4656,12 @@ app.addEventListener("click", async e => {
   const button = e.target.closest("[data-a]");
   if (!button) return;
 
-  // إغلاق النافذة عند اختيار أي إجراء خارجها
-  // مثل الرئيسية أو أي تبويب آخر
-  // من غير عمل render قبل تنفيذ الإجراء
+  // إغلاق النافذة عند اختيار إجراء خارجها
   if (s.modal && !button.closest(".modal")) {
     s.modal = null;
   }
 
   const key = waslaActionKey(button);
-
   if (waslaPendingActions.has(key)) return;
 
   waslaPendingActions.add(key);
@@ -4659,28 +4674,7 @@ app.addEventListener("click", async e => {
     waslaSyncPendingUI();
   }
 });
-      
 
-  if (
-    button.dataset.a === "close" &&
-    e.target !== button &&
-    e.target.closest(".modal")
-  ) return;
-
-  const key = waslaActionKey(button);
-
-  if (waslaPendingActions.has(key)) return;
-
-  waslaPendingActions.add(key);
-  waslaSyncPendingUI();
-
-  try {
-    await action(button.dataset.a, button.dataset.id, button);
-  } finally {
-    waslaPendingActions.delete(key);
-    waslaSyncPendingUI();
-  }
-});
 
 app.addEventListener("submit", async e => {
   const form = e.target;
