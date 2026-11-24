@@ -2881,7 +2881,10 @@ const peerResult = await db.rpc("get_conversation_peer_profile", {
 });
 if (peerResult.error) throw peerResult.error;
 s.chatPeerProfile = peerResult.data?.[0] || null;
- const r=await db.from("messages").select("id,sender_id,message_text,is_read,created_at").eq("conversation_id",c.id).order("created_at");
+ const r=await db.from("messages")
+ .select("id,sender_id,message_text,is_read,created_at,message_type,attachment_path,attachment_mime_type,attachment_size_bytes,media_duration_seconds,location_latitude,location_longitude")
+ .eq("conversation_id",c.id)
+ .order("created_at");
 if(r.error)throw r.error;
 s.messages=r.data||[];
 if(["customer","provider"].includes(s.profile?.role)){
