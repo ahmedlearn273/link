@@ -4592,7 +4592,19 @@ let q=await db.from("messages")
   .order("created_at");
  if(q.error)throw q.error;
  s.messages=q.data||[];
- await auditEvent("CONVERSATION_VIEWED","conversations",c.id,"success",{
+if(["customer","provider"].includes(s.profile?.role)){
+ const readResult=await db.rpc("mark_conversation_messages_read",{
+  p_conversation_id:c.id
+ });
+ if(readResult.error)throw readResult.error;
+
+ if(readResult.data>0){
+  s.messages=s.messages.map(m=>
+   m.sender_id!==s.user.id?{...m,is_read:true}:m
+  );
+ }
+}
+   await auditEvent("CONVERSATION_VIEWED","conversations",c.id,"success",{
   messages_count:s.messages.length
  });
  render();
