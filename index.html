@@ -2869,16 +2869,18 @@ return '<section class="section">'+
     '<p class="small" style="margin:5px 0 0">انتهى الطلب، يمكنك الاطلاع على سجل الرسائل ولكن لا يمكن إرسال رسائل جديدة.</p>'+
    '</div>'
   : '<form id="sendMessage" style="margin-top:14px;padding:12px;border:1px solid var(--border-color);border-radius:18px;background:var(--bg-subtle)">'+
-    '<div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:10px">'+
-      '<label for="chatMediaInput" class="btn light" style="cursor:pointer;display:inline-flex;align-items:center;gap:7px">📎 إرفاق ملف</label>'+
-      '<input id="chatMediaInput" type="file" accept="image/*,video/*,audio/*" style="display:none">'+
-      '<span class="small muted">صور أو فيديو أو تسجيل صوتي</span>'+
-    '</div>'+
-    '<div style="display:flex;align-items:center;gap:9px">'+
-      '<input name="message_text" placeholder="اكتب رسالتك هنا..." style="flex:1;min-width:0">'+
-      '<button class="btn gold" type="submit">إرسال</button>'+
-    '</div>'+
-  '</form>'
+  '<div id="chatDropZone" style="padding:13px;border:1px dashed var(--border-color);border-radius:14px;text-align:center;margin-bottom:10px;background:var(--bg-card)">'+
+    '<div style="font-size:21px;margin-bottom:5px">📎</div>'+
+    '<b style="font-size:13px">أرفق ملفاتك بالمحادثة</b>'+
+    '<p class="small muted" style="margin:5px 0">صور أو فيديو أو صوت</p>'+
+    '<label for="chatMediaInput" class="btn light" style="cursor:pointer;display:inline-flex;align-items:center;gap:7px;margin-top:5px">اختيار ملف</label>'+
+    '<input id="chatMediaInput" type="file" accept="image/*,video/*,audio/*" style="display:none">'+
+  '</div>'+
+  '<div style="display:flex;align-items:center;gap:9px">'+
+    '<input name="message_text" placeholder="اكتب رسالتك هنا..." style="flex:1;min-width:0">'+
+    '<button class="btn gold" type="submit">إرسال</button>'+
+  '</div>'+
+'</form>'
 )+
    '</section>';
  }
