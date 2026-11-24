@@ -5455,29 +5455,66 @@ if(!isVoiceMessage&&
 
  preview?.remove();
 
- preview=document.createElement("div");
- preview.id="chatAttachmentPreview";
- preview.style.cssText=
-  "margin-top:12px;padding:12px;border:1px solid var(--border-color);border-radius:12px;display:flex;flex-direction:column;gap:10px";
+ 
+preview.style.cssText=
+  "display:flex;align-items:center;gap:9px;padding:8px;margin-bottom:9px;border:1px solid var(--border-color);border-radius:12px;background:var(--bg-card)";
 
- const info=document.createElement("div");
- info.style.cssText="overflow-wrap:anywhere;font-size:13px";
- info.textContent=
-  "📎 "+file.name+" · "+(file.size/1024/1024).toFixed(2)+" MB";
+const info=document.createElement("div");
+info.style.cssText="flex:1;min-width:0;overflow-wrap:anywhere;font-size:12px";
+info.textContent=file.name+" · "+(file.size/1024/1024).toFixed(2)+" MB";
 
- preview.append(info);
+preview.append(info);
 
- if(file.type.startsWith("audio/")){
+if(file.type.startsWith("image/")||file.type.startsWith("video/")){
   chatAttachmentPreviewUrl=URL.createObjectURL(file);
 
+  const media=file.type.startsWith("image/")
+    ? document.createElement("img")
+    : document.createElement("video");
+
+  media.src=chatAttachmentPreviewUrl;
+  media.style.cssText="width:64px;height:64px;object-fit:cover;border-radius:9px";
+
+  if(media.tagName==="VIDEO"){
+    media.muted=true;
+    media.playsInline=true;
+  }
+
+  preview.prepend(media);
+}else if(file.type.startsWith("audio/")){
+  chatAttachmentPreviewUrl=URL.createObjectURL(file);
   const audio=document.createElement("audio");
   audio.controls=true;
-  audio.preload="metadata";
   audio.src=chatAttachmentPreviewUrl;
-  audio.style.cssText="width:100%;max-width:100%";
-
+  audio.style.cssText="width:130px;max-width:35%";
   preview.append(audio);
- }
+}
+
+const remove=document.createElement("button");
+remove.type="button";
+remove.className="btn light";
+remove.textContent="إزالة";
+remove.style.flexShrink="0";
+
+remove.addEventListener("click",()=>{
+  s.chatAttachment=null;
+  s.chatMediaDurationSeconds=null;
+  e.target.value="";
+
+  if(chatAttachmentPreviewUrl){
+    URL.revokeObjectURL(chatAttachmentPreviewUrl);
+    chatAttachmentPreviewUrl=null;
+  }
+
+  preview.remove();
+});
+
+preview.append(remove);
+
+const previewContainer=form.querySelector("#chatAttachmentPreview");
+previewContainer.style.display="flex";
+previewContainer.replaceChildren(preview);
+ 
 
  const remove=document.createElement("button");
  remove.type="button";
