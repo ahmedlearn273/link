@@ -2897,7 +2897,33 @@ function chatContent(){
   results.filter(x=>x.url).map(x=>[x.id,x.url])
  );
    }   
-async function openChatForRequest(requestId){
+async function loadChatMediaUrls(messages){
+ s.chatMediaUrls={};
+
+ if(!["customer","provider"].includes(s.profile?.role))
+  return;
+
+ const mediaMessages=(messages||[])
+  .filter(m=>m.attachment_path);
+
+ const results=await Promise.all(
+  mediaMessages.map(async m=>{
+   const result=await db.storage
+    .from("conversation-media")
+    .createSignedUrl(m.attachment_path,3600);
+
+   return {
+    id:m.id,
+    url:result.error?null:result.data?.signedUrl||null
+   };
+  })
+ );
+
+ s.chatMediaUrls=Object.fromEntries(
+  results.filter(x=>x.url).map(x=>[x.id,x.url])
+ );
+}
+      async function openChatForRequest(requestId){
  let c=s.chats.find(x=>x.request_id===requestId);
  if(!c){if(s.profile.role!=="customer")throw Error("يجب أن يبدأ العميل المحادثة أولًا");const q=s.requests.find(x=>x.id===requestId);if(!q||!q.provider_id||!["accepted","in_progress"].includes(q.status))throw Error("المحادثة متاحة بعد قبول الطلب");const r=await db.from("conversations").insert({request_id:q.id,customer_id:s.user.id,provider_id:q.provider_id}).select("id,request_id,customer_id,provider_id,last_message_at").single();if(r.error)throw r.error;c=r.data;s.chats.unshift(c)}
  s.activeChat=c;
