@@ -2862,7 +2862,19 @@ s.chatPeerProfile = peerResult.data?.[0] || null;
  const r=await db.from("messages").select("id,sender_id,message_text,is_read,created_at").eq("conversation_id",c.id).order("created_at");
 if(r.error)throw r.error;
 s.messages=r.data||[];
-await auditEvent("CONVERSATION_VIEWED","conversations",c.id,"success",{
+if(["customer","provider"].includes(s.profile?.role)){
+ const readResult=await db.rpc("mark_conversation_messages_read",{
+  p_conversation_id:c.id
+ });
+ if(readResult.error)throw readResult.error;
+
+ if(readResult.data>0){
+  s.messages=s.messages.map(m=>
+   m.sender_id!==s.user.id?{...m,is_read:true}:m
+  );
+ }
+}
+ await auditEvent("CONVERSATION_VIEWED","conversations",c.id,"success",{
  messages_count:s.messages.length
 });
 if(s.tab==="account"){
