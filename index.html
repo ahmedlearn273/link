@@ -1821,7 +1821,67 @@ button, input, select, textarea,
   accent-color: var(--primary);
   margin: 0;
 }
-  
+  /* WASLA - Premium voice recording button */
+.wasla-mic-button{
+  width:48px;
+  height:48px;
+  min-width:48px;
+  padding:0;
+  border:1px solid color-mix(in srgb,var(--primary) 35%,var(--border-color));
+  border-radius:50%;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--primary);
+  background:linear-gradient(
+    145deg,
+    var(--bg-surface),
+    var(--bg-subtle)
+  );
+  box-shadow:
+    0 4px 12px rgba(0,0,0,.09),
+    inset 0 1px 0 rgba(255,255,255,.35);
+  transition:transform .22s ease,box-shadow .22s ease,
+    background .22s ease,color .22s ease;
+  flex-shrink:0;
+}
+
+.wasla-mic-button svg{
+  width:23px;
+  height:23px;
+  transition:transform .22s ease;
+}
+
+.wasla-mic-button:hover{
+  transform:translateY(-2px);
+  box-shadow:0 7px 18px rgba(0,0,0,.15);
+}
+
+.wasla-mic-button.is-recording{
+  color:white;
+  background:var(--danger);
+  border-color:var(--danger);
+  animation:waslaMicPulse 1.5s ease-in-out infinite;
+}
+
+.wasla-mic-button.is-recording svg{
+  width:21px;
+  height:21px;
+}
+
+.wasla-mic-button:disabled{
+  opacity:.7;
+  cursor:wait;
+}
+
+@keyframes waslaMicPulse{
+  0%,100%{
+    box-shadow:0 0 0 0 color-mix(in srgb,var(--danger) 35%,transparent);
+  }
+  50%{
+    box-shadow:0 0 0 7px color-mix(in srgb,var(--danger) 0%,transparent);
+  }
+}
  </style>
 </head>
 <body><div id="app"></div>
