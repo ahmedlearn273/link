@@ -4739,6 +4739,7 @@ let q=await db.from("messages")
   .order("created_at");
  if(q.error)throw q.error;
  s.messages=q.data||[];
+await loadChatMediaUrls(s.messages);
 if(["customer","provider"].includes(s.profile?.role)){
  const readResult=await db.rpc("mark_conversation_messages_read",{
   p_conversation_id:c.id
