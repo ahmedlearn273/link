@@ -4893,6 +4893,177 @@ waslaPendingObserver.observe(app, {
   subtree: true
 });
 
+let chatMicPointerId=null;
+let chatMicStopRequested=false;
+let chatMicSession=0;
+
+function resetChatMicButton(){
+ const button=document.getElementById("chatMicButton");
+ if(!button)return;
+
+ button.textContent="🎙️";
+ button.title="تسجيل رسالة صوتية";
+ button.setAttribute("aria-label","تسجيل رسالة صوتية");
+ button.style.background="";
+ button.style.color="";
+}
+
+app.addEventListener("pointerdown",async e=>{
+ const button=e.target.closest?.("#chatMicButton");
+ if(!button)return;
+ if(e.pointerType==="mouse"&&e.button!==0)return;
+ if(chatMicPointerId!==null||s.chatRecording)return;
+
+ e.preventDefault();
+
+ const session=++chatMicSession;
+ chatMicPointerId=e.pointerId;
+ chatMicStopRequested=false;
+
+ let stream=null;
+
+ try{
+  if(!navigator.mediaDevices?.getUserMedia||!window.MediaRecorder)
+   throw Error("التسجيل الصوتي غير مدعوم في هذا المتصفح.");
+
+  stream=await navigator.mediaDevices.getUserMedia({audio:true});
+
+  if(session!==chatMicSession||chatMicStopRequested||
+     !document.getElementById("chatMicButton")){
+   stream.getTracks().forEach(track=>track.stop());
+   if(session===chatMicSession){
+    chatMicPointerId=null;
+    chatMicStopRequested=false;
+    resetChatMicButton();
+   }
+   return;
+  }
+
+  const candidates=[
+   "audio/webm;codecs=opus",
+   "audio/ogg;codecs=opus",
+   "audio/mp4"
+  ];
+
+  const selectedType=candidates.find(type=>
+   MediaRecorder.isTypeSupported(type)
+  );
+
+  const recorder=selectedType
+   ?new MediaRecorder(stream,{mimeType:selectedType})
+   :new MediaRecorder(stream);
+
+  const mimeType=(recorder.mimeType||selectedType||"audio/webm")
+   .split(";")[0].toLowerCase();
+
+  if(!["audio/webm","audio/ogg","audio/mp4"].includes(mimeType))
+   throw Error("صيغة التسجيل الصوتي غير مدعومة.");
+
+  const chunks=[];
+  const startedAt=Date.now();
+
+  recorder.addEventListener("dataavailable",event=>{
+   if(event.data?.size)chunks.push(event.data);
+  });
+
+  recorder.addEventListener("stop",()=>{
+   stream.getTracks().forEach(track=>track.stop());
+
+   if(s.chatRecorder===recorder){
+    s.chatRecorder=null;
+    s.chatRecording=false;
+   }
+
+   if(session===chatMicSession){
+    chatMicPointerId=null;
+    chatMicStopRequested=false;
+    resetChatMicButton();
+   }
+
+   if(!chunks.length){
+    note("لم يتم تسجيل صوت. حاول مرة أخرى.","error");
+    return;
+   }
+
+   const extensions={
+    "audio/webm":"webm",
+    "audio/ogg":"ogg",
+    "audio/mp4":"mp4"
+   };
+
+   const blob=new Blob(chunks,{type:mimeType});
+   const file=new File(
+    [blob],
+    "voice-message-"+Date.now()+"."+extensions[mimeType],
+    {type:mimeType,lastModified:Date.now()}
+   );
+
+   s.chatMediaDurationSeconds=Math.max(
+    1,Math.round((Date.now()-startedAt)/1000)
+   );
+
+   const input=document.querySelector("#chatMediaInput");
+
+   if(!input){
+    s.chatAttachment=file;
+    return;
+   }
+
+   const transfer=new DataTransfer();
+   transfer.items.add(file);
+   input.files=transfer.files;
+   input.dispatchEvent(new Event("change",{bubbles:true}));
+  });
+
+  recorder.start(250);
+
+  s.chatRecorder=recorder;
+  s.chatRecording=true;
+
+  const activeButton=document.getElementById("chatMicButton");
+  if(activeButton){
+   activeButton.textContent="🔴";
+   activeButton.title="ارفع إصبعك لإيقاف التسجيل";
+   activeButton.setAttribute("aria-label","إيقاف التسجيل");
+   activeButton.style.color="var(--danger)";
+  }
+
+  if(chatMicStopRequested&&recorder.state==="recording")
+   recorder.stop();
+
+ }catch(error){
+  stream?.getTracks().forEach(track=>track.stop());
+
+  if(session===chatMicSession){
+   chatMicPointerId=null;
+   chatMicStopRequested=false;
+   s.chatRecorder=null;
+   s.chatRecording=false;
+   resetChatMicButton();
+  }
+
+  note(error.message||"تعذر بدء التسجيل الصوتي.","error");
+ }
+});
+
+document.addEventListener("pointerup",e=>{
+ if(e.pointerId!==chatMicPointerId)return;
+
+ chatMicStopRequested=true;
+
+ if(s.chatRecorder?.state==="recording")
+  s.chatRecorder.stop();
+});
+
+document.addEventListener("pointercancel",e=>{
+ if(e.pointerId!==chatMicPointerId)return;
+
+ chatMicStopRequested=true;
+
+ if(s.chatRecorder?.state==="recording")
+  s.chatRecorder.stop();
+});
+       
 app.addEventListener("click", async e => {
 
   // إظهار وإخفاء كلمة المرور
