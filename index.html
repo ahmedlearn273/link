@@ -2825,9 +2825,17 @@ function chatContent(){
     '<b>المحادثة مغلقة</b>'+
     '<p class="small" style="margin:5px 0 0">انتهى الطلب، يمكنك الاطلاع على سجل الرسائل ولكن لا يمكن إرسال رسائل جديدة.</p>'+
    '</div>'
-  : '<form id="sendMessage" class="row" style="margin-top:12px;align-items:center">'+
-    '<input name="message_text" placeholder="اكتب رسالتك هنا..." required style="flex:1;min-width:180px">'+
-    '<button class="btn gold">إرسال</button></form>'
+  : '<form id="sendMessage" style="margin-top:14px;padding:12px;border:1px solid var(--border-color);border-radius:18px;background:var(--bg-subtle)">'+
+    '<div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:10px">'+
+      '<label for="chatMediaInput" class="btn light" style="cursor:pointer;display:inline-flex;align-items:center;gap:7px">📎 إرفاق ملف</label>'+
+      '<input id="chatMediaInput" type="file" accept="image/*,video/*,audio/*" style="display:none">'+
+      '<span class="small muted">صور أو فيديو أو تسجيل صوتي</span>'+
+    '</div>'+
+    '<div style="display:flex;align-items:center;gap:9px">'+
+      '<input name="message_text" placeholder="اكتب رسالتك هنا..." style="flex:1;min-width:0">'+
+      '<button class="btn gold" type="submit">إرسال</button>'+
+    '</div>'+
+  '</form>'
 )+
    '</section>';
  }
