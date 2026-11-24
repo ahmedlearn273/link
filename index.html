@@ -5067,7 +5067,50 @@ app.addEventListener("change",e=>{
  preview.append(info,remove);
  form.append(preview);
 });
-      app.addEventListener("input",e=>{if(e.target.id==="search"){s.filter=e.target.value;let pos=e.target.selectionStart;render();let n=document.getElementById("search");if(n){n.focus();n.setSelectionRange(pos,pos)}}});
+  
+app.addEventListener("dragover",e=>{
+ const zone=e.target.closest?.("#chatDropZone");
+ if(!zone)return;
+
+ e.preventDefault();
+ zone.style.borderColor="var(--gold)";
+ zone.style.background="var(--bg-subtle)";
+});
+
+app.addEventListener("dragleave",e=>{
+ const zone=e.target.closest?.("#chatDropZone");
+ if(!zone)return;
+
+ if(e.relatedTarget&&zone.contains(e.relatedTarget))return;
+
+ zone.style.borderColor="";
+ zone.style.background="var(--bg-card)";
+});
+
+app.addEventListener("drop",e=>{
+ const zone=e.target.closest?.("#chatDropZone");
+ if(!zone)return;
+
+ e.preventDefault();
+ zone.style.borderColor="";
+ zone.style.background="var(--bg-card)";
+
+ const files=e.dataTransfer?.files;
+ const input=zone.querySelector("#chatMediaInput");
+
+ if(!files?.length||!input)return;
+
+ const transfer=new DataTransfer();
+
+ Array.from(files).forEach(file=>{
+  transfer.items.add(file);
+ });
+
+ input.files=transfer.files;
+ input.dispatchEvent(new Event("change",{bubbles:true}));
+});
+       
+       app.addEventListener("input",e=>{if(e.target.id==="search"){s.filter=e.target.value;let pos=e.target.selectionStart;render();let n=document.getElementById("search");if(n){n.focus();n.setSelectionRange(pos,pos)}}});
 async function boot(){
  const status=t=>{
   app.innerHTML='<main class="wrap"><div class="empty">'+t+'</div></main>';
