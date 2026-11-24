@@ -5561,8 +5561,7 @@ app.addEventListener("drop",e=>{
  if(!zone)return;
 
  e.preventDefault();
- zone.style.borderColor="";
- zone.style.background="var(--bg-card)";
+ zone.classList.remove("is-dragging");
 
  const files=e.dataTransfer?.files;
  const input=zone.querySelector("#chatMediaInput");
