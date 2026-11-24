@@ -4200,8 +4200,35 @@ let r=await db.functions.invoke("admin-create-staff",{
   }
   if(f.id==="categoryForm"){let v=vals(f),r=await db.rpc("admin_create_category",{p_name_ar:v.name_ar,p_name_en:v.name_en||null,p_slug:v.slug,p_icon:v.icon||null});if(r.error)throw r.error;s.modal=null;await loadUser(s.user);note("تمت إضافة التصنيف.","success");return}
   if(f.id==="reviewForm"){let v=vals(f),r=await db.from("reviews").insert({request_id:v.request_id,provider_id:v.provider_id,customer_id:s.user.id,rating:Number(v.rating),comment:v.comment||null});if(r.error)throw r.error;s.modal=null;note("تم إرسال تقييمك.","success");return}
-  if(f.id==="sendMessage"){let v=vals(f);let r=await db.from("messages").insert({conversation_id:s.activeChat.id,sender_id:s.user.id,message_text:v.message_text.trim()});if(r.error)throw r.error;let q=await db.from("messages").select("id,sender_id,message_text,is_read,created_at").eq("conversation_id",s.activeChat.id).order("created_at");if(q.error)throw q.error;s.messages=q.data||[];render();return}
-if(f.id==="accountProfileForm"){
+if(f.id==="sendMessage"){
+ const v=vals(f);
+ const messageText=(v.message_text||"").trim();
+
+ if(!messageText)throw Error("اكتب رسالتك أولاً");
+
+ const r=await db.from("messages").insert({
+  conversation_id:s.activeChat.id,
+  sender_id:s.user.id,
+  message_text:messageText,
+  message_type:"text"
+ });
+
+ if(r.error)throw r.error;
+
+ const q=await db.from("messages")
+  .select("id,sender_id,message_text,is_read,created_at,message_type,attachment_path,attachment_mime_type,attachment_size_bytes,media_duration_seconds,location_latitude,location_longitude")
+  .eq("conversation_id",s.activeChat.id)
+  .order("created_at");
+
+ if(q.error)throw q.error;
+
+ s.messages=q.data||[];
+ s.chatAttachment=null;
+
+ render();
+ return;
+}
+ if(f.id==="accountProfileForm"){
  const v=vals(f);
 
  const patch={
