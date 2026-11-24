@@ -2796,8 +2796,13 @@ function chatContent(){
    (isAdmin?'<div class="small" style="margin-bottom:3px">'+esc(name)+'</div>':'')+
    '<p style="white-space:pre-wrap;overflow-wrap:anywhere;margin:0;color:inherit;font-size:14px">'+
     esc(m.message_text)+'</p>'+
-   '<div style="text-align:left;margin-top:4px;font-size:10px;opacity:.75">'+
+   '<div style="text-align:left;margin-top:4px;font-size:10px;opacity:.85">'+
     new Date(m.created_at).toLocaleTimeString("ar-SA",{hour:"2-digit",minute:"2-digit"})+
+    (own
+     ?'<span title="'+(m.is_read?'مقروءة':'تم الإرسال')+'" style="margin-right:5px;font-weight:700;color:'+(m.is_read?'#8be9fd':'inherit')+'">'+
+       (m.is_read?'✓✓':'✓')+
+      '</span>'
+     :'')+
    '</div>'+
   '</div>'+
   (own?
