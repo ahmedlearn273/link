@@ -5553,8 +5553,7 @@ app.addEventListener("dragleave",e=>{
 
  if(e.relatedTarget&&zone.contains(e.relatedTarget))return;
 
- zone.style.borderColor="";
- zone.style.background="var(--bg-card)";
+ zone.classList.remove("is-dragging");
 });
 
 app.addEventListener("drop",e=>{
