@@ -1834,7 +1834,62 @@ if(!window.supabase?.createClient){
  app.innerHTML='<main class="wrap"><div class="empty">خطأ: مكتبة Supabase لم يتم تحميلها.</div></main>';
  return;
 }
-const db=window.supabase.createClient("https://hnnomaiohwyuqpfzlcol.supabase.co","sb_publishable_I4IfNkGvcxDxzz3xdGeKxw_TAzgc3ck");
+
+const waslaAuthStorage = {
+  async getItem(key) {
+    try {
+      return sessionStorage.getItem(key) ??
+        localStorage.getItem(key);
+    } catch (error) {
+      console.error("Auth storage read failed:", error);
+      return null;
+    }
+  },
+
+  async setItem(key, value) {
+    try {
+      const remember =
+        sessionStorage.getItem("wasla_remember_me") ??
+        localStorage.getItem("wasla_remember_me") ??
+        "true";
+
+      if (remember === "true") {
+        localStorage.setItem(key, value);
+        sessionStorage.removeItem(key);
+      } else {
+        sessionStorage.setItem(key, value);
+        localStorage.removeItem(key);
+      }
+    } catch (error) {
+      console.error("Auth storage write failed:", error);
+      throw error;
+    }
+  },
+
+  async removeItem(key) {
+    try {
+      localStorage.removeItem(key);
+      sessionStorage.removeItem(key);
+    } catch (error) {
+      console.error("Auth storage removal failed:", error);
+      throw error;
+    }
+  }
+};
+
+const db = window.supabase.createClient(
+  "https://hnnomaiohwyuqpfzlcol.supabase.co",
+  "sb_publishable_I4IfNkGvcxDxzz3xdGeKxw_TAzgc3ck",
+  {
+    auth: {
+      storage: waslaAuthStorage,
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true
+    }
+  }
+);
+      
 const s={user:null,profile:null,provider:null,geo:{countries:[],cities:[],areas:[]},staffAccess:null,auditLogs:[],knowledgeDocs:[],knowledgeReleases:[],knowledgeSelectedDoc:null,knowledgeLoading:false,knowledgeError:"",mode:"welcome",type:"customer",tab:"home",requestFilter:"all",cats:[],services:[],providers:[],requests:[],offers:[],apps:[],allRequests:[],adminProfiles:[],staff:[],staffCandidates:[],customers:[],chats:[],messages:[],activeChat:null,notice:"",noticeType:"",modal:null,filter:"",aiMessages:[],aiBusy:false};
 async function loadGeoCatalog(countryId=null,cityId=null){
  const {data,error}=await db.rpc("get_active_geo_catalog",{
