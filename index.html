@@ -2818,12 +2818,18 @@ function chatContent(){
  '</div>';
 }).join("")||empty("لا توجد رسائل بعد"))+
 '</div>'+
-   (isAdmin?
-    '<p class="muted">هذه المحادثة للعرض الإداري فقط.</p>':
-    '<form id="sendMessage" class="row" style="margin-top:12px;align-items:center">'+
+   (isAdmin
+ ? '<p class="muted">هذه المحادثة للعرض الإداري فقط.</p>'
+ : chatClosed
+  ? '<div class="item" style="margin-top:14px;text-align:center;border:1px solid var(--border-color);background:var(--bg-subtle);border-radius:16px;padding:16px">'+
+    '<div style="font-size:22px;margin-bottom:6px">🔒</div>'+
+    '<b>المحادثة مغلقة</b>'+
+    '<p class="small" style="margin:5px 0 0">انتهى الطلب، يمكنك الاطلاع على سجل الرسائل ولكن لا يمكن إرسال رسائل جديدة.</p>'+
+   '</div>'
+  : '<form id="sendMessage" class="row" style="margin-top:12px;align-items:center">'+
     '<input name="message_text" placeholder="اكتب رسالتك هنا..." required style="flex:1;min-width:180px">'+
     '<button class="btn gold">إرسال</button></form>'
-   )+
+)+
    '</section>';
  }
 
