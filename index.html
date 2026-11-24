@@ -4317,6 +4317,7 @@ if(f.id==="sendMessage"){
  if(q.error)throw q.error;
 
  s.messages=q.data||[];
+await loadChatMediaUrls(s.messages);
  s.chatAttachment=null;
 
  render();
