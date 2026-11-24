@@ -2990,17 +2990,26 @@ return '<section class="section">'+
   
 : '<form id="sendMessage" class="wasla-chat-form" style="margin-top:14px;padding:10px;border:1px solid var(--border-color);border-radius:18px;background:var(--bg-subtle)">'+
   '<div id="chatAttachmentPreview" class="wasla-chat-preview" style="display:none"></div>'+
-  '<div id="chatDropZone" class="wasla-chat-composer">'+
-    '<label for="chatMediaInput" class="wasla-attach-button" title="إرفاق صورة أو فيديو" aria-label="إرفاق صورة أو فيديو">'+
-      '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>'+
-    '</label>'+
-    '<input id="chatMediaInput" type="file" accept="image/*,video/*" style="display:none">'+
-    '<button id="chatMicButton" class="wasla-mic-button" type="button" aria-label="بدء التسجيل" title="بدء التسجيل">'+
-      '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="2" width="6" height="13" rx="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4m-4 0h8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>'+
+  
+'<div id="chatDropZone" class="wasla-chat-composer">'+
+  '<div class="wasla-chat-entry">'+
+    '<button class="wasla-send-icon" type="submit" aria-label="إرسال الرسالة">'+
+      '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15M13 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'+
     '</button>'+
     '<input name="message_text" placeholder="اكتب رسالتك هنا..." style="flex:1;min-width:0">'+
-    '<button class="btn gold" type="submit">إرسال</button>'+
+    '<label for="chatMediaInput" class="wasla-attach-button" title="إرفاق ملف" aria-label="إرفاق ملف">'+
+      '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 12.5 14.5 6a4 4 0 0 1 5.7 5.7l-8.5 8.5a6 6 0 0 1-8.5-8.5l8-8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>'+
+    '</label>'+
+    '<label for="chatCameraInput" class="wasla-attach-button" title="فتح الكاميرا" aria-label="فتح الكاميرا">'+
+      '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h4l2-3h6l2 3h4v13H3z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="13" r="4" fill="none" stroke="currentColor" stroke-width="2"/></svg>'+
+    '</label>'+
   '</div>'+
+  '<input id="chatMediaInput" type="file" accept="image/*,video/*" style="display:none">'+
+  '<input id="chatCameraInput" type="file" accept="image/*" capture="environment" style="display:none">'+
+  '<button id="chatMicButton" class="wasla-mic-button" type="button" aria-label="بدء التسجيل" title="بدء التسجيل">'+
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="2" width="6" height="13" rx="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4m-4 0h8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>'+
+  '</button>'+
+'</div>'+
 '</form>'
     
 )+
