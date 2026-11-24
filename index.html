@@ -2871,32 +2871,7 @@ function chatContent(){
  '</section>';
 }
       
-   async function loadChatMediaUrls(messages){
- s.chatMediaUrls={};
-
- if(!["customer","provider"].includes(s.profile?.role))
-  return;
-
- const mediaMessages=(messages||[])
-  .filter(m=>m.attachment_path);
-
- const results=await Promise.all(
-  mediaMessages.map(async m=>{
-   const result=await db.storage
-    .from("conversation-media")
-    .createSignedUrl(m.attachment_path,3600);
-
-   return {
-    id:m.id,
-    url:result.error?null:result.data?.signedUrl||null
-   };
-  })
- );
-
- s.chatMediaUrls=Object.fromEntries(
-  results.filter(x=>x.url).map(x=>[x.id,x.url])
- );
-   }   
+   
 async function loadChatMediaUrls(messages){
  s.chatMediaUrls={};
 
