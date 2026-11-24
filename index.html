@@ -2769,19 +2769,46 @@ function chatContent(){
    '<div class="sectionhead"><div><h2>المحادثة</h2>'+
    '<p class="small">'+(isAdmin?"عرض إداري للمحادثة":"تابع الرسائل وتواصل مع الطرف الآخر")+
    '</p></div>'+btn("chatback","رجوع","light")+'</div>'+
-   '<div class="list" style="gap:10px">'+
-   (s.messages.map(m=>
-    '<article class="item" style="max-width:85%;'+
-    (m.sender_id===s.user.id?'margin-right:auto;':'')+'">'+
-    (isAdmin?'<b class="small">'+
-     (m.sender_id===s.activeChat.customer_id?"العميل":"مزوّد الخدمة")+
-     '</b>':'')+
-    '<p style="white-space:pre-wrap;overflow-wrap:anywhere">'+
+'<div class="list" style="gap:12px">'+
+(s.messages.map(m=>{
+ const own=m.sender_id===s.user.id;
+ const peer=s.chatPeerProfile||{};
+ const avatar=own?s.profile?.avatar_url:peer.avatar_url;
+ const name=own
+  ?(s.profile?.full_name||"أنت")
+  :(peer.full_name||(isAdmin
+    ?(m.sender_id===s.activeChat.customer_id?"العميل":"مزوّد الخدمة")
+    :"الطرف الآخر"));
+ const initial=(name.trim().charAt(0)||"؟");
+
+ return '<div style="display:flex;align-items:flex-end;gap:8px;'+
+  (own?'justify-content:flex-end;':'justify-content:flex-start;')+'">'+
+  (!own?
+   '<div style="width:34px;height:34px;flex:0 0 34px;border-radius:50%;overflow:hidden;background:var(--bg-subtle);display:grid;place-items:center;color:var(--text-primary);font-weight:700">'+
+    (avatar
+     ?'<img src="'+esc(avatar)+'" alt="" style="width:100%;height:100%;object-fit:cover">'
+     :esc(initial))+
+   '</div>':'')+
+  '<div style="max-width:min(78%,520px);min-width:65px;padding:9px 12px;border-radius:15px;'+
+   (own
+    ?'background:var(--primary);color:white;border-bottom-left-radius:5px;'
+    :'background:var(--bg-subtle);color:var(--text-primary);border:1px solid var(--border-color);border-bottom-right-radius:5px;')+'">'+
+   (isAdmin?'<div class="small" style="margin-bottom:3px">'+esc(name)+'</div>':'')+
+   '<p style="white-space:pre-wrap;overflow-wrap:anywhere;margin:0;color:inherit;font-size:14px">'+
     esc(m.message_text)+'</p>'+
-    '<small class="small">'+new Date(m.created_at).toLocaleString("ar-SA")+
-    '</small></article>'
-   ).join("")||empty("لا توجد رسائل بعد"))+
+   '<div style="text-align:left;margin-top:4px;font-size:10px;opacity:.75">'+
+    new Date(m.created_at).toLocaleTimeString("ar-SA",{hour:"2-digit",minute:"2-digit"})+
    '</div>'+
+  '</div>'+
+  (own?
+   '<div style="width:34px;height:34px;flex:0 0 34px;border-radius:50%;overflow:hidden;background:var(--bg-subtle);display:grid;place-items:center;color:var(--text-primary);font-weight:700">'+
+    (avatar
+     ?'<img src="'+esc(avatar)+'" alt="" style="width:100%;height:100%;object-fit:cover">'
+     :esc(initial))+
+   '</div>':'')+
+ '</div>';
+}).join("")||empty("لا توجد رسائل بعد"))+
+'</div>'+
    (isAdmin?
     '<p class="muted">هذه المحادثة للعرض الإداري فقط.</p>':
     '<form id="sendMessage" class="row" style="margin-top:12px;align-items:center">'+
