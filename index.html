@@ -2094,30 +2094,12 @@ field("البريد الإلكتروني","email","email","name@example.com","",
 '</form>'
 ```
 
-## 3. تشغيل زر إظهار وإخفاء كلمة المرور
+)+
+'<p class="small">كل الحسابات تستخدم البريد الإلكتروني وكلمة المرور. لا توجد حسابات تجريبية.</p>'+
+'</div></div></main>';
+}
 
-أضف مستمع الضغط التالي بعد تعريف `const app = ...` وقبل مستمع الضغط الأساسي الموجود عندك:
-
-<CodeBlock language="javascript" editable>
-app.addEventListener("click", e => {
-  const toggle = e.target.closest("[data-password-toggle]");
-  if (!toggle) return;
-
-  const input = toggle.parentElement.querySelector("input");
-  if (!input) return;
-
-  const show = input.type === "password";
-
-  input.type = show ? "text" : "password";
-  toggle.textContent = show ? "إخفاء" : "إظهار";
-  toggle.setAttribute(
-    "aria-label",
-    show ? "إخفاء كلمة المرور" : "إظهار كلمة المرور"
-  );
-  toggle.setAttribute("aria-pressed", String(show));
-});
-
-      function recoveryView(){
+function recoveryView(){
  return header("استعادة كلمة المرور")+
  '<main class="wrap"><div class="auth"><div class="card">'+
  '<h2>تعيين كلمة مرور جديدة</h2>'+
