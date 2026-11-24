@@ -5300,7 +5300,133 @@ app.addEventListener("click",async e=>{
  }
 });
 
-       
+
+let chatLocationSending = false;
+
+app.addEventListener("click", async e => {
+  const button = e.target.closest?.("#chatLocationButton");
+  if (!button) return;
+
+  e.preventDefault();
+
+  if (chatLocationSending) return;
+
+  const conversationId = s.activeChat?.id;
+  const senderId = s.user?.id;
+
+  if (!conversationId || !senderId) {
+    note("افتح محادثة نشطة أولًا.", "error");
+    return;
+  }
+
+  chatLocationSending = true;
+  button.disabled = true;
+  button.setAttribute("aria-busy", "true");
+
+  let saved = false;
+
+  try {
+    if (window.isSecureContext === false) {
+      throw Error("مشاركة الموقع تتطلب فتح المنصة عبر اتصال آمن HTTPS.");
+    }
+
+    if (!navigator.geolocation) {
+      throw Error("المتصفح لا يدعم تحديد الموقع.");
+    }
+
+    const position = await new Promise((resolve, reject) => {
+      navigator.geolocation.getCurrentPosition(
+        resolve,
+        reject,
+        {
+          enableHighAccuracy: true,
+          timeout: 20000,
+          maximumAge: 30000
+        }
+      );
+    });
+
+    if (
+      s.activeChat?.id !== conversationId ||
+      s.user?.id !== senderId
+    ) {
+      throw Error("تم تغيير المحادثة. افتح المحادثة المطلوبة وحاول مرة أخرى.");
+    }
+
+    const latitude = Number(position.coords.latitude);
+    const longitude = Number(position.coords.longitude);
+
+    if (
+      !Number.isFinite(latitude) ||
+      !Number.isFinite(longitude) ||
+      latitude < -90 ||
+      latitude > 90 ||
+      longitude < -180 ||
+      longitude > 180
+    ) {
+      throw Error("تعذر الحصول على إحداثيات موقع صحيحة.");
+    }
+
+    const inserted = await db.from("messages").insert({
+      conversation_id: conversationId,
+      sender_id: senderId,
+      message_text: "📍 تمت مشاركة الموقع",
+      message_type: "location",
+      attachment_path: null,
+      attachment_mime_type: null,
+      attachment_size_bytes: null,
+      location_latitude: latitude,
+      location_longitude: longitude
+    });
+
+    if (inserted.error) throw inserted.error;
+
+    saved = true;
+
+    if (s.activeChat?.id !== conversationId) {
+      note("تم إرسال موقعك بنجاح.", "success");
+      return;
+    }
+
+    const q = await db.from("messages")
+      .select("id,sender_id,message_text,is_read,created_at,message_type,attachment_path,attachment_mime_type,attachment_size_bytes,media_duration_seconds,location_latitude,location_longitude")
+      .eq("conversation_id", conversationId)
+      .order("created_at");
+
+    if (q.error) {
+      note("تم إرسال الموقع، لكن تعذر تحديث عرض الرسائل. أعد فتح المحادثة.", "success");
+      return;
+    }
+
+    s.messages = q.data || [];
+    await loadChatMediaUrls(s.messages);
+
+    render();
+    note("تم إرسال موقعك بنجاح.", "success");
+
+  } catch (error) {
+    if (saved) {
+      note("تم إرسال الموقع، لكن تعذر تحديث عرض المحادثة.", "success");
+    } else if (error.code === 1) {
+      note("لم تسمح بمشاركة الموقع. يمكنك تفعيل إذن الموقع من إعدادات المتصفح.", "error");
+    } else if (error.code === 2) {
+      note("تعذر تحديد موقعك حاليًا. حاول مرة أخرى.", "error");
+    } else if (error.code === 3) {
+      note("انتهت مهلة تحديد الموقع. حاول مرة أخرى.", "error");
+    } else {
+      note(error.message || "تعذر إرسال الموقع.", "error");
+    }
+  } finally {
+    chatLocationSending = false;
+
+    const currentButton = document.getElementById("chatLocationButton");
+    if (currentButton) {
+      currentButton.disabled = false;
+      currentButton.removeAttribute("aria-busy");
+    }
+  }
+});
+      
 app.addEventListener("click", async e => {
 
   // إظهار وإخفاء كلمة المرور
