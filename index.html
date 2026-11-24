@@ -5499,7 +5499,8 @@ app.addEventListener("change",e=>{
  const form=e.target.closest("#sendMessage");
  if(!form)return;
 
- let preview=form.querySelector("#chatAttachmentPreview");
+ const previewContainer=form.querySelector("#chatAttachmentPreview");
+const preview=document.createElement("div");
 
  if(chatAttachmentPreviewUrl){
   URL.revokeObjectURL(chatAttachmentPreviewUrl);
