@@ -2796,7 +2796,20 @@ function chatContent(){
     ?'background:var(--primary);color:white;border-bottom-left-radius:5px;'
     :'background:var(--bg-subtle);color:var(--text-primary);border:1px solid var(--border-color);border-bottom-right-radius:5px;')+'">'+
    (isAdmin?'<div class="small" style="margin-bottom:3px">'+esc(name)+'</div>':'')+
-   '<p style="white-space:pre-wrap;overflow-wrap:anywhere;margin:0;color:inherit;font-size:14px">'+
+   (m.attachment_path&&s.chatMediaUrls?.[m.id]
+ ?(
+   m.message_type==="image"
+    ?'<img src="'+esc(s.chatMediaUrls[m.id])+'" alt="صورة مرفقة" style="display:block;max-width:100%;max-height:320px;border-radius:10px;object-fit:contain;margin-bottom:6px">'
+    :m.message_type==="video"
+     ?'<video controls playsinline src="'+esc(s.chatMediaUrls[m.id])+'" style="display:block;width:100%;max-height:320px;border-radius:10px;margin-bottom:6px"></video>'
+     :m.message_type==="audio"
+      ?'<audio controls src="'+esc(s.chatMediaUrls[m.id])+'" style="display:block;max-width:100%;margin-bottom:6px"></audio>'
+      :''
+  )
+ :'')+
+ (m.message_text
+  ?'<p style="white-space:pre-wrap;overflow-wrap:anywhere;margin:0;color:inherit;font-size:14px">'+esc(m.message_text)+'</p>'
+  :'')+
     esc(m.message_text)+'</p>'+
    '<div style="text-align:left;margin-top:4px;font-size:10px;opacity:.85">'+
     new Date(m.created_at).toLocaleTimeString("ar-SA",{hour:"2-digit",minute:"2-digit"})+
