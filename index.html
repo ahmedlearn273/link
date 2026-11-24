@@ -5276,6 +5276,9 @@ app.addEventListener("change",async e=>{
   }
  }
 });
+
+let chatAttachmentPreviewUrl=null;
+
 app.addEventListener("change",e=>{
  if(e.target.id!=="chatMediaInput")return;
 
@@ -5287,16 +5290,24 @@ app.addEventListener("change",e=>{
 
  let preview=form.querySelector("#chatAttachmentPreview");
 
+ if(chatAttachmentPreviewUrl){
+  URL.revokeObjectURL(chatAttachmentPreviewUrl);
+  chatAttachmentPreviewUrl=null;
+ }
+
  if(!file){
+  s.chatAttachment=null;
+  s.chatMediaDurationSeconds=null;
   preview?.remove();
   return;
  }
 
- if(file.size>50*1024*1024){
+ if(!file.size||file.size>50*1024*1024){
   s.chatAttachment=null;
+  s.chatMediaDurationSeconds=null;
   e.target.value="";
   preview?.remove();
-  note("حجم الملف أكبر من الحد المسموح (50 ميجابايت).","error");
+  note("حجم الملف غير صالح أو أكبر من الحد المسموح (50 ميجابايت).","error");
   return;
  }
 
@@ -5304,35 +5315,66 @@ app.addEventListener("change",e=>{
     !file.type.startsWith("video/")&&
     !file.type.startsWith("audio/")){
   s.chatAttachment=null;
+  s.chatMediaDurationSeconds=null;
   e.target.value="";
   preview?.remove();
   note("نوع الملف غير مدعوم.","error");
   return;
  }
 
- if(preview)preview.remove();
+ if(!file.name.startsWith("voice-message-")){
+  s.chatMediaDurationSeconds=null;
+ }
+
+ preview?.remove();
 
  preview=document.createElement("div");
  preview.id="chatAttachmentPreview";
- preview.style.cssText="margin-top:12px;padding:10px 12px;border:1px solid var(--border-color);border-radius:12px;display:flex;align-items:center;justify-content:space-between;gap:10px";
+ preview.style.cssText=
+  "margin-top:12px;padding:12px;border:1px solid var(--border-color);border-radius:12px;display:flex;flex-direction:column;gap:10px";
 
  const info=document.createElement("div");
- info.style.cssText="min-width:0;overflow-wrap:anywhere";
- info.textContent="📎 "+file.name+" · "+(file.size/1024/1024).toFixed(2)+" MB";
+ info.style.cssText="overflow-wrap:anywhere;font-size:13px";
+ info.textContent=
+  "📎 "+file.name+" · "+(file.size/1024/1024).toFixed(2)+" MB";
+
+ preview.append(info);
+
+ if(file.type.startsWith("audio/")){
+  chatAttachmentPreviewUrl=URL.createObjectURL(file);
+
+  const audio=document.createElement("audio");
+  audio.controls=true;
+  audio.preload="metadata";
+  audio.src=chatAttachmentPreviewUrl;
+  audio.style.cssText="width:100%;max-width:100%";
+
+  preview.append(audio);
+ }
 
  const remove=document.createElement("button");
  remove.type="button";
  remove.className="btn light";
- remove.textContent="إزالة";
+ remove.textContent="حذف المرفق";
+ remove.style.alignSelf="flex-start";
+
  remove.addEventListener("click",()=>{
   s.chatAttachment=null;
+  s.chatMediaDurationSeconds=null;
   e.target.value="";
+
+  if(chatAttachmentPreviewUrl){
+   URL.revokeObjectURL(chatAttachmentPreviewUrl);
+   chatAttachmentPreviewUrl=null;
+  }
+
   preview.remove();
  });
 
- preview.append(info,remove);
+ preview.append(remove);
  form.append(preview);
 });
+       
   
 app.addEventListener("dragover",e=>{
  const zone=e.target.closest?.("#chatDropZone");
