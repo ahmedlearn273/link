@@ -4705,7 +4705,7 @@ if(["customer","provider"].includes(s.profile?.role)){
 }
 
 let q=await db.from("messages")
-  .select("id,sender_id,message_text,is_read,created_at")
+  .select("id,sender_id,message_text,is_read,created_at,message_type,attachment_path,attachment_mime_type,attachment_size_bytes,media_duration_seconds,location_latitude,location_longitude")
   .eq("conversation_id",c.id)
   .order("created_at");
  if(q.error)throw q.error;
