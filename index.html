@@ -5107,16 +5107,11 @@ const waslaPendingObserver = new MutationObserver(waslaSyncPendingUI);
 waslaPendingObserver.observe(app, {
   childList: true,
   subtree: true
-});
 
-
-let chatMicPointerId=null;
-let chatMicStopRequested=false;
-let chatMicCancelRequested=false;
-let chatMicLocked=false;
-let chatMicStartX=0;
-let chatMicStartY=0;
+  
 let chatMicSession=0;
+let chatMicStarting=false;
+let chatMicStopRequested=false;
 
 function chatMicHaptic(){
  try{
@@ -5129,69 +5124,61 @@ function resetChatMicButton(){
  if(!button)return;
 
  button.textContent="🎙️";
- button.title="اضغط مطولًا للتسجيل";
- button.setAttribute("aria-label","تسجيل رسالة صوتية");
+ button.title="اضغط لبدء التسجيل";
+ button.setAttribute("aria-label","بدء التسجيل");
  button.style.background="";
  button.style.color="";
 }
 
-function cancelChatMicRecording(){
- chatMicCancelRequested=true;
- chatMicStopRequested=true;
- chatMicHaptic();
-
- if(s.chatRecorder?.state==="recording"){
-  s.chatRecorder.stop();
- }
-}
-
-app.addEventListener("pointerdown",async e=>{
+app.addEventListener("click",async e=>{
  const button=e.target.closest?.("#chatMicButton");
  if(!button)return;
- if(e.pointerType==="mouse"&&e.button!==0)return;
 
  e.preventDefault();
 
- // الضغط على الزر بعد قفل التسجيل يوقفه
- if(chatMicLocked){
-  if(s.chatRecorder?.state==="recording"){
-   chatMicStopRequested=true;
-   s.chatRecorder.stop();
-  }
+ // الضغطة الثانية أثناء انتظار إذن الميكروفون
+ if(chatMicStarting){
+  chatMicStopRequested=true;
+  button.title="جاري إلغاء بدء التسجيل...";
   return;
  }
 
- if(chatMicPointerId!==null||s.chatRecording)return;
+ // الضغطة الثانية أثناء التسجيل توقفه
+ if(s.chatRecorder?.state==="recording"){
+  chatMicStopRequested=true;
+  s.chatRecorder.stop();
+  return;
+ }
+
+ if(s.chatRecording)return;
 
  const session=++chatMicSession;
- chatMicPointerId=e.pointerId;
- chatMicStartX=e.clientX;
- chatMicStartY=e.clientY;
+ chatMicStarting=true;
  chatMicStopRequested=false;
- chatMicCancelRequested=false;
+ chatMicHaptic();
 
- try{
-  button.setPointerCapture?.(e.pointerId);
- }catch(_){}
+ button.textContent="…";
+ button.title="جاري تشغيل الميكروفون — اضغط للإلغاء";
 
  let stream=null;
 
  try{
-  if(!navigator.mediaDevices?.getUserMedia||!window.MediaRecorder)
+  if(!navigator.mediaDevices?.getUserMedia||!window.MediaRecorder){
    throw Error("التسجيل الصوتي غير مدعوم في هذا المتصفح.");
+  }
 
   stream=await navigator.mediaDevices.getUserMedia({audio:true});
 
-  if(session!==chatMicSession||
-     chatMicStopRequested||
-     chatMicCancelRequested||
-     !document.getElementById("chatMicButton")){
+  if(
+   session!==chatMicSession||
+   chatMicStopRequested||
+   !document.getElementById("chatMicButton")
+  ){
    stream.getTracks().forEach(track=>track.stop());
 
    if(session===chatMicSession){
-    chatMicPointerId=null;
+    chatMicStarting=false;
     chatMicStopRequested=false;
-    chatMicCancelRequested=false;
     resetChatMicButton();
    }
    return;
@@ -5214,8 +5201,9 @@ app.addEventListener("pointerdown",async e=>{
   const mimeType=(recorder.mimeType||selectedType||"audio/webm")
    .split(";")[0].toLowerCase();
 
-  if(!["audio/webm","audio/ogg","audio/mp4"].includes(mimeType))
+  if(!["audio/webm","audio/ogg","audio/mp4"].includes(mimeType)){
    throw Error("صيغة التسجيل الصوتي غير مدعومة.");
+  }
 
   const chunks=[];
   const startedAt=Date.now();
@@ -5227,23 +5215,16 @@ app.addEventListener("pointerdown",async e=>{
   recorder.addEventListener("stop",()=>{
    stream.getTracks().forEach(track=>track.stop());
 
-   const wasCancelled=chatMicCancelRequested;
-
    if(s.chatRecorder===recorder){
     s.chatRecorder=null;
     s.chatRecording=false;
    }
 
    if(session===chatMicSession){
-    chatMicPointerId=null;
+    chatMicStarting=false;
     chatMicStopRequested=false;
-    chatMicCancelRequested=false;
-    chatMicLocked=false;
     resetChatMicButton();
    }
-
-   // لا نحول التسجيل الملغي إلى ملف
-   if(wasCancelled)return;
 
    if(!chunks.length){
     note("لم يتم تسجيل صوت. حاول مرة أخرى.","error");
@@ -5284,28 +5265,23 @@ app.addEventListener("pointerdown",async e=>{
 
   s.chatRecorder=recorder;
   s.chatRecording=true;
+  chatMicStarting=false;
 
   const activeButton=document.getElementById("chatMicButton");
-  if(activeButton){
-   activeButton.textContent="🔴";
-   activeButton.title="اسحب لأعلى للقفل أو لليسار للإلغاء";
-   activeButton.setAttribute("aria-label","تسجيل رسالة صوتية");
-   activeButton.style.color="var(--danger)";
-  }
 
-  if(chatMicStopRequested&&recorder.state==="recording"){
-   if(chatMicCancelRequested)recorder.stop();
-   else recorder.stop();
+  if(activeButton){
+   activeButton.textContent="⏹️";
+   activeButton.title="اضغط لإيقاف التسجيل";
+   activeButton.setAttribute("aria-label","إيقاف التسجيل");
+   activeButton.style.color="var(--danger)";
   }
 
  }catch(error){
   stream?.getTracks().forEach(track=>track.stop());
 
   if(session===chatMicSession){
-   chatMicPointerId=null;
+   chatMicStarting=false;
    chatMicStopRequested=false;
-   chatMicCancelRequested=false;
-   chatMicLocked=false;
    s.chatRecorder=null;
    s.chatRecording=false;
    resetChatMicButton();
@@ -5315,58 +5291,6 @@ app.addEventListener("pointerdown",async e=>{
  }
 });
 
-document.addEventListener("pointermove",e=>{
- if(e.pointerId!==chatMicPointerId)return;
- if(chatMicLocked||chatMicStopRequested)return;
-
- const dx=e.clientX-chatMicStartX;
- const dy=e.clientY-chatMicStartY;
-
- // السحب لليسار: إلغاء التسجيل
- if(dx < -70 && Math.abs(dx)>Math.abs(dy)*1.15){
-  cancelChatMicRecording();
-  return;
- }
-
- // السحب لأعلى: قفل التسجيل
- if(dy < -70 && Math.abs(dy)>Math.abs(dx)*1.15){
-  chatMicLocked=true;
-  chatMicHaptic();
-
-  const button=document.getElementById("chatMicButton");
-  if(button){
-   button.textContent="⏹️";
-   button.title="التسجيل مقفول — اضغط لإيقافه";
-   button.setAttribute("aria-label","إيقاف التسجيل الصوتي");
-   button.style.color="var(--danger)";
-  }
- }
-});
-
-document.addEventListener("pointerup",e=>{
- if(e.pointerId!==chatMicPointerId)return;
-
- chatMicPointerId=null;
-
- // التسجيل المقفول يستمر بعد رفع الإصبع
- if(chatMicLocked)return;
-
- if(chatMicCancelRequested)return;
-
- chatMicStopRequested=true;
-
- if(s.chatRecorder?.state==="recording"){
-  s.chatRecorder.stop();
- }
-});
-
-document.addEventListener("pointercancel",e=>{
- if(e.pointerId!==chatMicPointerId)return;
-
- chatMicPointerId=null;
- cancelChatMicRecording();
-});
-   
        
 app.addEventListener("click", async e => {
 
