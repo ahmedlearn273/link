@@ -4330,6 +4330,7 @@ if(f.id==="sendMessage"){
   if(uploaded.error)throw uploaded.error;
  }
 
+ 
  const payload={
   conversation_id:s.activeChat.id,
   sender_id:s.user.id,
@@ -4337,9 +4338,13 @@ if(f.id==="sendMessage"){
   message_type:messageType,
   attachment_path:attachmentPath,
   attachment_mime_type:file?.type||null,
-  attachment_size_bytes:file?.size||null
+  attachment_size_bytes:file?.size||null,
+  media_duration_seconds:
+   messageType==="audio"&&file?.name?.startsWith("voice-message-")
+    ?s.chatMediaDurationSeconds
+    :null
  };
-
+ 
  const inserted=await db.from("messages").insert(payload);
 
  if(inserted.error){
@@ -4360,7 +4365,7 @@ if(f.id==="sendMessage"){
  s.messages=q.data||[];
 await loadChatMediaUrls(s.messages);
  s.chatAttachment=null;
-
+s.chatMediaDurationSeconds=null;
  render();
  return;
 }
