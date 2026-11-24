@@ -2887,9 +2887,6 @@ function chatContent(){
 async function loadChatMediaUrls(messages){
  s.chatMediaUrls={};
 
- if(!["customer","provider"].includes(s.profile?.role))
-  return;
-
  const mediaMessages=(messages||[])
   .filter(m=>m.attachment_path);
 
