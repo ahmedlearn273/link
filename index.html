@@ -1881,7 +1881,66 @@ button, input, select, textarea,
   50%{
     box-shadow:0 0 0 7px color-mix(in srgb,var(--danger) 0%,transparent);
   }
+
+.wasla-chat-composer{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  min-width:0;
+  padding:3px;
+  border:1px solid transparent;
+  border-radius:14px;
+  transition:border-color .2s ease,background .2s ease;
 }
+
+.wasla-chat-composer.is-dragging{
+  border-color:var(--primary);
+  background:var(--bg-card);
+}
+
+.wasla-attach-button{
+  width:42px;
+  height:42px;
+  min-width:42px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  border:1px solid var(--border-color);
+  border-radius:50%;
+  color:var(--primary);
+  background:var(--bg-card);
+  cursor:pointer;
+  transition:background .2s ease,transform .2s ease;
+}
+
+.wasla-attach-button:hover{
+  background:var(--bg-surface);
+  transform:translateY(-1px);
+}
+
+.wasla-attach-button svg{
+  width:21px;
+  height:21px;
+}
+
+.wasla-chat-preview{
+  align-items:center;
+  gap:9px;
+  padding:8px;
+  margin-bottom:9px;
+  border:1px solid var(--border-color);
+  border-radius:12px;
+  background:var(--bg-card);
+}
+
+.wasla-chat-preview img,
+.wasla-chat-preview video{
+  width:64px;
+  height:64px;
+  object-fit:cover;
+  border-radius:9px;
+}
+
  </style>
 </head>
 <body><div id="app"></div>
