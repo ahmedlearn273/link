@@ -4364,6 +4364,10 @@ if(f.id==="sendMessage"){
 
  s.messages=q.data||[];
 await loadChatMediaUrls(s.messages);
+if(chatAttachmentPreviewUrl){
+ URL.revokeObjectURL(chatAttachmentPreviewUrl);
+ chatAttachmentPreviewUrl=null;
+}
  s.chatAttachment=null;
 s.chatMediaDurationSeconds=null;
  render();
