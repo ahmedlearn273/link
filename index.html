@@ -2021,9 +2021,47 @@ function authView(){
 
 (signup?'<form id="signup">'+field("الاسم الكامل","full_name","text","اسمك","",true)+field("البريد الإلكتروني","email","email","name@example.com","",true)+field("كلمة المرور","password","password","8 أحرف على الأقل","",true)+field("الهاتف (اختياري)","phone","tel","رقم التواصل","",false)+geoFields+field("تاريخ الميلاد","birth_date","date","","",true)+'<label class="field"><span><input type="checkbox" name="adult_confirmation" value="true" required> أقر بأن عمري 18 سنة أو أكثر</span></label>'+select("نوع الحساب","account_type",[{value:"customer",label:"عميل"},{value:"provider",label:"مزوّد خدمة"}],s.type)+'<div id="providerExtra" class="'+(s.type==="provider"?"":"hidden")+'">'+field("سنوات الخبرة","experience_years","number","سنوات الخبرة","",false)+field("نبذة","bio","text","نبذة عن خبرتك","",false)+field("نطاق الخدمة","service_area","text","الأحياء التي تخدمها","",false)+'</div><button class="btn gold">إنشاء الحساب</button></form>':
 
-  '<form id="login">'+field("البريد الإلكتروني","email","email","name@example.com","",true)+field("كلمة المرور","password","password","كلمة المرور","",true)+'<button class="btn gold">دخول</button><button type="button" class="btn light" data-a="forgot">نسيت كلمة المرور؟</button></form>')+
- '<p class="small">كل الحسابات تستخدم البريد الإلكتروني وكلمة المرور. لا توجد حسابات تجريبية.</p></div></div></main>';
-}
+
+'<form id="login">'+
+field("البريد الإلكتروني","email","email","name@example.com","",true)+
+'<label class="field">كلمة المرور'+
+'<div class="wasla-password-wrap">'+
+'<input name="password" type="password" placeholder="كلمة المرور" autocomplete="current-password" required>'+
+'<button type="button" class="wasla-password-toggle" data-password-toggle aria-label="إظهار كلمة المرور" aria-pressed="false">إظهار</button>'+
+'</div>'+
+'</label>'+
+'<label class="wasla-remember-row">'+
+'<input type="checkbox" name="remember_me" checked>'+
+'<span>تذكرني على هذا الجهاز</span>'+
+'</label>'+
+'<button class="btn gold">دخول</button>'+
+'<button type="button" class="btn light" data-a="forgot">نسيت كلمة المرور؟</button>'+
+'</form>'
+```
+
+## 3. تشغيل زر إظهار وإخفاء كلمة المرور
+
+أضف مستمع الضغط التالي بعد تعريف `const app = ...` وقبل مستمع الضغط الأساسي الموجود عندك:
+
+<CodeBlock language="javascript" editable>
+app.addEventListener("click", e => {
+  const toggle = e.target.closest("[data-password-toggle]");
+  if (!toggle) return;
+
+  const input = toggle.parentElement.querySelector("input");
+  if (!input) return;
+
+  const show = input.type === "password";
+
+  input.type = show ? "text" : "password";
+  toggle.textContent = show ? "إخفاء" : "إظهار";
+  toggle.setAttribute(
+    "aria-label",
+    show ? "إخفاء كلمة المرور" : "إظهار كلمة المرور"
+  );
+  toggle.setAttribute("aria-pressed", String(show));
+});
+
       function recoveryView(){
  return header("استعادة كلمة المرور")+
  '<main class="wrap"><div class="auth"><div class="card">'+
