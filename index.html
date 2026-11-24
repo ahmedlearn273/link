@@ -1835,11 +1835,17 @@ if(!window.supabase?.createClient){
  return;
 }
 
+
+const WASLA_AUTH_STORAGE_KEY = "sb-hnnomaiohwyuqpfzlcol-auth-token";
+
 const waslaAuthStorage = {
   async getItem(key) {
     try {
-      return sessionStorage.getItem(key) ??
-        localStorage.getItem(key);
+      const remember = localStorage.getItem("wasla_remember_me");
+      if (remember === "false") {
+        return sessionStorage.getItem(key);
+      }
+      return localStorage.getItem(key) ?? sessionStorage.getItem(key);
     } catch (error) {
       console.error("Auth storage read failed:", error);
       return null;
@@ -1849,11 +1855,9 @@ const waslaAuthStorage = {
   async setItem(key, value) {
     try {
       const remember =
-        sessionStorage.getItem("wasla_remember_me") ??
-        localStorage.getItem("wasla_remember_me") ??
-        "true";
+        localStorage.getItem("wasla_remember_me") !== "false";
 
-      if (remember === "true") {
+      if (remember) {
         localStorage.setItem(key, value);
         sessionStorage.removeItem(key);
       } else {
@@ -1877,6 +1881,20 @@ const waslaAuthStorage = {
   }
 };
 
+const db = window.supabase.createClient(
+  "https://hnnomaiohwyuqpfzlcol.supabase.co",
+  "sb_publishable_I4IfNkGvcxDxzz3xdGeKxw_TAzgc3ck",
+  {
+    auth: {
+      storage: waslaAuthStorage,
+      storageKey: WASLA_AUTH_STORAGE_KEY,
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true
+    }
+  }
+);
+      
 const db = window.supabase.createClient(
   "https://hnnomaiohwyuqpfzlcol.supabase.co",
   "sb_publishable_I4IfNkGvcxDxzz3xdGeKxw_TAzgc3ck",
