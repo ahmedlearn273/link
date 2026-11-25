@@ -5330,7 +5330,28 @@ if(a==="viewcustomer"){s.modal={type:"customerDetails",userId:id};render();retur
   }
   if(a==="request"){if(!s.user){s.mode="login";note("سجّل الدخول أولًا حتى تتمكن من إرسال طلب خدمة.");return}s.modal={type:"request",providerId:s.providers.some(x=>x.id===id)?id:null,serviceId:s.services.some(x=>x.id===id)?id:null};render();return}
   if(["addoffer","addservice","addcategory"].includes(a)){s.modal={type:a==="addoffer"?"offer":a==="addservice"?"service":"category"};render();return}
- if(a==="request-details"){
+if(a==="quote-accept"){
+
+ if(s.profile?.role!=="customer")
+  throw Error("غير مصرح بقبول عرض السعر");
+
+ const quote=s.quotes.find(x=>x.id===id);
+
+ if(!quote||
+    quote.customer_id!==s.user?.id||
+    quote.status!=="awaiting_customer"||
+    !quote.currentVersion)
+  throw Error("عرض السعر غير متاح للقبول");
+
+ s.modal={
+  type:"quoteAccept",
+  quoteId:quote.id
+ };
+
+ render();
+ return;
+}
+  if(a==="request-details"){
 
  if(s.profile?.role!=="customer")return;
 
