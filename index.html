@@ -4317,7 +4317,47 @@ if(m.type==="knowledgeDocumentView"){
  '</form>'
  :'<p class="muted">لا توجد مستندات معتمدة حاليًا. يجب اعتماد مستند واحد على الأقل أولًا.</p>');
   }
-if(m.type==="quoteAccept"){
+if(m.type==="quoteRespond"){
+
+ if(s.profile?.role!=="customer")
+  throw Error("غير مصرح بالرد على عرض السعر");
+
+ const quote=s.quotes.find(x=>x.id===m.quoteId);
+
+ if(!quote||
+    quote.customer_id!==s.user?.id||
+    quote.status!=="awaiting_customer"||
+    !quote.currentVersion||
+    !["request_revision","reject"].includes(m.action))
+  throw Error("عرض السعر غير متاح للرد");
+
+ const isRevision=m.action==="request_revision";
+
+ c=
+ '<div class="modal-title">'+
+  '<h3>'+(isRevision?"طلب تعديل عرض السعر":"رفض عرض السعر")+'</h3>'+
+  '<p class="muted">'+
+   (isRevision
+    ?"اكتب التعديلات المطلوبة من مقدم الخدمة."
+    :"اكتب سبب رفض عرض السعر.")+
+  '</p>'+
+ '</div>'+
+ '<form id="quoteRespondForm"'+
+  ' data-quote-id="'+esc(quote.id)+'"'+
+  ' data-version-id="'+esc(quote.currentVersion.id)+'"'+
+  ' data-action="'+esc(m.action)+'">'+
+  '<label class="field">السبب أو الملاحظات'+
+   '<textarea name="note" required minlength="5" maxlength="1000" placeholder="اكتب التفاصيل هنا..."></textarea>'+
+  '</label>'+
+  '<div class="actions">'+
+   '<button type="button" class="btn light" data-a="close">رجوع</button>'+
+   '<button type="submit" class="btn '+(isRevision?"gold":"danger")+'">'+
+    (isRevision?"إرسال طلب التعديل":"تأكيد الرفض")+
+   '</button>'+
+  '</div>'+
+ '</form>';
+}
+  if(m.type==="quoteAccept"){
 
  if(s.profile?.role!=="customer")
   throw Error("غير مصرح بقبول عرض السعر");
