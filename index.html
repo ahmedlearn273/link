@@ -5635,6 +5635,19 @@ if(a==="tab"){
  return;
 }
 
+if(a==="provider-profile-tab"){
+
+ if(s.profile?.role!=="provider")return;
+
+ if(!["profile","services"].includes(id))return;
+
+ s.providerProfileTab=id;
+
+ render();
+
+ return;
+}
+  
 if(a==="request-filter"){
 
  if(s.profile?.role!=="customer")return;
