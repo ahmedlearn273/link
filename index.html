@@ -5767,7 +5767,19 @@ if(a==="provider-profile-tab"){
 
  return;
 }
-  
+  if(a==="provider-request-filter"){
+
+ if(s.profile?.role!=="provider")return;
+
+ if(!["all","new","active","completed","cancelled"].includes(id))
+  return;
+
+ s.providerRequestFilter=id;
+
+ render();
+
+ return;
+  }
 if(a==="request-filter"){
 
  if(s.profile?.role!=="customer")return;
