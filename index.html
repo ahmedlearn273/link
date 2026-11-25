@@ -2563,14 +2563,39 @@ const query=(s.filter||"").trim().toLowerCase();
  '</main>';
  }
       function requestList(provider){
- return s.requests.map(q=>{const own=q.provider_id===s.provider?.id;let a="";
- if(provider&&q.status==="pending"&&!q.provider_id)a=btn("claim","قبول الطلب","green",q.id);
- if(provider&&own&&q.status==="accepted")a=btn("advance","بدء التنفيذ","gold",q.id,"data-next='in_progress'");
- if(provider&&own&&q.status==="in_progress")a=btn("advance","إنهاء الطلب","green",q.id,"data-next='completed'");
- if(provider&&q.provider_id&&!own)return "";
- return '<article class="item"><div class="row"><b>'+esc(q.title||q.services?.name_ar||"طلب خدمة")+'</b>'+tag(q.status)+'</div><p>'+esc([q.city,q.country].filter(Boolean).join("، "))+'</p><p>'+esc(q.description||"")+'</p><p>الميزانية: '+(q.budget?fmt(q.budget):"غير محددة")+'</p><div class="actions">'+a+(!provider&&["pending","accepted"].includes(q.status)?btn("cancelrequest","إلغاء الطلب","danger",q.id):"")+(q.status==="completed"&&q.provider_id&&!provider?btn("review","تقييم الخدمة","light",q.id):"")+(q.provider_id&&["accepted","in_progress"].includes(q.status)&&(!provider||s.chats.some(c=>c.request_id===q.id))?btn("chat","محادثة","light",q.id):"")+'</div></article>';
+ return s.requests.map(q=>{
+  const own=q.provider_id===s.provider?.id;
+  const quote=provider?s.quotes.find(x=>x.request_id===q.id):null;
+  let a="";
+
+  if(provider&&q.status==="pending"&&!q.provider_id){
+   a=btn("claim","قبول الطلب","green",q.id);
+  }
+
+  if(provider&&own&&q.status==="accepted"){
+   if(!quote||["revision_requested","rejected","expired"].includes(quote.status)){
+    a=btn("createquote",quote?"إرسال عرض معدل":"إنشاء عرض سعر","gold",q.id);
+   }else if(quote.status==="agreed"){
+    a=btn("advance","بدء التنفيذ","gold",q.id,"data-next='in_progress'");
+   }else{
+    const quoteStatus={
+     awaiting_customer:"في انتظار رد العميل",
+     awaiting_provider_approval:"في انتظار اعتمادك",
+     withdrawn:"تم سحب عرض السعر"
+    };
+    a=tag(quoteStatus[quote.status]||"عرض السعر قيد المراجعة");
+   }
+  }
+
+  if(provider&&own&&q.status==="in_progress"){
+   a=btn("advance","إنهاء الطلب","green",q.id,"data-next='completed'");
+  }
+
+  if(provider&&q.provider_id&&!own)return "";
+
+  return '<article class="item"><div class="row"><b>'+esc(q.title||q.services?.name_ar||"طلب خدمة")+'</b>'+tag(q.status)+'</div><p>'+esc([q.city,q.country].filter(Boolean).join("، "))+'</p><p>'+esc(q.description||"")+'</p><p>الميزانية: '+(q.budget?fmt(q.budget):"غير محددة")+'</p><div class="actions">'+a+(!provider&&["pending","accepted"].includes(q.status)?btn("cancelrequest","إلغاء الطلب","danger",q.id):"")+(q.status==="completed"&&q.provider_id&&!provider?btn("review","تقييم الخدمة","light",q.id):"")+(q.provider_id&&["accepted","in_progress"].includes(q.status)&&(!provider||s.chats.some(c=>c.request_id===q.id))?btn("chat","محادثة","light",q.id):"")+'</div></article>';
  }).join("")||empty("لا توجد طلبات حتى الآن");
-}
+      }
 
 function accountSettingsView(){
  const p=s.profile||{};
