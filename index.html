@@ -2207,15 +2207,6 @@ if(p.role==="staff"){
   s.profile=null;
   s.serviceQuoteSettings=null;
 
-if(["provider","admin","owner"].includes(p.role)){
- const {data:quoteSettings,error:quoteSettingsError}=await db.rpc(
-  "get_service_quote_settings"
- );
-
- if(quoteSettingsError)throw quoteSettingsError;
-
- s.serviceQuoteSettings=quoteSettings;
-}
   app.innerHTML=header("حساب الموظف غير نشط")+'<main class="wrap"><div class="card"><h2>تم إيقاف صلاحيات الموظف</h2><p>يرجى التواصل مع الإدارة.</p></div></main>';
   return;
  }
