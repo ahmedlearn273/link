@@ -4672,9 +4672,11 @@ const quoteSection=quote&&version
      :"")+
       '</div>'+
   '</section>'+
-  (quote.status==="awaiting_customer"
+(quote.status==="awaiting_customer"
    ?'<div class="actions">'+
      '<button type="button" class="btn gold" data-a="quote-accept" data-id="'+esc(quote.id)+'">قبول عرض السعر</button>'+
+     '<button type="button" class="btn light" data-a="quote-revision" data-id="'+esc(quote.id)+'">طلب تعديل العرض</button>'+
+     '<button type="button" class="btn danger" data-a="quote-reject" data-id="'+esc(quote.id)+'">رفض العرض</button>'+
     '</div>'
    :"")
  :"";
