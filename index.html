@@ -6141,6 +6141,23 @@ if(a==="quote-provider-approve"){
 
  return;
 }
+  if(a==="provider-request-details"){
+
+ if(s.profile?.role!=="provider")return;
+
+ const request=s.requests.find(x=>x.id===id);
+
+ if(!request||request.provider_id!==s.provider?.id)
+  throw Error("الطلب غير موجود أو غير مسند إليك");
+
+ s.modal={
+  type:"providerRequestDetails",
+  requestId:id
+ };
+
+ render();
+ return;
+  }
   if(a==="request-details"){
 
  if(s.profile?.role!=="customer")return;
