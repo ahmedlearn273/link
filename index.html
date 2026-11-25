@@ -7180,5 +7180,30 @@ const addButton = () => {
 })();
  
 </script>
+ 
+<style>
+/* WASLA — Unified card title/status alignment */
+.item > .row:has(.tag),
+.card > .row:has(.tag){
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:10px;
+  min-width:0;
+}
+
+.item > .row:has(.tag) > :first-child,
+.card > .row:has(.tag) > :first-child{
+  min-width:0;
+  overflow-wrap:anywhere;
+}
+
+.item > .row:has(.tag) .tag,
+.card > .row:has(.tag) .tag{
+  flex-shrink:0;
+  white-space:nowrap;
+}
+</style>
+ 
 </body></html>
 
