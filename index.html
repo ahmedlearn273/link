@@ -5053,7 +5053,65 @@ if(f.id==="waslaAiForm"){
 
 
 try{
-if(f.id==="quoteAcceptForm"){
+if(f.id==="quoteRespondForm"){
+
+ if(s.profile?.role!=="customer")
+  throw Error("غير مصرح بالرد على عرض السعر");
+
+ const quote=s.quotes.find(x=>
+  x.id===f.dataset.quoteId
+ );
+
+ const version=quote?.currentVersion;
+ const v=vals(f);
+ const action=f.dataset.action;
+ const noteText=String(v.note||"").trim();
+
+ if(!quote||
+    !version||
+    quote.customer_id!==s.user?.id||
+    quote.status!=="awaiting_customer"||
+    version.id!==f.dataset.versionId)
+  throw Error("عرض السعر أو نسخته الحالية غير متاح");
+
+ if(!["request_revision","reject"].includes(action))
+  throw Error("نوع الرد غير صحيح");
+
+ if(noteText.length<5||noteText.length>1000)
+  throw Error("اكتب سببًا من 5 إلى 1000 حرف");
+
+ const {data,error}=await db.rpc("respond_to_service_quote",{
+  p_quote_id:quote.id,
+  p_quote_version_id:version.id,
+  p_action:action,
+  p_payment_method:null,
+  p_note:noteText
+ });
+
+ if(error)throw error;
+
+ await loadUser(s.user);
+
+ s.modal={
+  type:"requestDetails",
+  requestId:quote.request_id
+ };
+
+ render();
+
+ if(data==="expired")
+  note("انتهت صلاحية العرض، ولم يتم تنفيذ الرد.","error");
+ else
+  note(
+   action==="request_revision"
+    ?"تم إرسال طلب تعديل العرض لمقدم الخدمة."
+    :"تم رفض عرض السعر بنجاح.",
+   "success"
+  );
+
+ return;
+}
+ if(f.id==="quoteAcceptForm"){
 
  if(s.profile?.role!=="customer")
   throw Error("غير مصرح بقبول عرض السعر");
