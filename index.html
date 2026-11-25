@@ -3040,18 +3040,237 @@ btn("request-details","تفاصيل الطلب","light",q.id)+
 
   customerBottomNav();
 }
-      
+ 
 function provider(){
  let body="";
- if(s.tab==="messages")body=chatContent();
-if(["home","requests"].includes(s.tab))body='<div class="grid small"><div class="card"><div class="small">حالة التوفر</div><div class="stat">'+(s.provider.is_available?"متاح":"غير متاح")+'</div><p class="small">'+(s.provider.is_available?"يمكن للعملاء إرسال طلبات جديدة إليك":"لن تستقبل طلبات جديدة حاليًا")+'</p>'+btn("availability",s.provider.is_available?"إيقاف الاستقبال":"تفعيل الاستقبال",s.provider.is_available?"light":"green")+'</div><div class="card"><div class="small">التقييم</div><div class="stat">⭐ '+fmt(s.provider.average_rating)+'</div><p class="small">'+fmt(s.provider.total_reviews)+' تقييم من العملاء</p></div><div class="card"><div class="small">التوثيق</div>'+tag(s.provider.verification_status)+'<p class="small">حالة اعتماد حسابك على منصة وصلة</p></div></div><section class="section"><div class="sectionhead"><div><h2>الطلبات المتاحة والمسندة إليك</h2><p class="small">تابع طلبات العملاء وحدّث حالة تنفيذها باستمرار.</p></div></div><div class="list">'+requestList(true)+'</div></section>';
-if(s.tab==="services")body='<section class="section"><div class="sectionhead"><div><h2>خدماتي وأسعاري</h2><p class="small">أدر الخدمات التي تقدمها وأسعارها وحالة ظهورها للعملاء.</p></div>'+btn("addoffer","إضافة خدمة","gold")+'</div><div class="list">'+(s.offers.map(o=>'<article class="item"><div class="row"><b>'+esc(o.services?.name_ar||"خدمة")+'</b>'+tag(o.is_active?"نشط":"متوقف")+'</div><div class="stat price">'+fmt(o.price)+' '+esc(o.currency||"")+'</div><p class="small">'+(o.price_type==="negotiable"?"السعر قابل للتفاوض":o.price_type==="starting_from"?"السعر يبدأ من":"سعر ثابت")+'</p>'+btn("toggleoffer",o.is_active?"إيقاف العرض":"تفعيل العرض","light",o.id)+'</article>').join("")||empty("لم تضف خدمات بعد. أضف خدمتك الأولى ليراها العملاء."))+'</div></section>';
-if(s.tab==="profile")body='<section class="section"><div class="card"><div class="sectionhead"><div><h2>ملفي الشخصي</h2><p class="small">عرّف العملاء بخبراتك ومناطق تقديم خدماتك.</p></div>'+tag(s.provider.verification_status)+'</div><form id="providerProfile">'+field("الاسم الظاهر","display_name","text","الاسم الذي يظهر للعملاء",s.provider.display_name||s.profile.full_name,true)+field("الدولة","country","text","الدولة",s.provider.country||s.profile.country,true)+field("المدينة","city","text","المدينة التي تعمل بها",s.provider.city||s.profile.city,true)+field("نطاق الخدمة","service_area","text","الأحياء والمناطق التي تغطيها",s.provider.service_area||"",false)+field("سنوات الخبرة","experience_years","number","عدد سنوات الخبرة",s.provider.experience_years||0,false)+'<label class="field">نبذة عنك<textarea name="bio" placeholder="اكتب نبذة مختصرة عن خبراتك والخدمات التي تقدمها">'+esc(s.provider.bio||"")+'</textarea><small class="small">اكتب نبذة واضحة تساعد العملاء على التعرف عليك.</small></label><div class="actions"><button class="btn gold">حفظ الملف الشخصي</button></div></form></div></section>';
- const nav=[["home","الرئيسية"],["requests","الطلبات"],["messages","الرسائل"],["services","خدماتي"],["profile","ملفي"]].map(x=>'<button data-a="tab" data-id="'+x[0]+'" class="'+(s.tab===x[0]?"active":"")+'">'+x[1]+'</button>').join("");
- return header("مرحبًا "+(s.provider.display_name||s.profile.full_name),nav)+'<main class="wrap">'+msg()+'<div class="sectionhead"><div><h2>لوحة مزوّد الخدمة</h2><p class="small">تابع طلباتك، وأدر خدماتك، وطوّر حضورك على وصلة.</p></div>'+tag(s.provider.verification_status)+'</div>'+body+'</main>';
+
+ if(s.tab==="messages"){
+  body=chatContent();
+ }
+
+ if(s.tab==="assistant"){
+  body=assistantView();
+ }
+
+ if(["home","requests"].includes(s.tab)){
+  body=
+   '<div class="grid small">'+
+
+    '<div class="card">'+
+     '<div class="small">حالة التوفر</div>'+
+     '<div class="stat">'+
+      (s.provider.is_available?"متاح":"غير متاح")+
+     '</div>'+
+     '<p class="small">'+
+      (s.provider.is_available
+       ?"يمكن للعملاء إرسال طلبات جديدة إليك"
+       :"لن تستقبل طلبات جديدة حاليًا")+
+     '</p>'+
+     btn(
+      "availability",
+      s.provider.is_available
+       ?"إيقاف الاستقبال"
+       :"تفعيل الاستقبال",
+      s.provider.is_available?"light":"green"
+     )+
+    '</div>'+
+
+    '<div class="card">'+
+     '<div class="small">التوثيق</div>'+
+     tag(s.provider.verification_status)+
+     '<p class="small">حالة اعتماد حسابك على منصة وصلة</p>'+
+    '</div>'+
+
+   '</div>'+
+
+   '<section class="section">'+
+    '<div class="sectionhead">'+
+     '<div>'+
+      '<h2>الطلبات المتاحة والمسندة إليك</h2>'+
+      '<p class="small">تابع طلبات العملاء وحدّث حالة تنفيذها باستمرار.</p>'+
+     '</div>'+
+    '</div>'+
+    '<div class="list">'+
+     requestList(true)+
+    '</div>'+
+   '</section>';
+ }
+
+ if(s.tab==="profile"){
+
+  const profileTab=s.providerProfileTab||"profile";
+
+  body=
+   '<div class="wasla-provider-subnav">'+
+
+    '<button type="button" data-a="provider-profile-tab" data-id="profile" class="'+
+     (profileTab==="profile"?"active":"")+
+    '">بياناتي المهنية</button>'+
+
+    '<button type="button" data-a="provider-profile-tab" data-id="services" class="'+
+     (profileTab==="services"?"active":"")+
+    '">خدماتي</button>'+
+
+   '</div>';
+
+  if(profileTab==="services"){
+
+   body+=
+    '<section class="section">'+
+     '<div class="sectionhead">'+
+      '<div>'+
+       '<h2>خدماتي وأسعاري</h2>'+
+       '<p class="small">أدر الخدمات التي تقدمها وأسعارها وحالة ظهورها للعملاء.</p>'+
+      '</div>'+
+      btn("addoffer","إضافة خدمة","gold")+
+     '</div>'+
+
+     '<div class="list">'+
+
+      (s.offers.map(o=>
+       '<article class="item">'+
+
+        '<div class="row">'+
+         '<b>'+esc(o.services?.name_ar||"خدمة")+'</b>'+
+         tag(o.is_active?"نشط":"متوقف")+
+        '</div>'+
+
+        '<div class="stat price">'+
+         fmt(o.price)+' '+esc(o.currency||"")+
+        '</div>'+
+
+        '<p class="small">'+
+         (o.price_type==="negotiable"
+          ?"السعر قابل للتفاوض"
+          :o.price_type==="starting_from"
+           ?"السعر يبدأ من"
+           :"سعر ثابت")+
+        '</p>'+
+
+        btn(
+         "toggleoffer",
+         o.is_active?"إيقاف العرض":"تفعيل العرض",
+         "light",
+         o.id
+        )+
+
+       '</article>'
+      ).join("")||
+       empty("لم تضف خدمات بعد. أضف خدمتك الأولى ليراها العملاء.")
+      )+
+
+     '</div>'+
+    '</section>';
+
+  }else{
+
+   body+=
+    '<section class="section">'+
+     '<div class="card">'+
+
+      '<div class="sectionhead">'+
+       '<div>'+
+        '<h2>ملفي الشخصي</h2>'+
+        '<p class="small">عرّف العملاء بخبراتك ومناطق تقديم خدماتك.</p>'+
+       '</div>'+
+       tag(s.provider.verification_status)+
+      '</div>'+
+
+      '<form id="providerProfile">'+
+
+       field(
+        "الاسم الظاهر",
+        "display_name",
+        "text",
+        "الاسم الذي يظهر للعملاء",
+        s.provider.display_name||s.profile.full_name,
+        true
+       )+
+
+       field(
+        "الدولة",
+        "country",
+        "text",
+        "الدولة",
+        s.provider.country||s.profile.country,
+        true
+       )+
+
+       field(
+        "المدينة",
+        "city",
+        "text",
+        "المدينة التي تعمل بها",
+        s.provider.city||s.profile.city,
+        true
+       )+
+
+       field(
+        "نطاق الخدمة",
+        "service_area",
+        "text",
+        "الأحياء والمناطق التي تغطيها",
+        s.provider.service_area||"",
+        false
+       )+
+
+       field(
+        "سنوات الخبرة",
+        "experience_years",
+        "number",
+        "عدد سنوات الخبرة",
+        s.provider.experience_years||0,
+        false
+       )+
+
+       '<label class="field">نبذة عنك'+
+        '<textarea name="bio" placeholder="اكتب نبذة مختصرة عن خبراتك والخدمات التي تقدمها">'+
+         esc(s.provider.bio||"")+
+        '</textarea>'+
+        '<small class="small">اكتب نبذة واضحة تساعد العملاء على التعرف عليك.</small>'+
+       '</label>'+
+
+       '<div class="actions">'+
+        '<button class="btn gold">حفظ الملف الشخصي</button>'+
+       '</div>'+
+
+      '</form>'+
+
+     '</div>'+
+    '</section>';
+
+  }
+ }
+
+ const titles={
+  home:"الرئيسية",
+  requests:"الطلبات",
+  messages:"الرسائل",
+  assistant:"PRIME",
+  profile:"ملفي"
+ };
+
+ return header(
+  "مرحبًا "+(s.provider.display_name||s.profile.full_name),
+  "",
+  true
+ )+
+
+ '<main class="wrap wasla-provider-page">'+
+  msg()+
+  '<div class="sectionhead">'+
+   '<div>'+
+    '<h2>'+titles[s.tab]+'</h2>'+
+    '<p class="small">مساحة إدارة أعمالك على وصلة.</p>'+
+   '</div>'+
+   tag(s.provider.verification_status)+
+  '</div>'+
+  body+
+ '</main>'+
+
+ providerBottomNav();
 }
-
-
+      
 
 function chatContent(){
  const isAdmin=s.profile?.role==="admin"||s.profile?.role==="owner";
