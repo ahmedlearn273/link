@@ -2627,10 +2627,15 @@ const query=(s.filter||"").trim().toLowerCase();
    }else{
     const quoteStatus={
      awaiting_customer:"في انتظار رد العميل",
-     awaiting_provider_approval:"في انتظار اعتمادك",
+          awaiting_provider_approval:"في انتظار اعتمادك",
      withdrawn:"تم سحب عرض السعر"
     };
-    a=tag(quoteStatus[quote.status]||"عرض السعر قيد المراجعة");
+
+    if(quote.status==="awaiting_provider_approval"){
+     a=btn("quote-provider-review","مراجعة واعتماد العرض","gold",quote.id);
+    }else{
+     a=tag(quoteStatus[quote.status]||"عرض السعر قيد المراجعة");
+    }
    }
   }
 
