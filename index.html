@@ -5870,7 +5870,14 @@ if(a==="provider-profile-tab"){
 
  if(s.profile?.role!=="provider")return;
 
- if(!["all","new","active","completed","cancelled"].includes(id))
+  if(![
+  "all",
+  "new",
+  "accepted",
+  "in_progress",
+  "completed",
+  "cancelled"
+ ].includes(id))
   return;
 
  s.providerRequestFilter=id;
