@@ -3052,49 +3052,103 @@ function provider(){
   body=assistantView();
  }
 
- if(["home","requests"].includes(s.tab)){
-  body=
+ 
+if(s.tab==="home"){
+ body=
+  '<div class="grid small">'+
+
+   '<div class="card">'+
+    '<div class="small">حالة التوفر</div>'+
+    '<div class="stat">'+
+     (s.provider.is_available?"متاح":"غير متاح")+
+    '</div>'+
+    '<p class="small">'+
+     (s.provider.is_available
+      ?"يمكن للعملاء إرسال طلبات جديدة إليك"
+      :"لن تستقبل طلبات جديدة حاليًا")+
+    '</p>'+
+    btn(
+     "availability",
+     s.provider.is_available
+      ?"إيقاف الاستقبال"
+      :"تفعيل الاستقبال",
+     s.provider.is_available?"light":"green"
+    )+
+   '</div>'+
+
+   '<div class="card">'+
+    '<div class="small">التوثيق</div>'+
+    tag(s.provider.verification_status)+
+    '<p class="small">حالة اعتماد حسابك على منصة وصلة</p>'+
+   '</div>'+
+
+  '</div>'+
+
+  '<section class="section">'+
+   '<div class="sectionhead">'+
+    '<div>'+
+     '<h2>نظرة عامة على أعمالك</h2>'+
+     '<p class="small">تابع الطلبات المتاحة والطلبات المسندة إليك.</p>'+
+    '</div>'+
+   '</div>'+
+   '<div class="list">'+
+    requestList(true)+
+   '</div>'+
+  '</section>';
+}
+
+if(s.tab==="requests"){
+
+ const activeCount=s.requests.filter(q=>
+  q.provider_id===s.provider.id &&
+  ["accepted","in_progress"].includes(q.status)
+ ).length;
+
+ const pendingCount=s.requests.filter(q=>
+  q.status==="pending"&&!q.provider_id
+ ).length;
+
+ const completedCount=s.requests.filter(q=>
+  q.provider_id===s.provider.id &&
+  q.status==="completed"
+ ).length;
+
+ body=
+  '<section class="section">'+
+
    '<div class="grid small">'+
 
     '<div class="card">'+
-     '<div class="small">حالة التوفر</div>'+
-     '<div class="stat">'+
-      (s.provider.is_available?"متاح":"غير متاح")+
-     '</div>'+
-     '<p class="small">'+
-      (s.provider.is_available
-       ?"يمكن للعملاء إرسال طلبات جديدة إليك"
-       :"لن تستقبل طلبات جديدة حاليًا")+
-     '</p>'+
-     btn(
-      "availability",
-      s.provider.is_available
-       ?"إيقاف الاستقبال"
-       :"تفعيل الاستقبال",
-      s.provider.is_available?"light":"green"
-     )+
+     '<div class="small">طلبات متاحة</div>'+
+     '<div class="stat">'+fmt(pendingCount)+'</div>'+
     '</div>'+
 
     '<div class="card">'+
-     '<div class="small">التوثيق</div>'+
-     tag(s.provider.verification_status)+
-     '<p class="small">حالة اعتماد حسابك على منصة وصلة</p>'+
+     '<div class="small">طلبات نشطة</div>'+
+     '<div class="stat">'+fmt(activeCount)+'</div>'+
+    '</div>'+
+
+    '<div class="card">'+
+     '<div class="small">طلبات مكتملة</div>'+
+     '<div class="stat">'+fmt(completedCount)+'</div>'+
     '</div>'+
 
    '</div>'+
 
-   '<section class="section">'+
-    '<div class="sectionhead">'+
-     '<div>'+
-      '<h2>الطلبات المتاحة والمسندة إليك</h2>'+
-      '<p class="small">تابع طلبات العملاء وحدّث حالة تنفيذها باستمرار.</p>'+
-     '</div>'+
+   '<div class="sectionhead">'+
+    '<div>'+
+     '<h2>إدارة الطلبات</h2>'+
+     '<p class="small">الطلبات المتاحة لك والطلبات المسندة إليك، مع متابعة حالتها.</p>'+
     '</div>'+
-    '<div class="list">'+
-     requestList(true)+
-    '</div>'+
-   '</section>';
- }
+   '</div>'+
+
+   '<div class="list">'+
+    (requestList(true)||empty("لا توجد طلبات متاحة أو مسندة إليك حاليًا."))+
+   '</div>'+
+
+  '</section>';
+}
+ 
 
  if(s.tab==="profile"){
 
