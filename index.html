@@ -5178,7 +5178,24 @@ if(a==="cancelrequest"){
  render();
  return;
 }
-  
+ if(a==="createquote"){
+ if(s.profile?.role!=="provider")
+  throw Error("غير مصرح لك بإنشاء عرض سعر");
+
+ const q=s.requests.find(x=>x.id===id);
+
+ if(!q||q.provider_id!==s.provider?.id||q.status!=="accepted")
+  throw Error("الطلب غير متاح لإنشاء عرض سعر");
+
+ const existing=s.quotes.find(x=>x.request_id===id);
+
+ if(existing&&!["revision_requested","rejected","expired"].includes(existing.status))
+  throw Error("حالة عرض السعر الحالية لا تسمح بإرسال عرض جديد");
+
+ s.modal={type:"quoteComposer",requestId:id};
+ render();
+ return;
+ } 
   if(a==="claim"){let r=await db.rpc("claim_service_request",{p_request_id:id});if(r.error)throw r.error;await loadUser(s.user);note("تم قبول الطلب وإسناده إليك.","success");return}
   if(a==="advance"){let r=await db.rpc("advance_service_request",{p_request_id:id,p_next_status:b.dataset.next});if(r.error)throw r.error;await loadUser(s.user);note("تم تحديث حالة الطلب.","success");return}
   if(a==="availability"){let r=await db.rpc("toggle_own_provider_availability");if(r.error)throw r.error;await loadUser(s.user);note("تم تحديث التوفر.","success");return}
