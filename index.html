@@ -4083,7 +4083,12 @@ const quoteSection=quote&&version
 
        return '<div class="item">'+
         '<div class="row">'+
-         '<b>الدفعة '+esc(payment.sequence||index+1)+'</b>'+
+         '<b>الدفعة '+(
+ ["الأولى","الثانية","الثالثة","الرابعة","الخامسة",
+  "السادسة","السابعة","الثامنة","التاسعة","العاشرة"]
+ [((Number(payment.sequence)||index+1)-1)]
+ ||("رقم "+(Number(payment.sequence)||index+1))
+)+'</b>'+
          '<b class="price">'+
           esc(fmt(payment.amount))+' '+esc(version.currency||"")+
          '</b>'+
