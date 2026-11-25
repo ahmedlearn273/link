@@ -3062,24 +3062,35 @@ if(s.tab==="home"){
  body=
   '<div class="grid small">'+
 
-   '<div class="card">'+
-    '<div class="small">حالة التوفر</div>'+
-    '<div class="stat">'+
-     (s.provider.is_available?"متاح":"غير متاح")+
-    '</div>'+
-    '<p class="small">'+
-     (s.provider.is_available
-      ?"يمكن للعملاء إرسال طلبات جديدة إليك"
-      :"لن تستقبل طلبات جديدة حاليًا")+
-    '</p>'+
-    btn(
-     "availability",
-     s.provider.is_available
-      ?"إيقاف الاستقبال"
-      :"تفعيل الاستقبال",
-     s.provider.is_available?"light":"green"
-    )+
-   '</div>'+
+   
+'<div class="card">'+
+ '<div class="small">حالة التوفر</div>'+
+ '<div class="stat">'+
+  (isBusy
+   ?"مشغول"
+   :s.provider.is_available
+    ?"متاح"
+    :"خارج الخدمة")+
+ '</div>'+
+ '<p class="small">'+
+  (isBusy
+   ?"لديك طلب قيد التنفيذ حاليًا"
+   :s.provider.is_available
+    ?"يمكن للعملاء إرسال طلبات جديدة إليك"
+    :"لن تستقبل طلبات جديدة حاليًا")+
+ '</p>'+
+ (isBusy
+  ?""
+  :btn(
+   "availability",
+   s.provider.is_available
+    ?"إيقاف الاستقبال"
+    :"تفعيل الاستقبال",
+   s.provider.is_available?"light":"green"
+  )
+ )+
+'</div>'+
+  
 
    '<div class="card">'+
     '<div class="small">التوثيق</div>'+
