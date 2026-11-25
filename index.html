@@ -4042,8 +4042,31 @@ const quoteSection=quote&&version
     '<p>'+esc(quoteDate(version.proposed_start_at))+'</p>'+
     '<p class="small">صلاحية العرض حتى</p>'+
     '<p>'+esc(quoteDate(version.valid_until))+'</p>'+
-    (Array.isArray(version.payment_schedule)
-     ?'<p class="small">جدول الدفعات</p><pre>'+esc(JSON.stringify(version.payment_schedule,null,2))+'</pre>'
+    (Array.isArray(version.payment_schedule)&&version.payment_schedule.length
+     ?'<p class="small">جدول الدفعات</p>'+
+      '<div class="list">'+
+      version.payment_schedule.map((payment,index)=>{
+       const dueLabels={
+        on_agreement:"عند الاتفاق",
+        on_start:"عند بدء التنفيذ",
+        on_milestone:"عند إنجاز مرحلة",
+        on_completion:"عند اكتمال العمل"
+       };
+
+       return '<div class="item">'+
+        '<div class="row">'+
+         '<b>الدفعة '+esc(payment.sequence||index+1)+'</b>'+
+         '<b class="price">'+
+          esc(fmt(payment.amount))+' '+esc(version.currency||"")+
+         '</b>'+
+        '</div>'+
+        '<p>'+esc(payment.label||"—")+'</p>'+
+        '<p class="small">موعد الاستحقاق: '+
+         esc(dueLabels[payment.due_event]||"غير محدد")+
+        '</p>'+
+       '</div>';
+      }).join("")+
+      '</div>'
      :"")+
     (version.additional_terms
      ?'<p class="small">شروط إضافية</p><p>'+esc(version.additional_terms)+'</p>'
