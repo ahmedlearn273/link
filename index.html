@@ -3044,6 +3044,11 @@ btn("request-details","تفاصيل الطلب","light",q.id)+
 function provider(){
  let body="";
 
+ const isBusy=s.requests.some(q=>
+  q.provider_id===s.provider.id &&
+  q.status==="in_progress"
+ );
+
  if(s.tab==="messages"){
   body=chatContent();
  }
