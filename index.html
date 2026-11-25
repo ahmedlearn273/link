@@ -7204,6 +7204,31 @@ const addButton = () => {
   white-space:nowrap;
 }
 </style>
- 
+ <style>
+/* WASLA — Compact conversation cards */
+.wasla-chat-card{
+  padding:10px 12px;
+  gap:6px !important;
+}
+.wasla-chat-card > div:first-child{min-width:0}
+.wasla-chat-card > div:first-child > .row{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:8px;
+  min-width:0;
+}
+.wasla-chat-card > div:first-child > .row > :first-child{
+  min-width:0;
+  overflow-wrap:anywhere;
+}
+.wasla-chat-card > div:first-child > .row .tag{
+  flex-shrink:0;
+  white-space:nowrap;
+}
+.wasla-chat-card .wasla-chat-updated-label{margin:4px 0 0 !important}
+.wasla-chat-card .wasla-chat-updated-time{margin:2px 0 0 !important}
+.wasla-chat-card .actions{margin-top:2px !important}
+ </style>
 </body></html>
 
