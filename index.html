@@ -4612,7 +4612,29 @@ if(String(v.currency||"").toUpperCase()!==expectedCurrency)
 
  if(!paymentSchedule.length)
   throw Error("أدخل جدول الدفعات");
+  const quoteSettings=s.serviceQuoteSettings||{};
 
+  const minTwo=Number(
+   quoteSettings.min_two_installments_amount??3000
+  );
+
+  const minThree=Number(
+   quoteSettings.min_three_installments_amount??10000
+  );
+
+  const maxInstallments=Number(
+   quoteSettings.max_installments??3
+  );
+
+  const allowedInstallments=
+   Number(v.amount)<minTwo?1:
+   Number(v.amount)<minThree?2:
+   maxInstallments;
+
+  if(paymentSchedule.length>allowedInstallments)
+   throw Error(
+    "عدد الدفعات غير مسموح لقيمة العرض. راجع حدود الدفعات المعتمدة."
+   );
  const scheduleCents=paymentSchedule.reduce(
   (sum,item)=>sum+Math.round(item.amount*100),0
  );
