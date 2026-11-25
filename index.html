@@ -3616,7 +3616,7 @@ return '<section class="section">'+
   '<div class="sectionhead"><div><h2>الرسائل والمحادثات</h2>'+
   '<p class="small">كل محادثاتك المرتبطة بطلبات الخدمات في مكان واحد.</p></div>'+
   '<span class="tag">'+fmt(chats.length)+' محادثة</span></div>'+
-  '<div class="list" style="display:flex;flex-direction:column;gap:12px;align-items:stretch">'+
+  '<div class="list wasla-chat-list" style="display:flex;flex-direction:column;gap:8px;align-items:stretch">'+
   (chats.map(c=>{
    const title=c.service_requests?.title||"محادثة طلب خدمة";
    const updated=c.last_message_at?
