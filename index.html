@@ -2625,8 +2625,8 @@ const query=(s.filter||"").trim().toLowerCase();
  '</div>'+
  '</main>';
  }
-      function requestList(provider){
- return s.requests.map(q=>{
+      function requestList(provider,requests=s.requests){
+  return requests.map(q=>{
   const own=q.provider_id===s.provider?.id;
   const quote=provider?s.quotes.find(x=>x.request_id===q.id):null;
   let a="";
