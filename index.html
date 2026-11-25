@@ -6127,7 +6127,25 @@ if(a==="viewcustomer"){s.modal={type:"customerDetails",userId:id};render();retur
   }
   if(a==="request"){if(!s.user){s.mode="login";note("سجّل الدخول أولًا حتى تتمكن من إرسال طلب خدمة.");return}s.modal={type:"request",providerId:s.providers.some(x=>x.id===id)?id:null,serviceId:s.services.some(x=>x.id===id)?id:null};render();return}
   if(["addoffer","addservice","addcategory"].includes(a)){s.modal={type:a==="addoffer"?"offer":a==="addservice"?"service":"category"};render();return}
-if(a==="quote-accept"){
+if(a==="request-details"){
+
+ if(s.profile?.role!=="customer")
+  throw Error("غير مصرح بعرض تفاصيل الطلب");
+
+ const request=s.requests.find(x=>x.id===id);
+
+ if(!request||request.customer_id!==s.user?.id)
+  throw Error("الطلب غير موجود أو لا يتبع حسابك");
+
+ s.modal={
+  type:"requestDetails",
+  requestId:request.id
+ };
+
+ render();
+ return;
+}
+  if(a==="quote-accept"){
 
  if(s.profile?.role!=="customer")
   throw Error("غير مصرح بقبول عرض السعر");
