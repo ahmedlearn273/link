@@ -4439,6 +4439,82 @@ if(m.type==="providerQuoteDetails"){
   '<button type="button" class="btn gold" data-a="quote-provider-approve" data-id="'+esc(quote.id)+'">اعتماد العرض وإنشاء الاتفاقية</button>'+
  '</div>';
 }
+  if(m.type==="providerRequestDetails"){
+
+ if(s.profile?.role!=="provider")
+  throw Error("غير مصرح بعرض تفاصيل الطلب");
+
+ const q=s.requests.find(x=>x.id===m.requestId);
+
+ if(!q||q.provider_id!==s.provider?.id)
+  throw Error("الطلب غير موجود أو غير مسند إليك");
+
+ const title=q.title||q.services?.name_ar||"طلب خدمة";
+
+ const service=q.services?.name_ar||"غير محددة";
+
+ const location=[
+  q.country,
+  q.city,
+  q.address
+ ].filter(Boolean).join("، ");
+
+ const date=q.created_at
+  ?new Date(q.created_at).toLocaleString("ar-EG")
+  :"—";
+
+ const hasChat=s.chats.some(c=>c.request_id===q.id);
+
+ c=
+ '<div class="modal-title">'+
+  '<h3>تفاصيل الطلب</h3>'+
+  '<p class="muted">'+esc(title)+'</p>'+
+ '</div>'+
+
+ '<section class="section">'+
+  '<div class="item">'+
+   '<div class="row">'+
+    '<b>حالة الطلب</b>'+
+    tag(q.status)+
+   '</div>'+
+   '<p class="small">تاريخ إنشاء الطلب</p>'+
+   '<p>'+esc(date)+'</p>'+
+  '</div>'+
+ '</section>'+
+
+ '<section class="section">'+
+  '<h4>بيانات الخدمة</h4>'+
+  '<div class="item">'+
+   '<p class="small">اسم الخدمة</p>'+
+   '<b>'+esc(service)+'</b>'+
+   '<p class="small">عنوان الطلب</p>'+
+   '<p>'+esc(title)+'</p>'+
+   '<p class="small">وصف الطلب</p>'+
+   '<p>'+esc(q.description||"لا يوجد وصف إضافي")+'</p>'+
+  '</div>'+
+ '</section>'+
+
+ '<section class="section">'+
+  '<h4>موقع تنفيذ الخدمة</h4>'+
+  '<div class="item">'+
+   '<p>'+esc(location||"لم يتم تحديد الموقع")+'</p>'+
+  '</div>'+
+ '</section>'+
+
+ (q.budget!==null&&q.budget!==undefined&&q.budget!==""
+  ?'<section class="section">'+
+    '<h4>الميزانية المسجلة</h4>'+
+    '<div class="item"><b>'+esc(fmt(q.budget))+'</b></div>'+
+   '</section>'
+  :"")+
+
+ '<div class="actions">'+
+  (hasChat
+   ?btn("chat","محادثة العميل","light",q.id)
+   :"")+
+  '<button type="button" class="btn light" data-a="close">إغلاق</button>'+
+ '</div>';
+  }
   if(m.type==="requestDetails"){
 
  if(s.profile?.role!=="customer")
