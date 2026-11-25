@@ -6145,6 +6145,28 @@ if(a==="request-details"){
  render();
  return;
 }
+if(a==="quote-revision"||a==="quote-reject"){
+
+ if(s.profile?.role!=="customer")
+  throw Error("غير مصرح بالرد على عرض السعر");
+
+ const quote=s.quotes.find(x=>x.id===id);
+
+ if(!quote||
+    quote.customer_id!==s.user?.id||
+    quote.status!=="awaiting_customer"||
+    !quote.currentVersion)
+  throw Error("عرض السعر غير متاح للرد");
+
+ s.modal={
+  type:"quoteRespond",
+  quoteId:quote.id,
+  action:a==="quote-revision"?"request_revision":"reject"
+ };
+
+ render();
+ return;
+}
   if(a==="quote-accept"){
 
  if(s.profile?.role!=="customer")
