@@ -3161,10 +3161,13 @@ if(s.tab==="requests"){
   if(selected==="new")
    return q.status==="pending"&&!q.provider_id;
 
-  if(selected==="active")
+    if(selected==="accepted")
    return q.provider_id===s.provider.id&&
-    ["accepted","in_progress"].includes(q.status);
+    q.status==="accepted";
 
+  if(selected==="in_progress")
+   return q.provider_id===s.provider.id&&
+    q.status==="in_progress";
   if(selected==="completed")
    return q.provider_id===s.provider.id&&
     q.status==="completed";
