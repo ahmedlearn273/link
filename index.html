@@ -3270,6 +3270,56 @@ function provider(){
 
  providerBottomNav();
 }
+ 
+function providerBottomNav(){
+
+ const items=[
+  ["home","⌂","الرئيسية"],
+  ["requests","▤","الطلبات"],
+  ["messages","✉","الرسائل"],
+  ["assistant","✦","PRIME"],
+  ["profile","◎","ملفي"]
+ ];
+
+ return '<style>'+
+
+  '.wasla-provider-page{padding-bottom:calc(105px + env(safe-area-inset-bottom))!important}'+
+
+  '.wasla-provider-bottom-nav{position:fixed;z-index:999;bottom:0;left:0;right:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:3px;padding:9px 8px calc(9px + env(safe-area-inset-bottom));background:color-mix(in srgb,var(--bg-surface) 94%,transparent);border-top:1px solid var(--border-color);box-shadow:0 -5px 24px color-mix(in srgb,var(--text-primary) 9%,transparent);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}'+
+
+  '.wasla-provider-bottom-nav button{min-width:0;min-height:55px;padding:5px 2px;border:0;border-radius:13px;background:transparent;color:var(--text-secondary);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font:600 10px Tajawal;cursor:pointer;transition:background .2s,color .2s,transform .2s}'+
+
+  '.wasla-provider-bottom-nav button.active{background:color-mix(in srgb,var(--accent) 13%,var(--bg-surface));color:var(--accent);font-weight:800}'+
+
+  '.wasla-provider-bottom-nav button:active{transform:scale(.94)}'+
+
+  '.wasla-provider-bottom-icon{font:700 21px Tajawal;line-height:1.1}'+
+
+  '.wasla-provider-subnav{display:flex;gap:8px;overflow-x:auto;padding:5px 0 12px;margin-bottom:12px}'+
+
+  '.wasla-provider-subnav button{flex:0 0 auto;border:1px solid var(--border-color);border-radius:12px;padding:9px 16px;background:var(--bg-surface);color:var(--text-secondary);font-family:inherit;font-size:13px;font-weight:700;cursor:pointer}'+
+
+  '.wasla-provider-subnav button.active{background:var(--primary);border-color:var(--primary);color:#fff}'+
+
+  '@media(min-width:900px){.wasla-provider-bottom-nav{left:50%;right:auto;transform:translateX(-50%);width:min(620px,calc(100% - 40px));border:1px solid var(--border-color);border-bottom:0;border-radius:19px 19px 0 0;padding-left:15px;padding-right:15px}}'+
+
+  '@media(prefers-reduced-motion:reduce){.wasla-provider-bottom-nav *{transition:none!important}}'+
+
+ '</style>'+
+
+ '<nav class="wasla-provider-bottom-nav" aria-label="التنقل الرئيسي">'+
+
+  items.map(x=>
+   '<button type="button" data-a="tab" data-id="'+x[0]+'" class="'+
+   (s.tab===x[0]?"active":"")+
+   '" aria-label="'+x[2]+'">'+
+    '<span class="wasla-provider-bottom-icon">'+x[1]+'</span>'+
+    '<span>'+x[2]+'</span>'+
+   '</button>'
+  ).join("")+
+
+ '</nav>';
+}
       
 
 function chatContent(){
