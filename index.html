@@ -2239,9 +2239,32 @@ if(s.quotes.length){
  }else if(p.role==="provider"&&pp){
   const [r,o,ch]=await Promise.all([db.from("service_requests").select("*,services(name_ar)").or("provider_id.eq."+pp.id+",provider_id.is.null").order("created_at",{ascending:false}),db.from("provider_services").select("*,services(name_ar)").eq("provider_id",pp.id),db.from("conversations").select("id,request_id,customer_id,provider_id,last_message_at,service_requests(title)").eq("provider_id",pp.id).order("last_message_at",{ascending:false})]);
   s.requests=r.data||[];s.offers=o.data||[];s.chats=ch.data||[];
-const {data:q,error:qError}=await db.from("service_quotes").select("*").eq("provider_id",pp.id).order("created_at",{ascending:false});
+const {data:q,error:qError}=await db
+ .from("service_quotes")
+ .select("*")
+ .eq("provider_id",pp.id)
+ .order("created_at",{ascending:false});
+
 if(qError)throw qError;
+
 s.quotes=q||[];
+
+if(s.quotes.length){
+ const {data:versions,error:versionsError}=await db
+  .from("service_quote_versions")
+  .select("*")
+  .in("quote_id",s.quotes.map(x=>x.id));
+
+ if(versionsError)throw versionsError;
+
+ s.quotes=s.quotes.map(quote=>({
+  ...quote,
+  currentVersion:(versions||[]).find(version=>
+   version.quote_id===quote.id &&
+   version.version_number===quote.current_version
+  )||null
+ }));
+}
  }else if(p.role==="admin"||p.role==="owner"){
   const [a,r,profiles,permissions,chats]=await Promise.all([
     db.from("provider_profiles").select("*").eq("verification_status","pending").order("created_at",{ascending:false}),
