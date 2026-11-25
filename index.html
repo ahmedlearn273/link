@@ -3925,7 +3925,65 @@ if(m.type==="quoteAccept"){
   '</div>'+
  '</form>';
 }
-if(m.type==="requestDetails"){
+if(m.type==="providerQuoteDetails"){
+
+ if(s.profile?.role!=="provider")
+  throw Error("غير مصرح بمراجعة العرض");
+
+ const quote=s.quotes.find(x=>x.id===m.quoteId);
+ const version=quote?.currentVersion;
+
+ if(!quote||
+    !version||
+    quote.provider_id!==s.provider?.id||
+    quote.status!=="awaiting_provider_approval")
+  throw Error("العرض غير متاح للمراجعة أو الاعتماد");
+
+ const request=s.requests.find(x=>x.id===quote.request_id);
+
+ const quoteDate=value=>{
+  if(!value)return "—";
+  const d=new Date(value);
+  return Number.isNaN(d.getTime())?"—":d.toLocaleString("ar-EG");
+ };
+
+ c=
+ '<div class="modal-title">'+
+  '<h3>مراجعة عرض السعر</h3>'+
+  '<p class="muted">'+esc(request?.title||"طلب خدمة")+'</p>'+
+ '</div>'+
+ '<section class="section">'+
+  '<div class="item">'+
+   '<div class="row"><b>حالة العرض</b>'+tag(quote.status)+'</div>'+
+   '<p class="small">القيمة المتفق عليها</p>'+
+   '<b>'+esc(fmt(version.amount))+' '+esc(version.currency||"")+'</b>'+
+   '<p class="small">نطاق العمل</p>'+
+   '<p>'+esc(version.scope_description||"—")+'</p>'+
+   '<p class="small">المدة التقديرية</p>'+
+   '<p>'+esc(version.estimated_duration||"—")+'</p>'+
+   '<p class="small">موعد البدء المقترح</p>'+
+   '<p>'+esc(quoteDate(version.proposed_start_at))+'</p>'+
+   '<p class="small">صلاحية العرض حتى</p>'+
+   '<p>'+esc(quoteDate(version.valid_until))+'</p>'+
+   (Array.isArray(version.payment_schedule)
+    ?'<p class="small">جدول الدفعات</p><pre>'+esc(JSON.stringify(version.payment_schedule,null,2))+'</pre>'
+    :"")+
+   (version.additional_terms
+    ?'<p class="small">الشروط الإضافية</p><p>'+esc(version.additional_terms)+'</p>'
+    :"")+
+   '<p class="small">فاتورة المواد والمستلزمات</p>'+
+   '<p>'+(version.materials_invoice_required?"مطلوبة بشكل منفصل":"غير مطلوبة بشكل منفصل")+'</p>'+
+   (version.materials_invoice_clause
+    ?'<p>'+esc(version.materials_invoice_clause)+'</p>'
+    :"")+
+  '</div>'+
+ '</section>'+
+ '<div class="actions">'+
+  '<button type="button" class="btn light" data-a="close">رجوع</button>'+
+  '<button type="button" class="btn gold" data-a="quote-provider-approve" data-id="'+esc(quote.id)+'">اعتماد العرض وإنشاء الاتفاقية</button>'+
+ '</div>';
+}
+  if(m.type==="requestDetails"){
 
  if(s.profile?.role!=="customer")
   throw Error("غير مصرح بعرض تفاصيل الطلب");
