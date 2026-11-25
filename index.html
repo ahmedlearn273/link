@@ -3861,7 +3861,42 @@ if(m.type==="knowledgeDocumentView"){
  '</form>'
  :'<p class="muted">لا توجد مستندات معتمدة حاليًا. يجب اعتماد مستند واحد على الأقل أولًا.</p>');
   }
+if(m.type==="quoteAccept"){
 
+ if(s.profile?.role!=="customer")
+  throw Error("غير مصرح بقبول عرض السعر");
+
+ const quote=s.quotes.find(x=>x.id===m.quoteId);
+ const version=quote?.currentVersion;
+
+ if(!quote||!version||
+    quote.customer_id!==s.user?.id||
+    quote.status!=="awaiting_customer")
+  throw Error("عرض السعر لم يعد متاحًا للقبول");
+
+ c=
+ '<div class="modal-title">'+
+  '<h3>تأكيد قبول عرض السعر</h3>'+
+  '<p class="muted">اختر طريقة الدفع المتفق عليها مع مقدم الخدمة.</p>'+
+ '</div>'+
+ '<form id="quoteAcceptForm"'+
+  ' data-quote-id="'+esc(quote.id)+'"'+
+  ' data-version-id="'+esc(version.id)+'"'+
+  ' data-request-id="'+esc(quote.request_id)+'">'+
+  '<section class="section">'+
+   '<h4>طريقة الدفع</h4>'+
+   select("اختر طريقة الدفع","payment_method",[
+    {value:"cash",label:"الدفع نقدًا"},
+    {value:"platform",label:"الدفع عبر المنصة"}
+   ],"cash")+
+   '<p class="muted">تحديد طريقة الدفع لا يعني تحصيل أي مبلغ الآن.</p>'+
+  '</section>'+
+  '<div class="actions">'+
+   '<button type="button" class="btn light" data-a="close">رجوع</button>'+
+   '<button type="submit" class="btn gold">تأكيد قبول العرض</button>'+
+  '</div>'+
+ '</form>';
+}
 if(m.type==="requestDetails"){
 
  if(s.profile?.role!=="customer")
