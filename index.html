@@ -4206,7 +4206,134 @@ if(f.id==="waslaAiForm"){
  return;
 }
 
+
 try{
+
+if(f.id==="quoteForm"){
+ if(s.profile?.role!=="provider")
+  throw Error("غير مصرح لك بإرسال عرض سعر");
+
+ const v=vals(f);
+ const requestId=f.dataset.requestId;
+ const q=s.requests.find(x=>x.id===requestId);
+
+ if(!q||q.provider_id!==s.provider?.id||q.status!=="accepted")
+  throw Error("الطلب غير متاح لإرسال عرض السعر");
+
+ const existing=s.quotes.find(x=>x.request_id===requestId);
+
+ if(existing&&!["revision_requested","rejected","expired"].includes(existing.status))
+  throw Error("لا يمكن إرسال عرض جديد في الحالة الحالية");
+
+ const serviceOffer=s.offers.find(x=>x.service_id===q.service_id);
+ const expectedCurrency=String(serviceOffer?.currency||"EGP").toUpperCase();
+
+ if(String(v.currency||"").toUpperCase()!==expectedCurrency)
+  throw Error("عملة العرض يجب أن تطابق عملة خدمة المزوّد: "+expectedCurrency);
+
+ const validMoney=value=>
+  /^\d+(\.\d{1,2})?$/.test(String(value||"").trim())&&Number(value)>0;
+
+ if(!validMoney(v.amount))
+  throw Error("أدخل إجمالي عرض صحيحًا، بحد أقصى منزلتين عشريتين");
+
+ const amountCents=Math.round(Number(v.amount)*100);
+
+ const scope=String(v.scope_description||"").trim();
+ const duration=String(v.estimated_duration||"").trim();
+ const terms=String(v.additional_terms||"").trim();
+
+ if(scope.length<5||scope.length>5000)
+  throw Error("تفاصيل نطاق العمل يجب أن تكون بين 5 و5000 حرف");
+
+ if(!duration||duration.length>200)
+  throw Error("أدخل مدة تنفيذ صحيحة لا تتجاوز 200 حرف");
+
+ if(terms.length>3000)
+  throw Error("الشروط الإضافية لا يجب أن تتجاوز 3000 حرف");
+
+ const validUntil=new Date(v.valid_until);
+
+ if(!v.valid_until||Number.isNaN(validUntil.getTime()))
+  throw Error("حدد تاريخ صلاحية عرض السعر");
+
+ const now=Date.now();
+
+ if(validUntil.getTime()<=now+60000)
+  throw Error("يجب أن تكون صلاحية العرض بعد دقيقة على الأقل");
+
+ if(validUntil.getTime()>now+30*24*60*60*1000)
+  throw Error("أقصى مدة لصلاحية العرض 30 يومًا");
+
+ let proposedStart=null;
+
+ if(v.proposed_start_at){
+  const start=new Date(v.proposed_start_at);
+
+  if(Number.isNaN(start.getTime()))
+   throw Error("موعد البدء المقترح غير صحيح");
+
+  proposedStart=start.toISOString();
+ }
+
+ const paymentSchedule=[];
+
+ for(let i=1;i<=3;i++){
+  const amount=String(v["schedule_amount_"+i]||"").trim();
+  const label=String(v["schedule_label_"+i]||"").trim();
+  const event=String(v["schedule_event_"+i]||"").trim();
+
+  if(!amount&&!label)continue;
+
+  if(!validMoney(amount))
+   throw Error("أدخل مبلغًا صحيحًا للدفعة رقم "+i);
+
+  if(!label||label.length>160)
+   throw Error("وصف الدفعة رقم "+i+" مطلوب ولا يتجاوز 160 حرفًا");
+
+  if(!["on_agreement","on_start","on_milestone","on_completion"].includes(event))
+   throw Error("موعد استحقاق الدفعة رقم "+i+" غير صحيح");
+
+  paymentSchedule.push({
+   sequence:paymentSchedule.length+1,
+   amount:Number(amount),
+   due_event:event,
+   label:label
+  });
+ }
+
+ if(!paymentSchedule.length)
+  throw Error("أدخل جدول الدفعات");
+
+ const scheduleCents=paymentSchedule.reduce(
+  (sum,item)=>sum+Math.round(item.amount*100),0
+ );
+
+ if(scheduleCents!==amountCents)
+  throw Error("مجموع الدفعات يجب أن يساوي إجمالي عرض السعر");
+
+ const {data,error}=await db.rpc("create_service_quote",{
+  p_request_id:requestId,
+  p_amount:Number(v.amount),
+  p_currency:expectedCurrency,
+  p_scope_description:scope,
+  p_estimated_duration:duration,
+  p_proposed_start_at:proposedStart,
+  p_valid_until:validUntil.toISOString(),
+  p_payment_schedule:paymentSchedule,
+  p_additional_terms:terms||null
+ });
+
+ if(error)throw error;
+
+ s.modal=null;
+ await loadUser(s.user);
+ note("تم إرسال عرض السعر بنجاح.","success");
+ return;
+}
+
+if(f.id==="primeKnowledgeDocumentForm"){
+ 
 
 if(f.id==="primeKnowledgeDocumentForm"){
  if(s.profile?.role!=="admin")
