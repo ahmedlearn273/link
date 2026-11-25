@@ -6201,7 +6201,8 @@ if(a==="quote-provider-approve"){
 
  return;
 }
-  if(a==="provider-request-details"){
+
+if(a==="provider-request-details"){
 
  if(s.profile?.role!=="provider")return;
 
@@ -6212,29 +6213,42 @@ if(a==="quote-provider-approve"){
 
  s.modal={
   type:"providerRequestDetails",
-  requestId:id
+  requestId:id,
+  auditLoading:true,
+  auditEvents:[],
+  auditError:""
  };
 
  render();
- return;
-  }
-  if(a==="request-details"){
 
- if(s.profile?.role!=="customer")return;
+ const currentModal=s.modal;
 
- const request=s.requests.find(x=>x.id===id);
+ try{
+  const {data,error}=await db.rpc(
+   "get_provider_request_audit",
+   {p_request_id:id}
+  );
 
- if(!request)
-  throw Error("الطلب غير موجود");
+  if(error)throw error;
 
- s.modal={
-  type:"requestDetails",
-  requestId:id
- };
+  if(s.modal!==currentModal)return;
 
- render();
- return;
+  s.modal.auditEvents=Array.isArray(data)?data:[];
+  s.modal.auditLoading=false;
+
+ }catch(error){
+  console.error("Provider request audit loading failed:",error);
+
+  if(s.modal!==currentModal)return;
+
+  s.modal.auditLoading=false;
+  s.modal.auditError="تعذّر تحميل سجل الإجراءات. حاول تحديث النافذة.";
  }
+
+ render();
+ return;
+}
+  
   if(a==="review"){let q=s.requests.find(x=>x.id===id);if(q){s.modal={type:"review",requestId:q.id,providerId:q.provider_id};render()}return}
   if(a==="close"){s.modal=null;render();return}
   if(a==="chat"){await openChatForRequest(id);return}
