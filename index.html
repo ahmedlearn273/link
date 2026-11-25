@@ -4268,7 +4268,7 @@ if(m.type==="quoteComposer"){
   throw Error("حالة عرض السعر الحالية لا تسمح بإرسال عرض جديد");
  }
 
- if(m.type==="quoteComposer"){
+ const currency="EGP";
 
  c=
  '<div class="modal-title">'+
@@ -4355,7 +4355,7 @@ if(m.type==="quoteComposer"){
   '<button type="submit" class="btn gold">إرسال عرض السعر للعميل</button>'+
  '</div>'+
  '</form>';
-}
+
   app.insertAdjacentHTML("beforeend",'<div class="modalback"><div class="modal">'+c+'<div class="actions"><button type="button" class="btn light" data-a="close">إغلاق</button></div></div></div>');
  }
 }
