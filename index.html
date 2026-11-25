@@ -4534,11 +4534,10 @@ if(f.id==="quoteForm"){
  if(existing&&!["revision_requested","rejected","expired"].includes(existing.status))
   throw Error("لا يمكن إرسال عرض جديد في الحالة الحالية");
 
- const serviceOffer=s.offers.find(x=>x.service_id===q.service_id);
- const expectedCurrency=String(serviceOffer?.currency||"EGP").toUpperCase();
+ const expectedCurrency="EGP";
 
- if(String(v.currency||"").toUpperCase()!==expectedCurrency)
-  throw Error("عملة العرض يجب أن تطابق عملة خدمة المزوّد: "+expectedCurrency);
+if(String(v.currency||"").toUpperCase()!==expectedCurrency)
+ throw Error("عملة عرض السعر يجب أن تكون الجنيه المصري");
 
  const validMoney=value=>
   /^\d+(\.\d{1,2})?$/.test(String(value||"").trim())&&Number(value)>0;
