@@ -4355,10 +4355,9 @@ if(m.type==="quoteComposer"){
   '<button type="submit" class="btn gold">إرسال عرض السعر للعميل</button>'+
  '</div>'+
  '</form>';
-
-  app.insertAdjacentHTML("beforeend",'<div class="modalback"><div class="modal">'+c+'<div class="actions"><button type="button" class="btn light" data-a="close">إغلاق</button></div></div></div>');
  }
-}
+app.insertAdjacentHTML("beforeend",'<div class="modalback"><div class="modal">'+c+'<div class="actions"><button type="button" class="btn light" data-a="close">إغلاق</button></div></div></div>');
+ }
 }
  async function prepareServiceImage(file){
  if(!file)return null;
