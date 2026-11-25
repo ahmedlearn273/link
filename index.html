@@ -2273,12 +2273,24 @@ if(s.quotes.length){
 
  if(versionsError)throw versionsError;
 
+ const {data:revisionEvents,error:revisionEventsError}=await db
+  .from("service_quote_events")
+  .select("quote_id,event_type,note,created_at")
+  .in("quote_id",s.quotes.map(x=>x.id))
+  .eq("event_type","customer_revision_requested")
+  .order("created_at",{ascending:false});
+
+ if(revisionEventsError)throw revisionEventsError;
+
  s.quotes=s.quotes.map(quote=>({
   ...quote,
   currentVersion:(versions||[]).find(version=>
    version.quote_id===quote.id &&
    version.version_number===quote.current_version
-  )||null
+  )||null,
+  revisionNote:(revisionEvents||[]).find(event=>
+   event.quote_id===quote.id
+  )?.note||null
  }));
 }
  }else if(p.role==="admin"||p.role==="owner"){
