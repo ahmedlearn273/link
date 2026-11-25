@@ -4359,7 +4359,8 @@ if(m.type==="quoteComposer"){
   app.insertAdjacentHTML("beforeend",'<div class="modalback"><div class="modal">'+c+'<div class="actions"><button type="button" class="btn light" data-a="close">إغلاق</button></div></div></div>');
  }
 }
-async function prepareServiceImage(file){
+}
+ async function prepareServiceImage(file){
  if(!file)return null;
 
  if(!["image/jpeg","image/png","image/webp"].includes(file.type))
