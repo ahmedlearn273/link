@@ -3991,7 +3991,13 @@ const quoteSection=quote&&version
     '<div class="item">'+
      '<b>'+fmt(q.budget)+'</b>'+
     '</div>'+
+    (quote.status==="awaiting_customer"
+     ?'<div class="actions">'+
+       '<button type="button" class="btn gold" data-a="quote-accept" data-id="'+esc(quote.id)+'">قبول عرض السعر</button>'+
+      '</div>'
+     :"")+
    '</section>'
+  :"";
     :"")+quoteSection;
 (q.status==="cancelled"
  ?'<section class="section">'+
