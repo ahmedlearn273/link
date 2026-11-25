@@ -3126,11 +3126,20 @@ if(s.tab==="requests"){
   q.status==="pending"&&!q.provider_id
  ).length;
 
- const activeCount=ownRequests.filter(q=>
+  const activeCount=ownRequests.filter(q=>
   q.provider_id===s.provider.id&&
   ["accepted","in_progress"].includes(q.status)
  ).length;
 
+ const acceptedCount=ownRequests.filter(q=>
+  q.provider_id===s.provider.id&&
+  q.status==="accepted"
+ ).length;
+
+ const inProgressCount=ownRequests.filter(q=>
+  q.provider_id===s.provider.id&&
+  q.status==="in_progress"
+ ).length;
  const completedCount=ownRequests.filter(q=>
   q.provider_id===s.provider.id&&
   q.status==="completed"
