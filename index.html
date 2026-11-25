@@ -4025,20 +4025,14 @@ const quoteSection=quote&&version
   '</div>'+
  '</section>'+
 
- (q.budget!==null&&q.budget!==undefined&&q.budget!==""
-  ?'<section class="section">'+
-    '<h4>الميزانية المسجلة</h4>'+
-    '<div class="item">'+
-     '<b>'+fmt(q.budget)+'</b>'+
-    '</div>'+
-    (quote.status==="awaiting_customer"
-     ?'<div class="actions">'+
-       '<button type="button" class="btn gold" data-a="quote-accept" data-id="'+esc(quote.id)+'">قبول عرض السعر</button>'+
-      '</div>'
-     :"")+
-   '</section>'
-  :"";
-    :"")+quoteSection;
+(q.budget!==null&&q.budget!==undefined&&q.budget!==""
+ ?'<section class="section">'+
+   '<h4>الميزانية المسجلة</h4>'+
+   '<div class="item">'+
+    '<b>'+fmt(q.budget)+'</b>'+
+   '</div>'+
+  '</section>'
+ :"")+quoteSection+
 (q.status==="cancelled"
  ?'<section class="section">'+
    '<h4>سبب الإلغاء</h4>'+
