@@ -4501,12 +4501,66 @@ if(m.type==="providerQuoteDetails"){
   '</div>'+
  '</section>'+
 
- (q.budget!==null&&q.budget!==undefined&&q.budget!==""
+
+(q.budget!==null&&q.budget!==undefined&&q.budget!==""
   ?'<section class="section">'+
     '<h4>الميزانية المسجلة</h4>'+
     '<div class="item"><b>'+esc(fmt(q.budget))+'</b></div>'+
    '</section>'
   :"")+
+
+ '<section class="section">'+
+  '<h4>سجل إجراءات الطلب</h4>'+
+  (m.auditLoading
+   ?'<div class="item"><p class="muted">جاري تحميل سجل الإجراءات...</p></div>'
+   :m.auditError
+    ?'<div class="item"><p class="muted">'+esc(m.auditError)+'</p></div>'
+    :Array.isArray(m.auditEvents)&&m.auditEvents.length
+     ?m.auditEvents.map(event=>{
+       const statuses={
+        pending:"قيد المراجعة",
+        accepted:"مقبول",
+        in_progress:"قيد التنفيذ",
+        completed:"مكتمل",
+        cancelled:"ملغي"
+       };
+
+       let actionLabel="تحديث بيانات الطلب";
+
+       if(event.action==="INSERT"){
+        actionLabel="إنشاء الطلب";
+       }else if(event.action==="DELETE"){
+        actionLabel="حذف سجل الطلب";
+       }else if(
+        event.old_status!==event.new_status
+       ){
+        actionLabel="تغيير حالة الطلب";
+       }
+
+       const oldStatus=statuses[event.old_status]||event.old_status;
+       const newStatus=statuses[event.new_status]||event.new_status;
+       const date=event.created_at
+        ?new Date(event.created_at).toLocaleString("ar-EG")
+        :"—";
+
+       return '<div class="item">'+
+        '<div class="row">'+
+         '<b>'+esc(actionLabel)+'</b>'+
+         '<span class="tag ok">'+esc(event.actor_label||"النظام")+'</span>'+
+        '</div>'+
+        '<p class="small">'+esc(date)+'</p>'+
+        (event.old_status||event.new_status
+         ?'<p>الحالة: '+esc(oldStatus||"—")+' ← '+esc(newStatus||"—")+'</p>'
+         :"")+
+        '<p class="small">'+
+         (event.result==="success"?"تمت العملية بنجاح":"نتيجة العملية: "+esc(event.result||"غير محددة"))+
+        '</p>'+
+       '</div>';
+      }).join("")
+     :'<div class="item"><p class="muted">لا توجد إجراءات مسجلة لهذا الطلب حتى الآن.</p></div>'
+  )+
+ '</section>'+
+  
 
  '<div class="actions">'+
   (hasChat
