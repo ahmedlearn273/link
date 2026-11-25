@@ -3990,7 +3990,111 @@ if(m.type==="cancelRequest"){
  '</article>').join("")||empty("لا توجد طلبات لهذا العميل"))+
  '</div></section>';
 }
-app.insertAdjacentHTML("beforeend",'<div class="modalback"><div class="modal">'+c+'<div class="actions"><button type="button" class="btn light" data-a="close">إغلاق</button></div></div></div>');
+if(m.type==="quoteComposer"){
+ const q=s.requests.find(x=>x.id===m.requestId);
+ const existing=s.quotes.find(x=>x.request_id===m.requestId);
+
+ if(!q||s.profile?.role!=="provider"||
+    q.provider_id!==s.provider?.id||q.status!=="accepted"){
+  throw Error("الطلب غير متاح لإنشاء عرض سعر");
+ }
+
+ if(existing&&!["revision_requested","rejected","expired"].includes(existing.status)){
+  throw Error("حالة عرض السعر الحالية لا تسمح بإرسال عرض جديد");
+ }
+
+ const serviceOffer=s.offers.find(x=>x.service_id===q.service_id);
+ const currency=serviceOffer?.currency||"SAR";
+
+ c=
+ '<div class="modal-title">'+
+  '<h3>'+(existing?"إرسال عرض سعر معدل":"إنشاء عرض سعر")+'</h3>'+
+  '<p class="muted">'+esc(q.title||q.services?.name_ar||"طلب خدمة")+'</p>'+
+ '</div>'+
+
+ '<form id="quoteForm" data-request-id="'+esc(q.id)+'">'+
+
+ '<section class="section">'+
+  '<h4>قيمة العرض</h4>'+
+  field("إجمالي قيمة الخدمة","amount","number","أدخل المبلغ","",true)+
+  select("العملة","currency",[
+   {value:"SAR",label:"ريال سعودي"},
+   {value:"EGP",label:"جنيه مصري"},
+   {value:"AED",label:"درهم إماراتي"}
+  ],currency)+
+ '</section>'+
+
+ '<section class="section">'+
+  '<h4>نطاق العمل</h4>'+
+  '<label class="field">تفاصيل الأعمال التي يشملها العرض'+
+   '<textarea name="scope_description" minlength="5" maxlength="5000" required placeholder="اشرح الأعمال والخدمات التي ستنفذها بالتفصيل..."></textarea>'+
+  '</label>'+
+  field("المدة التقديرية للتنفيذ","estimated_duration","text","مثال: 3 أيام","",true)+
+  field("موعد البدء المقترح","proposed_start_at","datetime-local","", "",false)+
+  field("صلاحية العرض حتى","valid_until","datetime-local","", "",true)+
+ '</section>'+
+
+ '<section class="section">'+
+  '<h4>جدول الدفعات</h4>'+
+  '<p class="muted">يمكن تقسيم المبلغ إلى ثلاث دفعات كحد أقصى في هذا النموذج، ويجب أن يساوي مجموعها إجمالي العرض.</p>'+
+
+  '<div class="item">'+
+   '<b>الدفعة الأولى</b>'+
+   field("المبلغ","schedule_amount_1","number","مبلغ الدفعة الأولى","",true)+
+   field("وصف الدفعة","schedule_label_1","text","مثال: دفعة عند الاتفاق","دفعة عند الاتفاق",true)+
+   select("موعد استحقاق الدفعة","schedule_event_1",[
+    {value:"on_agreement",label:"عند الاتفاق"},
+    {value:"on_start",label:"عند بدء التنفيذ"},
+    {value:"on_milestone",label:"عند إنجاز مرحلة"},
+    {value:"on_completion",label:"عند اكتمال العمل"}
+   ],"on_agreement")+
+  '</div>'+
+
+  '<div class="item">'+
+   '<b>الدفعة الثانية (اختياري)</b>'+
+   field("المبلغ","schedule_amount_2","number","مبلغ الدفعة الثانية","",false)+
+   field("وصف الدفعة","schedule_label_2","text","وصف الدفعة","",false)+
+   select("موعد استحقاق الدفعة","schedule_event_2",[
+    {value:"on_agreement",label:"عند الاتفاق"},
+    {value:"on_start",label:"عند بدء التنفيذ"},
+    {value:"on_milestone",label:"عند إنجاز مرحلة"},
+    {value:"on_completion",label:"عند اكتمال العمل"}
+   ],"on_milestone")+
+  '</div>'+
+
+  '<div class="item">'+
+   '<b>الدفعة الثالثة (اختياري)</b>'+
+   field("المبلغ","schedule_amount_3","number","مبلغ الدفعة الثالثة","",false)+
+   field("وصف الدفعة","schedule_label_3","text","وصف الدفعة","",false)+
+   select("موعد استحقاق الدفعة","schedule_event_3",[
+    {value:"on_agreement",label:"عند الاتفاق"},
+    {value:"on_start",label:"عند بدء التنفيذ"},
+    {value:"on_milestone",label:"عند إنجاز مرحلة"},
+    {value:"on_completion",label:"عند اكتمال العمل"}
+   ],"on_completion")+
+  '</div>'+
+ '</section>'+
+
+ '<section class="section">'+
+  '<h4>شروط إضافية</h4>'+
+  '<label class="field">شروط أو ملاحظات إضافية'+
+   '<textarea name="additional_terms" maxlength="3000" placeholder="أي شروط إضافية متفق عليها..."></textarea>'+
+  '</label>'+
+ '</section>'+
+
+ '<section class="section">'+
+  '<div class="notice">'+
+   '<b>فاتورة المواد والمستلزمات</b>'+
+   '<p>إذا تطلب تنفيذ الخدمة مواد أو مستلزمات، يلتزم مقدم الخدمة بتقديم فاتورة تفصيلية مستقلة للعميل. هذه المواد وتكاليف نقلها ليست ضمن قيمة عرض الخدمة، ولا تتولى منصة وصلة توفيرها أو تحصيل تكلفتها.</p>'+
+  '</div>'+
+ '</section>'+
+
+ '<div class="actions">'+
+  '<button type="submit" class="btn gold">إرسال عرض السعر للعميل</button>'+
+ '</div>'+
+ '</form>';
+}
+  app.insertAdjacentHTML("beforeend",'<div class="modalback"><div class="modal">'+c+'<div class="actions"><button type="button" class="btn light" data-a="close">إغلاق</button></div></div></div>');
  }
 }
 async function prepareServiceImage(file){
