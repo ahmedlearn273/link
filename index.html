@@ -3113,21 +3113,60 @@ if(s.tab==="home"){
   '</section>';
 }
 
+
 if(s.tab==="requests"){
 
- const activeCount=s.requests.filter(q=>
-  q.provider_id===s.provider.id &&
-  ["accepted","in_progress"].includes(q.status)
- ).length;
+ const selected=s.providerRequestFilter||"all";
 
- const pendingCount=s.requests.filter(q=>
+ const ownRequests=s.requests.filter(q=>
+  !q.provider_id||q.provider_id===s.provider.id
+ );
+
+ const pendingCount=ownRequests.filter(q=>
   q.status==="pending"&&!q.provider_id
  ).length;
 
- const completedCount=s.requests.filter(q=>
-  q.provider_id===s.provider.id &&
+ const activeCount=ownRequests.filter(q=>
+  q.provider_id===s.provider.id&&
+  ["accepted","in_progress"].includes(q.status)
+ ).length;
+
+ const completedCount=ownRequests.filter(q=>
+  q.provider_id===s.provider.id&&
   q.status==="completed"
  ).length;
+
+ const cancelledCount=ownRequests.filter(q=>
+  q.provider_id===s.provider.id&&
+  q.status==="cancelled"
+ ).length;
+
+ const filters=[
+  ["all","الكل",ownRequests.length],
+  ["new","جديدة",pendingCount],
+  ["active","جارية",activeCount],
+  ["completed","مكتملة",completedCount],
+  ["cancelled","ملغاة",cancelledCount]
+ ];
+
+ const filteredRequests=ownRequests.filter(q=>{
+  if(selected==="new")
+   return q.status==="pending"&&!q.provider_id;
+
+  if(selected==="active")
+   return q.provider_id===s.provider.id&&
+    ["accepted","in_progress"].includes(q.status);
+
+  if(selected==="completed")
+   return q.provider_id===s.provider.id&&
+    q.status==="completed";
+
+  if(selected==="cancelled")
+   return q.provider_id===s.provider.id&&
+    q.status==="cancelled";
+
+  return true;
+ });
 
  body=
   '<section class="section">'+
@@ -3135,12 +3174,12 @@ if(s.tab==="requests"){
    '<div class="grid small">'+
 
     '<div class="card">'+
-     '<div class="small">طلبات متاحة</div>'+
+     '<div class="small">طلبات جديدة</div>'+
      '<div class="stat">'+fmt(pendingCount)+'</div>'+
     '</div>'+
 
     '<div class="card">'+
-     '<div class="small">طلبات نشطة</div>'+
+     '<div class="small">طلبات جارية</div>'+
      '<div class="stat">'+fmt(activeCount)+'</div>'+
     '</div>'+
 
@@ -3154,16 +3193,27 @@ if(s.tab==="requests"){
    '<div class="sectionhead">'+
     '<div>'+
      '<h2>إدارة الطلبات</h2>'+
-     '<p class="small">الطلبات المتاحة لك والطلبات المسندة إليك، مع متابعة حالتها.</p>'+
+     '<p class="small">تابع طلباتك حسب حالتها.</p>'+
     '</div>'+
    '</div>'+
 
+   '<div class="wasla-provider-subnav">'+
+    filters.map(f=>
+     '<button type="button" data-a="provider-request-filter" data-id="'+f[0]+'" class="'+
+      (selected===f[0]?"active":"")+
+     '">'+
+      f[1]+' ('+fmt(f[2])+')'+
+     '</button>'
+    ).join("")+
+   '</div>'+
+
    '<div class="list">'+
-    (requestList(true)||empty("لا توجد طلبات متاحة أو مسندة إليك حاليًا."))+
+    requestList(true,filteredRequests)+
    '</div>'+
 
   '</section>';
 }
+ 
  
 
  if(s.tab==="profile"){
