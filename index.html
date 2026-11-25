@@ -4867,9 +4867,30 @@ if(m.type==="quoteComposer"){
 
  c=
  '<div class="modal-title">'+
-  '<h3>'+(existing?"إرسال عرض سعر معدل":"إنشاء عرض سعر")+'</h3>'+
-  '<p class="muted">'+esc(q.title||q.services?.name_ar||"طلب خدمة")+'</p>'+
+
+ '<p class="muted">'+esc(q.title||q.services?.name_ar||"طلب خدمة")+'</p>'+
  '</div>'+
+
+ (existing&&existing.status==="revision_requested"
+  ?'<section class="section">'+
+    '<h4>ملاحظات العميل على العرض السابق</h4>'+
+    '<div class="item">'+
+     '<p>'+esc(existing.revisionNote||"لم يتم تسجيل ملاحظات العميل")+'</p>'+
+    '</div>'+
+    '<h4>تفاصيل العرض السابق للمقارنة</h4>'+
+    '<div class="item">'+
+     '<p class="small">قيمة العرض السابق</p>'+
+     '<b>'+esc(existing.currentVersion?.amount??"—")+' '+esc(existing.currentVersion?.currency||"")+'</b>'+
+     '<p class="small">نطاق العمل السابق</p>'+
+     '<p>'+esc(existing.currentVersion?.scope_description||"—")+'</p>'+
+     '<p class="small">المدة السابقة</p>'+
+     '<p>'+esc(existing.currentVersion?.estimated_duration||"—")+'</p>'+
+     (existing.currentVersion?.additional_terms
+       ?'<p class="small">الشروط الإضافية السابقة</p><p>'+esc(existing.currentVersion.additional_terms)+'</p>'
+       :"")+
+    '</div>'+
+   '</section>'
+  :"")+
 
  '<form id="quoteForm" data-request-id="'+esc(q.id)+'">'+
 
