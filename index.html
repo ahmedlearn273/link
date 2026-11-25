@@ -3149,15 +3149,14 @@ if(s.tab==="requests"){
   q.provider_id===s.provider.id&&
   q.status==="cancelled"
  ).length;
-
  const filters=[
   ["all","الكل",ownRequests.length],
   ["new","جديدة",pendingCount],
-  ["active","جارية",activeCount],
+  ["accepted","مقبولة",acceptedCount],
+  ["in_progress","قيد التنفيذ",inProgressCount],
   ["completed","مكتملة",completedCount],
   ["cancelled","ملغاة",cancelledCount]
  ];
-
  const filteredRequests=ownRequests.filter(q=>{
   if(selected==="new")
    return q.status==="pending"&&!q.provider_id;
