@@ -2090,7 +2090,7 @@ const db = window.supabase.createClient(
     }
   }
 );
-      const s={user:null,profile:null,provider:null,geo:{countries:[],cities:[],areas:[]},staffAccess:null,auditLogs:[],knowledgeDocs:[],knowledgeReleases:[],knowledgeSelectedDoc:null,knowledgeLoading:false,knowledgeError:"",mode:"welcome",type:"customer",tab:"home",requestFilter:"all",cats:[],services:[],providers:[],requests:[],offers:[],apps:[],allRequests:[],adminProfiles:[],staff:[],staffCandidates:[],customers:[],chats:[],messages:[],chatMediaUrls:{},chatAttachment:null,chatRecorder:null,chatRecording:false,chatMediaDurationSeconds:null,activeChat:null,notice:"",noticeType:"",modal:null,filter:"",aiMessages:[],aiBusy:false};
+  const s={user:null,profile:null,provider:null,geo:{countries:[],cities:[],areas:[]},staffAccess:null,auditLogs:[],knowledgeDocs:[],knowledgeReleases:[],knowledgeSelectedDoc:null,knowledgeLoading:false,knowledgeError:"",mode:"welcome",type:"customer",tab:"home",requestFilter:"all",cats:[],services:[],providers:[],requests:[],quotes:[],offers:[],apps:[],allRequests:[],adminProfiles:[],staff:[],staffCandidates:[],customers:[],chats:[],messages:[],chatMediaUrls:{},chatAttachment:null,chatRecorder:null,chatRecording:false,chatMediaDurationSeconds:null,activeChat:null,notice:"",noticeType:"",modal:null,filter:"",aiMessages:[],aiBusy:false};
 async function loadGeoCatalog(countryId=null,cityId=null){
  const {data,error}=await db.rpc("get_active_geo_catalog",{
   p_country_id:countryId,
