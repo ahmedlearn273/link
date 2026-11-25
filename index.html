@@ -5483,6 +5483,61 @@ if(a==="quote-accept"){
  render();
  return;
 }
+if(a==="quote-provider-review"){
+
+ if(s.profile?.role!=="provider")
+  throw Error("غير مصرح بمراجعة العرض");
+
+ const quote=s.quotes.find(x=>x.id===id);
+
+ if(!quote||
+    quote.provider_id!==s.provider?.id||
+    quote.status!=="awaiting_provider_approval"||
+    !quote.currentVersion)
+  throw Error("العرض غير متاح للمراجعة");
+
+ s.modal={
+  type:"providerQuoteDetails",
+  quoteId:quote.id
+ };
+
+ render();
+ return;
+}
+
+if(a==="quote-provider-approve"){
+
+ if(s.profile?.role!=="provider")
+  throw Error("غير مصرح باعتماد العرض");
+
+ const quote=s.quotes.find(x=>x.id===id);
+ const version=quote?.currentVersion;
+
+ if(!quote||
+    !version||
+    quote.provider_id!==s.provider?.id||
+    quote.status!=="awaiting_provider_approval")
+  throw Error("العرض لم يعد متاحًا للاعتماد");
+
+ const {data,error}=await db.rpc("approve_service_quote",{
+  p_quote_id:quote.id,
+  p_quote_version_id:version.id
+ });
+
+ if(error)throw error;
+
+ await loadUser(s.user);
+
+ s.modal=null;
+ render();
+
+ if(data===null)
+  note("انتهت صلاحية العرض، ولم يتم اعتماده.","error");
+ else
+  note("تم اعتماد العرض وإنشاء الاتفاقية بنجاح.","success");
+
+ return;
+}
   if(a==="request-details"){
 
  if(s.profile?.role!=="customer")return;
