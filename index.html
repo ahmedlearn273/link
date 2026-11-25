@@ -4316,7 +4316,54 @@ if(f.id==="waslaAiForm"){
 
 
 try{
+if(f.id==="quoteAcceptForm"){
 
+ if(s.profile?.role!=="customer")
+  throw Error("غير مصرح بقبول عرض السعر");
+
+ const quote=s.quotes.find(x=>
+  x.id===f.dataset.quoteId
+ );
+
+ const version=quote?.currentVersion;
+ const v=vals(f);
+
+ if(!quote||
+    !version||
+    quote.customer_id!==s.user?.id||
+    quote.status!=="awaiting_customer"||
+    version.id!==f.dataset.versionId)
+  throw Error("عرض السعر أو نسخته الحالية غير متاح");
+
+ if(!["cash","platform"].includes(v.payment_method))
+  throw Error("اختر طريقة دفع صحيحة");
+
+ const {data,error}=await db.rpc("respond_to_service_quote",{
+  p_quote_id:quote.id,
+  p_quote_version_id:version.id,
+  p_action:"accept",
+  p_payment_method:v.payment_method,
+  p_note:null
+ });
+
+ if(error)throw error;
+
+ await loadUser(s.user);
+
+ s.modal={
+  type:"requestDetails",
+  requestId:f.dataset.requestId
+ };
+
+ render();
+
+ if(data==="expired")
+  note("انتهت صلاحية العرض، ولم يتم قبوله.","error");
+ else
+  note("تم قبول العرض وإرساله لمقدم الخدمة لاعتماده.","success");
+
+ return;
+}
 if(f.id==="quoteForm"){
  if(s.profile?.role!=="provider")
   throw Error("غير مصرح لك بإرسال عرض سعر");
