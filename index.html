@@ -2102,7 +2102,48 @@ async function loadGeoCatalog(countryId=null,cityId=null){
  s.geo.areas=data?.areas||[];
  return data;
 }
+async function loadServiceAreaCity(details, countryId) {
+  if (!details || details.dataset.loaded === "true") return;
 
+  const cityId = details.dataset.serviceAreaCity;
+  const list = details.querySelector("[data-area-list]");
+  list.textContent = "جاري تحميل الأقسام...";
+
+  const { data, error } = await db.rpc("get_active_geo_catalog", {
+    p_country_id: countryId,
+    p_city_id: cityId
+  });
+
+  if (error) throw error;
+
+  const areas = (data?.areas || []).filter(area => area.city_id === cityId);
+
+  list.innerHTML = areas.length
+    ? areas.map(area =>
+        '<label class="service-area-item">' +
+          '<input type="checkbox" name="service_area_ids" value="' +
+          esc(area.id) + '">' +
+          '<span>' + esc(area.name_ar) + '</span>' +
+        '</label>'
+      ).join("")
+    : '<small>لا توجد أقسام نشطة لهذه المحافظة.</small>';
+
+  details.dataset.loaded = "true";
+}
+
+function syncServiceAreaCityCheckbox(row) {
+  if (!row) return;
+
+  const cityToggle = row.querySelector("[data-service-area-city-toggle]");
+  const areas = Array.from(
+    row.querySelectorAll('input[name="service_area_ids"]')
+  );
+
+  const checked = areas.filter(x => x.checked).length;
+
+  cityToggle.checked = areas.length > 0 && checked === areas.length;
+  cityToggle.indeterminate = checked > 0 && checked < areas.length;
+}
 const esc=x=>String(x??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])),fmt=x=>Number(x||0).toLocaleString("ar-SA");
 
 function note(x,t){
