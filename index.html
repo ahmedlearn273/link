@@ -5918,6 +5918,7 @@ if (v.account_type === "provider" && serviceAreaIds.length === 0) {
  };
 
  if(v.account_type==="provider"){
+signupData.service_area_ids = serviceAreaIds;
   const docs=[
     {
       document_type:"profile_photo",
