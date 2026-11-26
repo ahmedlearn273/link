@@ -2412,8 +2412,27 @@ function authView(){
   '<label class="field">القسم / المركز<select name="area_id" required disabled><option value="">اختر المحافظة أولاً</option></select><small id="geoAreaStatus">اختر المحافظة أولاً</small></label>'+
   '<label class="field">العنوان التفصيلي<input name="address" type="text" maxlength="500" placeholder="الشارع، رقم العقار، الدور، الشقة، وأقرب علامة مميزة" required></label>';
  return header("تسجيل موحّد بالبريد الإلكتروني")+'<main class="wrap"><div class="auth"><div class="card"><div class="sectionhead"><h2>'+(signup?"إنشاء حساب":"تسجيل الدخول")+'</h2><span class="tag">آمن</span></div>'+msg()+'<div class="tabs"><button data-a="mode" data-id="login" class="'+(!signup?"active":"")+'">دخول</button><button data-a="mode" data-id="signup" class="'+(signup?"active":"")+'">حساب جديد</button></div>'+
-
-(signup?'<form id="signup">'+field("الاسم الكامل","full_name","text","اسمك","",true)+field("البريد الإلكتروني","email","email","name@example.com","",true)+field("كلمة المرور","password","password","8 أحرف على الأقل","",true)+field("الهاتف (اختياري)","phone","tel","رقم التواصل","",false)+geoFields+field("تاريخ الميلاد","birth_date","date","","",true)+'<label class="field"><span><input type="checkbox" name="adult_confirmation" value="true" required> أقر بأن عمري 18 سنة أو أكثر</span></label>'+select("نوع الحساب","account_type",[{value:"customer",label:"عميل"},{value:"provider",label:"مزوّد خدمة"}],s.type)+'<div id="providerExtra" class="'+(s.type==="provider"?"":"hidden")+'">'+field("سنوات الخبرة","experience_years","number","سنوات الخبرة","",false)+field("نبذة","bio","text","نبذة عن خبرتك","",false)+field("نطاق الخدمة","service_area","text","الأحياء التي تخدمها","",false)+'<label class="field"><span>الصورة الشخصية الحديثة (إلزامية)</span><input type="file" name="profile_photo" accept="image/jpeg,image/png,image/webp"><small>يجب رفع صورة شخصية حديثة وواضحة، JPG أو PNG أو WEBP، بحد أقصى 5MB</small></label><label class="field"><span>صورة الهوية – الوجه الأمامي (إلزامية)</span><input type="file" name="identity_front" accept="image/jpeg,image/png,image/webp,application/pdf"><small>صورة أو PDF، بحد أقصى 10MB</small></label><label class="field"><span>صورة الهوية – الوجه الخلفي (إلزامية)</span><input type="file" name="identity_back" accept="image/jpeg,image/png,image/webp,application/pdf"><small>صورة أو PDF، بحد أقصى 10MB</small></label></div><button class="btn gold">إنشاء الحساب</button></form>':
+(signup?'<form id="signup">'+field("الاسم الكامل","full_name","text","اسمك","",true)+field("البريد الإلكتروني","email","email","name@example.com","",true)+field("كلمة المرور","password","password","8 أحرف على الأقل","",true)+field("الهاتف (اختياري)","phone","tel","رقم التواصل","",false)+geoFields+field("تاريخ الميلاد","birth_date","date","","",true)+'<label class="field"><span><input type="checkbox" name="adult_confirmation" value="true" required> أقر بأن عمري 18 سنة أو أكثر</span></label>'+select("نوع الحساب","account_type",[{value:"customer",label:"عميل"},{value:"provider",label:"مزوّد خدمة"}],s.type)+'<div id="providerExtra" class="'+(s.type==="provider"?"":"hidden")+'">'+field("سنوات الخبرة","experience_years","number","سنوات الخبرة","",false)+field("نبذة","bio","text","نبذة عن خبرتك","",false)+
+'<div class="field">'+
+  '<span>نطاق الخدمة – اختر المحافظات والأقسام المناسبة</span>'+
+  '<div class="service-area-list">'+
+    geoCities.map(city =>
+      '<div class="service-area-row" data-service-area-row>'+
+        '<label>'+
+          '<input type="checkbox" data-service-area-city-toggle value="'+
+          esc(city.id)+'">'+
+          '<strong>'+esc(city.name_ar)+'</strong>'+
+        '</label>'+
+        '<details data-service-area-city="'+esc(city.id)+'" data-loaded="false">'+
+          '<summary>عرض الأقسام / المراكز</summary>'+
+          '<div data-area-list><small>افتح لعرض الأقسام</small></div>'+
+        '</details>'+
+      '</div>'
+    ).join("")+
+  '</div>'+
+  '<small>يمكن اختيار محافظة بالكامل أو أقسام محددة من محافظات مختلفة.</small>'+
+'</div>'+
+'<label class="field"><span>الصورة الشخصية الحديثة (إلزامية)</span><input type="file" name="profile_photo" accept="image/jpeg,image/png,image/webp"><small>يجب رفع صورة شخصية حديثة وواضحة، JPG أو PNG أو WEBP، بحد أقصى 5MB</small></label><label class="field"><span>صورة الهوية – الوجه الأمامي (إلزامية)</span><input type="file" name="identity_front" accept="image/jpeg,image/png,image/webp,application/pdf"><small>صورة أو PDF، بحد أقصى 10MB</small></label><label class="field"><span>صورة الهوية – الوجه الخلفي (إلزامية)</span><input type="file" name="identity_back" accept="image/jpeg,image/png,image/webp,application/pdf"><small>صورة أو PDF، بحد أقصى 10MB</small></label></div><button class="btn gold">إنشاء الحساب</button></form>':
 '<form id="login">'+
 field("البريد الإلكتروني","email","email","name@example.com","",true)+
 '<label class="field">كلمة المرور'+
