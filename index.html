@@ -6047,15 +6047,58 @@ if(d.file.size > maxSize)
     if(!signed)
       throw Error("تعذّر تجهيز رابط رفع أحد المستندات.");
 
-    const {error:storageError}=await db.storage
-      .from("provider-applications")
-      .uploadToSignedUrl(
-        signed.path,
-        signed.token,
-        d.file
-      );
+    
+const documentLabel =
+  d.document_type === "profile_photo" ? "الصورة الشخصية" :
+  d.document_type === "identity_front" ? "الوجه الأمامي للهوية" :
+  "الوجه الخلفي للهوية";
 
-    if(storageError)throw storageError;
+console.info("[WASLA signup] بدء رفع المستند:", {
+  document_type: d.document_type,
+  mime_type: d.file.type,
+  size_bytes: d.file.size
+});
+
+let storageResult;
+
+try {
+  storageResult = await db.storage
+    .from("provider-applications")
+    .uploadToSignedUrl(
+      signed.path,
+      signed.token,
+      d.file
+    );
+} catch (uploadFailure) {
+  console.error("[WASLA signup] فشل اتصال رفع المستند:", {
+    document_type: d.document_type,
+    mime_type: d.file.type,
+    size_bytes: d.file.size,
+    error: uploadFailure
+  });
+
+  throw Error(
+    "تعذّر رفع " + documentLabel + ": " +
+    (uploadFailure?.message || String(uploadFailure))
+  );
+}
+
+const storageError = storageResult?.error;
+
+if (storageError) {
+  console.error("[WASLA signup] رفض Storage رفع المستند:", {
+    document_type: d.document_type,
+    error: storageError
+  });
+
+  throw Error(
+    "تعذّر رفع " + documentLabel + ": " +
+    (storageError.message || "خطأ غير معروف")
+  );
+}
+
+console.info("[WASLA signup] اكتمل رفع المستند:", d.document_type);
+   
   }
 
   signupData.provider_signup_token=tokenData.token;
