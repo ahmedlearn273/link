@@ -5184,7 +5184,41 @@ if(m.type==="cancelRequest"){
   '</form>'+
  '</div>';
 }
-  
+  if(m.type==="suspendProvider"){
+  if(!["admin","owner"].includes(s.profile?.role))
+    throw Error("غير مصرح لك بإيقاف مقدم الخدمة");
+
+  const p=s.providerDossier?.profile;
+  const pp=s.providerDossier?.provider;
+
+  if(
+    !p ||
+    p.id!==m.userId ||
+    p.status!=="active" ||
+    pp?.verification_status!=="approved"
+  ){
+    throw Error("حالة مقدم الخدمة لا تسمح بالإيقاف");
+  }
+
+  c=
+  '<div class="modal-title">'+
+    '<h3>إيقاف مقدم الخدمة</h3>'+
+    '<p class="muted">سيتم إيقاف الحساب ومنع صاحبه من استخدام وظائف مقدم الخدمة.</p>'+
+  '</div>'+
+  '<form id="suspendProviderForm" data-user-id="'+esc(m.userId)+'">'+
+    '<label class="field">سبب الإيقاف <span style="color:var(--danger)">*</span>'+
+      '<textarea name="suspension_reason" minlength="5" maxlength="500" required '+
+      'placeholder="اكتب سبب الإيقاف بالتفصيل..."></textarea>'+
+    '</label>'+
+    '<p class="notice">'+
+      'سبب الإيقاف سيظهر في ملف مقدم الخدمة. الطلبات الحالية وسجلاتها ستظل محفوظة دون حذف أو إلغاء تلقائي.'+
+    '</p>'+
+    '<div class="actions">'+
+      '<button type="button" class="btn light" data-a="close">رجوع</button>'+
+      '<button type="submit" class="btn danger">تأكيد إيقاف الحساب</button>'+
+    '</div>'+
+  '</form>';
+  }
   if(m.type==="customerDetails"){
  const x=s.customers.find(y=>y.id===m.userId);
  if(!x)throw Error("العميل غير موجود");
