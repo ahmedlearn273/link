@@ -7300,6 +7300,11 @@ app.addEventListener("submit", async e => {
 });
       
 app.addEventListener("change",async e=>{
+ if(e.target.id==="providerStatusFilter"){
+  s.providerFilter=e.target.value;
+  render();
+  return;
+ }
  if(e.target.name==="account_type"){
   s.type=e.target.value;
   const extra=document.getElementById("providerExtra");
