@@ -6098,12 +6098,7 @@ try {
 
   throw Error("تعذّر رفع " + documentLabel + ".\n" + diagnosticText);
 }
-   
-
-  throw Error(
-    "تعذّر رفع " + documentLabel + ": " +
-    (uploadFailure?.message || String(uploadFailure))
-  );
+  
 }
 
 const storageError = storageResult?.error;
