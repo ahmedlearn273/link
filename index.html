@@ -4252,7 +4252,7 @@ if(s.tab==="providers"){
 }
        if(s.tab==="services")body='<section class="section"><div class="sectionhead"><div><h2>إدارة الخدمات</h2><p class="small">أضف الخدمات المتاحة على وصلة وتابع وصفها وحالة ظهورها للعملاء.</p></div>'+btn("addservice","إضافة خدمة","gold")+'</div><div class="list">'+(s.services.map(x=>'<article class="item"><div class="row"><b>'+esc(x.name_ar)+'</b>'+tag(x.is_active?"نشطة":"متوقفة")+'</div><p>'+esc(x.description||"لا يوجد وصف مضاف لهذه الخدمة")+'</p><div class="actions">'+btn("toggleservice",x.is_active?"إيقاف الخدمة":"تفعيل الخدمة","light",x.id)+'</div></article>').join("")||empty("لا توجد خدمات مضافة حتى الآن. أضف أول خدمة للمنصة."))+'</div></section>';
 if(s.tab==="categories")body='<section class="section"><div class="sectionhead"><div><h2>إدارة التصنيفات</h2><p class="small">نظّم الخدمات داخل أقسام واضحة تسهّل على العملاء الوصول لما يحتاجونه.</p></div>'+btn("addcategory","إضافة تصنيف","gold")+'</div><div class="list">'+(s.cats.map(x=>'<article class="item"><div class="row"><b>'+esc(x.name_ar)+'</b>'+tag(x.is_active?"نشط":"متوقف")+'</div><div class="small">معرّف التصنيف</div><p class="muted">'+esc(x.slug||"غير محدد")+'</p><div class="actions">'+btn("togglecategory",x.is_active?"إيقاف التصنيف":"تفعيل التصنيف","light",x.id)+'</div></article>').join("")||empty("لا توجد تصنيفات حتى الآن. أضف أول تصنيف للمنصة."))+'</div></section>';
- if(s.tab==="staff")body='<section class="section"><div class="sectionhead"><div><h2>إدارة الموظفين</h2><p class="small">أدر فريق العمل وتابع صلاحيات كل موظف وحالة حسابه.</p></div>'+btn("addstaff","إضافة موظف","gold")+'</div><div class="list">'+(s.staff.map(x=>'<article class="item"><div class="row"><div><b>'+esc(x.full_name||"موظف بدون اسم")+'</b><p class="small">عضو في فريق إدارة وصلة</p></div>'+tag(x.staff_permissions?.is_active?"نشط":"موقوف")+'</div><div class="small">رقم التواصل</div><p>'+esc(x.phone||"لا يوجد رقم هاتف")+'</p><div class="small">الصلاحيات الممنوحة</div><p class="muted">'+fmt((x.staff_permissions?.permissions||[]).length)+' صلاحية</p><div class="actions">'+btn("editstaff","إدارة الصلاحيات","light",x.id)+btn("removestaff","إزالة الموظف","danger",x.id)+'</div></article>').join("")||empty("لا يوجد موظفون حتى الآن. يمكنك إضافة أول موظف لفريق الإدارة."))+'</div></section>';
+ if(s.tab==="staff")body='<section class="section"><div class="sectionhead"><div><h2>إدارة الموظفين</h2><p class="small">أدر فريق العمل وتابع صلاحيات كل موظف وحالة حسابه.</p></div>'+btn("addstaff","إضافة موظف","gold")+'</div><div class="list">'+(s.staff.map(x=>'<article class="item"><div class="row"><div><b>'+esc(x.full_name||"موظف بدون اسم")+'</b><p class="small">عضو في فريق إدارة وصلة</p></div>'+tag(x.staff_permissions?.is_active?"نشط":"موقوف")+'</div><div class="small">رقم التواصل</div><p>'+esc(x.phone||"لا يوجد رقم هاتف")+'</p><div class="small">الصلاحيات الممنوحة</div><p class="muted">'+fmt((x.staff_permissions?.permissions||[]).length)+' صلاحية</p><div class="actions">'+btn("editstaff","إدارة الصلاحيات","light",x.id)+(["admin","owner"].includes(s.profile?.role)&&x.staff_permissions?.is_active?btn("resetstaffpw","توليد كلمة مرور","light",x.id):"")+btn("removestaff","إزالة الموظف","danger",x.id)+'</div></article>').join("")||empty("لا يوجد موظفون حتى الآن. يمكنك إضافة أول موظف لفريق الإدارة."))+'</div></section>';
  if(s.tab==="customers")body='<section class="section"><div class="sectionhead"><div><h2>إدارة العملاء</h2><p class="small">استعرض حسابات العملاء وبياناتهم وحالة كل حساب.</p></div><span class="tag">'+fmt(s.customers.length)+' عميل</span></div><div class="list">'+(s.customers.map(x=>'<article class="item"><div class="row"><div><b>'+esc(x.full_name||"عميل بدون اسم")+'</b><p class="small">حساب عميل على منصة وصلة</p></div>'+tag(x.status==="active"?"نشط":"موقوف")+'</div><div class="small">رقم التواصل</div><p>'+esc(x.phone||"لا يوجد رقم هاتف")+'</p><div class="small">الموقع</div><p class="muted">'+esc([x.city,x.country].filter(Boolean).join("، ")||"الموقع غير محدد")+'</p><div class="actions">'+btn("viewcustomer","عرض الملف","light",x.id)+'</div></article>').join("")||empty("لا يوجد عملاء حتى الآن"))+'</div></section>';
  if(s.tab==="messages")body=chatContent();
 if(s.tab==="assistant"&&s.profile?.role==="owner")body=assistantView();
@@ -4636,6 +4636,15 @@ if(m.type==="knowledgeDocumentView"){
  '<hr><div style="white-space:pre-wrap;overflow-wrap:anywhere">'+esc(x.content||"لا يوجد محتوى")+'</div>'+
  '</div>'+
  '<div class="actions"><button class="btn" data-a="close">إغلاق</button></div>';
+}
+if(m.type==="staffPasswordResult"){
+ c='<div class="modal-title"><h3>كلمة المرور الجديدة</h3>'+
+ '<p class="muted">الموظف: '+esc(m.staffName||"")+'</p></div>'+
+ '<div class="notice">انسخ كلمة المرور الآن وسلّمها للموظف. لن تظهر مرة أخرى بعد إغلاق هذه النافذة، ويمكن للموظف تغييرها بنفسه من إعدادات حسابه.</div>'+
+ (m.auditRecorded===false?'<div class="notice">تنبيه: تم تغيير كلمة المرور لكن تعذّر تسجيل نتيجة العملية في سجل التدقيق. أبلغ المالك.</div>':"")+
+ '<div class="item"><code dir="ltr" style="display:block;user-select:all;overflow-wrap:anywhere;font-size:1.1em">'+esc(m.password||"")+'</code></div>'+
+ '<div class="actions"><button class="btn gold" data-a="copystaffpw">نسخ كلمة المرور</button>'+
+ '<button class="btn" data-a="close">إغلاق</button></div>';
 }
   if(m.type==="knowledgeDocument"){
  if(s.profile?.role!=="admin")throw Error("غير مصرح لك بإنشاء مستندات المعرفة");
@@ -6944,6 +6953,40 @@ if(a==="forgot"){let email=document.querySelector('#login [name="email"]')?.valu
  }
   if(a==="editstaff"){s.modal={type:"editstaff",userId:id};render();return}
 if(a==="viewcustomer"){s.modal={type:"customerDetails",userId:id};render();return}
+  if(a==="resetstaffpw"){
+ if(s.resettingStaffPassword)return;
+ if(!["admin","owner"].includes(s.profile?.role))throw Error("غير مصرح لك بهذه العملية");
+ let x=s.staff.find(y=>y.id===id);
+ if(!x)throw Error("الموظف غير موجود");
+ if(!confirm("سيتم استبدال كلمة المرور الحالية لـ "+(x.full_name||"هذا الموظف")+" بكلمة مرور جديدة، ولن تعمل كلمة المرور القديمة بعدها. هل تريد المتابعة؟"))return;
+ s.resettingStaffPassword=true;
+ try{
+  const r=await db.functions.invoke("admin-reset-staff-password",{body:{user_id:id}});
+  let serverError=r.data?.error||null;
+  if(!serverError&&r.error){
+   try{const b=await r.error.context?.json?.();serverError=b?.error||null}catch(_e){}
+   serverError=serverError||r.error.message||"تعذّر توليد كلمة المرور";
+  }
+  if(serverError)throw Error(serverError);
+  if(!r.data?.success||!r.data?.temporary_password)throw Error("لم يصل رد صالح من الخادم. لم تُعرض كلمة مرور.");
+  s.modal={type:"staffPasswordResult",staffName:x.full_name||"",password:r.data.temporary_password,auditRecorded:r.data.audit_recorded!==false};
+  render();
+ }finally{
+  s.resettingStaffPassword=false;
+ }
+ return;
+  }
+  if(a==="copystaffpw"){
+ const pw=s.modal?.type==="staffPasswordResult"?s.modal.password:null;
+ if(!pw)return;
+ try{
+  await navigator.clipboard.writeText(pw);
+  note("تم نسخ كلمة المرور.","success");
+ }catch(_e){
+  throw Error("تعذّر النسخ تلقائيًا. حدّد كلمة المرور وانسخها يدويًا.");
+ }
+ return;
+  }
   if(a==="removestaff"){
  let x=s.staff.find(y=>y.id===id);
  if(!x)throw Error("الموظف غير موجود");
