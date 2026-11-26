@@ -4376,24 +4376,49 @@ if(
  s.provider &&
  (s.profile?.status!=="active" || s.provider.verification_status!=="approved")
 ){
- app.innerHTML=header(
-  s.provider.verification_status==="pending"
-   ?"طلب الانضمام قيد المراجعة"
-   :s.provider.verification_status==="rejected"
-    ?"تم رفض طلب الانضمام"
-    :"حالة طلب الانضمام"
- )+'<main class="wrap"><div class="auth card"><div class="icon">⏳</div><h2>'+
- (s.provider.verification_status==="pending"
-  ?"طلبك قيد المراجعة"
-  :s.provider.verification_status==="rejected"
-   ?"تم رفض طلب الانضمام"
-   :"حالة الطلب"
- )+'</h2><p class="muted">'+
- (s.provider.verification_status==="pending"
-  ?"ستتم مراجعة بياناتك من الإدارة، وبعد الموافقة ستتمكن من إضافة خدماتك واستقبال الطلبات."
-  :"يمكنك التواصل مع إدارة المنصة لمعرفة التفاصيل."
-  )+'</p>'+tag(s.provider.verification_status)+(s.provider.verification_status==="pending"?btn("logout","تسجيل الخروج","danger"):"")+'</div></main>';
- return;
+   const suspended=s.profile?.status==="suspended";
+
+  app.innerHTML=header(
+    suspended
+      ?"الحساب موقوف"
+      :s.provider.verification_status==="pending"
+        ?"طلب الانضمام قيد المراجعة"
+        :s.provider.verification_status==="rejected"
+          ?"تم رفض طلب الانضمام"
+          :"حالة طلب الانضمام"
+  )+
+  '<main class="wrap">'+
+    '<div class="auth card">'+
+      '<div class="icon">'+(suspended?"⛔":"⏳")+'</div>'+
+      '<h2>'+(suspended
+        ?"تم إيقاف حسابك"
+        :s.provider.verification_status==="pending"
+          ?"طلبك قيد المراجعة"
+          :s.provider.verification_status==="rejected"
+            ?"تم رفض طلب الانضمام"
+            :"حالة الطلب")+'</h2>'+
+      '<p class="muted">'+(suspended
+        ?"تم إيقاف حساب مقدم الخدمة بواسطة إدارة المنصة."
+        :s.provider.verification_status==="pending"
+          ?"ستتم مراجعة بياناتك من الإدارة، وبعد الموافقة ستتمكن من إضافة خدماتك واستقبال الطلبات."
+          :"يمكنك التواصل مع إدارة المنصة لمعرفة التفاصيل.")+'</p>'+
+      (suspended
+        ?'<div class="notice error">'+
+           '<b>سبب الإيقاف</b>'+
+           '<p>'+esc(s.profile?.suspension_reason||"يرجى التواصل مع الإدارة لمعرفة السبب.")+'</p>'+
+           '<p class="small">تاريخ الإيقاف: '+
+             (s.profile?.suspended_at
+               ?new Date(s.profile.suspended_at).toLocaleString("ar-EG")
+               :"غير مسجل")+
+           '</p>'+
+         '</div>'
+        :"")+
+      tag(suspended?"موقوف":s.provider.verification_status)+
+      btn("logout","تسجيل الخروج","danger")+
+    '</div>'+
+  '</main>';
+
+  return;
 }
 if(s.mode==="explore"){
 app.innerHTML=((s.profile?.role==="admin"||s.profile?.role==="owner")?'<main class="wrap" style="padding:0 16px 0">'+btn("showadmin","العودة إلى لوحة الإدارة","light")+'</main>':'')+landing();
