@@ -28,13 +28,6 @@ const allowedPermissions = [
   "ads.manage",
   "settings.view",
   "settings.manage",
-  "customers.contact",
-  "reports.export",
-  "reports.import",
-  "support.view",
-  "support.manage",
-  "wallet.view",
-  "wallet.manage",
 ];
 
 function response(body: unknown, status = 200) {

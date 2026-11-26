@@ -4313,13 +4313,17 @@ return header(
  
 }
       
+// المصدر الوحيد لقائمة الصلاحيات: [المفتاح, العنوان, قيد اختياري].
+// القيد "admin" = صلاحية للمالك والأدمن فقط (قاعدة البيانات ترفض منحها للموظف).
+// القيد "grant" = تُمنح عبر تكليف نطاق ASV (staff_permission_grants) وليس من نماذج الموظف.
 const STAFF_PERMISSIONS=[
  ["dashboard.view","عرض لوحة المعلومات"],
  ["customers.view","عرض العملاء"],
  ["customers.manage","إدارة العملاء"],
- ["customers.contact","عرض هاتف وعنوان العميل"],
+ ["customers.contact","عرض هاتف وعنوان العميل","admin"],
  ["providers.view","عرض المزوّدين"],
  ["providers.review","مراجعة طلبات المزوّدين"],
+ ["provider_area_requests.recommend","التوصية بطلبات مناطق المزوّدين","grant"],
  ["requests.view","عرض الطلبات"],
  ["requests.manage","إدارة الطلبات"],
  ["services.view","عرض الخدمات"],
@@ -4332,8 +4336,8 @@ const STAFF_PERMISSIONS=[
  ["wallet.view","عرض المحافظ"],
  ["wallet.manage","إدارة المحافظ"],
  ["reports.view","عرض التقارير"],
- ["reports.export","تصدير التقارير"],
- ["reports.import","استيراد البيانات"],
+ ["reports.export","تصدير التقارير","admin"],
+ ["reports.import","استيراد البيانات","admin"],
  ["support.view","عرض الدعم والشكاوى"],
  ["support.manage","إدارة الدعم والشكاوى"],
  ["ads.view","عرض الإعلانات"],
@@ -4341,6 +4345,8 @@ const STAFF_PERMISSIONS=[
  ["settings.view","عرض الإعدادات"],
  ["settings.manage","إدارة الإعدادات"]
 ];
+// الصلاحيات التي تظهر في نماذج إنشاء وتعديل الموظف.
+const STAFF_FORM_PERMISSIONS=STAFF_PERMISSIONS.filter(x=>!x[2]);
 // أقسام لوحة الموظف: [التبويب, العنوان, الصلاحيات التي تفتحه]. تُضاف الأقسام الجديدة هنا.
 const STAFF_NAV=[
  ["services","الخدمات",["services.view","services.manage"]],
@@ -4508,7 +4514,7 @@ if(m.type==="service")c='<div class="modal-title"><h3>إضافة خدمة جدي
 if(m.type==="category")c='<div class="modal-title"><h3>إضافة تصنيف جديد</h3><p class="muted">أنشئ تصنيفًا يساعد العملاء على الوصول للخدمات بسهولة.</p></div><form id="categoryForm">'+field("اسم التصنيف بالعربية","name_ar","text","مثال: صيانة منزلية","",true)+field("الاسم بالإنجليزية","name_en","text","Home Maintenance","",false)+field("الرابط المختصر","slug","text","home-maintenance","",true)+field("أيقونة التصنيف","icon","text","🔧","",false)+'<div class="actions"><button class="btn gold">حفظ التصنيف</button></div></form>';
   
 if(m.type==="addstaff"){
- const permissions=STAFF_PERMISSIONS;
+ const permissions=STAFF_FORM_PERMISSIONS;
 c='<h3>إنشاء حساب موظف جديد</h3>'+
  '<form id="addStaffForm">'+
  field("اسم الموظف","full_name","text","الاسم الكامل","",true)+
@@ -4525,7 +4531,7 @@ c='<h3>إنشاء حساب موظف جديد</h3>'+
 }
   
 if(m.type==="addstaff"){
- const permissions=STAFF_PERMISSIONS;
+ const permissions=STAFF_FORM_PERMISSIONS;
 
  const hierarchy=[
   {value:"ASV",label:"مشرف منطقة — ASV"},
@@ -4561,7 +4567,7 @@ if(m.type==="addstaff"){
  if(m.type==="editstaff"){
  const x=s.staff.find(y=>y.id===m.userId);
  if(!x)throw Error("الموظف غير موجود");
- const permissions=STAFF_PERMISSIONS;
+ const permissions=STAFF_FORM_PERMISSIONS;
  const selected=x.staff_permissions?.permissions||[];
  c='<div class="modal-title"><h3>إدارة صلاحيات الموظف</h3><p class="muted">حدد الصلاحيات وحالة حساب الموظف.</p></div>'+
  '<form id="editStaffForm"><input type="hidden" name="user_id" value="'+esc(x.id)+'">'+
