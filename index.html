@@ -4065,7 +4065,7 @@ if(
  s.user &&
  s.profile?.role==="provider" &&
  s.provider &&
- s.provider.verification_status!=="approved"
+ (s.profile?.status!=="active" || s.provider.verification_status!=="approved")
 ){
  app.innerHTML=header(
   s.provider.verification_status==="pending"
