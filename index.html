@@ -4061,7 +4061,31 @@ const nav=navItems.map(x=>'<button data-a="tab" data-id="'+x[0]+'" class="'+(s.t
 
 function render(){
    if(s.mode==="recovery"){app.innerHTML=recoveryView();return}
-
+if(
+ s.user &&
+ s.profile?.role==="provider" &&
+ s.provider &&
+ s.provider.verification_status!=="approved"
+){
+ app.innerHTML=header(
+  s.provider.verification_status==="pending"
+   ?"طلب الانضمام قيد المراجعة"
+   :s.provider.verification_status==="rejected"
+    ?"تم رفض طلب الانضمام"
+    :"حالة طلب الانضمام"
+ )+'<main class="wrap"><div class="auth card"><div class="icon">⏳</div><h2>'+
+ (s.provider.verification_status==="pending"
+  ?"طلبك قيد المراجعة"
+  :s.provider.verification_status==="rejected"
+   ?"تم رفض طلب الانضمام"
+   :"حالة الطلب"
+ )+'</h2><p class="muted">'+
+ (s.provider.verification_status==="pending"
+  ?"ستتم مراجعة بياناتك من الإدارة، وبعد الموافقة ستتمكن من إضافة خدماتك واستقبال الطلبات."
+  :"يمكنك التواصل مع إدارة المنصة لمعرفة التفاصيل."
+ )+'</p>'+tag(s.provider.verification_status)+'</div></main>';
+ return;
+}
 if(s.mode==="explore"){
 app.innerHTML=((s.profile?.role==="admin"||s.profile?.role==="owner")?'<main class="wrap" style="padding:0 16px 0">'+btn("showadmin","العودة إلى لوحة الإدارة","light")+'</main>':'')+landing();
  return;
