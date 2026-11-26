@@ -4380,7 +4380,7 @@ if(
  (s.provider.verification_status==="pending"
   ?"ستتم مراجعة بياناتك من الإدارة، وبعد الموافقة ستتمكن من إضافة خدماتك واستقبال الطلبات."
   :"يمكنك التواصل مع إدارة المنصة لمعرفة التفاصيل."
- )+'</p>'+tag(s.provider.verification_status)+'</div></main>';
+  )+'</p>'+tag(s.provider.verification_status)+(s.provider.verification_status==="pending"?btn("logout","تسجيل الخروج","danger"):"")+'</div></main>';
  return;
 }
 if(s.mode==="explore"){
