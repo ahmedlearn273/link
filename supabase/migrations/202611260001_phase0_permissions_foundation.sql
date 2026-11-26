@@ -5,6 +5,7 @@
 -- Depends on (already live): public.profiles, public.staff_permissions,
 --   private.is_active_admin(), public.admin_upsert_staff, public.audit_logs,
 --   private.audit_row_change()
+-- Note: admin_upsert_staff is NOT redefined here (its live definition is unknown).
 -- =========================================================
 
 begin;
@@ -221,66 +222,32 @@ grant execute on function private.staff_in_area(uuid) to authenticated;
 grant execute on function private.contact_or_null(text) to authenticated;
 grant execute on function private.get_setting(text) to authenticated;
 
--- 8. admin_upsert_staff: same behavior as before, plus rejects unknown permission keys.
-create or replace function public.admin_upsert_staff(
-  p_user_id uuid,
-  p_permissions text[],
-  p_is_active boolean default true
-)
-returns void
+-- 8. Reject unknown permission keys at the table level.
+--    A trigger is used instead of redefining admin_upsert_staff, so the live
+--    function (and its SECURITY DEFINER/INVOKER setting) stays untouched.
+create or replace function private.validate_staff_permissions()
+returns trigger
 language plpgsql
 set search_path = ''
 as $function$
-declare
-  v_role text;
 begin
-  if (select auth.uid()) is null
-     or not private.is_active_admin() then
-    raise exception 'Not authorized';
-  end if;
-
-  if p_user_id is null
-     or p_user_id = (select auth.uid()) then
-    raise exception 'Invalid staff account';
-  end if;
-
   if exists (
     select 1
-    from unnest(coalesce(p_permissions, '{}'::text[])) as x(k)
+    from unnest(coalesce(new.permissions, '{}'::text[])) as x(k)
     where x.k <> all (private.staff_permission_catalog())
   ) then
     raise exception 'Invalid permission';
   end if;
-
-  select role into v_role
-  from public.profiles
-  where id = p_user_id
-  for update;
-
-  if not found or v_role <> 'staff' then
-    raise exception 'Only existing staff accounts can be managed';
-  end if;
-
-  update public.profiles
-  set status = 'active',
-      updated_at = now()
-  where id = p_user_id;
-
-  insert into public.staff_permissions (
-    user_id, permissions, is_active, created_by
-  )
-  values (
-    p_user_id,
-    coalesce(p_permissions, '{}'::text[]),
-    coalesce(p_is_active, true),
-    (select auth.uid())
-  )
-  on conflict (user_id) do update
-  set permissions = excluded.permissions,
-      is_active = excluded.is_active,
-      updated_at = now();
+  return new;
 end;
 $function$;
+
+revoke all on function private.validate_staff_permissions() from public, anon, authenticated;
+
+drop trigger if exists validate_staff_permissions on public.staff_permissions;
+create trigger validate_staff_permissions
+before insert or update of permissions on public.staff_permissions
+for each row execute function private.validate_staff_permissions();
 
 -- 9. admin_set_staff_areas: owner/admin only, existing staff only, not self.
 create or replace function public.admin_set_staff_areas(
