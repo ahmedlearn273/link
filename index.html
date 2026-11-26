@@ -2226,10 +2226,7 @@ if(p.status!=="active"){
  await auditEvent("ACCOUNT_SESSION_LOADED","profiles",u.id,"success",{
   role:p.role
  });
-  let {data:pp,error:ppError}=await db.from("provider_profiles").select("*").eq("user_id",u.id).maybeSingle();
- if(ppError)throw ppError;
- if(p.role==="provider"&&!pp)throw Error("تعذر تحميل ملف مزوّد الخدمة. يرجى التواصل مع الدعم.");
- s.provider=pp||null;
+  
 s.staffAccess=null;
 await publicData(p.role==="admin"||p.role==="owner"||p.role==="staff");
 s.requests=[];s.quotes=[];s.offers=[];s.apps=[];s.allRequests=[];s.adminProfiles=[];s.chats=[];s.messages=[];s.activeChat=null;s.auditLogs=[];
