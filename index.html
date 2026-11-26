@@ -7084,7 +7084,32 @@ if(a==="cancelrequest"){
   if(a==="advance"){let r=await db.rpc("advance_service_request",{p_request_id:id,p_next_status:b.dataset.next});if(r.error)throw r.error;await loadUser(s.user);note("تم تحديث حالة الطلب.","success");return}
   if(a==="availability"){let r=await db.rpc("toggle_own_provider_availability");if(r.error)throw r.error;await loadUser(s.user);note("تم تحديث التوفر.","success");return}
   if(a==="toggleoffer"){let r=await db.rpc("toggle_own_provider_service",{p_provider_service_id:id});if(r.error)throw r.error;await loadUser(s.user);return}
-if(a==="provider-dossier"){
+if(a==="suspend-provider-open"){
+
+  if(!["admin","owner"].includes(s.profile?.role))
+    throw Error("غير مصرح لك بإيقاف مقدمي الخدمة");
+
+  const p=s.providerDossier?.profile;
+  const pp=s.providerDossier?.provider;
+
+  if(
+    !p ||
+    p.id!==id ||
+    p.status!=="active" ||
+    pp?.verification_status!=="approved"
+  ){
+    throw Error("لا يمكن إيقاف مقدم الخدمة في حالته الحالية");
+  }
+
+  s.modal={
+    type:"suspendProvider",
+    userId:id
+  };
+
+  render();
+  return;
+}
+  if(a==="provider-dossier"){
  if(!["admin","owner"].includes(s.profile?.role))return;
 
  const {data,error}=await db.rpc(
