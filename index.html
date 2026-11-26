@@ -5690,8 +5690,15 @@ if(f.id==="login"){
     if(!allowed.includes(d.file.type))
       throw Error("نوع أحد الملفات غير مسموح.");
 
-    if(d.file.size>10*1024*1024)
-      throw Error("حجم أحد الملفات أكبر من 10 ميجابايت.");
+    const maxSize =
+  d.document_type === "profile_photo"
+    ? 5 * 1024 * 1024
+    : d.file.type === "application/pdf"
+      ? 10 * 1024 * 1024
+      : 15 * 1024 * 1024;
+
+if(d.file.size > maxSize)
+  throw Error("حجم الملف أكبر من الحد المسموح لنوعه.");
 
     if(d.document_type==="profile_photo" &&
        (!d.file.type.startsWith("image/") ||
