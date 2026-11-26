@@ -2170,12 +2170,35 @@ async function loadUser(u){
  if(!u){render();return}
  let {data:p,error}=await db.from("profiles").select("*").eq("id",u.id).maybeSingle();
  if(error||!p){console.error(error);note("تعذّر تحميل ملف الحساب.","error");return}
- if(p.status!=="active"){
-  s.profile=p;
+ let pp=null;
 
-  app.innerHTML=header("حالة الحساب")+'<main class="wrap"><div class="card"><h2>الحساب غير نشط</h2><p>حالة حسابك الحالية: '+esc(p.status)+'</p><p>يرجى التواصل مع إدارة المنصة.</p>'+btn("logout","تسجيل الخروج","light")+'</div></main>';
+if(p.role==="provider"){
+ let {data:providerData,error:providerError}=await db
+  .from("provider_profiles")
+  .select("*")
+  .eq("user_id",u.id)
+  .maybeSingle();
+
+ if(providerError)throw providerError;
+
+ if(!providerData)
+  throw Error("تعذر تحميل ملف مزوّد الخدمة. يرجى التواصل مع الدعم.");
+
+ pp=providerData;
+}
+
+s.profile=p;
+s.provider=pp;
+
+if(p.status!=="active"){
+ if(p.role==="provider"){
+  render();
   return;
  }
+
+ app.innerHTML=header("حالة الحساب")+'<main class="wrap"><div class="card"><h2>الحساب غير نشط</h2><p>حالة حسابك الحالية: '+esc(p.status)+'</p><p>يرجى التواصل مع إدارة المنصة.</p>'+btn("logout","تسجيل الخروج","light")+'</div></main>';
+ return;
+}
  const m=u.user_metadata||{},patch={};["full_name","phone","country","city","address"].forEach(k=>{if(!p[k]&&m[k])patch[k]=m[k]});
  if(Object.keys(patch).length){
  const {error:profileUpdateError}=await db.rpc("update_own_profile",{p_patch:patch});
