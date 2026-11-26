@@ -7370,7 +7370,35 @@ app.addEventListener("change",async e=>{
   const extra=document.getElementById("providerExtra");
   if(extra)extra.classList.toggle("hidden",s.type!=="provider");
  }
+ if(e.target.matches("[data-service-area-city-toggle]")){
+  const row=e.target.closest("[data-service-area-row]");
+  const details=row?.querySelector("details[data-service-area-city]");
 
+  try{
+   await loadServiceAreaCity(
+    details,
+    document.querySelector('#signup [name="country_id"]').value
+   );
+
+   details.querySelectorAll('input[name="service_area_ids"]').forEach(input=>{
+    input.checked=e.target.checked;
+   });
+
+   syncServiceAreaCityCheckbox(row);
+  }catch(error){
+   e.target.checked=false;
+   note("تعذّر تحميل أقسام المحافظة.","error");
+  }
+
+  return;
+ }
+
+ if(e.target.name==="service_area_ids"){
+  syncServiceAreaCityCheckbox(
+   e.target.closest("[data-service-area-row]")
+  );
+  return;
+ }
  if(e.target.name==="city_id"){
   const form=e.target.closest("#signup");
   if(!form)return;
