@@ -4421,7 +4421,8 @@ async function viewPrimeKnowledgeDocument(documentId){
         }
         return RQ_CSS+'<section class="section"><div class="sectionhead"><div><h2>تفاصيل الطلب</h2><p class="small">للقراءة فقط.</p></div></div>'+back+content+'</section>';
       }
-      const RL_REASON={no_provider:"بلا مزوّد",past_scheduled:"تجاوز الموعد",no_scheduled_at:"بلا موعد"};
+      const RL_REASON={no_provider:"بلا مزوّد",past_scheduled:"متأخر في التنفيذ",no_scheduled_at:"بلا موعد"};
+      const RL_DESC={no_provider:"قيد الانتظار وتجاوز المهلة بلا مقدم خدمة",past_scheduled:"جاري التنفيذ وتجاوز موعد التنفيذ والمهلة",no_scheduled_at:"له مقدم خدمة (مقبول أو جاري التنفيذ) بلا موعد تنفيذ متفق عليه"};
       function rlState(){
         if(!s.rl)s.rl={rows:[],total:0,counters:null,limit:25,offset:0,loading:false,loaded:false,error:"",errorHint:"",filters:{search:"",reason:"",city_id:"",area_id:"",service_id:"",provider_id:""}};
         return s.rl;
@@ -4479,14 +4480,14 @@ async function viewPrimeKnowledgeDocument(documentId){
           '<label class="field">مقدم الخدمة<select id="rlProvider">'+opt("","كل مقدمي الخدمة",f.provider_id)+(s.providers||[]).map(p=>opt(p.id,p.display_name||"مقدم خدمة",f.provider_id)).join("")+'</select></label>'+
         '</div><div class="actions">'+btn("rl-apply","تطبيق","gold")+btn("rl-reset","إعادة ضبط","light")+'</div>';
         const c=l.counters||{};
-        const chip=(key,label,v)=>'<div class="card" data-a="rl-reason" data-reason="'+key+'" style="cursor:pointer'+(f.reason===key?";border-color:var(--gold,#c9a24b)":"")+'"><div class="small">'+label+'</div><div class="stat">'+(v===undefined||v===null?"—":fmt(v))+'</div></div>';
-        const counters='<div class="grid small">'+chip("","الكل",f.reason===""&&l.counters?l.total:null)+chip("no_provider","بلا مزوّد",c.no_provider)+chip("past_scheduled","تجاوز الموعد",c.past_scheduled)+chip("no_scheduled_at","بلا موعد",c.no_scheduled_at)+'</div>';
+        const chip=(key,label,v)=>'<div class="card" data-a="rl-reason" data-reason="'+key+'" style="cursor:pointer'+(f.reason===key?";border-color:var(--gold,#c9a24b)":"")+'"><div class="small">'+label+'</div><div class="stat">'+(v===undefined||v===null?"—":fmt(v))+'</div>'+(RL_DESC[key]?'<div class="small muted">'+RL_DESC[key]+'</div>':"")+'</div>';
+        const counters='<div class="grid small">'+chip("","الكل",f.reason===""&&l.counters?l.total:null)+chip("no_provider","بلا مزوّد",c.no_provider)+chip("past_scheduled","متأخر في التنفيذ",c.past_scheduled)+chip("no_scheduled_at","بلا موعد",c.no_scheduled_at)+'</div>';
         let content="";
         if(l.loading)content='<div class="empty">جاري تحميل الطلبات المتأخرة...</div>';
         else if(l.error)content='<div class="notice error">'+esc(l.error)+(l.errorHint?'<div class="small">'+esc(l.errorHint)+'</div>':'')+'</div><div class="actions">'+btn("rl-retry","إعادة المحاولة","light")+'</div>';
         else if(!l.rows.length)content=empty("لا توجد طلبات متأخرة مطابقة");
         else{
-          content='<div class="rq-wrap"><table class="rq-table"><thead><tr><th>رقم الطلب</th><th>عنوان الطلب</th><th>الخدمة</th><th>الحالة</th><th>المدينة</th><th>المنطقة</th><th>مقدم الخدمة</th><th>تاريخ الإنشاء</th><th>الموعد</th><th>سبب التأخر</th></tr></thead><tbody>'+
+          content='<div class="rq-wrap"><table class="rq-table"><thead><tr><th>رقم الطلب</th><th>عنوان الطلب</th><th>الخدمة</th><th>الحالة</th><th>المدينة</th><th>المنطقة</th><th>مقدم الخدمة</th><th>تاريخ الإنشاء</th><th>الموعد</th><th>التصنيف</th></tr></thead><tbody>'+
           l.rows.map(r=>{
             const st=r.status;
             const stTag='<span class="tag '+(RQ_STATUS_CLASS[st]||"")+'">'+esc(RQ_STATUS_LABELS[st]||st||"—")+'</span>';
@@ -4509,7 +4510,7 @@ async function viewPrimeKnowledgeDocument(documentId){
         if(!rqCanView())return '<section class="section"><div class="card"><p class="muted">لا تملك صلاحية عرض الطلبات.</p></div></section>';
         if(q.view==="late"){
           const tabs='<div class="actions">'+btn("rq-tab-list","كل الطلبات","light")+btn("rq-tab-late","الطلبات المتأخرة","gold")+'</div>';
-          return RQ_CSS+'<section class="section"><div class="sectionhead"><div><h2>الطلبات المتأخرة</h2><p class="small">قائمة للقراءة فقط. اضغط على طلب لعرض تفاصيله.</p></div></div>'+tabs+lateRequestsView()+'</section>';
+          return RQ_CSS+'<section class="section"><div class="sectionhead"><div><h2>الطلبات المتأخرة</h2><p class="small">بلا مزوّد: قيد الانتظار تجاوز المهلة بلا مقدم خدمة. بلا موعد: له مقدم خدمة بلا موعد تنفيذ متفق عليه. متأخر في التنفيذ: جاري التنفيذ وتجاوز الموعد والمهلة. للقراءة فقط، واضغط على طلب لعرض تفاصيله.</p></div></div>'+tabs+lateRequestsView()+'</section>';
         }
         if(!q.loaded&&!q.loading)setTimeout(loadRequestsList,0);
         const role=s.profile?.role;
