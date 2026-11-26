@@ -4340,6 +4340,7 @@ async function viewPrimeKnowledgeDocument(documentId){
       async function loadRequestDetail(id){
         const q=rqState();
         q.detailId=id;
+        q.act=null;
         q.detail={loading:true,error:"",errorHint:"",data:null};
         render();
         try{
@@ -4354,6 +4355,74 @@ async function viewPrimeKnowledgeDocument(documentId){
           q.detail={loading:false,error:info.text,errorHint:info.known?"":String(info.raw||""),data:null};
         }
         render();
+      }
+      function rqdAct(){
+        const q=rqState();
+        if(!q.act)q.act={note:"",noteBusy:false,noteErr:"",noteOk:"",escOpen:false,esc:"",escBusy:false,escErr:"",escOk:""};
+        return q.act;
+      }
+      function rqdCanAddNote(){
+        const role=s.profile?.role;
+        return role==="admin"||role==="owner"||(role==="staff"&&rqPermissions().includes("requests.notes.add"));
+      }
+      function rqdCanEscalate(){
+        const role=s.profile?.role;
+        return role==="admin"||role==="owner"||(role==="staff"&&rqPermissions().includes("requests.escalate"));
+      }
+      async function rqdRefresh(id){
+        const q=rqState();
+        try{
+          const {data,error}=await db.rpc("admin_get_request_detail",{p_request_id:id});
+          if(error)throw error;
+          if(q.detailId!==id)return;
+          q.detail={loading:false,error:"",errorHint:"",data:data||null};
+        }catch(err){
+          console.error("[admin_get_request_detail refresh]");
+        }
+        render();
+      }
+      async function rqdSubmitNote(){
+        const q=rqState(),a=rqdAct(),id=q.detailId;
+        if(!id||a.noteBusy)return;
+        const text=String(a.note||"").trim();
+        a.noteErr="";a.noteOk="";
+        if(text.length<3||text.length>2000){a.noteErr="يجب أن تكون الملاحظة من 3 إلى 2000 حرف";render();return}
+        a.noteBusy=true;render();
+        try{
+          const {data,error}=await db.rpc("admin_add_request_note",{p_request_id:id,p_note:text});
+          if(error)throw error;
+          if(q.detailId!==id)return;
+          a.note="";a.noteOk="تمت إضافة الملاحظة";
+          if(data&&q.detail?.data&&Array.isArray(q.detail.data.notes))q.detail.data.notes=q.detail.data.notes.concat([data]);
+          a.noteBusy=false;render();
+          await rqdRefresh(id);
+          return;
+        }catch(err){
+          console.error("[admin_add_request_note]");
+          a.noteErr=String(err?.message||"")||"تعذّر إضافة الملاحظة.";
+        }
+        a.noteBusy=false;render();
+      }
+      async function rqdSubmitEscalate(){
+        const q=rqState(),a=rqdAct(),id=q.detailId;
+        if(!id||a.escBusy)return;
+        const text=String(a.esc||"").trim();
+        a.escErr="";
+        if(text.length<5||text.length>500){a.escErr="سبب التصعيد إلزامي ويجب أن يكون من 5 إلى 500 حرف";render();return}
+        a.escBusy=true;render();
+        try{
+          const {error}=await db.rpc("admin_escalate_request",{p_request_id:id,p_reason:text});
+          if(error)throw error;
+          if(q.detailId!==id)return;
+          a.esc="";a.escOpen=false;a.escBusy=false;a.escOk="تم تصعيد الطلب للمالك";
+          render();
+          await rqdRefresh(id);
+          return;
+        }catch(err){
+          console.error("[admin_escalate_request]");
+          a.escErr=String(err?.message||"")||"تعذّر تصعيد الطلب.";
+        }
+        a.escBusy=false;render();
       }
       function rqdSectionAvailable(data,key){
         const sa=data?.sections_available;
@@ -4416,8 +4485,18 @@ async function viewPrimeKnowledgeDocument(documentId){
             if(sec[key])return sec[key](v);
             return pending(v.length);
           };
-          const shells=RQD_SECTIONS.filter(x=>rqdSectionAvailable(dd,x[0])).map(x=>'<details class="card" open><summary><b>'+esc(x[1])+'</b></summary>'+body(x[0])+'</details>').join("");
-          content=shells||empty("لا توجد أقسام متاحة لك في هذا الطلب");
+          const act=rqdAct();
+          const rqo=(dd.request&&typeof dd.request==="object")?dd.request:{};
+          const closed=rqo.status==="completed"||rqo.status==="cancelled";
+          const canEsc=rqdCanEscalate()&&!rqo.escalated_at&&!closed;
+          const noteForm=(rqdCanAddNote()&&rqdSectionAvailable(dd,"notes"))?
+            '<div class="card"><label class="field">إضافة ملاحظة داخلية<textarea id="rqdNote" rows="3" maxlength="2000" placeholder="اكتب الملاحظة (من 3 إلى 2000 حرف). تظهر للإدارة فقط.">'+esc(act.note)+'</textarea></label>'+
+            (act.noteErr?'<div class="notice error">'+esc(act.noteErr)+'</div>':"")+(act.noteOk?'<div class="notice success">'+esc(act.noteOk)+'</div>':"")+
+            '<div class="actions"><button type="button" class="btn gold" data-a="rqd-note-add"'+(act.noteBusy?" disabled":"")+'>'+(act.noteBusy?"جاري الإضافة...":"إضافة ملاحظة")+'</button></div></div>':"";
+          const shells=RQD_SECTIONS.filter(x=>rqdSectionAvailable(dd,x[0])).map(x=>'<details class="card" open><summary><b>'+esc(x[1])+'</b></summary>'+body(x[0])+(x[0]==="notes"?noteForm:"")+'</details>').join("");
+          const escBar=(rqo.escalated_at||canEsc||act.escOk)?'<div class="actions">'+(rqo.escalated_at?'<span class="tag bad">مصعّد</span>':"")+(canEsc?'<button type="button" class="btn light" data-a="rqd-esc-open">تصعيد للمالك</button>':"")+'</div>'+(act.escOk?'<div class="notice success">'+esc(act.escOk)+'</div>':""):"";
+          const escModal=(act.escOpen&&canEsc)?'<div class="modalback"><div class="modal"><h3>تصعيد الطلب للمالك</h3><p class="small">اكتب سبب التصعيد (من 5 إلى 500 حرف). لن يتغير حالة الطلب ولا مقدم الخدمة.</p><label class="field">سبب التصعيد<textarea id="rqdEsc" rows="4" maxlength="500">'+esc(act.esc)+'</textarea></label>'+(act.escErr?'<div class="notice error">'+esc(act.escErr)+'</div>':"")+'<div class="actions"><button type="button" class="btn gold" data-a="rqd-esc-confirm"'+(act.escBusy?" disabled":"")+'>'+(act.escBusy?"جاري التصعيد...":"تأكيد التصعيد")+'</button><button type="button" class="btn light" data-a="rqd-esc-cancel"'+(act.escBusy?" disabled":"")+'>إلغاء</button></div></div></div>':"";
+          content=(shells?escBar+shells:empty("لا توجد أقسام متاحة لك في هذا الطلب"))+escModal;
         }
         return RQ_CSS+'<section class="section"><div class="sectionhead"><div><h2>تفاصيل الطلب</h2><p class="small">للقراءة فقط.</p></div></div>'+back+content+'</section>';
       }
@@ -4567,13 +4646,27 @@ async function viewPrimeKnowledgeDocument(documentId){
         if(a==="rq-tab-list"){q.view="list";render();return}
         if(a==="rq-tab-late"){q.view="late";if(!rlState().loaded)loadLateRequests();else render();return}
         if(a==="rq-open"){if(rqCanView()&&b.dataset.id)loadRequestDetail(b.dataset.id);return}
-        if(a==="rq-back"){q.detailId=null;q.detail=null;render();return}
+        if(a==="rq-back"){q.detailId=null;q.detail=null;q.act=null;render();return}
         if(a==="rq-detail-retry"){if(q.detailId)loadRequestDetail(q.detailId);return}
         if(a==="rq-apply"){if(rqApplyFromDom())loadRequestsList();return}
         if(a==="rq-reset"){q.filters={search:"",status:"",city_id:"",area_id:"",provider_id:"",late_only:false,date_from:"",date_to:""};q.offset=0;loadRequestsList();return}
         if(a==="rq-retry"){loadRequestsList();return}
         if(a==="rq-prev"){q.offset=Math.max(0,q.offset-q.limit);loadRequestsList();return}
         if(a==="rq-next"){q.offset=q.offset+q.limit;loadRequestsList();return}
+      });
+      app.addEventListener("input",e=>{
+        const id=e.target&&e.target.id;
+        if(id==="rqdNote")rqdAct().note=e.target.value;
+        else if(id==="rqdEsc")rqdAct().esc=e.target.value;
+      });
+      app.addEventListener("click",e=>{
+        const b=e.target.closest?e.target.closest("[data-a]"):null;
+        if(!b||!String(b.dataset.a).startsWith("rqd-"))return;
+        const a=b.dataset.a,x=rqdAct();
+        if(a==="rqd-note-add"){if(rqdCanAddNote())rqdSubmitNote();return}
+        if(a==="rqd-esc-open"){if(rqdCanEscalate()){x.escOpen=true;x.escErr="";x.escOk="";render()}return}
+        if(a==="rqd-esc-cancel"){if(!x.escBusy){x.escOpen=false;x.escErr="";render()}return}
+        if(a==="rqd-esc-confirm"){if(rqdCanEscalate())rqdSubmitEscalate();return}
       });
       app.addEventListener("click",e=>{
         const b=e.target.closest?e.target.closest("[data-a]"):null;
