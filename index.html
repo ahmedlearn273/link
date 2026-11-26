@@ -2316,14 +2316,19 @@ if(p.status!=="active"){
   role:p.role
  });
   
-s.staffAccess=null;s.staffGrantPerms=[];s.rq=null;
+s.staffAccess=null;s.rq=null;
 await publicData(p.role==="admin"||p.role==="owner"||p.role==="staff");
 s.requests=[];s.quotes=[];s.offers=[];s.apps=[];s.allRequests=[];s.adminProfiles=[];s.chats=[];s.messages=[];s.activeChat=null;s.auditLogs=[];
 
 if(p.role==="staff"){
- const {data:staffAccess,error:staffError}=await db.from("staff_permissions").select("permissions,is_active").eq("user_id",u.id).maybeSingle();
- if(staffError)throw staffError;
- if(!staffAccess||!staffAccess.is_active){
+ const {data:effPerms,error:staffError}=await db.rpc("my_effective_permissions");
+ if(staffError){console.error("[my_effective_permissions]",staffError);throw staffError;}
+ const effList=Array.isArray(effPerms)?effPerms:(Array.isArray(effPerms?.permissions)?effPerms.permissions:[]);
+ const staffAccess={
+  permissions:effList.map(x=>typeof x==="string"?x:(x?.permission_key||x?.permission||x?.key)).filter(Boolean),
+  is_active:Array.isArray(effPerms)?true:(effPerms?.is_active!==false)
+ };
+ if(!staffAccess.is_active){
   await db.auth.signOut();
   s.user=null;
   s.profile=null;
@@ -2333,21 +2338,6 @@ if(p.role==="staff"){
   return;
  }
  s.staffAccess=staffAccess;
- try{
-  const {data:grantRows,error:grantError}=await db.from("staff_permission_grants").select("*");
-  if(grantError)throw grantError;
-  const now=Date.now();
-  s.staffGrantPerms=(grantRows||[]).filter(g=>{
-   const owner=g.user_id||g.staff_user_id||g.staff_id||g.grantee_id;
-   if(owner&&owner!==u.id)return false;
-   if(g.is_active===false||g.revoked_at)return false;
-   if(g.expires_at&&new Date(g.expires_at).getTime()<=now)return false;
-   return true;
-  }).map(g=>g.permission_key||g.permission||g.key).filter(Boolean);
- }catch(grantErr){
-  console.error("[staff_permission_grants]",grantErr);
-  s.staffGrantPerms=[];
- }
 }
  if(p.role==="customer"){
   const [r,ch]=await Promise.all([db.from("service_requests").select("*,services(name_ar),provider_profiles(display_name,city)").eq("customer_id",u.id).order("created_at",{ascending:false}),db.from("conversations").select("id,request_id,customer_id,provider_id,last_message_at,service_requests(title)").eq("customer_id",u.id).order("last_message_at",{ascending:false})]);
@@ -4250,9 +4240,7 @@ async function viewPrimeKnowledgeDocument(documentId){
         return s.rq;
       }
       function rqPermissions(){
-        const own=Array.isArray(s.staffAccess?.permissions)?s.staffAccess.permissions:[];
-        const grants=Array.isArray(s.staffGrantPerms)?s.staffGrantPerms:[];
-        return own.concat(grants);
+        return Array.isArray(s.staffAccess?.permissions)?s.staffAccess.permissions:[];
       }
       function rqCanView(){
         const role=s.profile?.role;
