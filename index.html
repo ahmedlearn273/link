@@ -5872,7 +5872,13 @@ if(f.id==="login"){
 
   if(f.id==="signup"){
  let v=vals(f);
+const serviceAreaIds = Array.from(
+  f.querySelectorAll('input[name="service_area_ids"]:checked')
+).map(input => input.value);
 
+if (v.account_type === "provider" && serviceAreaIds.length === 0) {
+  throw Error("اختر منطقة خدمة واحدة على الأقل.");
+}
  if(v.password.length<8)
   throw Error("كلمة المرور يجب ألا تقل عن 8 أحرف");
 
