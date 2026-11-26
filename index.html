@@ -4313,15 +4313,44 @@ return header(
  
 }
       
+const STAFF_PERMISSIONS=[
+ ["dashboard.view","عرض لوحة المعلومات"],
+ ["customers.view","عرض العملاء"],
+ ["customers.manage","إدارة العملاء"],
+ ["customers.contact","عرض هاتف وعنوان العميل"],
+ ["providers.view","عرض المزوّدين"],
+ ["providers.review","مراجعة طلبات المزوّدين"],
+ ["requests.view","عرض الطلبات"],
+ ["requests.manage","إدارة الطلبات"],
+ ["services.view","عرض الخدمات"],
+ ["services.manage","إدارة الخدمات"],
+ ["categories.view","عرض التصنيفات"],
+ ["categories.manage","إدارة التصنيفات"],
+ ["messages.view","عرض المحادثات"],
+ ["payments.view","عرض المدفوعات"],
+ ["payments.manage","إدارة المدفوعات"],
+ ["wallet.view","عرض المحافظ"],
+ ["wallet.manage","إدارة المحافظ"],
+ ["reports.view","عرض التقارير"],
+ ["reports.export","تصدير التقارير"],
+ ["reports.import","استيراد البيانات"],
+ ["support.view","عرض الدعم والشكاوى"],
+ ["support.manage","إدارة الدعم والشكاوى"],
+ ["ads.view","عرض الإعلانات"],
+ ["ads.manage","إدارة الإعلانات"],
+ ["settings.view","عرض الإعدادات"],
+ ["settings.manage","إدارة الإعدادات"]
+];
+// أقسام لوحة الموظف: [التبويب, العنوان, الصلاحيات التي تفتحه]. تُضاف الأقسام الجديدة هنا.
+const STAFF_NAV=[
+ ["services","الخدمات",["services.view","services.manage"]],
+ ["categories","التصنيفات",["categories.view","categories.manage"]]
+];
 function staff(){
  const permissions=Array.isArray(s.staffAccess?.permissions)?s.staffAccess.permissions:[];
  const can=p=>permissions.includes(p);
- const canServices=can("services.view")||can("services.manage");
- const canCategories=can("categories.view")||can("categories.manage");
-
  const navItems=[["home","نظرة عامة"]];
- if(canServices)navItems.push(["services","الخدمات"]);
- if(canCategories)navItems.push(["categories","التصنيفات"]);
+ STAFF_NAV.forEach(n=>{if(n[2].some(can))navItems.push([n[0],n[1]]);});
 
  if(!navItems.some(x=>x[0]===s.tab))s.tab="home";
 
@@ -4337,7 +4366,7 @@ if(s.tab==="home"){
 }
  
 
- if(s.tab==="services"&&canServices){
+ if(s.tab==="services"&&navItems.some(x=>x[0]==="services")){
   body='<section class="section">'+
   '<div class="sectionhead"><h2>إدارة الخدمات</h2>'+
   (can("services.manage")?btn("addservice","إضافة خدمة","gold"):"")+
@@ -4350,7 +4379,7 @@ if(s.tab==="home"){
   '</div></section>';
  }
 
- if(s.tab==="categories"&&canCategories){
+ if(s.tab==="categories"&&navItems.some(x=>x[0]==="categories")){
   body='<section class="section">'+
   '<div class="sectionhead"><h2>إدارة التصنيفات</h2>'+
   (can("categories.manage")?btn("addcategory","إضافة تصنيف","gold"):"")+
@@ -4479,27 +4508,7 @@ if(m.type==="service")c='<div class="modal-title"><h3>إضافة خدمة جدي
 if(m.type==="category")c='<div class="modal-title"><h3>إضافة تصنيف جديد</h3><p class="muted">أنشئ تصنيفًا يساعد العملاء على الوصول للخدمات بسهولة.</p></div><form id="categoryForm">'+field("اسم التصنيف بالعربية","name_ar","text","مثال: صيانة منزلية","",true)+field("الاسم بالإنجليزية","name_en","text","Home Maintenance","",false)+field("الرابط المختصر","slug","text","home-maintenance","",true)+field("أيقونة التصنيف","icon","text","🔧","",false)+'<div class="actions"><button class="btn gold">حفظ التصنيف</button></div></form>';
   
 if(m.type==="addstaff"){
- const permissions=[
- ["dashboard.view","عرض لوحة المعلومات"],
- ["customers.view","عرض العملاء"],
- ["customers.manage","إدارة العملاء"],
- ["providers.view","عرض المزوّدين"],
- ["providers.review","مراجعة طلبات المزوّدين"],
- ["requests.view","عرض الطلبات"],
- ["requests.manage","إدارة الطلبات"],
- ["services.view","عرض الخدمات"],
- ["services.manage","إدارة الخدمات"],
- ["categories.view","عرض التصنيفات"],
- ["categories.manage","إدارة التصنيفات"],
- ["messages.view","عرض المحادثات"],
- ["payments.view","عرض المدفوعات"],
- ["payments.manage","إدارة المدفوعات"],
- ["reports.view","عرض التقارير"],
- ["ads.view","عرض الإعلانات"],
- ["ads.manage","إدارة الإعلانات"],
- ["settings.view","عرض الإعدادات"],
- ["settings.manage","إدارة الإعدادات"]
- ];
+ const permissions=STAFF_PERMISSIONS;
 c='<h3>إنشاء حساب موظف جديد</h3>'+
  '<form id="addStaffForm">'+
  field("اسم الموظف","full_name","text","الاسم الكامل","",true)+
@@ -4516,27 +4525,7 @@ c='<h3>إنشاء حساب موظف جديد</h3>'+
 }
   
 if(m.type==="addstaff"){
- const permissions=[
- ["dashboard.view","عرض لوحة المعلومات"],
- ["customers.view","عرض العملاء"],
- ["customers.manage","إدارة العملاء"],
- ["providers.view","عرض المزوّدين"],
- ["providers.review","مراجعة طلبات المزوّدين"],
- ["requests.view","عرض الطلبات"],
- ["requests.manage","إدارة الطلبات"],
- ["services.view","عرض الخدمات"],
- ["services.manage","إدارة الخدمات"],
- ["categories.view","عرض التصنيفات"],
- ["categories.manage","إدارة التصنيفات"],
- ["messages.view","عرض المحادثات"],
- ["payments.view","عرض المدفوعات"],
- ["payments.manage","إدارة المدفوعات"],
- ["reports.view","عرض التقارير"],
- ["ads.view","عرض الإعلانات"],
- ["ads.manage","إدارة الإعلانات"],
- ["settings.view","عرض الإعدادات"],
- ["settings.manage","إدارة الإعدادات"]
- ];
+ const permissions=STAFF_PERMISSIONS;
 
  const hierarchy=[
   {value:"ASV",label:"مشرف منطقة — ASV"},
@@ -4572,27 +4561,7 @@ if(m.type==="addstaff"){
  if(m.type==="editstaff"){
  const x=s.staff.find(y=>y.id===m.userId);
  if(!x)throw Error("الموظف غير موجود");
- const permissions=[
- ["dashboard.view","عرض لوحة المعلومات"],
- ["customers.view","عرض العملاء"],
- ["customers.manage","إدارة العملاء"],
- ["providers.view","عرض المزوّدين"],
- ["providers.review","مراجعة طلبات المزوّدين"],
- ["requests.view","عرض الطلبات"],
- ["requests.manage","إدارة الطلبات"],
- ["services.view","عرض الخدمات"],
- ["services.manage","إدارة الخدمات"],
- ["categories.view","عرض التصنيفات"],
- ["categories.manage","إدارة التصنيفات"],
- ["messages.view","عرض المحادثات"],
- ["payments.view","عرض المدفوعات"],
- ["payments.manage","إدارة المدفوعات"],
- ["reports.view","عرض التقارير"],
- ["ads.view","عرض الإعلانات"],
- ["ads.manage","إدارة الإعلانات"],
- ["settings.view","عرض الإعدادات"],
- ["settings.manage","إدارة الإعدادات"]
- ];
+ const permissions=STAFF_PERMISSIONS;
  const selected=x.staff_permissions?.permissions||[];
  c='<div class="modal-title"><h3>إدارة صلاحيات الموظف</h3><p class="muted">حدد الصلاحيات وحالة حساب الموظف.</p></div>'+
  '<form id="editStaffForm"><input type="hidden" name="user_id" value="'+esc(x.id)+'">'+
