@@ -2315,7 +2315,7 @@ if(s.quotes.length){
 }
  }else if(p.role==="admin"||p.role==="owner"){
   const [a,r,profiles,permissions,chats]=await Promise.all([
-    db.from("provider_profiles").select("*").eq("verification_status","pending").order("created_at",{ascending:false}),
+    db.rpc("admin_list_providers"),
     db.from("service_requests").select("*,services(name_ar)").order("created_at",{ascending:false}).limit(100),
     db.from("profiles").select("id,full_name,phone,city,country,role,status").in("role",["customer","staff"]),
     db.from("staff_permissions").select("*"),
