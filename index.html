@@ -3989,9 +3989,21 @@ function applications(onlyPending=false){
   '<p>كود الحساب: '+esc(p.account_code||"غير مسجل")+'</p>'+
   '<p>الهاتف: '+esc(p.phone||"غير مسجل")+'</p>'+
   '<p>العنوان: '+esc([p.country,p.city,p.area,p.address].filter(Boolean).join("، ")||"غير مسجل")+'</p>'+
-  '<p>حالة الحساب: '+esc(accountStatus)+'</p>'+
-  '<p>حالة الاعتماد: '+esc(pp.verification_status||"غير محددة")+'</p>'+
-  '<p>التوفر: '+(pp.is_available?"متاح":"غير متاح")+'</p>'+
+'<p>حالة الحساب: '+esc(accountStatus)+'</p>'+
+'<p>حالة الاعتماد: '+esc(pp.verification_status||"غير محددة")+'</p>'+
+'<p>التوفر: '+(pp.is_available?"متاح":"غير متاح")+'</p>'+
+(p.status==="suspended"
+ ?'<div class="notice error">'+
+   '<b>سبب إيقاف الحساب</b>'+
+   '<p>'+esc(p.suspension_reason||"غير مسجل")+'</p>'+
+   '<p class="small">تاريخ الإيقاف: '+date(p.suspended_at)+'</p>'+
+  '</div>'
+ :"")+
+(p.status==="active"&&pp.verification_status==="approved"
+ ?'<div class="actions">'+
+   btn("suspend-provider-open","إيقاف مقدم الخدمة","danger",p.id)+
+  '</div>'
+ :"")+
   '<p>تاريخ إنشاء الحساب: '+date(p.created_at)+'</p>'+
   '<p>تاريخ إنشاء ملف مقدّم الخدمة: '+date(pp.created_at)+'</p>'+
   '<p>آخر تحديث للملف: '+date(pp.updated_at)+'</p></div>'+
