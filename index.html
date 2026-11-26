@@ -7440,7 +7440,26 @@ app.addEventListener("change",async e=>{
   }
  }
 });
+app.addEventListener("toggle", async e => {
+  const details = e.target;
 
+  if (
+    !details?.matches?.("details[data-service-area-city]") ||
+    !details.open
+  ) return;
+
+  try {
+    await loadServiceAreaCity(
+      details,
+      document.querySelector('#signup [name="country_id"]').value
+    );
+  } catch (error) {
+    console.warn("Service areas loading failed:", error);
+
+    details.querySelector("[data-area-list]").textContent =
+      "تعذّر تحميل الأقسام. حاول مرة أخرى.";
+  }
+}, true);
 let chatAttachmentPreviewUrl=null;
 
 app.addEventListener("change",e=>{
