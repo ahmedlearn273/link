@@ -4367,19 +4367,42 @@ async function viewPrimeKnowledgeDocument(documentId){
         else if(d.error)content='<div class="notice error">'+esc(d.error)+(d.errorHint?'<div class="small">'+esc(d.errorHint)+'</div>':'')+'</div><div class="actions">'+btn("rq-detail-retry","إعادة المحاولة","light")+'</div>';
         else if(d.data){
           const dd=d.data;
+          const ROLE={customer:"العميل",provider:"مقدم الخدمة"};
+          const role=x=>ROLE[x]||x||"—";
+          const st=x=>RQ_STATUS_LABELS[x]||x||"—";
+          const kv=(l,x)=>'<div class="row"><span class="small">'+esc(l)+'</span><b>'+esc(x===null||x===undefined||x===""?"—":x)+'</b></div>';
+          const money=(n,c)=>(n===null||n===undefined)?"—":fmt(n)+" "+(c||"");
+          const noData='<p class="muted small">لا توجد بيانات.</p>';
+          const pending=n=>'<p class="muted small">عدد العناصر: '+fmt(n)+'. عرض التفاصيل قيد الإضافة.</p>';
+          const sched=arr=>(Array.isArray(arr)&&arr.length)?'<div class="small">جدول الدفعات</div>'+arr.map(x=>'<div class="small">'+esc((x.sequence??"")+". "+(x.label||"")+" - "+money(x.amount,"")+" ("+(x.due_event||"")+")")+'</div>').join(""):"";
+          const item=h=>'<article class="item">'+h+'</article>';
+          const sec={
+            request:v=>{
+              if(!v||typeof v!=="object")return noData;
+              return kv("الطلب",v.title)+kv("الوصف",v.description)+kv("الخدمة",v.service_name_ar)+kv("الحالة",st(v.status))+kv("الدولة",v.country)+kv("المدينة",v.city)+kv("مقدم الخدمة",v.provider_name)+kv("الميزانية",v.budget)+kv("سبب الإلغاء",v.cancel_reason)+kv("الموعد",v.scheduled_at?rqDate(v.scheduled_at):null)+kv("تاريخ التصعيد",v.escalated_at?rqDate(v.escalated_at):null)+kv("تاريخ الإنشاء",rqDate(v.created_at))+kv("آخر تحديث",rqDate(v.updated_at));
+            },
+            timeline:v=>v.map(x=>item('<div class="row"><b>'+esc(x.type||"—")+'</b><span class="small">'+esc(rqDate(x.at))+'</span></div><div class="small">'+esc(role(x.actor_role)+(x.actor_code?" ("+x.actor_code+")":""))+'</div>'+((x.old_status||x.new_status)?'<div class="small">'+esc(st(x.old_status)+" ← "+st(x.new_status))+'</div>':""))).join(""),
+            quotes:v=>v.map(q=>item(
+              '<div class="row"><b>عرض سعر ('+esc(q.status||"—")+')</b><span class="small">النسخة الحالية: '+esc(q.current_version??"—")+'</span></div><div class="small">'+esc(rqDate(q.created_at))+'</div>'+
+              ((q.versions||[]).length?'<div class="small"><b>الإصدارات</b></div>'+q.versions.map(x=>'<div class="card"><div class="row"><b>النسخة '+esc(x.version_number)+'</b><b>'+esc(money(x.amount,x.currency))+'</b></div>'+kv("النطاق",x.scope_description)+kv("المدة المقدرة",x.estimated_duration)+kv("بداية مقترحة",x.proposed_start_at?rqDate(x.proposed_start_at):null)+kv("صالح حتى",x.valid_until?rqDate(x.valid_until):null)+kv("شروط إضافية",x.additional_terms)+kv("فاتورة الخامات مطلوبة",x.materials_invoice_required===true?"نعم":x.materials_invoice_required===false?"لا":null)+sched(x.payment_schedule)+'</div>').join(""):"")+
+              ((q.events||[]).length?'<div class="small"><b>الأحداث</b></div>'+q.events.map(x=>'<div class="small">'+esc(rqDate(x.created_at)+" - "+(x.event_type||"")+" - "+role(x.actor_role)+(x.note?" - "+x.note:""))+'</div>').join(""):"")+
+              ((q.agreements||[]).length?'<div class="small"><b>الاتفاقات</b></div>'+q.agreements.map(x=>'<div class="card">'+kv("المبلغ المتفق عليه",money(x.agreed_amount,x.currency))+kv("طريقة الدفع",x.payment_method)+kv("تاريخ الاتفاق",rqDate(x.agreed_at))+sched(x.payment_schedule)+'</div>').join(""):"")+
+              ((q.approvals||[]).length?'<div class="small"><b>الموافقات</b></div>'+q.approvals.map(x=>'<div class="small">'+esc(role(x.actor_role)+(x.actor_name?" ("+x.actor_name+")":"")+" - "+rqDate(x.approved_at)+(x.payment_method?" - "+x.payment_method:""))+'</div>').join(""):"")
+            )).join(""),
+            chat:v=>v.map(x=>item('<div class="row"><b>'+esc(role(x.sender_role))+'</b><span class="small">'+esc(rqDate(x.created_at))+'</span></div><p>'+esc(x.message_text||"")+'</p>'+((x.message_type&&x.message_type!=="text")?'<div class="small">نوع الرسالة: '+esc(x.message_type)+'</div>':""))).join(""),
+            audit:v=>v.map(x=>item('<div class="row"><b>'+esc(x.action||"—")+'</b><span class="small">'+esc(rqDate(x.created_at))+'</span></div><div class="small">'+esc(role(x.actor_role)+(x.actor_code?" ("+x.actor_code+")":"")+" - "+(x.result||""))+'</div>'+((x.old_status||x.new_status)?'<div class="small">'+esc(st(x.old_status)+" ← "+st(x.new_status))+'</div>':""))).join(""),
+            customer_contact:v=>{
+              if(!v||typeof v!=="object")return noData;
+              return kv("اسم العميل",v.customer_name)+kv("هاتف العميل",v.customer_phone)+kv("عنوان تنفيذ الخدمة",v.service_address);
+            }
+          };
           const body=key=>{
             const v=dd[key];
-            if(key==="customer_contact"){
-              if(!v||typeof v!=="object")return '<p class="muted small">لا توجد بيانات.</p>';
-              const row=(l,x)=>'<div class="row"><span class="small">'+l+'</span><b>'+esc(x||"—")+'</b></div>';
-              return row("اسم العميل",v.customer_name)+row("هاتف العميل",v.customer_phone)+row("عنوان تنفيذ الخدمة",v.service_address);
-            }
-            if(v===null||v===undefined||(Array.isArray(v)&&!v.length))return '<p class="muted small">لا توجد بيانات.</p>';
-            if(Array.isArray(v)){
-              const note=key==="chat"?" (آخر 100 رسالة كحد أقصى)":"";
-              return '<p class="muted small">عدد العناصر: '+fmt(v.length)+note+'. عرض التفاصيل قيد الإضافة.</p>';
-            }
-            return '<p class="muted small">عرض تفاصيل هذا القسم قيد الإضافة.</p>';
+            if(v===null||v===undefined||(Array.isArray(v)&&!v.length))return noData;
+            if(key==="request"||key==="customer_contact")return sec[key](v);
+            if(!Array.isArray(v))return '<p class="muted small">عرض تفاصيل هذا القسم قيد الإضافة.</p>';
+            if(sec[key])return sec[key](v);
+            return pending(v.length);
           };
           const shells=RQD_SECTIONS.filter(x=>rqdSectionAvailable(dd,x[0])).map(x=>'<details class="card" open><summary><b>'+esc(x[1])+'</b></summary>'+body(x[0])+'</details>').join("");
           content=shells||empty("لا توجد أقسام متاحة لك في هذا الطلب");
