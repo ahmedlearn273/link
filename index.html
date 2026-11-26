@@ -5662,19 +5662,92 @@ if(f.id==="login"){
  };
 
  if(v.account_type==="provider"){
+  const docs=[
+    {
+      document_type:"profile_photo",
+      file:f.querySelector('[name="profile_photo"]')?.files?.[0]
+    },
+    {
+      document_type:"identity_front",
+      file:f.querySelector('[name="identity_front"]')?.files?.[0]
+    },
+    {
+      document_type:"identity_back",
+      file:f.querySelector('[name="identity_back"]')?.files?.[0]
+    }
+  ];
+
+  const allowed=[
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+    "application/pdf"
+  ];
+
+  for(const d of docs){
+    if(!d.file)
+      throw Error("ارفع الصورة الشخصية ووجهي إثبات الهوية.");
+
+    if(!allowed.includes(d.file.type))
+      throw Error("نوع أحد الملفات غير مسموح.");
+
+    if(d.file.size>10*1024*1024)
+      throw Error("حجم أحد الملفات أكبر من 10 ميجابايت.");
+
+    if(d.document_type==="profile_photo" &&
+       (!d.file.type.startsWith("image/") ||
+        d.file.size>5*1024*1024))
+      throw Error("الصورة الشخصية يجب أن تكون صورة ولا تتجاوز 5 ميجابايت.");
+  }
+
   const {data:tokenData,error:tokenError}=await db.functions.invoke(
-   "provider-signup-token",
-   {body:{}}
+    "provider-signup-token",
+    {body:{}}
   );
 
   if(tokenError)throw tokenError;
 
   if(!tokenData?.token)
-   throw Error("تعذّر تجهيز تسجيل مزوّد الخدمة. حاول مرة أخرى.");
+    throw Error("تعذّر تجهيز طلب التسجيل.");
+
+  const {data:uploadData,error:uploadError}=await db.functions.invoke(
+    "provider-signup-token",
+    {
+      body:{
+        action:"upload_urls",
+        token:tokenData.token,
+        documents:docs.map(d=>({
+          document_type:d.document_type,
+          mime_type:d.file.type,
+          size_bytes:d.file.size
+        }))
+      }
+    }
+  );
+
+  if(uploadError)throw uploadError;
+
+  for(const d of docs){
+    const signed=uploadData?.uploads?.find(
+      x=>x.document_type===d.document_type
+    );
+
+    if(!signed)
+      throw Error("تعذّر تجهيز رابط رفع أحد المستندات.");
+
+    const {error:storageError}=await db.storage
+      .from("provider-applications")
+      .uploadToSignedUrl(
+        signed.path,
+        signed.token,
+        d.file
+      );
+
+    if(storageError)throw storageError;
+  }
 
   signupData.provider_signup_token=tokenData.token;
  }
-
  const r=await db.auth.signUp({
   email:v.email.trim(),
   password:v.password,
