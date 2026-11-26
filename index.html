@@ -4375,6 +4375,7 @@ async function viewPrimeKnowledgeDocument(documentId){
           const PM={cash:"نقدي",card:"بطاقة",bank_transfer:"تحويل بنكي",wallet:"محفظة"};
           const QST={draft:"مسودة",submitted:"مقدّم",revision_requested:"طلب تعديل",agreed:"متفق عليه",accepted:"مقبول",rejected:"مرفوض",expired:"منتهي",withdrawn:"مسحوب",cancelled:"ملغي"};
           const RES={success:"ناجح",failure:"فشل",failed:"فشل"};
+          const PS={pending:"قيد الانتظار",paid:"مدفوع",failed:"فشل",refunded:"مسترد",cancelled:"ملغي"};
           const MT={text:"نص",image:"صورة",audio:"صوت",voice:"رسالة صوتية",video:"فيديو",file:"ملف",document:"مستند"};
           const role=x=>L(ROLE,x);
           const st=x=>RQ_STATUS_LABELS[x]||x||"—";
@@ -4398,6 +4399,8 @@ async function viewPrimeKnowledgeDocument(documentId){
               ((q.approvals||[]).length?'<div class="small"><b>الموافقات</b></div>'+q.approvals.map(x=>'<div class="small">'+esc(role(x.actor_role)+(x.actor_name?" ("+x.actor_name+")":"")+" - "+rqDate(x.approved_at)+(x.payment_method?" - "+L(PM,x.payment_method):""))+'</div>').join(""):"")
             )).join(""),
             chat:v=>v.map(x=>item('<div class="row"><b>'+esc(role(x.sender_role))+'</b><span class="small">'+esc(rqDate(x.created_at))+'</span></div><p>'+esc(x.message_text||"")+'</p>'+((x.message_type&&x.message_type!=="text")?'<div class="small">نوع الرسالة: '+esc(L(MT,x.message_type))+'</div>':""))).join(""),
+            payments:v=>v.map(x=>item('<div class="row"><b>'+esc(money(x.amount,x.currency))+'</b><span class="small">'+esc(L(PS,x.payment_status))+'</span></div>'+kv("طريقة الدفع",x.payment_method?L(PM,x.payment_method):null)+kv("نسبة العمولة",x.commission_rate)+kv("مبلغ العمولة",money(x.commission_amount,x.currency))+kv("مستحق مقدم الخدمة",money(x.provider_amount,x.currency))+kv("تاريخ الدفع",x.paid_at?rqDate(x.paid_at):null)+kv("تاريخ الإنشاء",x.created_at?rqDate(x.created_at):null))).join(""),
+            notes:v=>v.map(x=>item('<div class="row"><b>'+esc(x.author_name||"—")+'</b><span class="small">'+esc(x.created_at?rqDate(x.created_at):"—")+'</span></div><p>'+esc(x.note||"")+'</p>')).join(""),
             audit:v=>v.map(x=>item('<div class="row"><b>'+esc(L(ACT,x.action))+'</b><span class="small">'+esc(rqDate(x.created_at))+'</span></div><div class="small">'+esc(role(x.actor_role)+(x.actor_code?" ("+x.actor_code+")":"")+" - "+(x.result?L(RES,x.result):""))+'</div>'+((x.old_status||x.new_status)?'<div class="small">'+esc(st(x.old_status)+" ← "+st(x.new_status))+'</div>':""))).join(""),
             customer_contact:v=>{
               if(!v||typeof v!=="object")return noData;
@@ -4408,6 +4411,7 @@ async function viewPrimeKnowledgeDocument(documentId){
             const v=dd[key];
             if(v===null||v===undefined||(Array.isArray(v)&&!v.length))return noData;
             if(key==="request"||key==="customer_contact")return sec[key](v);
+            if(key==="review"&&typeof v==="object"&&!Array.isArray(v))return kv("التقييم",v.rating)+kv("التعليق",v.comment)+kv("مقدم الخدمة",v.provider_name)+kv("التاريخ",v.created_at?rqDate(v.created_at):null);
             if(!Array.isArray(v))return '<p class="muted small">عرض تفاصيل هذا القسم قيد الإضافة.</p>';
             if(sec[key])return sec[key](v);
             return pending(v.length);
