@@ -2460,7 +2460,7 @@ function authView(){
   '<label class="field">القسم / المركز<select name="area_id" required disabled><option value="">اختر المحافظة أولاً</option></select><small id="geoAreaStatus">اختر المحافظة أولاً</small></label>'+
   '<label class="field">العنوان التفصيلي<input name="address" type="text" maxlength="500" placeholder="الشارع، رقم العقار، الدور، الشقة، وأقرب علامة مميزة" required></label>';
  return header("تسجيل موحّد بالبريد الإلكتروني")+'<main class="wrap"><div class="auth"><div class="card"><div class="sectionhead"><h2>'+(signup?"إنشاء حساب":"تسجيل الدخول")+'</h2><span class="tag">آمن</span></div>'+msg()+'<div class="tabs"><button data-a="mode" data-id="login" class="'+(!signup?"active":"")+'">دخول</button><button data-a="mode" data-id="signup" class="'+(signup?"active":"")+'">حساب جديد</button></div>'+
-(signup?'<form id="signup">'+field("الاسم الكامل","full_name","text","اسمك","",true)+field("البريد الإلكتروني","email","email","name@example.com","",true)+field("كلمة المرور","password","password","8 أحرف على الأقل","",true)+field("الهاتف (اختياري)","phone","tel","رقم التواصل","",false)+geoFields+field("تاريخ الميلاد","birth_date","date","","",true)+'<label class="field"><span><input type="checkbox" name="adult_confirmation" value="true" required> أقر بأن عمري 18 سنة أو أكثر</span></label>'+select("نوع الحساب","account_type",[{value:"customer",label:"عميل"},{value:"provider",label:"مزوّد خدمة"}],s.type)+'<div id="providerExtra" class="'+(s.type==="provider"?"":"hidden")+'">'+field("سنوات الخبرة","experience_years","number","سنوات الخبرة","",false)+field("نبذة","bio","text","نبذة عن خبرتك","",false)+
+(signup?'<form id="signup">'+field("الاسم الكامل","full_name","text","اسمك","",true)+field("البريد الإلكتروني","email","email","name@example.com","",true)+field("كلمة المرور","password","password","8 أحرف على الأقل","",true)+field("الهاتف (اختياري)","phone","tel","رقم التواصل","",false)+geoFields+select("نوع الحساب","account_type",[{value:"customer",label:"عميل"},{value:"provider",label:"مزوّد خدمة"}],s.type)+'<div id="providerExtra" class="'+(s.type==="provider"?"":"hidden")+'">'+field("سنوات الخبرة","experience_years","number","سنوات الخبرة","",false)+field("نبذة","bio","text","نبذة عن خبرتك","",false)+
 '<div class="field">'+
   '<span>نطاق الخدمة – اختر المحافظات والأقسام المناسبة</span>'+
   '<div class="service-area-list">'+
@@ -4543,8 +4543,6 @@ c='<h3>إنشاء حساب موظف جديد</h3>'+
  '<form id="addStaffForm">'+
  field("اسم الموظف","full_name","text","الاسم الكامل","",true)+
  field("البريد الإلكتروني","email","email","employee@example.com","",true)+
- field("تاريخ الميلاد","birth_date","date","","",true)+
- '<label class="field"><span><input type="checkbox" name="adult_confirmation" value="true" required> أقر بأن الموظف يبلغ 18 سنة أو أكثر</span></label>'+
  '<p><b>الصلاحيات الممنوحة</b></p>'+
  '<p class="muted">اختر الصلاحيات التي سيُسمح للموظف باستخدامها.</p>'+
  '<div class="list">'+
@@ -6144,8 +6142,6 @@ if (v.account_type === "provider" && serviceAreaIds.length === 0) {
   country_id:v.country_id,
   city_id:v.city_id,
   area_id:v.area_id,
-  birth_date:v.birth_date,
-  adult_confirmation:v.adult_confirmation==="true",
   account_type:v.account_type,
   experience_years:v.experience_years||0,
   bio:v.bio||"",
@@ -6387,8 +6383,6 @@ let r=await db.functions.invoke("admin-create-staff",{
   body:{
    full_name:v.full_name.trim(),
    email:v.email.trim(),
-   birth_date:v.birth_date,
-   adult_confirmation:v.adult_confirmation==="true",
    staff_title:staffTitle,
    staff_role_code:staffRoleCode,
    permissions:edgePermissions
