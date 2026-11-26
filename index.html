@@ -4328,7 +4328,7 @@ async function viewPrimeKnowledgeDocument(documentId){
       function rqdError(err){
         const m=String(err?.message||err||"");
         const map=[
-          ["لا توجد صلاحية نشطة لعرض طلبات النطاق","تكليف ASV أو منحة صلاحية عرض الطلبات غير نشطة."],
+          ["لا توجد صلاحية نشطة لعرض طلبات النطاق","لا توجد صلاحية نشطة لعرض طلبات النطاق"],
           ["لا تملك صلاحية عرض تفاصيل الطلب","لا تملك صلاحية عرض تفاصيل الطلب."],
           ["غير مصرح بعرض تفاصيل الطلب","غير مصرح بعرض تفاصيل الطلب."],
           ["الطلب غير موجود أو غير متاح","الطلب غير موجود أو غير متاح."],
@@ -4357,9 +4357,7 @@ async function viewPrimeKnowledgeDocument(documentId){
       }
       function rqdSectionAvailable(data,key){
         const sa=data?.sections_available;
-        if(Array.isArray(sa))return sa.includes(key);
-        if(sa&&typeof sa==="object")return !!sa[key];
-        return false;
+        return Array.isArray(sa)&&sa.includes(key);
       }
       function requestDetailView(){
         const q=rqState(),d=q.detail||{loading:true};
@@ -4368,7 +4366,22 @@ async function viewPrimeKnowledgeDocument(documentId){
         if(d.loading)content='<div class="empty">جاري تحميل تفاصيل الطلب...</div>';
         else if(d.error)content='<div class="notice error">'+esc(d.error)+(d.errorHint?'<div class="small">'+esc(d.errorHint)+'</div>':'')+'</div><div class="actions">'+btn("rq-detail-retry","إعادة المحاولة","light")+'</div>';
         else if(d.data){
-          const shells=RQD_SECTIONS.filter(x=>rqdSectionAvailable(d.data,x[0])).map(x=>'<details class="card" open><summary><b>'+esc(x[1])+'</b></summary><p class="muted small">عرض هذا القسم قيد الإضافة.</p></details>').join("");
+          const dd=d.data;
+          const body=key=>{
+            const v=dd[key];
+            if(key==="customer_contact"){
+              if(!v||typeof v!=="object")return '<p class="muted small">لا توجد بيانات.</p>';
+              const row=(l,x)=>'<div class="row"><span class="small">'+l+'</span><b>'+esc(x||"—")+'</b></div>';
+              return row("اسم العميل",v.customer_name)+row("هاتف العميل",v.customer_phone)+row("عنوان تنفيذ الخدمة",v.service_address);
+            }
+            if(v===null||v===undefined||(Array.isArray(v)&&!v.length))return '<p class="muted small">لا توجد بيانات.</p>';
+            if(Array.isArray(v)){
+              const note=key==="chat"?" (آخر 100 رسالة كحد أقصى)":"";
+              return '<p class="muted small">عدد العناصر: '+fmt(v.length)+note+'. عرض التفاصيل قيد الإضافة.</p>';
+            }
+            return '<p class="muted small">عرض تفاصيل هذا القسم قيد الإضافة.</p>';
+          };
+          const shells=RQD_SECTIONS.filter(x=>rqdSectionAvailable(dd,x[0])).map(x=>'<details class="card" open><summary><b>'+esc(x[1])+'</b></summary>'+body(x[0])+'</details>').join("");
           content=shells||empty("لا توجد أقسام متاحة لك في هذا الطلب");
         }
         return RQ_CSS+'<section class="section"><div class="sectionhead"><div><h2>تفاصيل الطلب</h2><p class="small">للقراءة فقط.</p></div></div>'+back+content+'</section>';
