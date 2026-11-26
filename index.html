@@ -6069,13 +6069,36 @@ try {
       signed.token,
       d.file
     );
+
 } catch (uploadFailure) {
-  console.error("[WASLA signup] فشل اتصال رفع المستند:", {
+  const uploadDiagnostics = {
+    stage: "signed_upload",
     document_type: d.document_type,
-    mime_type: d.file.type,
+    mime_type: d.file.type || "unknown",
     size_bytes: d.file.size,
-    error: uploadFailure
-  });
+    error_name: uploadFailure?.name || "unknown",
+    error_message: uploadFailure?.message || String(uploadFailure),
+    status: uploadFailure?.status || uploadFailure?.statusCode || null,
+    error_code: uploadFailure?.code || null,
+    online: typeof navigator !== "undefined" ? navigator.onLine : null,
+    user_agent: typeof navigator !== "undefined" ? navigator.userAgent : null
+  };
+
+  console.error("[WASLA signup] upload diagnostics:", uploadDiagnostics);
+
+  const diagnosticText = [
+    "المرحلة: رفع الملف",
+    "نوع الخطأ: " + uploadDiagnostics.error_name,
+    "التفاصيل: " + uploadDiagnostics.error_message,
+    "HTTP: " + (uploadDiagnostics.status || "غير متاح"),
+    "اتصال الجهاز: " + (uploadDiagnostics.online === true ? "متصل" : uploadDiagnostics.online === false ? "غير متصل" : "غير معروف"),
+    "نوع الملف: " + uploadDiagnostics.mime_type,
+    "الحجم: " + Math.round(d.file.size / 1024) + " كيلوبايت"
+  ].join("\n");
+
+  throw Error("تعذّر رفع " + documentLabel + ".\n" + diagnosticText);
+}
+   
 
   throw Error(
     "تعذّر رفع " + documentLabel + ": " +
