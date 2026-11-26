@@ -4324,8 +4324,58 @@ async function viewPrimeKnowledgeDocument(documentId){
         const d=new Date(x);
         return isNaN(d)?"—":d.toLocaleString("ar-EG",{year:"numeric",month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"});
       }
+      const RQD_SECTIONS=[["request","بيانات الطلب"],["timeline","الخط الزمني"],["quotes","عروض الأسعار والاتفاقات"],["payments","المدفوعات"],["chat","المحادثة"],["review","التقييم"],["notes","الملاحظات الداخلية"],["audit","سجل التدقيق"],["customer_contact","بيانات اتصال العميل"]];
+      function rqdError(err){
+        const m=String(err?.message||err||"");
+        const map=[
+          ["لا توجد صلاحية نشطة لعرض طلبات النطاق","تكليف ASV أو منحة صلاحية عرض الطلبات غير نشطة."],
+          ["لا تملك صلاحية عرض تفاصيل الطلب","لا تملك صلاحية عرض تفاصيل الطلب."],
+          ["غير مصرح بعرض تفاصيل الطلب","غير مصرح بعرض تفاصيل الطلب."],
+          ["الطلب غير موجود أو غير متاح","الطلب غير موجود أو غير متاح."],
+          ["معرّف الطلب غير صالح","معرّف الطلب غير صالح."]
+        ];
+        const hit=map.find(x=>m.includes(x[0]));
+        return {text:hit?hit[1]:"تعذّر تحميل تفاصيل الطلب.",known:!!hit,raw:m};
+      }
+      async function loadRequestDetail(id){
+        const q=rqState();
+        q.detailId=id;
+        q.detail={loading:true,error:"",errorHint:"",data:null};
+        render();
+        try{
+          const {data,error}=await db.rpc("admin_get_request_detail",{p_request_id:id});
+          if(error)throw error;
+          if(q.detailId!==id)return;
+          q.detail={loading:false,error:"",errorHint:"",data:data||null};
+        }catch(err){
+          console.error("[admin_get_request_detail]",err);
+          if(q.detailId!==id)return;
+          const info=rqdError(err);
+          q.detail={loading:false,error:info.text,errorHint:info.known?"":String(info.raw||""),data:null};
+        }
+        render();
+      }
+      function rqdSectionAvailable(data,key){
+        const sa=data?.sections_available;
+        if(Array.isArray(sa))return sa.includes(key);
+        if(sa&&typeof sa==="object")return !!sa[key];
+        return false;
+      }
+      function requestDetailView(){
+        const q=rqState(),d=q.detail||{loading:true};
+        const back='<div class="actions">'+btn("rq-back","العودة إلى القائمة","light")+'</div>';
+        let content="";
+        if(d.loading)content='<div class="empty">جاري تحميل تفاصيل الطلب...</div>';
+        else if(d.error)content='<div class="notice error">'+esc(d.error)+(d.errorHint?'<div class="small">'+esc(d.errorHint)+'</div>':'')+'</div><div class="actions">'+btn("rq-detail-retry","إعادة المحاولة","light")+'</div>';
+        else if(d.data){
+          const shells=RQD_SECTIONS.filter(x=>rqdSectionAvailable(d.data,x[0])).map(x=>'<details class="card" open><summary><b>'+esc(x[1])+'</b></summary><p class="muted small">عرض هذا القسم قيد الإضافة.</p></details>').join("");
+          content=shells||empty("لا توجد أقسام متاحة لك في هذا الطلب");
+        }
+        return RQ_CSS+'<section class="section"><div class="sectionhead"><div><h2>تفاصيل الطلب</h2><p class="small">للقراءة فقط.</p></div></div>'+back+content+'</section>';
+      }
       function requestsListView(){
         const q=rqState(),f=q.filters;
+        if(q.detailId&&rqCanView())return requestDetailView();
         if(!rqCanView())return '<section class="section"><div class="card"><p class="muted">لا تملك صلاحية عرض الطلبات.</p></div></section>';
         if(!q.loaded&&!q.loading)setTimeout(loadRequestsList,0);
         const role=s.profile?.role;
@@ -4362,7 +4412,7 @@ async function viewPrimeKnowledgeDocument(documentId){
             const st=r.status;
             const stTag='<span class="tag '+(RQ_STATUS_CLASS[st]||"")+'">'+esc(RQ_STATUS_LABELS[st]||st||"—")+'</span>';
             const flags=(r.is_late===true?'<span class="tag bad"'+(r.late_reason?' title="'+esc(r.late_reason)+'"':"")+'>متأخر</span>':"")+(r.no_scheduled_at===true?'<span class="tag">بلا موعد</span>':"");
-            return '<tr><td class="rq-id">'+esc(String(r.request_id||"").slice(0,8))+'</td><td>'+esc(r.title||"طلب خدمة")+'</td><td>'+esc(r.service_name_ar||"—")+'</td><td>'+stTag+'</td><td>'+esc(r.city_name||"—")+'</td><td>'+esc(r.area_name||"—")+'</td><td>'+esc(r.provider_name||"—")+'</td><td>'+esc(rqDate(r.created_at))+'</td><td>'+esc(rqDate(r.scheduled_at))+'</td><td><div class="rq-flags">'+(flags||"—")+'</div></td></tr>';
+            return '<tr data-a="rq-open" data-id="'+esc(r.request_id)+'" style="cursor:pointer"><td class="rq-id">'+esc(String(r.request_id||"").slice(0,8))+'</td><td>'+esc(r.title||"طلب خدمة")+'</td><td>'+esc(r.service_name_ar||"—")+'</td><td>'+stTag+'</td><td>'+esc(r.city_name||"—")+'</td><td>'+esc(r.area_name||"—")+'</td><td>'+esc(r.provider_name||"—")+'</td><td>'+esc(rqDate(r.created_at))+'</td><td>'+esc(rqDate(r.scheduled_at))+'</td><td><div class="rq-flags">'+(flags||"—")+'</div></td></tr>';
           }).join("")+'</tbody></table></div>';
         }
         const pages=Math.max(1,Math.ceil(q.total/q.limit)),page=Math.floor(q.offset/q.limit)+1;
@@ -4379,6 +4429,9 @@ async function viewPrimeKnowledgeDocument(documentId){
         const a=b.dataset.a;
         if(!String(a).startsWith("rq-"))return;
         const q=rqState();
+        if(a==="rq-open"){if(rqCanView()&&b.dataset.id)loadRequestDetail(b.dataset.id);return}
+        if(a==="rq-back"){q.detailId=null;q.detail=null;render();return}
+        if(a==="rq-detail-retry"){if(q.detailId)loadRequestDetail(q.detailId);return}
         if(a==="rq-apply"){if(rqApplyFromDom())loadRequestsList();return}
         if(a==="rq-reset"){q.filters={search:"",status:"",city_id:"",area_id:"",provider_id:"",late_only:false,date_from:"",date_to:""};q.offset=0;loadRequestsList();return}
         if(a==="rq-retry"){loadRequestsList();return}
@@ -6912,7 +6965,7 @@ if(a==="tab"){
  s.tab=id;
  render();
  if(id==="knowledge")loadPrimeKnowledge();
- if(id==="requests"&&rqCanView())loadRequestsList();
+ if(id==="requests"&&rqCanView()){const _q=rqState();_q.detailId=null;_q.detail=null;loadRequestsList();}
  return;
 }
 
