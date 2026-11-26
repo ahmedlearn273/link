@@ -3729,8 +3729,185 @@ if(["customer","provider"].includes(s.profile?.role)){
 s.tab="messages";
 render();
       }
-       function applications(){return s.apps.map(p=>{const u=s.adminProfiles.find(x=>x.id===p.user_id)||{};return '<article class="item"><div class="row"><b>'+esc(p.display_name||u.full_name||"مزوّد خدمة")+'</b>'+tag(p.verification_status)+'</div><p>'+esc([p.city||u.city,p.country||u.country].filter(Boolean).join("، "))+' · '+fmt(p.experience_years)+' سنوات خبرة</p><p>'+esc(p.bio||"")+'</p><p>'+esc(u.phone||"")+'</p><div class="actions">'+btn("reviewprovider","موافقة","green",p.user_id,"data-decision='approved'")+btn("reviewprovider","رفض","danger",p.user_id,"data-decision='rejected'")+'</div></article>'}).join("")||empty("لا توجد طلبات معلّقة")}
+function applications(onlyPending=false){
+ const filter=s.providerFilter||"all";
+ const search=String(s.providerSearch||"").trim().toLowerCase();
 
+ const providers=(s.apps||[]).filter(p=>{
+  const status=p.profile_status==="suspended"
+   ?"suspended"
+   :(p.verification_status||"unknown");
+
+  if(onlyPending&&p.verification_status!=="pending")return false;
+  if(!onlyPending&&filter!=="all"&&status!==filter)return false;
+
+  const searchable=[
+   p.full_name,p.display_name,p.phone,
+   p.account_code,p.city,p.area
+  ].filter(Boolean).join(" ").toLowerCase();
+
+  return !search||searchable.includes(search);
+ });
+
+ return providers.map(p=>{
+  const status=p.profile_status==="suspended"
+   ?"suspended"
+   :(p.verification_status||"unknown");
+
+  const accountStatus={
+   active:"نشط",
+   pending:"قيد المراجعة",
+   suspended:"موقوف"
+  }[p.profile_status]||p.profile_status||"غير محدد";
+
+  return '<article class="item" data-provider-card data-status="'+
+   esc(status)+'" data-search="'+
+   esc([
+    p.full_name,p.display_name,p.phone,
+    p.account_code,p.city,p.area
+   ].filter(Boolean).join(" "))+'">'+
+   '<div class="row"><b>'+esc(p.display_name||p.full_name||"مقدّم خدمة")+'</b>'+
+   tag(p.verification_status)+'</div>'+
+   '<p>'+esc(p.full_name||"")+'</p>'+
+   '<p class="small">كود الحساب: '+esc(p.account_code||"غير متوفر")+
+   ' · حالة الحساب: '+esc(accountStatus)+'</p>'+
+   '<p>'+esc([p.city,p.area].filter(Boolean).join("، ")||"الموقع غير محدد")+'</p>'+
+   '<p class="small">الهاتف: '+esc(p.phone||"غير مسجل")+
+   ' · الخبرة: '+fmt(p.experience_years)+' سنوات</p>'+
+   '<p class="small">التقييم: '+fmt(p.average_rating)+
+   ' · عدد التقييمات: '+fmt(p.total_reviews)+'</p>'+
+   '<div class="actions">'+
+   btn("provider-dossier","فتح الملف الإداري","light",p.user_id)+
+   (p.verification_status==="pending"
+    ?btn("reviewprovider","موافقة","green",p.user_id,"data-decision='approved'")+
+     btn("reviewprovider","رفض","danger",p.user_id,"data-decision='rejected'")
+    :"")+
+   '</div></article>';
+ }).join("")||empty(onlyPending
+  ?"لا توجد طلبات انضمام معلّقة."
+  :"لا توجد نتائج مطابقة.");
+}
+      function providerDossierView(){
+ const d=s.providerDossier||{};
+ const p=d.profile||{};
+ const pp=d.provider||{};
+ const docs=s.providerDocuments||[];
+
+ const date=v=>v
+  ?new Date(v).toLocaleString("ar-EG")
+  :"غير مسجل";
+
+ const accountStatus={
+  active:"نشط",
+  pending:"قيد المراجعة",
+  suspended:"موقوف"
+ }[p.status]||p.status||"غير محدد";
+
+ const docNames={
+  profile_photo:"الصورة الشخصية",
+  identity_front:"الهوية - الوجه الأمامي",
+  identity_back:"الهوية - الوجه الخلفي"
+ };
+
+ const documentCards=docs.map(doc=>{
+  const name=docNames[doc.document_type]||doc.document_type;
+  const preview=doc.mime_type==="application/pdf"
+   ?'<a href="'+esc(doc.signed_url)+'" target="_blank" rel="noopener">فتح ملف PDF</a>'
+   :'<img src="'+esc(doc.signed_url)+'" alt="'+esc(name)+'" style="width:100%;max-width:260px;border-radius:12px;object-fit:contain">';
+
+  return '<article class="item"><b>'+esc(name)+'</b>'+
+   '<p class="small">تاريخ الرفع: '+date(doc.created_at)+'</p>'+
+   preview+'</article>';
+ }).join("");
+
+ const services=(d.services||[]).map(x=>
+  '<article class="item"><div class="row"><b>'+
+  esc(x.service_name_ar||x.service_name_en||"خدمة")+
+  '</b>'+tag(x.is_active?"نشطة":"متوقفة")+'</div>'+
+  '<p>السعر: '+fmt(x.price)+' '+esc(x.currency||"")+
+  ' · '+esc(x.price_type||"")+'</p>'+
+  '<p class="small">تاريخ الإضافة: '+date(x.created_at)+'</p></article>'
+ ).join("")||empty("لا توجد خدمات مسجلة.");
+
+ const requests=(d.requests||[]).map(x=>
+  '<article class="item"><div class="row"><b>'+
+  esc(x.title||"طلب خدمة")+'</b>'+tag(x.status)+'</div>'+
+  '<p class="small">رقم الطلب: '+esc(x.id)+'</p>'+
+  '<p>'+esc(x.city||"")+' · '+fmt(x.budget)+'</p>'+
+  '<p class="small">تاريخ الإنشاء: '+date(x.created_at)+
+  ' · آخر تحديث: '+date(x.updated_at)+'</p>'+
+  (x.cancel_reason?'<p>سبب الإلغاء: '+esc(x.cancel_reason)+'</p>':"")+
+  '</article>'
+ ).join("")||empty("لا توجد طلبات مرتبطة بمقدّم الخدمة.");
+
+ const reviews=(d.reviews||[]).map(x=>
+  '<article class="item"><div class="row"><b>'+
+  'التقييم: '+fmt(x.rating)+' / 5</b>'+
+  '<span class="small">'+date(x.created_at)+'</span></div>'+
+  '<p>'+esc(x.comment||"لا يوجد تعليق")+'</p>'+
+  '<p class="small">العميل: '+esc(x.customer_name||"غير محدد")+'</p></article>'
+ ).join("")||empty("لا توجد تقييمات.");
+
+ const payments=(d.payments||[]).map(x=>
+  '<article class="item"><div class="row"><b>'+
+  'عملية مالية</b>'+tag(x.payment_status)+'</div>'+
+  '<p>المبلغ: '+fmt(x.amount)+' '+esc(x.currency||"")+'</p>'+
+  '<p>مستحق مقدّم الخدمة: '+fmt(x.provider_amount)+
+  ' · العمولة: '+fmt(x.commission_amount)+'</p>'+
+  '<p class="small">وسيلة الدفع: '+esc(x.payment_method||"غير محددة")+'</p>'+
+  '<p class="small">تاريخ الدفع: '+date(x.paid_at)+'</p></article>'
+ ).join("")||empty("لا توجد عمليات مالية مسجلة.");
+
+ const timeline=(d.audit_timeline||[]).map(x=>
+  '<article class="item"><div class="row"><b>'+
+  esc(x.action||"عملية إدارية")+'</b>'+tag(x.result)+'</div>'+
+  '<p>المنفذ: '+esc(x.actor_name||x.actor_code||"غير محدد")+
+  ' · الدور: '+esc(x.actor_role||"غير محدد")+'</p>'+
+  '<p class="small">الوقت: '+date(x.created_at)+'</p>'+
+  (x.new_data?.verification_status
+   ?'<p class="small">حالة الاعتماد المسجلة: '+esc(x.new_data.verification_status)+'</p>'
+   :"")+
+  '</article>'
+ ).join("")||empty("لا توجد أحداث إدارية مسجلة.");
+
+ return '<section class="section">'+
+  '<div class="sectionhead"><div><h2>الملف الإداري لمقدّم الخدمة</h2>'+
+  '<p class="small">'+esc(pp.display_name||p.full_name||"")+'</p></div>'+
+  btn("tab","العودة للقائمة","light","providers")+'</div>'+
+
+  '<div class="card"><h3>البيانات الأساسية</h3>'+
+  '<p>الاسم: '+esc(p.full_name||"غير مسجل")+'</p>'+
+  '<p>الاسم الظاهر: '+esc(pp.display_name||"غير مسجل")+'</p>'+
+  '<p>كود الحساب: '+esc(p.account_code||"غير مسجل")+'</p>'+
+  '<p>الهاتف: '+esc(p.phone||"غير مسجل")+'</p>'+
+  '<p>العنوان: '+esc([p.country,p.city,p.area,p.address].filter(Boolean).join("، ")||"غير مسجل")+'</p>'+
+  '<p>حالة الحساب: '+esc(accountStatus)+'</p>'+
+  '<p>حالة الاعتماد: '+esc(pp.verification_status||"غير محددة")+'</p>'+
+  '<p>التوفر: '+(pp.is_available?"متاح":"غير متاح")+'</p>'+
+  '<p>تاريخ إنشاء الحساب: '+date(p.created_at)+'</p>'+
+  '<p>تاريخ إنشاء ملف مقدّم الخدمة: '+date(pp.created_at)+'</p>'+
+  '<p>آخر تحديث للملف: '+date(pp.updated_at)+'</p></div>'+
+
+  '<div class="card"><h3>الملف المهني</h3>'+
+  '<p>سنوات الخبرة: '+fmt(pp.experience_years)+'</p>'+
+  '<p>النبذة: '+esc(pp.bio||"لا توجد نبذة")+'</p>'+
+  '<p>الموقع: '+esc([pp.country,pp.city,pp.service_area,pp.address].filter(Boolean).join("، ")||"غير مسجل")+
+  '</p></div>'+
+
+  '<div class="card"><h3>المستندات</h3>'+
+  (s.providerDocumentsError
+   ?'<p class="muted">تعذّر تحميل معاينة المستندات حاليًا.</p>'
+   :"")+
+  (documentCards||empty("لا توجد مستندات متاحة لهذا الحساب."))+
+  '</div>'+
+
+  '<div class="card"><h3>الخدمات والأسعار</h3>'+services+'</div>'+
+  '<div class="card"><h3>سجل الطلبات</h3>'+requests+'</div>'+
+  '<div class="card"><h3>التقييمات</h3>'+reviews+'</div>'+
+  '<div class="card"><h3>السجل المالي</h3>'+payments+'</div>'+
+  '<div class="card"><h3>سجل النشاط الإداري</h3>'+timeline+'</div>'+
+  '</section>';
+                   }
 async function loadPrimeKnowledge(){
  if(!["admin","owner"].includes(s.profile?.role))return;
 
