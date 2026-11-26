@@ -3609,6 +3609,37 @@ function providerBottomNav(){
 }
       
 
+const WC_TZ="Africa/Cairo";
+function wcTime(x){
+ const d=new Date(x);if(isNaN(d))return "";
+ const t=d.toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit",hour12:true,timeZone:WC_TZ});
+ return t.replace("AM","ص").replace("PM","م");
+}
+function wcDayKey(x){
+ const d=new Date(x);if(isNaN(d))return "";
+ return d.toLocaleDateString("en-CA",{timeZone:WC_TZ});
+}
+function wcDayLabel(x){
+ const d=new Date(x);if(isNaN(d))return "";
+ const key=wcDayKey(x),today=new Date();
+ const k0=wcDayKey(today),k1=wcDayKey(new Date(today.getTime()-86400000));
+ if(key===k0)return "اليوم";
+ if(key===k1)return "أمس";
+ const diff=(Date.parse(k0)-Date.parse(key))/86400000;
+ if(diff>0&&diff<7)return d.toLocaleDateString("ar-EG-u-nu-latn",{weekday:"long",timeZone:WC_TZ});
+ return d.toLocaleDateString("ar-EG-u-nu-latn",{day:"numeric",month:"long",year:"numeric",timeZone:WC_TZ});
+}
+function wcTick(read){
+ return '<svg viewBox="0 0 16 11" width="16" height="11" aria-hidden="true"><path d="M1.5 5.8 4.8 9 11.5 1.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>'+(read?'<path d="M6.5 8.2 7.4 9 14.5 1.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>':'')+'</svg>';
+}
+function wcScroll(){
+ const end=document.getElementById("wcEnd");
+ if(!end||!s.activeChat)return;
+ const sig=s.activeChat.id+":"+(s.messages||[]).length;
+ if(s.wcSig===sig)return;
+ s.wcSig=sig;
+ end.scrollIntoView({block:"end"});
+}
 function chatContent(){
  const isAdmin=s.profile?.role==="admin"||s.profile?.role==="owner";
 
@@ -3639,77 +3670,53 @@ const peerName=isAdmin
  :(s.chatPeerProfile?.full_name||
    (s.profile?.role==="customer"?providerName:customerName));
 
-return '<section class="section">'+
- '<div class="item" style="margin-bottom:14px;padding:15px;border:1px solid var(--border-color);border-radius:16px;background:var(--bg-subtle)">'+
-  '<div class="sectionhead" style="margin:0;align-items:center">'+
-   '<div style="min-width:0">'+
-    '<h2 style="margin:0">'+esc(peerName)+'</h2>'+
-    '<p class="small" style="margin:6px 0 0">'+esc(requestTitle)+'</p>'+
-    (requestRef
-     ?'<p class="small muted" style="margin:5px 0 0">مرجع الطلب: '+esc(requestRef)+'</p>'
-     :'')+
-   '</div>'+
-   btn("chatback","رجوع","light")+
-  '</div>'+
+return '<section class="section wc-section">'+
+ '<div class="wc">'+
+ '<div class="wc-head">'+
+  '<button type="button" class="wc-back" data-a="chatback" data-id="" aria-label="رجوع"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M4 12h16M14 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>'+
+  '<div class="wc-ava">'+((!isAdmin&&s.chatPeerProfile?.avatar_url)?'<img src="'+esc(s.chatPeerProfile.avatar_url)+'" alt="">':esc((peerName.trim().charAt(0)||"؟")))+'</div>'+
+  '<div class="wc-hn"><b>'+esc(peerName)+'</b><span>'+esc(requestTitle)+(requestRef?' · '+esc(requestRef):'')+'</span></div>'+
  '</div>'+
-'<div class="list" style="gap:12px">'+
-(s.messages.map(m=>{
- const own=m.sender_id===s.user.id;
- const peer=s.chatPeerProfile||{};
- const avatar=own?s.profile?.avatar_url:peer.avatar_url;
- const name=own
-  ?(s.profile?.full_name||"أنت")
-  :(peer.full_name||(isAdmin
-    ?(m.sender_id===s.activeChat.customer_id?"العميل":"مزوّد الخدمة")
-    :"الطرف الآخر"));
- const initial=(name.trim().charAt(0)||"؟");
-
- return '<div style="display:flex;align-items:flex-end;gap:8px;'+
-  (own?'justify-content:flex-end;':'justify-content:flex-start;')+'">'+
-  (!own?
-   '<div style="width:34px;height:34px;flex:0 0 34px;border-radius:50%;overflow:hidden;background:var(--bg-subtle);display:grid;place-items:center;color:var(--text-primary);font-weight:700">'+
-    (avatar
-     ?'<img src="'+esc(avatar)+'" alt="" style="width:100%;height:100%;object-fit:cover">'
-     :esc(initial))+
-   '</div>':'')+
-  '<div style="max-width:min(78%,520px);min-width:65px;padding:9px 12px;border-radius:15px;'+
-   (own
-    ?'background:var(--primary);color:white;border-bottom-left-radius:5px;'
-    :'background:var(--bg-subtle);color:var(--text-primary);border:1px solid var(--border-color);border-bottom-right-radius:5px;')+'">'+
-   (isAdmin?'<div class="small" style="margin-bottom:3px">'+esc(name)+'</div>':'')+
-   (m.attachment_path&&s.chatMediaUrls?.[m.id]
- ?(
-   m.message_type==="image"
-    ?'<img src="'+esc(s.chatMediaUrls[m.id])+'" alt="صورة مرفقة" style="display:block;max-width:100%;max-height:320px;border-radius:10px;object-fit:contain;margin-bottom:6px">'
-    :m.message_type==="video"
-     ?'<video controls playsinline src="'+esc(s.chatMediaUrls[m.id])+'" style="display:block;width:100%;max-height:320px;border-radius:10px;margin-bottom:6px"></video>'
-     :m.message_type==="audio"
-      ?'<audio controls src="'+esc(s.chatMediaUrls[m.id])+'" style="display:block;max-width:100%;margin-bottom:6px"></audio>'
-      :''
-  )
- :'')+
- (m.message_text
-  ?'<p style="white-space:pre-wrap;overflow-wrap:anywhere;margin:0;color:inherit;font-size:14px">'+esc(m.message_text)+'</p>'
-  :'')+
-    
-   '<div style="text-align:left;margin-top:4px;font-size:10px;opacity:.85">'+
-    new Date(m.created_at).toLocaleTimeString("ar-SA",{hour:"2-digit",minute:"2-digit"})+
-    (own
-     ?'<span title="'+(m.is_read?'مقروءة':'تم الإرسال')+'" style="margin-right:5px;font-weight:700;color:'+(m.is_read?'#8be9fd':'inherit')+'">'+
-       (m.is_read?'✓✓':'✓')+
-      '</span>'
-     :'')+
-   '</div>'+
-  '</div>'+
-  (own?
-   '<div style="width:34px;height:34px;flex:0 0 34px;border-radius:50%;overflow:hidden;background:var(--bg-subtle);display:grid;place-items:center;color:var(--text-primary);font-weight:700">'+
-    (avatar
-     ?'<img src="'+esc(avatar)+'" alt="" style="width:100%;height:100%;object-fit:cover">'
-     :esc(initial))+
-   '</div>':'')+
- '</div>';
-}).join("")||empty("لا توجد رسائل بعد"))+
-'</div>'+
+ '<div class="wc-body">'+
+ (function(){
+  const peer=s.chatPeerProfile||{};
+  const list=s.messages||[];
+  let out="",prevDay="",prevSender=null;
+  list.forEach(m=>{
+   const day=wcDayKey(m.created_at);
+   if(day!==prevDay){out+='<div class="wc-day"><span>'+esc(wcDayLabel(m.created_at))+'</span></div>';prevDay=day;prevSender=null}
+   const own=m.sender_id===s.user.id;
+   const side=isAdmin?(m.sender_id===s.activeChat.customer_id):own;
+   const first=prevSender!==m.sender_id;
+   prevSender=m.sender_id;
+   const name=own
+    ?(s.profile?.full_name||"أنت")
+    :(peer.full_name||(isAdmin
+      ?(m.sender_id===s.activeChat.customer_id?"العميل":"مزوّد الخدمة")
+      :"الطرف الآخر"));
+   const url=m.attachment_path?s.chatMediaUrls?.[m.id]:null;
+   let media="";
+   if(url){
+    if(m.message_type==="image")media='<img class="wc-img" src="'+esc(url)+'" alt="صورة مرفقة">';
+    else if(m.message_type==="video")media='<video class="wc-vid" controls playsinline src="'+esc(url)+'"></video>';
+    else if(m.message_type==="audio")media='<audio class="wc-aud" controls src="'+esc(url)+'"></audio>';
+   }
+   const hasLoc=m.location_latitude!=null&&m.location_longitude!=null;
+   if(hasLoc&&!media)media='<a class="wc-loc" target="_blank" rel="noopener" href="https://www.google.com/maps?q='+encodeURIComponent(m.location_latitude+","+m.location_longitude)+'">📍 موقع (فتح في الخرائط)</a>';
+   const ticks=(own&&!isAdmin)?'<span class="wc-tick'+(m.is_read?' read':'')+'" title="'+(m.is_read?'مقروءة':'تم الإرسال')+'">'+wcTick(!!m.is_read)+'</span>':'';
+   const meta='<span class="wc-m">'+esc(wcTime(m.created_at))+ticks+'</span>';
+   const text=m.message_text?'<span class="wc-t">'+esc(m.message_text)+'</span>':'';
+   out+='<div class="wc-row '+(side?'wc-l':'wc-r')+(first?' wc-first':'')+'">'+
+    '<div class="wc-b '+(side?'wc-out':'wc-in')+(first?' wc-tail':'')+(media?' wc-has-media':'')+'">'+
+     (isAdmin&&first?'<div class="wc-n">'+esc(name)+'</div>':'')+
+     media+text+meta+
+    '</div></div>';
+  });
+  return out||empty("لا توجد رسائل بعد");
+ })()+
+ '<div id="wcEnd"></div>'+
+ '</div></div>'+
+ (setTimeout(wcScroll,0),'')+
    (isAdmin
  ? '<p class="muted">هذه المحادثة للعرض الإداري فقط.</p>'
  : chatClosed
@@ -8742,6 +8749,44 @@ const addButton = () => {
 }
 </style>
  <style>
+/* WASLA — chat (step 1) */
+.wc{--chat-bg:color-mix(in srgb,var(--primary) 7%,var(--bg-main));--chat-in:var(--bg-surface);--chat-out:var(--primary);--chat-meta:var(--text-secondary);--chat-read:#7FE3F0;--chat-divider:color-mix(in srgb,var(--bg-surface) 92%,transparent);border:1px solid var(--border-color);border-radius:16px;overflow:hidden;background:var(--chat-bg)}
+:root[data-theme="dark"] .wc{--chat-bg:color-mix(in srgb,var(--primary) 6%,var(--bg-main));--chat-in:var(--bg-subtle);--chat-out:#1F7A70;--chat-divider:color-mix(in srgb,var(--bg-subtle) 92%,transparent)}
+.wc-head{display:flex;align-items:center;gap:10px;min-height:56px;padding:8px 10px;background:var(--bg-surface);border-bottom:1px solid var(--border-color);position:sticky;top:0;z-index:5}
+.wc-back{width:40px;height:40px;display:grid;place-items:center;border:0;border-radius:50%;background:transparent;color:var(--text-primary);cursor:pointer;flex:0 0 40px}
+.wc-back:hover{background:var(--bg-subtle)}
+.wc-ava{width:40px;height:40px;flex:0 0 40px;border-radius:50%;overflow:hidden;background:var(--bg-subtle);display:grid;place-items:center;font-weight:700;color:var(--text-primary)}
+.wc-ava img{width:100%;height:100%;object-fit:cover}
+.wc-hn{min-width:0;display:flex;flex-direction:column;line-height:1.35}
+.wc-hn b{font-size:16px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wc-hn span{font-size:13px;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wc-body{padding:10px 12px 14px;display:flex;flex-direction:column;min-height:320px;scroll-margin-bottom:240px}
+.wc-day{display:flex;justify-content:center;margin:10px 0 6px}
+.wc-day span{background:var(--chat-divider);color:var(--text-secondary);font-size:12.5px;padding:4px 10px;border-radius:8px;box-shadow:0 1px 1px rgba(0,0,0,.08)}
+.wc-row{display:flex;margin-top:2px}
+.wc-row.wc-first{margin-top:10px}
+.wc-row.wc-l{justify-content:flex-end}
+.wc-row.wc-r{justify-content:flex-start}
+.wc-b{position:relative;max-width:min(78%,560px);min-width:64px;padding:7px 10px 6px;border-radius:12px;font-size:15.5px;line-height:1.5;overflow-wrap:anywhere;box-shadow:0 1px 1px rgba(0,0,0,.1)}
+.wc-b::after{content:"";display:table;clear:both}
+.wc-out{background:var(--chat-out);color:#fff}
+.wc-in{background:var(--chat-in);color:var(--text-primary)}
+.wc-tail::before{content:"";position:absolute;top:0;width:9px;height:13px;background:inherit}
+.wc-l .wc-tail{border-top-left-radius:0}
+.wc-l .wc-tail::before{left:-8px;clip-path:polygon(0 0,100% 0,100% 100%)}
+.wc-r .wc-tail{border-top-right-radius:0}
+.wc-r .wc-tail::before{right:-8px;clip-path:polygon(0 0,100% 0,0 100%)}
+.wc-t{white-space:pre-wrap}
+.wc-m{float:inline-end;margin-inline-start:10px;margin-top:6px;font-size:11px;line-height:1;display:inline-flex;align-items:center;gap:3px;color:var(--chat-meta);direction:ltr;unicode-bidi:isolate}
+.wc-out .wc-m{color:rgba(255,255,255,.72)}
+.wc-tick{display:inline-flex}
+.wc-tick.read{color:var(--chat-read)}
+.wc-n{font-size:12.5px;font-weight:600;margin-bottom:2px;opacity:.9}
+.wc-has-media .wc-t{display:block;margin-top:5px}
+.wc-img,.wc-vid{display:block;max-width:100%;max-height:330px;border-radius:8px;object-fit:contain}
+.wc-aud{display:block;max-width:100%}
+.wc-loc{color:inherit;text-decoration:underline}
+#wcEnd{height:1px}
 /* WASLA — Compact conversation cards */
 .wasla-chat-card{
   padding:10px 12px;
