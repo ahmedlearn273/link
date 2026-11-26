@@ -5473,7 +5473,51 @@ if(f.id==="waslaAiForm"){
 
 
 try{
-if(f.id==="quoteRespondForm"){
+if(f.id==="suspendProviderForm"){
+
+  if(!["admin","owner"].includes(s.profile?.role))
+    throw Error("غير مصرح لك بتنفيذ الإيقاف");
+
+  const userId=f.dataset.userId;
+  const current=s.providerDossier?.profile;
+  const provider=s.providerDossier?.provider;
+  const reason=String(vals(f).suspension_reason||"").trim();
+
+  if(
+    !current ||
+    current.id!==userId ||
+    current.status!=="active" ||
+    provider?.verification_status!=="approved"
+  ){
+    throw Error("بيانات مقدم الخدمة تغيرت أو لم تعد تسمح بالإيقاف");
+  }
+
+  if(reason.length<5||reason.length>500)
+    throw Error("سبب الإيقاف يجب أن يكون من 5 إلى 500 حرف");
+
+  const result=await db.rpc("admin_suspend_provider",{
+    p_user_id:userId,
+    p_reason:reason
+  });
+
+  if(result.error)throw result.error;
+
+  const refreshed=await db.rpc("admin_get_provider_dossier",{
+    p_user_id:userId
+  });
+
+  if(refreshed.error)throw refreshed.error;
+  if(!refreshed.data?.profile)
+    throw Error("تم الإيقاف، لكن تعذر تحديث عرض الملف الإداري");
+
+  s.providerDossier=refreshed.data;
+  s.modal=null;
+
+  render();
+  note("تم إيقاف مقدم الخدمة وحفظ سبب الإيقاف.","success");
+  return;
+}
+ if(f.id==="quoteRespondForm"){
 
  if(s.profile?.role!=="customer")
   throw Error("غير مصرح بالرد على عرض السعر");
