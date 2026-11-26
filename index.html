@@ -4313,22 +4313,76 @@ return header(
  
 }
       
+// المصدر الوحيد لصلاحيات الموظفين: [المفتاح, العنوان, تدعمه admin-create-staff المنشورة, للإدارة فقط]
+const STAFF_PERMISSION_OPTIONS=[
+ ["dashboard.view","عرض لوحة المعلومات",true,false],
+ ["customers.view","عرض العملاء",true,false],
+ ["customers.manage","إدارة العملاء",true,false],
+ ["providers.view","عرض المزوّدين",true,false],
+ ["providers.review","مراجعة طلبات المزوّدين",true,false],
+ ["requests.view","عرض الطلبات",true,false],
+ ["requests.manage","إدارة الطلبات",true,false],
+ ["services.view","عرض الخدمات",true,false],
+ ["services.manage","إدارة الخدمات",true,false],
+ ["categories.view","عرض التصنيفات",true,false],
+ ["categories.manage","إدارة التصنيفات",true,false],
+ ["messages.view","عرض المحادثات",true,false],
+ ["payments.view","عرض المدفوعات",true,false],
+ ["payments.manage","إدارة المدفوعات",true,false],
+ ["reports.view","عرض التقارير",true,false],
+ ["ads.view","عرض الإعلانات",true,false],
+ ["ads.manage","إدارة الإعلانات",true,false],
+ ["settings.view","عرض الإعدادات",true,false],
+ ["settings.manage","إدارة الإعدادات",true,false],
+ ["support.view","عرض الدعم",false,false],
+ ["support.manage","إدارة الدعم",false,false],
+ ["reports.export","تصدير التقارير",false,true],
+ ["reports.import","استيراد التقارير",false,true],
+ ["wallet.view","عرض المحفظة",false,false],
+ ["wallet.manage","إدارة المحفظة",false,false],
+ ["customers.contact","التواصل مع العملاء",false,true]
+];
+// أقسام لوحة الموظف: [التبويب, العنوان, الصلاحيات التي تفتحه]
+const STAFF_NAV_ITEMS=[
+ ["home","نظرة عامة",["dashboard.view"]],
+ ["requests","الطلبات",["requests.view","requests.manage"]],
+ ["customers","العملاء",["customers.view","customers.manage"]],
+ ["providers","المزوّدون",["providers.view","providers.review"]],
+ ["services","الخدمات",["services.view","services.manage"]],
+ ["categories","التصنيفات",["categories.view","categories.manage"]],
+ ["messages","الرسائل",["messages.view"]],
+ ["payments","المدفوعات",["payments.view","payments.manage"]],
+ ["reports","التقارير",["reports.view","reports.export","reports.import"]],
+ ["support","الدعم",["support.view","support.manage"]],
+ ["wallet","المحفظة",["wallet.view","wallet.manage"]],
+ ["ads","الإعلانات",["ads.view","ads.manage"]],
+ ["settings","الإعدادات",["settings.view","settings.manage"]]
+];
+// الأقسام المنفذة فعليًا في لوحة الموظف. الباقي صفحة مؤقتة بلا تحميل بيانات.
+const STAFF_IMPLEMENTED_TABS=["home","services","categories"];
+const STAFF_PLACEHOLDER_TEXT="القسم ده ضمن مراحل التنفيذ التالية. مش بيتم تحميل بيانات أو تنفيذ عمليات من الصفحة دي حاليًا.";
+function staffPermissionOptionsHtml(selected=[]){
+ return STAFF_PERMISSION_OPTIONS.map(x=>{
+  const key=x[0],adminOnly=x[3];
+  return '<label class="item"><input type="checkbox" name="permissions" value="'+esc(key)+'"'+
+   (selected.includes(key)?" checked":"")+(adminOnly?" disabled":"")+'> '+esc(x[1])+
+   (adminOnly?' <span class="muted small">(للإدارة فقط)</span>':"")+'</label>';
+ }).join("");
+}
+function checkedStaffPermissions(form){
+ return Array.from(form.querySelectorAll('input[name="permissions"]:checked:not(:disabled)')).map(x=>x.value);
+}
 function staff(){
  const permissions=Array.isArray(s.staffAccess?.permissions)?s.staffAccess.permissions:[];
  const can=p=>permissions.includes(p);
- const canServices=can("services.view")||can("services.manage");
- const canCategories=can("categories.view")||can("categories.manage");
+ const navItems=STAFF_NAV_ITEMS.filter(n=>n[2].some(can)).map(n=>[n[0],n[1]]);
 
- const navItems=[["home","نظرة عامة"]];
- if(canServices)navItems.push(["services","الخدمات"]);
- if(canCategories)navItems.push(["categories","التصنيفات"]);
-
- if(!navItems.some(x=>x[0]===s.tab))s.tab="home";
+ if(!navItems.some(x=>x[0]===s.tab))s.tab=navItems.length?navItems[0][0]:"none";
 
  let body="";
 
  
-if(s.tab==="home"){
+if(s.tab==="home"&&navItems.some(x=>x[0]==="home")){
   body='<section class="section"><div class="card">'+
   '<h2>أهلًا '+esc(s.profile?.full_name||"بك")+'</h2>'+
   '<p class="muted">لوحة الموظف في منصة وصلة</p>'+
@@ -4337,7 +4391,7 @@ if(s.tab==="home"){
 }
  
 
- if(s.tab==="services"&&canServices){
+ if(s.tab==="services"&&navItems.some(x=>x[0]==="services")){
   body='<section class="section">'+
   '<div class="sectionhead"><h2>إدارة الخدمات</h2>'+
   (can("services.manage")?btn("addservice","إضافة خدمة","gold"):"")+
@@ -4350,7 +4404,7 @@ if(s.tab==="home"){
   '</div></section>';
  }
 
- if(s.tab==="categories"&&canCategories){
+ if(s.tab==="categories"&&navItems.some(x=>x[0]==="categories")){
   body='<section class="section">'+
   '<div class="sectionhead"><h2>إدارة التصنيفات</h2>'+
   (can("categories.manage")?btn("addcategory","إضافة تصنيف","gold"):"")+
@@ -4361,6 +4415,12 @@ if(s.tab==="home"){
   (can("categories.manage")?btn("togglecategory",x.is_active?"إيقاف التصنيف":"تفعيل التصنيف","light",x.id):"")+
   '</article>').join("")||empty("لا توجد تصنيفات"))+
   '</div></section>';
+ }
+
+if(s.tab==="none"){
+  body='<section class="section"><div class="card"><p class="muted">لا توجد أقسام متاحة بصلاحياتك الحالية.</p></div></section>';
+ }else if(!STAFF_IMPLEMENTED_TABS.includes(s.tab)&&navItems.some(x=>x[0]===s.tab)){
+  body='<section class="section"><div class="card"><p class="muted">'+esc(STAFF_PLACEHOLDER_TEXT)+'</p></div></section>';
  }
 
 const nav=navItems.map(x=>'<button data-a="tab" data-id="'+x[0]+'" class="'+(s.tab===x[0]?"active":"")+'">'+x[1]+'</button>').join("");
@@ -4479,27 +4539,6 @@ if(m.type==="service")c='<div class="modal-title"><h3>إضافة خدمة جدي
 if(m.type==="category")c='<div class="modal-title"><h3>إضافة تصنيف جديد</h3><p class="muted">أنشئ تصنيفًا يساعد العملاء على الوصول للخدمات بسهولة.</p></div><form id="categoryForm">'+field("اسم التصنيف بالعربية","name_ar","text","مثال: صيانة منزلية","",true)+field("الاسم بالإنجليزية","name_en","text","Home Maintenance","",false)+field("الرابط المختصر","slug","text","home-maintenance","",true)+field("أيقونة التصنيف","icon","text","🔧","",false)+'<div class="actions"><button class="btn gold">حفظ التصنيف</button></div></form>';
   
 if(m.type==="addstaff"){
- const permissions=[
- ["dashboard.view","عرض لوحة المعلومات"],
- ["customers.view","عرض العملاء"],
- ["customers.manage","إدارة العملاء"],
- ["providers.view","عرض المزوّدين"],
- ["providers.review","مراجعة طلبات المزوّدين"],
- ["requests.view","عرض الطلبات"],
- ["requests.manage","إدارة الطلبات"],
- ["services.view","عرض الخدمات"],
- ["services.manage","إدارة الخدمات"],
- ["categories.view","عرض التصنيفات"],
- ["categories.manage","إدارة التصنيفات"],
- ["messages.view","عرض المحادثات"],
- ["payments.view","عرض المدفوعات"],
- ["payments.manage","إدارة المدفوعات"],
- ["reports.view","عرض التقارير"],
- ["ads.view","عرض الإعلانات"],
- ["ads.manage","إدارة الإعلانات"],
- ["settings.view","عرض الإعدادات"],
- ["settings.manage","إدارة الإعدادات"]
- ];
 c='<h3>إنشاء حساب موظف جديد</h3>'+
  '<form id="addStaffForm">'+
  field("اسم الموظف","full_name","text","الاسم الكامل","",true)+
@@ -4509,34 +4548,13 @@ c='<h3>إنشاء حساب موظف جديد</h3>'+
  '<p><b>الصلاحيات الممنوحة</b></p>'+
  '<p class="muted">اختر الصلاحيات التي سيُسمح للموظف باستخدامها.</p>'+
  '<div class="list">'+
- permissions.map(x=>'<label class="item"><input type="checkbox" name="permissions" value="'+x[0]+'"> '+x[1]+'</label>').join("")+
+ staffPermissionOptionsHtml()+
  '</div>'+
  '<button class="btn gold">إنشاء الموظف وإرسال الدعوة</button>'+
  '</form>';
 }
   
 if(m.type==="addstaff"){
- const permissions=[
- ["dashboard.view","عرض لوحة المعلومات"],
- ["customers.view","عرض العملاء"],
- ["customers.manage","إدارة العملاء"],
- ["providers.view","عرض المزوّدين"],
- ["providers.review","مراجعة طلبات المزوّدين"],
- ["requests.view","عرض الطلبات"],
- ["requests.manage","إدارة الطلبات"],
- ["services.view","عرض الخدمات"],
- ["services.manage","إدارة الخدمات"],
- ["categories.view","عرض التصنيفات"],
- ["categories.manage","إدارة التصنيفات"],
- ["messages.view","عرض المحادثات"],
- ["payments.view","عرض المدفوعات"],
- ["payments.manage","إدارة المدفوعات"],
- ["reports.view","عرض التقارير"],
- ["ads.view","عرض الإعلانات"],
- ["ads.manage","إدارة الإعلانات"],
- ["settings.view","عرض الإعدادات"],
- ["settings.manage","إدارة الإعدادات"]
- ];
 
  const hierarchy=[
   {value:"ASV",label:"مشرف منطقة — ASV"},
@@ -4561,7 +4579,7 @@ if(m.type==="addstaff"){
  '<div class="section"><h4>الصلاحيات الممنوحة</h4>'+
  '<p class="muted">الرتبة الوظيفية مستقلة عن الصلاحيات؛ اختر الصلاحيات التي يحتاجها الموظف.</p>'+
  '<div class="list">'+
- permissions.map(x=>'<label class="item"><input type="checkbox" name="permissions" value="'+x[0]+'"> '+x[1]+'</label>').join("")+
+ staffPermissionOptionsHtml()+
  '</div></div>'+
  '<div class="notice">الصورة الشخصية الافتراضية ستكون شعار وصلة، ويمكن للموظف تغييرها من حسابه بعد تسجيل الدخول.</div>'+
  '<div class="actions"><button class="btn gold">إنشاء حساب الموظف</button></div>'+
@@ -4572,34 +4590,13 @@ if(m.type==="addstaff"){
  if(m.type==="editstaff"){
  const x=s.staff.find(y=>y.id===m.userId);
  if(!x)throw Error("الموظف غير موجود");
- const permissions=[
- ["dashboard.view","عرض لوحة المعلومات"],
- ["customers.view","عرض العملاء"],
- ["customers.manage","إدارة العملاء"],
- ["providers.view","عرض المزوّدين"],
- ["providers.review","مراجعة طلبات المزوّدين"],
- ["requests.view","عرض الطلبات"],
- ["requests.manage","إدارة الطلبات"],
- ["services.view","عرض الخدمات"],
- ["services.manage","إدارة الخدمات"],
- ["categories.view","عرض التصنيفات"],
- ["categories.manage","إدارة التصنيفات"],
- ["messages.view","عرض المحادثات"],
- ["payments.view","عرض المدفوعات"],
- ["payments.manage","إدارة المدفوعات"],
- ["reports.view","عرض التقارير"],
- ["ads.view","عرض الإعلانات"],
- ["ads.manage","إدارة الإعلانات"],
- ["settings.view","عرض الإعدادات"],
- ["settings.manage","إدارة الإعدادات"]
- ];
  const selected=x.staff_permissions?.permissions||[];
  c='<div class="modal-title"><h3>إدارة صلاحيات الموظف</h3><p class="muted">حدد الصلاحيات وحالة حساب الموظف.</p></div>'+
  '<form id="editStaffForm"><input type="hidden" name="user_id" value="'+esc(x.id)+'">'+
  '<section class="section"><b>'+esc(x.full_name||"موظف بدون اسم")+'</b>'+
  '<p class="muted">'+esc(x.email||"")+'</p></section>'+
  '<section class="section"><h4>الصلاحيات</h4><div class="list">'+
- permissions.map(p=>'<label class="item"><input type="checkbox" name="permissions" value="'+p[0]+'" '+(selected.includes(p[0])?"checked":"")+'> '+p[1]+'</label>').join("")+
+ staffPermissionOptionsHtml(selected)+
  '</div></section>'+
  '<section class="section">'+select("حالة الحساب","is_active",[{value:"true",label:"نشط"},{value:"false",label:"موقوف"}],x.staff_permissions?.is_active?"true":"false")+'</section>'+
  '<div class="actions"><button class="btn gold">حفظ الصلاحيات</button></div></form>';
@@ -6362,7 +6359,7 @@ if(f.id==="cancelRequestForm"){
 
 if(f.id==="addStaffForm"){
  let v=vals(f);
- let permissions=Array.from(f.querySelectorAll('input[name="permissions"]:checked')).map(x=>x.value);
+ let permissions=checkedStaffPermissions(f);
 
  const hierarchy={
   ASV:"مشرف منطقة",
@@ -6382,6 +6379,10 @@ if(f.id==="addStaffForm"){
  if(!permissions.length)throw Error("اختر صلاحية واحدة على الأقل");
 
  
+const edgeSupported=STAFF_PERMISSION_OPTIONS.filter(x=>x[2]).map(x=>x[0]);
+ let edgePermissions=permissions.filter(k=>edgeSupported.includes(k));
+ if(!edgePermissions.length)edgePermissions=["dashboard.view"];
+
 let r=await db.functions.invoke("admin-create-staff",{
   body:{
    full_name:v.full_name.trim(),
@@ -6390,13 +6391,37 @@ let r=await db.functions.invoke("admin-create-staff",{
    adult_confirmation:v.adult_confirmation==="true",
    staff_title:staffTitle,
    staff_role_code:staffRoleCode,
-   permissions
+   permissions:edgePermissions
   }
 });
  
  if(r.error)throw r.error;
  if(r.data?.error)throw Error(r.data.error);
- if(!r.data?.temporary_password)throw Error("تم إنشاء الحساب لكن تعذّر استلام كلمة المرور المؤقتة. تواصل مع الدعم.");
+ if(!r.data?.user_id)throw Error("تعذّر إنشاء حساب الموظف: لم يصل معرّف الحساب.");
+
+ const saved=await db.rpc("admin_upsert_staff",{
+  p_user_id:r.data.user_id,
+  p_permissions:permissions,
+  p_is_active:true
+ });
+
+ if(saved.error){
+  const disabled=await db.rpc("admin_upsert_staff",{
+   p_user_id:r.data.user_id,
+   p_permissions:[],
+   p_is_active:false
+  });
+  s.modal=null;
+  try{await loadUser(s.user);}catch(_e){}
+  if(disabled.error)throw Error("تم إنشاء حساب الموظف لكن فشل حفظ صلاحياته وفشل إيقافه تلقائيًا. تدخل المالك فورًا لإيقاف الحساب ("+(r.data.account_code||r.data.user_id)+"). لم تُعرض كلمة المرور المؤقتة.");
+  throw Error("تم إنشاء حساب الموظف لكن فشل حفظ صلاحياته، فتم إيقاف الحساب تلقائيًا. لم تُعرض كلمة المرور المؤقتة. حاول مرة أخرى بعد مراجعة الإدارة.");
+ }
+
+ if(!r.data?.temporary_password){
+  s.modal=null;
+  try{await loadUser(s.user);}catch(_e){}
+  throw Error("تم إنشاء الحساب وحفظ الصلاحيات لكن تعذّر استلام كلمة المرور المؤقتة. تواصل مع الدعم.");
+ }
 
  s.modal=null;
  await loadUser(s.user);
@@ -6416,7 +6441,9 @@ let r=await db.functions.invoke("admin-create-staff",{
   
   if(f.id==="editStaffForm"){
  let userId=f.elements.user_id.value;
- let permissions=Array.from(f.querySelectorAll('input[name="permissions"]:checked')).map(x=>x.value);
+ const knownKeys=STAFF_PERMISSION_OPTIONS.map(x=>x[0]);
+ const existing=s.staff.find(y=>y.id===userId)?.staff_permissions?.permissions||[];
+ let permissions=[...new Set([...checkedStaffPermissions(f),...existing.filter(k=>!knownKeys.includes(k))])];
  let isActive=f.elements.is_active.value==="true";
  let r=await db.rpc("admin_upsert_staff",{
   p_user_id:userId,
