@@ -2316,7 +2316,7 @@ if(p.status!=="active"){
   role:p.role
  });
   
-s.staffAccess=null;
+s.staffAccess=null;s.staffGrantPerms=[];s.rq=null;
 await publicData(p.role==="admin"||p.role==="owner"||p.role==="staff");
 s.requests=[];s.quotes=[];s.offers=[];s.apps=[];s.allRequests=[];s.adminProfiles=[];s.chats=[];s.messages=[];s.activeChat=null;s.auditLogs=[];
 
@@ -2333,6 +2333,21 @@ if(p.role==="staff"){
   return;
  }
  s.staffAccess=staffAccess;
+ try{
+  const {data:grantRows,error:grantError}=await db.from("staff_permission_grants").select("*");
+  if(grantError)throw grantError;
+  const now=Date.now();
+  s.staffGrantPerms=(grantRows||[]).filter(g=>{
+   const owner=g.user_id||g.staff_user_id||g.staff_id||g.grantee_id;
+   if(owner&&owner!==u.id)return false;
+   if(g.is_active===false||g.revoked_at)return false;
+   if(g.expires_at&&new Date(g.expires_at).getTime()<=now)return false;
+   return true;
+  }).map(g=>g.permission_key||g.permission||g.key).filter(Boolean);
+ }catch(grantErr){
+  console.error("[staff_permission_grants]",grantErr);
+  s.staffGrantPerms=[];
+ }
 }
  if(p.role==="customer"){
   const [r,ch]=await Promise.all([db.from("service_requests").select("*,services(name_ar),provider_profiles(display_name,city)").eq("customer_id",u.id).order("created_at",{ascending:false}),db.from("conversations").select("id,request_id,customer_id,provider_id,last_message_at,service_requests(title)").eq("customer_id",u.id).order("last_message_at",{ascending:false})]);
@@ -4227,6 +4242,166 @@ async function viewPrimeKnowledgeDocument(documentId){
 
  note("تم استكمال تجهيز الإصدار كمسودة. لم يتم نشره.","success");
   }
+      const RQ_STATUS_LABELS={pending:"قيد الانتظار",accepted:"مقبول",in_progress:"جاري التنفيذ",completed:"مكتمل",cancelled:"ملغي"};
+      const RQ_STATUS_CLASS={pending:"wait",accepted:"ok",in_progress:"wait",completed:"ok",cancelled:"bad"};
+      const RQ_CSS='<style>.rq-filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin:12px 0}.rq-wrap{overflow-x:auto;border:1px solid var(--border-color);border-radius:14px}.rq-table{width:100%;border-collapse:collapse;min-width:900px;text-align:right}.rq-table th,.rq-table td{padding:10px 12px;border-bottom:1px solid var(--border-color);font-size:.9rem;vertical-align:top}.rq-table th{font-weight:700;white-space:nowrap}.rq-id{font-family:monospace;direction:ltr;unicode-bidi:embed}.rq-pager{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px;flex-wrap:wrap}.rq-flags{display:flex;gap:6px;flex-wrap:wrap}</style>';
+      function rqState(){
+        if(!s.rq)s.rq={rows:[],total:0,counters:null,limit:25,offset:0,loading:false,loaded:false,error:"",errorHint:"",filters:{search:"",status:"",city_id:"",area_id:"",provider_id:"",late_only:false,date_from:"",date_to:""}};
+        return s.rq;
+      }
+      function rqPermissions(){
+        const own=Array.isArray(s.staffAccess?.permissions)?s.staffAccess.permissions:[];
+        const grants=Array.isArray(s.staffGrantPerms)?s.staffGrantPerms:[];
+        return own.concat(grants);
+      }
+      function rqCanView(){
+        const role=s.profile?.role;
+        if(role==="admin"||role==="owner")return true;
+        if(role==="staff")return rqPermissions().includes("requests.view");
+        return false;
+      }
+      function rqError(err){
+        const m=String(err?.message||err||"");
+        const map=[
+          ["لا توجد صلاحية نشطة لعرض طلبات النطاق","تكليف ASV أو منحة صلاحية عرض الطلبات غير نشطة."],
+          ["لا تملك صلاحية عرض الطلبات","لا تملك صلاحية عرض الطلبات."],
+          ["غير مصرح بعرض الطلبات","غير مصرح بعرض الطلبات."],
+          ["قيمة حالة الطلب غير صالحة","قيمة فلتر الحالة غير صالحة. راجع الفلتر."],
+          ["قيمة offset لا يمكن أن تكون سالبة","تم إعادة الصفحة إلى البداية."],
+          ["بداية نطاق التاريخ يجب ألا تتجاوز نهايته","بداية نطاق التاريخ يجب ألا تتجاوز نهايته."],
+          ["نص البحث أطول من الحد المسموح","نص البحث أطول من 200 حرف."]
+        ];
+        const hit=map.find(x=>m.includes(x[0]));
+        return {text:hit?hit[1]:"تعذّر تحميل قائمة الطلبات.",known:!!hit,raw:m,offsetReset:m.includes("قيمة offset لا يمكن أن تكون سالبة")};
+      }
+      async function loadRequestsList(){
+        const q=rqState();
+        if(!rqCanView())return;
+        q.loading=true;q.loaded=true;q.error="";q.errorHint="";
+        render();
+        const f=q.filters;
+        let dateFrom=null,dateTo=null;
+        if(f.date_from)dateFrom=new Date(f.date_from+"T00:00:00").toISOString();
+        if(f.date_to)dateTo=new Date(f.date_to+"T23:59:59.999").toISOString();
+        const params={
+          p_search:f.search.trim()||null,
+          p_status:f.status||null,
+          p_city_id:f.city_id||null,
+          p_area_id:f.area_id||null,
+          p_provider_id:f.provider_id||null,
+          p_late_only:!!f.late_only,
+          p_date_from:dateFrom,
+          p_date_to:dateTo,
+          p_limit:q.limit,
+          p_offset:q.offset
+        };
+        try{
+          const {data,error}=await db.rpc("admin_list_requests",params);
+          if(error)throw error;
+          q.rows=Array.isArray(data?.rows)?data.rows:[];
+          q.total=Number(data?.total||0);
+          q.counters=data?.counters||null;
+          q.limit=Number(data?.limit||q.limit);
+          q.offset=Number(data?.offset??q.offset);
+        }catch(err){
+          console.error("[admin_list_requests]",err);
+          const info=rqError(err);
+          q.rows=[];q.total=0;q.counters=null;
+          q.error=info.text;
+          q.errorHint=info.known?"":String(info.raw||"");
+          if(info.offsetReset)q.offset=0;
+        }
+        q.loading=false;
+        render();
+      }
+      function rqApplyFromDom(){
+        const q=rqState(),g=id=>document.getElementById(id);
+        const f=q.filters;
+        f.search=g("rqSearch")?.value||"";
+        f.status=g("rqStatus")?.value||"";
+        f.city_id=g("rqCity")?.value||"";
+        f.area_id=g("rqArea")?.value||"";
+        f.provider_id=g("rqProvider")?.value||"";
+        f.late_only=!!g("rqLate")?.checked;
+        f.date_from=g("rqFrom")?.value||"";
+        f.date_to=g("rqTo")?.value||"";
+        if(f.search.length>200){note("نص البحث أطول من 200 حرف.","error");return false}
+        if(f.date_from&&f.date_to&&f.date_from>f.date_to){note("بداية نطاق التاريخ يجب ألا تتجاوز نهايته.","error");return false}
+        q.offset=0;
+        return true;
+      }
+      function rqDate(x){
+        if(!x)return "—";
+        const d=new Date(x);
+        return isNaN(d)?"—":d.toLocaleString("ar-EG",{year:"numeric",month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"});
+      }
+      function requestsListView(){
+        const q=rqState(),f=q.filters;
+        if(!rqCanView())return '<section class="section"><div class="card"><p class="muted">لا تملك صلاحية عرض الطلبات.</p></div></section>';
+        if(!q.loaded&&!q.loading)setTimeout(loadRequestsList,0);
+        const role=s.profile?.role;
+        const cities=(s.geo?.cities||[]);
+        const areas=(s.geo?.areas||[]).filter(a=>!f.city_id||a.city_id===f.city_id);
+        const nm=x=>x.name_ar||x.name||x.name_en||"";
+        const opt=(v,l,cur)=>'<option value="'+esc(v)+'"'+(String(v)===String(cur)?" selected":"")+'>'+esc(l)+'</option>';
+        const filters='<div class="rq-filters">'+
+          '<label class="field">بحث<input id="rqSearch" maxlength="200" placeholder="رقم الطلب أو العنوان أو الوصف أو المدينة أو مقدم الخدمة" value="'+esc(f.search)+'"></label>'+
+          '<label class="field">الحالة<select id="rqStatus">'+opt("","كل الحالات",f.status)+Object.keys(RQ_STATUS_LABELS).map(k=>opt(k,RQ_STATUS_LABELS[k],f.status)).join("")+'</select></label>'+
+          '<label class="field">المدينة<select id="rqCity">'+opt("","كل المدن",f.city_id)+cities.map(c=>opt(c.id,nm(c),f.city_id)).join("")+'</select></label>'+
+          '<label class="field">المنطقة<select id="rqArea">'+opt("","كل المناطق",f.area_id)+areas.map(a=>opt(a.id,nm(a),f.area_id)).join("")+'</select></label>'+
+          '<label class="field">مقدم الخدمة<select id="rqProvider">'+opt("","كل مقدمي الخدمة",f.provider_id)+(s.providers||[]).map(p=>opt(p.id,p.display_name||"مقدم خدمة",f.provider_id)).join("")+'</select></label>'+
+          '<label class="field">من تاريخ<input id="rqFrom" type="date" value="'+esc(f.date_from)+'"></label>'+
+          '<label class="field">إلى تاريخ<input id="rqTo" type="date" value="'+esc(f.date_to)+'"></label>'+
+          '<label class="field"><span>المتأخر فقط</span><input id="rqLate" type="checkbox"'+(f.late_only?" checked":"")+'></label>'+
+        '</div><div class="actions">'+btn("rq-apply","تطبيق","gold")+btn("rq-reset","إعادة ضبط","light")+'</div>';
+        const c=q.counters;
+        const cnt=(label,v)=>'<div class="card"><div class="small">'+label+'</div><div class="stat">'+fmt(v)+'</div></div>';
+        let counters="";
+        if(c){
+          counters='<div class="grid small">'+
+            cnt("قيد الانتظار",c.pending)+cnt("مقبول",c.accepted)+cnt("جاري التنفيذ",c.in_progress)+cnt("مكتمل",c.completed)+cnt("ملغي",c.cancelled)+cnt("متأخر",c.late)+cnt("بلا موعد",c.no_scheduled_at)+
+            ((role==="admin"||role==="owner")&&c.no_geo!==undefined&&c.no_geo!==null?cnt("طلبات بلا بيانات جغرافية",c.no_geo):"")+
+          '</div>';
+        }
+        let content="";
+        if(q.loading)content='<div class="empty">جاري تحميل الطلبات...</div>';
+        else if(q.error)content='<div class="notice error">'+esc(q.error)+(q.errorHint?'<div class="small">'+esc(q.errorHint)+'</div>':'')+'</div><div class="actions">'+btn("rq-retry","إعادة المحاولة","light")+'</div>';
+        else if(!q.rows.length)content=empty("لا توجد طلبات مطابقة");
+        else{
+          content='<div class="rq-wrap"><table class="rq-table"><thead><tr><th>رقم الطلب</th><th>عنوان الطلب</th><th>الخدمة</th><th>الحالة</th><th>المدينة</th><th>المنطقة</th><th>مقدم الخدمة</th><th>تاريخ الإنشاء</th><th>الموعد</th><th>المؤشرات</th></tr></thead><tbody>'+
+          q.rows.map(r=>{
+            const st=r.status;
+            const stTag='<span class="tag '+(RQ_STATUS_CLASS[st]||"")+'">'+esc(RQ_STATUS_LABELS[st]||st||"—")+'</span>';
+            const flags=(r.is_late===true?'<span class="tag bad"'+(r.late_reason?' title="'+esc(r.late_reason)+'"':"")+'>متأخر</span>':"")+(r.no_scheduled_at===true?'<span class="tag">بلا موعد</span>':"");
+            return '<tr><td class="rq-id">'+esc(String(r.request_id||"").slice(0,8))+'</td><td>'+esc(r.title||"طلب خدمة")+'</td><td>'+esc(r.service_name_ar||"—")+'</td><td>'+stTag+'</td><td>'+esc(r.city_name||"—")+'</td><td>'+esc(r.area_name||"—")+'</td><td>'+esc(r.provider_name||"—")+'</td><td>'+esc(rqDate(r.created_at))+'</td><td>'+esc(rqDate(r.scheduled_at))+'</td><td><div class="rq-flags">'+(flags||"—")+'</div></td></tr>';
+          }).join("")+'</tbody></table></div>';
+        }
+        const pages=Math.max(1,Math.ceil(q.total/q.limit)),page=Math.floor(q.offset/q.limit)+1;
+        const pager='<div class="rq-pager"><span class="small">الإجمالي: '+fmt(q.total)+' طلب</span><div class="actions">'+
+          (q.offset>0&&!q.loading?btn("rq-prev","السابق","light"):"")+
+          '<span class="small">صفحة '+fmt(page)+' من '+fmt(pages)+'</span>'+
+          (q.offset+q.limit<q.total&&!q.loading?btn("rq-next","التالي","light"):"")+
+        '</div></div>';
+        return RQ_CSS+'<section class="section"><div class="sectionhead"><div><h2>طلبات العملاء</h2><p class="small">قائمة للقراءة فقط. تابع حالة الطلبات والمتأخر منها.</p></div><span class="tag">'+fmt(q.total)+' طلب</span></div>'+counters+filters+content+pager+'</section>';
+      }
+      app.addEventListener("click",e=>{
+        const b=e.target.closest?e.target.closest("[data-a]"):null;
+        if(!b)return;
+        const a=b.dataset.a;
+        if(!String(a).startsWith("rq-"))return;
+        const q=rqState();
+        if(a==="rq-apply"){if(rqApplyFromDom())loadRequestsList();return}
+        if(a==="rq-reset"){q.filters={search:"",status:"",city_id:"",area_id:"",provider_id:"",late_only:false,date_from:"",date_to:""};q.offset=0;loadRequestsList();return}
+        if(a==="rq-retry"){loadRequestsList();return}
+        if(a==="rq-prev"){q.offset=Math.max(0,q.offset-q.limit);loadRequestsList();return}
+        if(a==="rq-next"){q.offset=q.offset+q.limit;loadRequestsList();return}
+      });
+      app.addEventListener("change",e=>{
+        const id=e.target&&e.target.id;
+        if(!["rqStatus","rqCity","rqArea","rqProvider","rqLate","rqFrom","rqTo"].includes(id))return;
+        if(id==="rqCity"){const a=document.getElementById("rqArea");if(a)a.value=""}
+        if(rqApplyFromDom())loadRequestsList();
+      });
       function admin(){
  let body="";
 if(s.tab==="providerDossier")
@@ -4256,7 +4431,7 @@ if(s.tab==="categories")body='<section class="section"><div class="sectionhead">
  if(s.tab==="customers")body='<section class="section"><div class="sectionhead"><div><h2>إدارة العملاء</h2><p class="small">استعرض حسابات العملاء وبياناتهم وحالة كل حساب.</p></div><span class="tag">'+fmt(s.customers.length)+' عميل</span></div><div class="list">'+(s.customers.map(x=>'<article class="item"><div class="row"><div><b>'+esc(x.full_name||"عميل بدون اسم")+'</b><p class="small">حساب عميل على منصة وصلة</p></div>'+tag(x.status==="active"?"نشط":"موقوف")+'</div><div class="small">رقم التواصل</div><p>'+esc(x.phone||"لا يوجد رقم هاتف")+'</p><div class="small">الموقع</div><p class="muted">'+esc([x.city,x.country].filter(Boolean).join("، ")||"الموقع غير محدد")+'</p><div class="actions">'+btn("viewcustomer","عرض الملف","light",x.id)+'</div></article>').join("")||empty("لا يوجد عملاء حتى الآن"))+'</div></section>';
  if(s.tab==="messages")body=chatContent();
 if(s.tab==="assistant"&&s.profile?.role==="owner")body=assistantView();
-      if(s.tab==="requests")body='<section class="section"><div class="sectionhead"><div><h2>طلبات العملاء</h2><p class="small">تابع جميع طلبات الخدمات المسجلة على المنصة وحالة كل طلب.</p></div><span class="tag">'+fmt(s.allRequests.length)+' طلب</span></div><div class="list">'+(s.allRequests.map(x=>'<article class="item"><div class="row"><b>'+esc(x.title||x.services?.name_ar||"طلب خدمة")+'</b>'+tag(x.status)+'</div><div class="small">موقع الطلب</div><p>'+esc([x.city,x.country].filter(Boolean).join("، ")||"الموقع غير محدد")+'</p></article>').join("")||empty("لا توجد طلبات عملاء حتى الآن"))+'</div></section>';
+      if(s.tab==="requests")body=requestsListView();
  if(s.tab==="appearance")body='<section class="section"><div class="card"><h2>مظهر منصة وصلة</h2><p>تعتمد المنصة هوية Trust &amp; Poise بنظامين متكاملين.</p><div class="grid"><div class="card"><h3>الوضع النهاري</h3><p class="muted">خلفيات فاتحة وألوان متوازنة.</p></div><div class="card"><h3>الوضع الليلي</h3><p class="muted">ألوان داكنة مريحة للعين.</p></div></div><p class="muted">يمكنك التبديل بين الوضعين من زر الشمس والقمر أعلى الصفحة، ويتم حفظ اختيارك تلقائيًا.</p></div></section>';
 if(s.tab==="knowledge"){
  body='<section class="section">'+
@@ -4345,7 +4520,7 @@ const STAFF_PERMISSION_OPTIONS=[
 // أقسام لوحة الموظف: [التبويب, العنوان, الصلاحيات التي تفتحه]
 const STAFF_NAV_ITEMS=[
  ["home","نظرة عامة",["dashboard.view"]],
- ["requests","الطلبات",["requests.view","requests.manage"]],
+ ["requests","الطلبات",["requests.view"]],
  ["customers","العملاء",["customers.view","customers.manage"]],
  ["providers","المزوّدون",["providers.view","providers.review"]],
  ["services","الخدمات",["services.view","services.manage"]],
@@ -4359,7 +4534,7 @@ const STAFF_NAV_ITEMS=[
  ["settings","الإعدادات",["settings.view","settings.manage"]]
 ];
 // الأقسام المنفذة فعليًا في لوحة الموظف. الباقي صفحة مؤقتة بلا تحميل بيانات.
-const STAFF_IMPLEMENTED_TABS=["home","services","categories"];
+const STAFF_IMPLEMENTED_TABS=["home","services","categories","requests"];
 const STAFF_PLACEHOLDER_TEXT="القسم ده ضمن مراحل التنفيذ التالية. مش بيتم تحميل بيانات أو تنفيذ عمليات من الصفحة دي حاليًا.";
 function staffPermissionOptionsHtml(selected=[]){
  return STAFF_PERMISSION_OPTIONS.map(x=>{
@@ -4373,7 +4548,7 @@ function checkedStaffPermissions(form){
  return Array.from(form.querySelectorAll('input[name="permissions"]:checked:not(:disabled)')).map(x=>x.value);
 }
 function staff(){
- const permissions=Array.isArray(s.staffAccess?.permissions)?s.staffAccess.permissions:[];
+ const permissions=rqPermissions();
  const can=p=>permissions.includes(p);
  const navItems=STAFF_NAV_ITEMS.filter(n=>n[2].some(can)).map(n=>[n[0],n[1]]);
 
@@ -4402,6 +4577,10 @@ if(s.tab==="home"&&navItems.some(x=>x[0]==="home")){
   (can("services.manage")?btn("toggleservice",x.is_active?"إيقاف الخدمة":"تفعيل الخدمة","light",x.id):"")+
   '</article>').join("")||empty("لا توجد خدمات"))+
   '</div></section>';
+ }
+
+ if(s.tab==="requests"&&navItems.some(x=>x[0]==="requests")){
+  body=requestsListView();
  }
 
  if(s.tab==="categories"&&navItems.some(x=>x[0]==="categories")){
@@ -6744,6 +6923,7 @@ if(a==="tab"){
  s.tab=id;
  render();
  if(id==="knowledge")loadPrimeKnowledge();
+ if(id==="requests"&&rqCanView())loadRequestsList();
  return;
 }
 
