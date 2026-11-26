@@ -2205,7 +2205,7 @@ function note(x,t){
   render();
  }
 }
-function tag(x){let a={pending:["قيد المراجعة","wait"],accepted:["مقبول","ok"],in_progress:["قيد التنفيذ","wait"],completed:["مكتمل","ok"],cancelled:["ملغي","bad"],approved:["موثّق","ok"],rejected:["مرفوض","bad"]}[x]||[x||"—",""];return '<span class="tag '+a[1]+'">'+a[0]+'</span>'}
+function tag(x){let a={pending:["قيد المراجعة","wait"],accepted:["مقبول","ok"],in_progress:["قيد التنفيذ","wait"],completed:["مكتمل","ok"],cancelled:["ملغي","bad"],approved:["موثّق","ok"],rejected:["مرفوض","bad"],suspended:["موقوف","bad"]}[x]||[x||"—",""];return '<span class="tag '+a[1]+'">'+a[0]+'</span>'}
 
 function header(sub,nav,hideAccountNav=false){
  const accountNav=(!hideAccountNav&&s.user)?
@@ -3997,6 +3997,9 @@ function applications(onlyPending=false){
    '<b>سبب إيقاف الحساب</b>'+
    '<p>'+esc(p.suspension_reason||"غير مسجل")+'</p>'+
    '<p class="small">تاريخ الإيقاف: '+date(p.suspended_at)+'</p>'+
+   '<div class="actions">'+
+    btn("lift-provider-suspension-open","رفع الإيقاف","green",p.id)+
+   '</div>'+
   '</div>'
  :"")+
 (p.status==="active"&&pp.verification_status==="approved"
@@ -5209,6 +5212,36 @@ if(m.type==="cancelRequest"){
   '</form>'+
  '</div>';
 }
+  if(m.type==="liftProviderSuspension"){
+  if(!["admin","owner"].includes(s.profile?.role))
+    throw Error("غير مصرح لك برفع إيقاف مقدم الخدمة");
+
+  const p=s.providerDossier?.profile;
+
+  if(
+    !p ||
+    p.id!==m.userId ||
+    p.status!=="suspended"
+  ){
+    throw Error("حالة مقدم الخدمة لا تسمح برفع الإيقاف");
+  }
+
+  c=
+  '<div class="modal-title">'+
+    '<h3>رفع إيقاف مقدم الخدمة</h3>'+
+    '<p class="muted">سيعود الحساب إلى حالته السابقة، وسيظل مقدم الخدمة غير متاح حتى يفعّل التوفر بنفسه.</p>'+
+  '</div>'+
+  '<form id="liftProviderSuspensionForm" data-user-id="'+esc(m.userId)+'">'+
+    '<label class="field">سبب رفع الإيقاف <span style="color:var(--danger)">*</span>'+
+      '<textarea name="lift_reason" minlength="5" maxlength="500" required '+
+      'placeholder="اكتب سبب رفع الإيقاف بالتفصيل..."></textarea>'+
+    '</label>'+
+    '<div class="actions">'+
+      '<button type="button" class="btn light" data-a="close">رجوع</button>'+
+      '<button type="submit" class="btn green">تأكيد رفع الإيقاف</button>'+
+    '</div>'+
+  '</form>';
+  }
   if(m.type==="suspendProvider"){
   if(!["admin","owner"].includes(s.profile?.role))
     throw Error("غير مصرح لك بإيقاف مقدم الخدمة");
@@ -5498,6 +5531,48 @@ if(f.id==="waslaAiForm"){
 
 
 try{
+if(f.id==="liftProviderSuspensionForm"){
+
+  if(!["admin","owner"].includes(s.profile?.role))
+    throw Error("غير مصرح لك بتنفيذ رفع الإيقاف");
+
+  const userId=f.dataset.userId;
+  const current=s.providerDossier?.profile;
+  const reason=String(vals(f).lift_reason||"").trim();
+
+  if(
+    !current ||
+    current.id!==userId ||
+    current.status!=="suspended"
+  ){
+    throw Error("بيانات مقدم الخدمة تغيرت أو لم تعد تسمح برفع الإيقاف");
+  }
+
+  if(reason.length<5||reason.length>500)
+    throw Error("سبب رفع الإيقاف يجب أن يكون من 5 إلى 500 حرف");
+
+  const result=await db.rpc("admin_lift_provider_suspension",{
+    p_user_id:userId,
+    p_reason:reason
+  });
+
+  if(result.error)throw result.error;
+
+  const refreshed=await db.rpc("admin_get_provider_dossier",{
+    p_user_id:userId
+  });
+
+  if(refreshed.error)throw refreshed.error;
+  if(!refreshed.data?.profile)
+    throw Error("تم رفع الإيقاف، لكن تعذر تحديث عرض الملف الإداري");
+
+  s.providerDossier=refreshed.data;
+  s.modal=null;
+
+  render();
+  note("تم رفع إيقاف مقدم الخدمة وحفظ السبب.","success");
+  return;
+}
 if(f.id==="suspendProviderForm"){
 
   if(!["admin","owner"].includes(s.profile?.role))
@@ -7109,6 +7184,29 @@ if(a==="cancelrequest"){
   if(a==="advance"){let r=await db.rpc("advance_service_request",{p_request_id:id,p_next_status:b.dataset.next});if(r.error)throw r.error;await loadUser(s.user);note("تم تحديث حالة الطلب.","success");return}
   if(a==="availability"){let r=await db.rpc("toggle_own_provider_availability");if(r.error)throw r.error;await loadUser(s.user);note("تم تحديث التوفر.","success");return}
   if(a==="toggleoffer"){let r=await db.rpc("toggle_own_provider_service",{p_provider_service_id:id});if(r.error)throw r.error;await loadUser(s.user);return}
+if(a==="lift-provider-suspension-open"){
+
+  if(!["admin","owner"].includes(s.profile?.role))
+    throw Error("غير مصرح لك برفع إيقاف مقدمي الخدمة");
+
+  const p=s.providerDossier?.profile;
+
+  if(
+    !p ||
+    p.id!==id ||
+    p.status!=="suspended"
+  ){
+    throw Error("مقدم الخدمة غير موقوف");
+  }
+
+  s.modal={
+    type:"liftProviderSuspension",
+    userId:id
+  };
+
+  render();
+  return;
+}
 if(a==="suspend-provider-open"){
 
   if(!["admin","owner"].includes(s.profile?.role))
