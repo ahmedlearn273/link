@@ -2316,7 +2316,7 @@ if(p.status!=="active"){
   role:p.role
  });
   
-s.staffAccess=null;s.rq=null;s.staffSuspended=false;
+s.staffAccess=null;s.rq=null;s.rl=null;s.staffSuspended=false;
 await publicData(p.role==="admin"||p.role==="owner"||p.role==="staff");
 s.requests=[];s.quotes=[];s.offers=[];s.apps=[];s.allRequests=[];s.adminProfiles=[];s.chats=[];s.messages=[];s.activeChat=null;s.auditLogs=[];
 
@@ -4421,10 +4421,96 @@ async function viewPrimeKnowledgeDocument(documentId){
         }
         return RQ_CSS+'<section class="section"><div class="sectionhead"><div><h2>تفاصيل الطلب</h2><p class="small">للقراءة فقط.</p></div></div>'+back+content+'</section>';
       }
+      const RL_REASON={no_provider:"بلا مزوّد",past_scheduled:"تجاوز الموعد",no_scheduled_at:"بلا موعد"};
+      function rlState(){
+        if(!s.rl)s.rl={rows:[],total:0,counters:null,limit:25,offset:0,loading:false,loaded:false,error:"",errorHint:"",filters:{search:"",reason:"",city_id:"",area_id:"",service_id:"",provider_id:""}};
+        return s.rl;
+      }
+      async function loadLateRequests(){
+        const l=rlState();
+        if(!rqCanView())return;
+        l.loading=true;l.loaded=true;l.error="";l.errorHint="";l.rows=[];
+        render();
+        const f=l.filters;
+        const params={p_reason:f.reason||null,p_city_id:f.city_id||null,p_area_id:f.area_id||null,p_service_id:f.service_id||null,p_provider_id:f.provider_id||null,p_search:f.search.trim()||null,p_limit:l.limit,p_offset:l.offset};
+        try{
+          const {data,error}=await db.rpc("admin_list_late_requests",params);
+          if(error)throw error;
+          l.rows=Array.isArray(data?.items)?data.items:[];
+          l.total=Number(data?.total||0);
+          l.counters=data?.counters||null;
+          l.limit=Number(data?.limit||l.limit);
+          l.offset=Number(data?.offset??l.offset);
+        }catch(err){
+          console.error("[admin_list_late_requests]");
+          const info=rqError(err);
+          l.rows=[];l.total=0;l.counters=null;
+          l.error=info.known?info.text:"تعذّر تحميل الطلبات المتأخرة.";
+          l.errorHint=info.known?"":String(info.raw||"");
+          if(info.offsetReset)l.offset=0;
+        }
+        l.loading=false;
+        render();
+      }
+      function rlApplyFromDom(){
+        const l=rlState(),g=id=>document.getElementById(id),f=l.filters;
+        f.search=g("rlSearch")?.value||"";
+        f.city_id=g("rlCity")?.value||"";
+        f.area_id=g("rlArea")?.value||"";
+        f.service_id=g("rlService")?.value||"";
+        f.provider_id=g("rlProvider")?.value||"";
+        if(f.search.length>200){note("نص البحث أطول من 200 حرف.","error");return false}
+        l.offset=0;
+        return true;
+      }
+      function lateRequestsView(){
+        const l=rlState(),f=l.filters;
+        if(!l.loaded&&!l.loading)setTimeout(loadLateRequests,0);
+        const cities=(s.geo?.cities||[]);
+        const areas=(s.geo?.areas||[]).filter(a=>!f.city_id||a.city_id===f.city_id);
+        const nm=x=>x.name_ar||x.name||x.name_en||"";
+        const opt=(v,t,cur)=>'<option value="'+esc(v)+'"'+(String(v)===String(cur)?" selected":"")+'>'+esc(t)+'</option>';
+        const svc=Array.isArray(s.services)&&s.services.length?'<label class="field">الخدمة<select id="rlService">'+opt("","كل الخدمات",f.service_id)+s.services.map(x=>opt(x.id,x.name_ar||"خدمة",f.service_id)).join("")+'</select></label>':"";
+        const filters='<div class="rq-filters">'+
+          '<label class="field">بحث<input id="rlSearch" maxlength="200" placeholder="رقم الطلب أو العنوان أو الوصف" value="'+esc(f.search)+'"></label>'+
+          '<label class="field">المدينة<select id="rlCity">'+opt("","كل المدن",f.city_id)+cities.map(c=>opt(c.id,nm(c),f.city_id)).join("")+'</select></label>'+
+          '<label class="field">المنطقة<select id="rlArea">'+opt("","كل المناطق",f.area_id)+areas.map(a=>opt(a.id,nm(a),f.area_id)).join("")+'</select></label>'+
+          svc+
+          '<label class="field">مقدم الخدمة<select id="rlProvider">'+opt("","كل مقدمي الخدمة",f.provider_id)+(s.providers||[]).map(p=>opt(p.id,p.display_name||"مقدم خدمة",f.provider_id)).join("")+'</select></label>'+
+        '</div><div class="actions">'+btn("rl-apply","تطبيق","gold")+btn("rl-reset","إعادة ضبط","light")+'</div>';
+        const c=l.counters||{};
+        const chip=(key,label,v)=>'<div class="card" data-a="rl-reason" data-reason="'+key+'" style="cursor:pointer'+(f.reason===key?";border-color:var(--gold,#c9a24b)":"")+'"><div class="small">'+label+'</div><div class="stat">'+(v===undefined||v===null?"—":fmt(v))+'</div></div>';
+        const counters='<div class="grid small">'+chip("","الكل",f.reason===""&&l.counters?l.total:null)+chip("no_provider","بلا مزوّد",c.no_provider)+chip("past_scheduled","تجاوز الموعد",c.past_scheduled)+chip("no_scheduled_at","بلا موعد",c.no_scheduled_at)+'</div>';
+        let content="";
+        if(l.loading)content='<div class="empty">جاري تحميل الطلبات المتأخرة...</div>';
+        else if(l.error)content='<div class="notice error">'+esc(l.error)+(l.errorHint?'<div class="small">'+esc(l.errorHint)+'</div>':'')+'</div><div class="actions">'+btn("rl-retry","إعادة المحاولة","light")+'</div>';
+        else if(!l.rows.length)content=empty("لا توجد طلبات متأخرة مطابقة");
+        else{
+          content='<div class="rq-wrap"><table class="rq-table"><thead><tr><th>رقم الطلب</th><th>عنوان الطلب</th><th>الخدمة</th><th>الحالة</th><th>المدينة</th><th>المنطقة</th><th>مقدم الخدمة</th><th>تاريخ الإنشاء</th><th>الموعد</th><th>سبب التأخر</th></tr></thead><tbody>'+
+          l.rows.map(r=>{
+            const st=r.status;
+            const stTag='<span class="tag '+(RQ_STATUS_CLASS[st]||"")+'">'+esc(RQ_STATUS_LABELS[st]||st||"—")+'</span>';
+            const rs=RL_REASON[r.reason]||r.reason||"—";
+            const badge='<span class="tag'+(r.reason==="no_scheduled_at"?"":" bad")+'">'+esc(rs)+'</span>'+((r.delay_hours!==null&&r.delay_hours!==undefined)?'<div class="small">'+esc(fmt(r.delay_hours))+' ساعة تأخير</div>':"");
+            return '<tr data-a="rq-open" data-id="'+esc(r.request_id)+'" style="cursor:pointer"><td class="rq-id">'+esc(String(r.request_id||"").slice(0,8))+'</td><td>'+esc(r.title||"طلب خدمة")+'</td><td>'+esc(r.service_name_ar||"—")+'</td><td>'+stTag+'</td><td>'+esc(r.city_name||"—")+'</td><td>'+esc(r.area_name||"—")+'</td><td>'+esc(r.provider_name||"—")+'</td><td>'+esc(rqDate(r.created_at))+'</td><td>'+esc(rqDate(r.scheduled_at))+'</td><td><div class="rq-flags">'+badge+'</div></td></tr>';
+          }).join("")+'</tbody></table></div>';
+        }
+        const pages=Math.max(1,Math.ceil(l.total/l.limit)),page=Math.floor(l.offset/l.limit)+1;
+        const pager='<div class="rq-pager"><span class="small">الإجمالي: '+fmt(l.total)+' طلب</span><div class="actions">'+
+          (l.offset>0&&!l.loading?btn("rl-prev","السابق","light"):"")+
+          '<span class="small">صفحة '+fmt(page)+' من '+fmt(pages)+'</span>'+
+          (l.offset+l.limit<l.total&&!l.loading?btn("rl-next","التالي","light"):"")+
+        '</div></div>';
+        return counters+filters+content+pager;
+      }
       function requestsListView(){
         const q=rqState(),f=q.filters;
         if(q.detailId&&rqCanView())return requestDetailView();
         if(!rqCanView())return '<section class="section"><div class="card"><p class="muted">لا تملك صلاحية عرض الطلبات.</p></div></section>';
+        if(q.view==="late"){
+          const tabs='<div class="actions">'+btn("rq-tab-list","كل الطلبات","light")+btn("rq-tab-late","الطلبات المتأخرة","gold")+'</div>';
+          return RQ_CSS+'<section class="section"><div class="sectionhead"><div><h2>الطلبات المتأخرة</h2><p class="small">قائمة للقراءة فقط. اضغط على طلب لعرض تفاصيله.</p></div></div>'+tabs+lateRequestsView()+'</section>';
+        }
         if(!q.loaded&&!q.loading)setTimeout(loadRequestsList,0);
         const role=s.profile?.role;
         const cities=(s.geo?.cities||[]);
@@ -4469,7 +4555,7 @@ async function viewPrimeKnowledgeDocument(documentId){
           '<span class="small">صفحة '+fmt(page)+' من '+fmt(pages)+'</span>'+
           (q.offset+q.limit<q.total&&!q.loading?btn("rq-next","التالي","light"):"")+
         '</div></div>';
-        return RQ_CSS+'<section class="section"><div class="sectionhead"><div><h2>طلبات العملاء</h2><p class="small">قائمة للقراءة فقط. تابع حالة الطلبات والمتأخر منها.</p></div><span class="tag">'+fmt(q.total)+' طلب</span></div>'+counters+filters+content+pager+'</section>';
+        return RQ_CSS+'<section class="section"><div class="sectionhead"><div><h2>طلبات العملاء</h2><p class="small">قائمة للقراءة فقط. تابع حالة الطلبات والمتأخر منها.</p></div><span class="tag">'+fmt(q.total)+' طلب</span></div><div class="actions">'+btn("rq-tab-list","كل الطلبات","gold")+btn("rq-tab-late","الطلبات المتأخرة","light")+'</div>'+counters+filters+content+pager+'</section>';
       }
       app.addEventListener("click",e=>{
         const b=e.target.closest?e.target.closest("[data-a]"):null;
@@ -4477,6 +4563,8 @@ async function viewPrimeKnowledgeDocument(documentId){
         const a=b.dataset.a;
         if(!String(a).startsWith("rq-"))return;
         const q=rqState();
+        if(a==="rq-tab-list"){q.view="list";render();return}
+        if(a==="rq-tab-late"){q.view="late";if(!rlState().loaded)loadLateRequests();else render();return}
         if(a==="rq-open"){if(rqCanView()&&b.dataset.id)loadRequestDetail(b.dataset.id);return}
         if(a==="rq-back"){q.detailId=null;q.detail=null;render();return}
         if(a==="rq-detail-retry"){if(q.detailId)loadRequestDetail(q.detailId);return}
@@ -4486,8 +4574,24 @@ async function viewPrimeKnowledgeDocument(documentId){
         if(a==="rq-prev"){q.offset=Math.max(0,q.offset-q.limit);loadRequestsList();return}
         if(a==="rq-next"){q.offset=q.offset+q.limit;loadRequestsList();return}
       });
+      app.addEventListener("click",e=>{
+        const b=e.target.closest?e.target.closest("[data-a]"):null;
+        if(!b||!String(b.dataset.a).startsWith("rl-"))return;
+        const a=b.dataset.a,l=rlState();
+        if(a==="rl-reason"){l.filters.reason=b.dataset.reason||"";l.offset=0;loadLateRequests();return}
+        if(a==="rl-apply"){if(rlApplyFromDom())loadLateRequests();return}
+        if(a==="rl-reset"){l.filters={search:"",reason:"",city_id:"",area_id:"",service_id:"",provider_id:""};l.offset=0;loadLateRequests();return}
+        if(a==="rl-retry"){loadLateRequests();return}
+        if(a==="rl-prev"){l.offset=Math.max(0,l.offset-l.limit);loadLateRequests();return}
+        if(a==="rl-next"){l.offset=l.offset+l.limit;loadLateRequests();return}
+      });
       app.addEventListener("change",e=>{
         const id=e.target&&e.target.id;
+        if(["rlCity","rlArea","rlService","rlProvider"].includes(id)){
+          if(id==="rlCity"){const a=document.getElementById("rlArea");if(a)a.value=""}
+          if(rlApplyFromDom())loadLateRequests();
+          return;
+        }
         if(!["rqStatus","rqCity","rqArea","rqProvider","rqLate","rqFrom","rqTo"].includes(id))return;
         if(id==="rqCity"){const a=document.getElementById("rqArea");if(a)a.value=""}
         if(rqApplyFromDom())loadRequestsList();
