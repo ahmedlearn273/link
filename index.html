@@ -3040,6 +3040,62 @@ function approvalsBody(){
  }).join("")||'<div class="empty">لا توجد طلبات معلّقة.</div>';
  return '<section class="section"><div class="sectionhead"><div><h2>طلبات الموافقة</h2><p class="small">اقتراحات الخدمات وتعديلات بيانات المزوّدين.</p></div></div><div class="list">'+inner+'</div></section>';
 }
+
+function providerDashboard(){
+ const pr=s.provider||{},p=s.profile||{};
+ const IC={tool:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 0-5 5L3 18l3 3 6.7-6.7a4 4 0 0 0 5-5l-2.4 2.4-2.6-.6-.6-2.6z"/></svg>',ok:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 12l3 3 5-6"/></svg>',star:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/></svg>',mail:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M3 7l9 6 9-6"/></svg>',plus:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>',box:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="8" width="18" height="12" rx="2"/><path d="M9 8V5h6v3M3 13h18"/></svg>',wallet:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="14" rx="3"/><path d="M16 13h3M3 10h18"/></svg>',chat:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/></svg>',drop:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3c-3 4-5 6-5 9a5 5 0 0 0 10 0c0-3-2-5-5-9z"/></svg>',hour:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12M6 21h12M7 3c0 5 5 6 5 9s-5 4-5 9M17 3c0 5-5 6-5 9s5 4 5 9"/></svg>'};
+ const mine=(s.requests||[]).filter(q=>q.provider_id===pr.id);
+ const openNew=(s.requests||[]).filter(q=>q.status==="pending"&&!q.provider_id);
+ const active=mine.filter(q=>q.status==="accepted"||q.status==="in_progress");
+ const done=mine.filter(q=>q.status==="completed");
+ const wkAgo=Date.now()-7*864e5;
+ const doneWk=done.filter(q=>q.completed_at&&new Date(q.completed_at).getTime()>wkAgo).length;
+ const waiting=(s.quotes||[]).filter(x=>x.status==="awaiting_customer").length;
+ const isBusy=(s.requests||[]).some(q=>q.provider_id===pr.id&&q.status==="in_progress");
+ if(!s.wallet)setTimeout(()=>{if(!s.wallet)loadWallet(false)},0);
+ const w=s.wallet||{},d=w.data,ent=Array.isArray(w.entries)?w.entries:[];
+ const loadingW=!d&&!w.error;
+ const now=new Date(),h=now.getHours();
+ const first=String(pr.display_name||p.full_name||"").trim().split(/\s+/)[0]||"";
+ const greet=(h<12?"صباح الخير":"مساء الخير")+(first?" يا "+first:"");
+ const mStart=new Date(now.getFullYear(),now.getMonth(),1).getTime();
+ const earns=ent.filter(e=>e.entry_type==="earning"&&Number(e.amount)>0);
+ const oldest=ent.length?new Date(ent[ent.length-1].created_at).getTime():Infinity;
+ const partialM=!!w.more&&oldest>=mStart;
+ const monthSum=earns.filter(e=>new Date(e.created_at).getTime()>=mStart).reduce((a,e)=>a+Number(e.amount),0);
+ const days=[];for(let i=6;i>=0;i--){const dt=new Date(now.getFullYear(),now.getMonth(),now.getDate()-i);days.push({t:dt.getTime(),n:["أحد","اثنين","ثلاثاء","أربعاء","خميس","جمعة","سبت"][dt.getDay()],v:0})}
+ earns.forEach(e=>{const t=new Date(e.created_at);const k=new Date(t.getFullYear(),t.getMonth(),t.getDate()).getTime();const x=days.find(y=>y.t===k);if(x)x.v+=Number(e.amount)});
+ const weekSum=days.reduce((a,x)=>a+x.v,0),mx=Math.max(1,...days.map(x=>x.v));
+ const skel='<span class="pdb-sk"></span>';
+ const money=v=>moneyAr(v)+" ج.م";
+ const pendR=(s.myReqs||[]).filter(r=>r.status==="pending");
+ const pendTxt=pendR.length?pendR.map(r=>r.kind==="service_suggestion"?'اقتراح "'+esc(r.payload?.name||"")+'"':"تعديل بياناتك").join(" و "):"";
+ const st=pr.verification_status;
+ const sw=isBusy?'<span class="pdb-sw busy">مشغول</span>':'<button type="button" class="pdb-sw '+(pr.is_available?"on":"off")+'" data-a="availability" aria-pressed="'+(pr.is_available?"true":"false")+'">'+(pr.is_available?"متاح":"خارج الخدمة")+'<i></i></button>';
+ const reqRows=(openNew.concat(active)).slice(0,3).map(q=>{
+  const isNew=q.status==="pending"&&!q.provider_id;
+  return '<div class="pdb-req"><span class="d">'+(isNew?IC.drop:IC.tool)+'</span><button type="button" class="pdb-rb" data-a="tab" data-id="requests"><b>'+esc(q.title||q.services?.name_ar||"طلب خدمة")+'</b><small>'+esc([q.city,q.country].filter(Boolean).join("، ")||"")+(q.created_at?" · "+esc(new Date(q.created_at).toLocaleDateString("ar-EG")):"")+'</small></button>'+
+   (isNew?'<button type="button" class="pdb-pill go" data-a="claim" data-id="'+esc(q.id)+'">قبول</button>':'<span class="pdb-pill">'+(q.status==="in_progress"?"قيد التنفيذ":"مقبول")+'</span>')+'</div>'
+ }).join("");
+ const tile=(ic,val,lab,extra)=>'<div class="pdb-t"><div class="ic">'+IC[ic]+'</div><b>'+val+(extra||"")+'</b><span>'+lab+'</span></div>';
+ const qa=(ic,lab,a,id)=>'<button type="button" class="pdb-q" data-a="'+a+'" data-id="'+id+'"><i>'+IC[ic]+'</i>'+lab+'</button>';
+ return '<div class="pdb">'+
+  '<div class="pdb-hello"><span class="av">'+providerAvatarMini(p)+'</span><div><h2>'+esc(greet)+'</h2><p>'+(openNew.length?"عندك "+fmt(openNew.length)+" "+(openNew.length===1?"طلب جديد":"طلبات جديدة")+" محتاجة ردك":"مفيش طلبات جديدة دلوقتي")+(st&&st!=="approved"?" · "+tag(st):"")+'</p></div>'+sw+'</div>'+
+  (pendTxt?'<div class="pdb-alert" data-a="provider-go" data-id="services" role="button">'+IC.hour+'<span>'+pendTxt+' بانتظار موافقة الإدارة</span></div>':"")+
+  '<div class="pdb-wallet"><small>رصيد المحفظة</small><b>'+(loadingW?skel:(d?money(d.balance):"—"))+'</b><div class="pdb-wrow"><div>القابل للسحب<strong>'+(loadingW?skel:(d?money(d.withdrawable):"—"))+'</strong></div><div>أرباح الشهر<strong>'+(loadingW?skel:money(monthSum)+(partialM?"+":""))+'</strong></div></div></div>'+
+  '<div class="pdb-tiles">'+tile("tool",fmt(active.length),"طلبات جارية")+tile("ok",fmt(done.length),"طلبات مكتملة",doneWk?'<em>↑ '+fmt(doneWk)+' الأسبوع ده</em>':"")+tile("star",Number(pr.total_reviews||0)?Number(pr.average_rating||0).toFixed(1):"-","التقييم · "+fmt(pr.total_reviews||0)+" تقييم")+tile("mail",fmt(waiting),"عروض مستنية العميل")+'</div>'+
+  '<div class="pdb-qa">'+qa("plus","أضف خدمة","provider-go","add")+qa("box","خدماتي","provider-go","services")+qa("wallet","المحفظة","provider-go","wallet")+qa("chat","الرسائل","tab","messages")+'</div>'+
+  '<div class="pdb-h"><h3>طلبات تحتاج ردك</h3><button type="button" data-a="tab" data-id="requests">عرض الكل ›</button></div>'+
+  '<div class="pdb-card">'+(reqRows||'<div class="empty">مفيش طلبات دلوقتي.</div>')+'</div>'+
+  '<div class="pdb-h"><h3>أرباح الأسبوع</h3><button type="button" data-a="provider-go" data-id="wallet">التفاصيل ›</button></div>'+
+  '<div class="pdb-card"><b class="pdb-big">'+(loadingW?skel:money(weekSum))+'</b> <small class="muted">بعد خصم عمولة المنصة</small><div class="pdb-bars" role="img" aria-label="أرباح آخر ٧ أيام">'+days.map((x,i)=>'<div class="'+(i===6?"on":"")+'"><span style="height:'+Math.max(6,Math.round(x.v/mx*100))+'%"></span><small>'+x.n+'</small></div>').join("")+'</div></div>'+
+  '<button type="button" class="pdb-id" data-a="provider-go" data-id="profile"><span class="lg">'+providerAvatarMini(p,true)+'</span><span class="tx"><b>'+esc(pr.display_name||p.full_name||"مزوّد وصلة")+'</b><small>'+(st==="approved"?"مزوّد موثّق":"مزوّد")+(pr.city?" · "+esc(pr.city):"")+'</small></span>'+(p.account_code?'<code dir="ltr">'+esc(p.account_code)+'</code>':"")+'</button>'+
+ '</div>';
+}
+function providerAvatarMini(p,fixed){
+ if(p&&p.avatar_url)return '<img src="'+esc(p.avatar_url)+'" alt="">';
+ return '<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M7 17 L19 46 L31 25 L43 46 L57 17" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 39 C17 57 46 9 59 27" fill="none" stroke="'+(fixed?"#d9b25a":"var(--accent)")+'" stroke-width="3.5" stroke-linecap="round"/><circle cx="55" cy="15" r="4.5" fill="'+(fixed?"#d9b25a":"var(--accent)")+'"/></svg>';
+}
 function providerIdCard(){
  const pr=s.provider||{},p=s.profile||{};
  const name=pr.display_name||p.full_name||"مزوّد وصلة";
@@ -3475,58 +3531,7 @@ function provider(){
 
  
 if(s.tab==="home"){
- body=
-  '<div class="grid small">'+
-
-   
-'<div class="card">'+
- '<div class="small">حالة التوفر</div>'+
- '<div class="stat">'+
-  (isBusy
-   ?"مشغول"
-   :s.provider.is_available
-    ?"متاح"
-    :"خارج الخدمة")+
- '</div>'+
- '<p class="small">'+
-  (isBusy
-   ?"لديك طلب قيد التنفيذ حاليًا"
-   :s.provider.is_available
-    ?"يمكن للعملاء إرسال طلبات جديدة إليك"
-    :"لن تستقبل طلبات جديدة حاليًا")+
- '</p>'+
- (isBusy
-  ?""
-  :btn(
-   "availability",
-   s.provider.is_available
-    ?"إيقاف الاستقبال"
-    :"تفعيل الاستقبال",
-   s.provider.is_available?"light":"green"
-  )
- )+
-'</div>'+
-  
-
-   '<div class="card">'+
-    '<div class="small">التوثيق</div>'+
-    tag(s.provider.verification_status)+
-    '<p class="small">حالة اعتماد حسابك على منصة وصلة</p>'+
-   '</div>'+
-
-  '</div>'+
-
-  '<section class="section">'+
-   '<div class="sectionhead">'+
-    '<div>'+
-     '<h2>نظرة عامة على أعمالك</h2>'+
-     '<p class="small">تابع الطلبات المتاحة والطلبات المسندة إليك.</p>'+
-    '</div>'+
-   '</div>'+
-   '<div class="list">'+
-    requestList(true)+
-   '</div>'+
-  '</section>';
+ body=providerDashboard();
 }
 
 
@@ -9255,6 +9260,14 @@ if(a==="cancelrequest"){
   }
   if(a==="advance"){const q0=s.requests.find(x=>x.id===id),old0=q0?q0.status:null;if(q0&&b.dataset.next){q0.status=b.dataset.next;render()}let r=await db.rpc("advance_service_request",{p_request_id:id,p_next_status:b.dataset.next});if(r.error){if(q0){q0.status=old0;render()}throw r.error}await refreshRoleData();note("تم تحديث حالة الطلب.","success");return}
   if(a==="availability"){const old0=s.provider?s.provider.is_available:null;if(s.provider){s.provider.is_available=!old0;render()}let r=await db.rpc("toggle_own_provider_availability");if(r.error){if(s.provider){s.provider.is_available=old0;render()}throw r.error}await refreshRoleData();note("تم تحديث التوفر.","success");return}
+  if(a==="provider-go"){
+   if(s.profile?.role!=="provider")return;
+   if(id==="add"){s.tab="profile";s.providerProfileTab="services";s.svcEdit={cat:(s.cats&&s.cats[0]&&s.cats[0].id)||"",sel:[],name:""};render();return}
+   if(!["profile","services","wallet"].includes(id))return;
+   s.tab="profile";s.providerProfileTab=id;render();
+   if(id==="wallet")loadWallet(false);
+   return
+  }
   if(a==="svc-edit"){s.svcEdit={cat:(s.cats&&s.cats[0]&&s.cats[0].id)||"",sel:[],name:""};render();return}
   if(a==="svc-cancel"){s.svcEdit=null;render();return}
   if(a==="svc-cat"){if(s.svcEdit){s.svcEdit.cat=id;render()}return}
@@ -10791,6 +10804,39 @@ h1,h2,h3,h4{font-family:var(--wasla-font);font-weight:700;letter-spacing:0}
 .sv-sug{margin-top:14px;padding:12px;border:1.5px dashed var(--accent);border-radius:14px}.sv-sugrow{display:flex;gap:8px;margin-top:8px}.sv-sugrow input{flex:1;min-width:0}
 .sv-save{display:flex;gap:8px;margin-top:14px}.sv-save button{flex:1;border:0;border-radius:12px;padding:13px;font:800 14px inherit;font-family:inherit;cursor:pointer}.sv-save .g{background:var(--accent);color:var(--text-primary)}.sv-save .l{background:var(--bg-subtle);color:var(--text-primary)}
 .sv-pend{border:1px solid var(--accent)}
+
+.pdb{display:flex;flex-direction:column;gap:14px;padding-top:4px}
+.pdb button{font-family:inherit}
+.pdb-hello{display:flex;align-items:center;gap:12px}.pdb-hello .av{width:52px;height:52px;flex:0 0 52px;border-radius:50%;overflow:hidden;background:#15130f;border:2px solid #d9b25a;display:grid;place-items:center;color:#efe9db}.pdb-hello .av svg{width:30px;height:30px}.pdb-hello .av img{width:100%;height:100%;object-fit:cover}
+.pdb-hello h2{margin:0;font-size:19px}.pdb-hello p{margin:2px 0 0;font-size:12.5px;color:var(--text-secondary)}
+.pdb-sw{margin-inline-start:auto;display:flex;align-items:center;gap:7px;border:0;cursor:pointer;font-size:12px;font-weight:800;padding:6px 10px;border-radius:99px;white-space:nowrap}
+.pdb-sw i{width:34px;height:20px;border-radius:99px;position:relative;transition:background .2s}.pdb-sw i:after{content:"";position:absolute;top:2px;inset-inline-start:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:inset-inline-start .2s}
+.pdb-sw.on{background:color-mix(in srgb,var(--success,#16a34a) 14%,transparent);color:var(--success,#16a34a)}.pdb-sw.on i{background:var(--success,#16a34a)}.pdb-sw.on i:after{inset-inline-start:16px}
+.pdb-sw.off{background:var(--bg-subtle);color:var(--text-secondary)}.pdb-sw.off i{background:var(--border-color)}.pdb-sw.busy{background:color-mix(in srgb,var(--accent) 18%,transparent);color:var(--text-primary);margin-inline-start:auto;padding:6px 12px;border-radius:99px;font-size:12px;font-weight:800}
+.pdb-alert{display:flex;gap:10px;align-items:center;padding:12px 14px;border-radius:16px;border:1px solid var(--accent);background:color-mix(in srgb,var(--accent) 10%,transparent);font-size:13px;font-weight:700;cursor:pointer}.pdb-alert svg{flex:0 0 20px;color:var(--accent)}
+.pdb-wallet{position:relative;overflow:hidden;border-radius:22px;padding:18px;color:#fff;background:linear-gradient(135deg,var(--primary),var(--primary-hover));box-shadow:0 12px 26px color-mix(in srgb,var(--primary) 35%,transparent)}
+.pdb-wallet:after{content:"";position:absolute;inset-inline-end:-30px;top:-30px;width:140px;height:140px;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--accent) 45%,transparent),transparent 70%);pointer-events:none}
+.pdb-wallet small{opacity:.8;font-size:12px}.pdb-wallet>b{display:block;font-size:30px;margin:4px 0 10px;position:relative;z-index:1;min-height:36px}
+.pdb-wrow{display:flex;gap:10px;position:relative;z-index:1}.pdb-wrow div{flex:1;background:rgba(255,255,255,.12);border-radius:14px;padding:9px 11px;font-size:11.5px}.pdb-wrow strong{display:block;font-size:15px;margin-top:2px;min-height:20px}
+.pdb-sk{display:inline-block;width:90px;height:1em;border-radius:8px;background:linear-gradient(90deg,rgba(128,128,128,.18),rgba(128,128,128,.34),rgba(128,128,128,.18));background-size:200% 100%;animation:pdbSk 1.3s linear infinite;vertical-align:middle}
+.pdb-wallet .pdb-sk{background:linear-gradient(90deg,rgba(255,255,255,.12),rgba(255,255,255,.3),rgba(255,255,255,.12));background-size:200% 100%}
+@keyframes pdbSk{to{background-position:-200% 0}}
+.pdb-tiles{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.pdb-t{background:var(--bg-surface);border:1px solid var(--border-color);border-radius:18px;padding:13px}
+.pdb-t .ic{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;color:var(--accent);background:color-mix(in srgb,var(--accent) 18%,transparent)}
+.pdb-t b{display:block;font-size:24px;margin-top:8px}.pdb-t span{font-size:12px;color:var(--text-secondary)}.pdb-t em{font-style:normal;font-size:11px;font-weight:800;color:var(--success,#16a34a);margin-inline-start:6px}
+.pdb-qa{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.pdb-q{background:var(--bg-surface);border:1px solid var(--border-color);border-radius:16px;padding:11px 4px;text-align:center;font-size:11.5px;font-weight:800;color:var(--text-primary);cursor:pointer}.pdb-q i{display:grid;place-items:center;color:var(--accent);margin-bottom:4px}
+.pdb-h{display:flex;justify-content:space-between;align-items:center;margin:2px 0 -4px}.pdb-h h3{margin:0;font-size:16px}.pdb-h button{border:0;background:transparent;font-size:12px;font-weight:800;color:var(--accent);cursor:pointer}
+.pdb-card{background:var(--bg-surface);border:1px solid var(--border-color);border-radius:18px;padding:6px 14px}
+.pdb-req{display:flex;gap:10px;align-items:center;padding:10px 0;border-top:1px solid var(--border-color)}.pdb-req:first-child{border-top:0}
+.pdb-req .d{flex:0 0 40px;height:40px;border-radius:13px;background:var(--bg-subtle);display:grid;place-items:center;color:var(--accent)}
+.pdb-rb{flex:1;min-width:0;border:0;background:transparent;text-align:start;color:var(--text-primary);cursor:pointer;padding:0}.pdb-rb b{display:block;font-size:14px}.pdb-rb small{color:var(--text-secondary);font-size:11.5px}
+.pdb-pill{font-size:11px;font-weight:800;padding:4px 11px;border-radius:99px;border:1px solid var(--accent);background:color-mix(in srgb,var(--accent) 14%,transparent);white-space:nowrap;color:var(--text-primary)}.pdb-pill.go{background:var(--accent);cursor:pointer}
+.pdb-big{font-size:20px}
+.pdb-bars{display:flex;align-items:flex-end;gap:8px;height:96px;margin-top:10px}.pdb-bars>div{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;justify-content:flex-end;height:100%}.pdb-bars span{width:100%;border-radius:8px 8px 4px 4px;background:color-mix(in srgb,var(--accent) 35%,transparent)}.pdb-bars .on span{background:var(--accent)}.pdb-bars small{font-size:10px;color:var(--text-secondary)}
+.pdb-id{border:0;width:100%;border-radius:18px;padding:12px 14px;display:flex;align-items:center;gap:12px;color:#efe9db;text-align:start;cursor:pointer;background:linear-gradient(145deg,#1b1a18,#0b0b0a);box-shadow:inset 0 0 0 1px #2c2a25,inset 0 0 0 5px #0d0c0b,inset 0 0 0 6px rgba(217,178,90,.38)}
+.pdb-id .tx{display:block}.pdb-id b{display:block;font-size:15px;background:linear-gradient(180deg,#fbe7a8,#c99a3d);-webkit-background-clip:text;background-clip:text;color:transparent}.pdb-id small{opacity:.75;font-size:11.5px}.pdb-id code{margin-inline-start:auto;font-size:12px;letter-spacing:2px;color:#d9b25a}.pdb-id .lg{width:30px;height:30px;flex:0 0 30px;overflow:hidden;border-radius:50%;display:block}.pdb-id .lg svg,.pdb-id .lg img{width:100%;height:100%;object-fit:cover}
+@media (prefers-reduced-motion:reduce){.pdb-sk{animation:none}.pdb-sw i,.pdb-sw i:after{transition:none}}
 </style>
 </body></html>
 
