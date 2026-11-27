@@ -2226,6 +2226,8 @@ function msg(){
  return false?'<div id="appNotice" class="notice '+(s.noticeType==="error"?"error":s.noticeType==="success"?"success":"")+'">'+esc(s.notice)+'</div>':"";
 }
 function btn(a,t,k,id,extra){return '<button class="btn '+(k||"")+'" data-a="'+a+'" data-id="'+esc(id||"")+'" '+(extra||"")+'>'+t+'</button>'}
+function payRefresh(){const f=document.getElementById("quoteForm");if(!f)return;const rows=[...f.querySelectorAll(".pay-row")];const add=f.querySelector(".pay-add");if(add)add.style.display=rows.some(x=>x.style.display==="none")?"":"none";const tot=Number((f.querySelector('[name="amount"]')||{}).value||0);let sum=0;rows.forEach(r=>{if(r.style.display!=="none")sum+=Number((r.querySelector('[name^="schedule_amount_"]')||{}).value||0)});const el=document.getElementById("paySum");if(el){if(!sum){el.textContent="";el.className="pay-sum"}else{const ok=Math.abs(sum-tot)<0.005;el.className="pay-sum "+(ok?"ok":"bad");el.textContent=ok?"مجموع الدفعات يساوي الإجمالي ("+sum+")":"مجموع الدفعات "+sum+" من "+tot+(sum<tot?" (متبقي "+(tot-sum)+")":" (زيادة "+(sum-tot)+")")}}}
+document.addEventListener("input",e=>{if(e.target&&e.target.form&&e.target.form.id==="quoteForm")payRefresh()});
 function field(l,n,type,ph,v,req){if(type==="datetime-local")return waslaUI.input(l,n,"datetime",v,req);return '<label class="field">'+l+'<input name="'+n+'" type="'+(type||"text")+'" placeholder="'+esc(ph||"")+'" value="'+esc(v||"")+'" '+(req?"required":"")+'></label>'}
 function select(l,n,opts,v){return '<label class="field">'+l+'<select name="'+n+'">'+opts.map(o=>'<option value="'+esc(o.value)+'" '+(String(o.value)===String(v)?"selected":"")+'>'+esc(o.label)+'</option>').join("")+'</select></label>'}
 function empty(x){return '<div class="empty">'+esc(x)+'</div>'}
@@ -7314,12 +7316,12 @@ if(m.type==="quoteComposer"){
 
  '<section class="section">'+
   '<h4>جدول الدفعات</h4>'+
-  '<p class="muted">يمكن تقسيم المبلغ إلى ثلاث دفعات كحد أقصى في هذا النموذج، ويجب أن يساوي مجموعها إجمالي العرض.</p>'+
+  '<p class="muted">ابدأ بدفعة واحدة، ويمكنك إضافة حتى 3 دفعات. يجب أن يساوي مجموعها إجمالي العرض.</p>'+
 
-  '<div class="item">'+
-   '<b>الدفعة الأولى</b>'+
-   field("المبلغ","schedule_amount_1","number","مبلغ الدفعة الأولى","",true)+
-   field("وصف الدفعة","schedule_label_1","text","مثال: دفعة عند الاتفاق","دفعة عند الاتفاق",true)+
+  '<div class="item pay-row" data-pay="1">'+
+   '<div class="pay-head"><b>الدفعة الأولى</b></div>'+
+   field("المبلغ","schedule_amount_1","number","المبلغ","",true)+
+   field("وصف الدفعة (اختياري)","schedule_label_1","text","","",false)+
    select("موعد استحقاق الدفعة","schedule_event_1",[
     {value:"on_agreement",label:"عند الاتفاق"},
     {value:"on_start",label:"عند بدء التنفيذ"},
@@ -7328,10 +7330,10 @@ if(m.type==="quoteComposer"){
    ],"on_agreement")+
   '</div>'+
 
-  '<div class="item">'+
-   '<b>الدفعة الثانية (اختياري)</b>'+
-   field("المبلغ","schedule_amount_2","number","مبلغ الدفعة الثانية","",false)+
-   field("وصف الدفعة","schedule_label_2","text","وصف الدفعة","",false)+
+  '<div class="item pay-row" data-pay="2" style="display:none">'+
+   '<div class="pay-head"><b>الدفعة الثانية</b><button type="button" class="pay-del" data-a="pay-del" data-id="2">حذف</button></div>'+
+   field("المبلغ","schedule_amount_2","number","المبلغ","",false)+
+   field("وصف الدفعة (اختياري)","schedule_label_2","text","","",false)+
    select("موعد استحقاق الدفعة","schedule_event_2",[
     {value:"on_agreement",label:"عند الاتفاق"},
     {value:"on_start",label:"عند بدء التنفيذ"},
@@ -7340,10 +7342,10 @@ if(m.type==="quoteComposer"){
    ],"on_milestone")+
   '</div>'+
 
-  '<div class="item">'+
-   '<b>الدفعة الثالثة (اختياري)</b>'+
-   field("المبلغ","schedule_amount_3","number","مبلغ الدفعة الثالثة","",false)+
-   field("وصف الدفعة","schedule_label_3","text","وصف الدفعة","",false)+
+  '<div class="item pay-row" data-pay="3" style="display:none">'+
+   '<div class="pay-head"><b>الدفعة الثالثة</b><button type="button" class="pay-del" data-a="pay-del" data-id="3">حذف</button></div>'+
+   field("المبلغ","schedule_amount_3","number","المبلغ","",false)+
+   field("وصف الدفعة (اختياري)","schedule_label_3","text","","",false)+
    select("موعد استحقاق الدفعة","schedule_event_3",[
     {value:"on_agreement",label:"عند الاتفاق"},
     {value:"on_start",label:"عند بدء التنفيذ"},
@@ -7351,6 +7353,9 @@ if(m.type==="quoteComposer"){
     {value:"on_completion",label:"عند اكتمال العمل"}
    ],"on_completion")+
   '</div>'+
+
+  '<button type="button" class="btn pay-add" data-a="pay-add" data-id="">+ إضافة دفعة</button>'+
+  '<div class="pay-sum" id="paySum"></div>'+
  '</section>'+
 
  '<section class="section">'+
@@ -7751,13 +7756,13 @@ if(String(v.currency||"").toUpperCase()!==expectedCurrency)
   const label=String(v["schedule_label_"+i]||"").trim();
   const event=String(v["schedule_event_"+i]||"").trim();
 
-  if(!amount&&!label)continue;
+  if(!amount)continue;
 
   if(!validMoney(amount))
    throw Error("أدخل مبلغًا صحيحًا للدفعة رقم "+i);
 
-  if(!label||label.length>160)
-   throw Error("وصف الدفعة رقم "+i+" مطلوب ولا يتجاوز 160 حرفًا");
+  if(label.length>160)
+   throw Error("وصف الدفعة رقم "+i+" لا يتجاوز 160 حرفًا");
 
   if(!["on_agreement","on_start","on_milestone","on_completion"].includes(event))
    throw Error("موعد استحقاق الدفعة رقم "+i+" غير صحيح");
@@ -7766,7 +7771,7 @@ if(String(v.currency||"").toUpperCase()!==expectedCurrency)
    sequence:paymentSchedule.length+1,
    amount:Number(amount),
    due_event:event,
-   label:label
+   label:label||({on_agreement:"عند الاتفاق",on_start:"عند بدء التنفيذ",on_milestone:"عند إنجاز مرحلة",on_completion:"عند اكتمال العمل"})[event]
   });
  }
 
@@ -8926,6 +8931,8 @@ if(a==="knowledge-view"){
 }
 if(a==="category-open"){s.selectedCategory=id;render();return}
 if(a==="category-back"){s.selectedCategory=null;render();return}
+if(a==="pay-add"){const f=document.getElementById("quoteForm");if(f){const r=[...f.querySelectorAll(".pay-row")].find(x=>x.style.display==="none");if(r){r.style.display="";payRefresh()}}return}
+if(a==="pay-del"){const f=document.getElementById("quoteForm");const r=f&&f.querySelector('.pay-row[data-pay="'+id+'"]');if(r){r.style.display="none";r.querySelectorAll("input").forEach(x=>x.value="");payRefresh()}return}
 if(a==="rq-day"){document.querySelectorAll("#requestForm .rq-day").forEach(b=>b.classList.toggle("on",b.dataset.id===id));const i=document.querySelector('#requestForm [name="sched_day"]');if(i)i.value=id;rqHoursRefresh();return}
 if(a==="rq-hr"){const b=document.querySelector('#requestForm .rq-hr[data-id="'+id+'"]');if(b&&b.disabled)return;document.querySelectorAll("#requestForm .rq-hr").forEach(x=>x.classList.toggle("on",x.dataset.id===id));const i=document.querySelector('#requestForm [name="sched_hour"]');if(i)i.value=id;return}
 if(a==="rq-pick"){const n=document.getElementById(id==="img"?"rqFileImg":id==="vid"?"rqFileVid":"rqFileAud");if(n)n.click();return}
@@ -11037,6 +11044,12 @@ h1,h2,h3,h4{font-family:var(--wasla-font);font-weight:700;letter-spacing:0}
 .rq-file span{font-weight:800;color:var(--accent)}.rq-file b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}.rq-file small{color:var(--text-secondary)}
 .rq-file button{border:0;background:transparent;color:var(--danger);font-size:20px;line-height:1}
 
+
+.pay-head{display:flex;justify-content:space-between;align-items:center}
+.pay-del{background:var(--danger-bg);color:var(--danger);border:1px solid var(--danger);border-radius:10px;padding:4px 12px;font-size:12px;font-weight:700}
+.pay-add{width:100%;margin-top:8px;border:1.5px dashed var(--gold,#c9a24b);background:transparent;color:var(--text-primary)}
+.pay-sum{margin-top:8px;font-size:12.5px;font-weight:700;text-align:center}
+.pay-sum.ok{color:var(--success,#1f9d55)}.pay-sum.bad{color:var(--danger)}
 </style>
 </body></html>
 
