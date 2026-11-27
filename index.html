@@ -1290,153 +1290,64 @@ a:focus-visible{
   outline-offset:3px;
 }
 
-/* WASLA - Welcome Screen */
+/* WASLA - Welcome Screen (bold typography, theme tokens only) */
 .wasla-welcome{
-  position:relative;
-  min-height:100vh;
-  min-height:100dvh;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  padding:30px 20px;
-  text-align:center;
-  overflow:hidden;
-  background:radial-gradient(ellipse at center,var(--bg-subtle),var(--bg-main) 75%);
-  color:var(--text-primary);
+  --w-bg:var(--primary);--w-fg:var(--bg-main);--w-ac:var(--accent);
+  --w-onacw:var(--bg-main);--w-onacs:var(--primary-hover);--w-onbtn:var(--bg-surface);
+  position:relative;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;
+  padding:calc(60px + env(safe-area-inset-top)) max(26px,calc((100% - 440px)/2)) 0;
+  overflow:hidden;background:var(--w-bg);color:var(--w-fg);text-align:start;
 }
-.wasla-welcome > .theme-toggle{
-  position:absolute;
-  top:20px;
-  inset-inline-start:20px;
-  z-index:5;
+:root[data-theme="dark"] .wasla-welcome{--w-bg:var(--bg-main);--w-fg:var(--text-primary);--w-onacw:var(--bg-main);--w-onacs:var(--bg-main);--w-onbtn:var(--bg-main)}
+.wasla-welcome > .theme-toggle{position:absolute;top:20px;inset-inline-end:20px;z-index:6}
+.wasla-welcome .wl3-giant{position:absolute;top:90px;left:-20px;right:-20px;text-align:center;font:800 210px/.8 Tajawal,sans-serif;color:color-mix(in srgb,var(--w-fg) 6%,transparent);white-space:nowrap;pointer-events:none;z-index:1;animation:wl3-drift 14s ease-in-out infinite alternate}
+.wasla-welcome .wl3-orange{position:absolute;inset:0;background:var(--w-ac);z-index:2;pointer-events:none;animation:wl3-oc .6s cubic-bezier(.65,0,.35,1) 2.4s both,wl3-ow .7s cubic-bezier(.65,0,.35,1) 3.2s forwards}
+.wasla-welcome .wl3-slot{position:relative;z-index:3;display:block;width:46px;height:46px;flex:none}
+.wasla-welcome .wl3-final-mark{display:none;width:46px;height:46px}
+.wasla-welcome .wl3-title{position:relative;z-index:3;margin:40px 0 0;font:800 clamp(84px,30vw,118px)/1 Tajawal,sans-serif;color:var(--w-fg);animation:wl3-in .7s cubic-bezier(.2,.8,.2,1) 3.7s both}
+.wasla-welcome .wl3-tag{position:relative;z-index:3;margin:8px 0 0;font:800 26px/1.4 Tajawal,sans-serif;color:var(--w-ac);animation:wl3-up .6s cubic-bezier(.2,.8,.2,1) 3.9s both}
+.wasla-welcome .wl3-row{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);z-index:4;display:flex;direction:ltr;align-items:flex-end;justify-content:center;font-size:clamp(46px,16vw,64px);pointer-events:none}
+.wasla-welcome .wl3-mark{position:relative;display:block;flex:none;width:1.28em;height:1.28em;margin-bottom:.06em;margin-inline-end:-.03em;transform-origin:center;filter:drop-shadow(0 0 8px color-mix(in srgb,var(--w-ac) 55%,transparent));animation:wl3-mark 1.55s 2.4s both}
+.wasla-welcome .wl3-mark .w{fill:none;stroke:var(--w-fg);stroke-width:8;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1;animation:wl3-draw .75s cubic-bezier(.4,0,.2,1) .25s both,wl3-wc 1.55s 2.4s both}
+.wasla-welcome .wl3-mark .s{fill:none;stroke:var(--w-ac);stroke-width:4;stroke-linecap:round;stroke-dasharray:1;animation:wl3-draw .7s cubic-bezier(.4,0,.2,1) .6s both,wl3-sc 1.55s 2.4s both}
+.wasla-welcome .wl3-mark .d{fill:var(--w-ac);transform-box:fill-box;transform-origin:center;animation:wl3-pop .45s cubic-bezier(.34,1.56,.64,1) 1s both,wl3-dc 1.55s 2.4s both}
+.wasla-welcome .wl3-letters{display:flex;align-items:flex-end;animation:wl3-lout .45s ease-in 2.2s both}
+.wasla-welcome .wl3-letters span{display:block;height:1em;line-height:1;font:800 1em/1 Tajawal,sans-serif;letter-spacing:.015em;color:var(--w-fg);animation:wl3-let .45s cubic-bezier(.2,.8,.2,1) calc(1.05s + var(--i)*.16s) both}
+.wasla-welcome .wl3-actions{position:relative;z-index:3;display:grid;gap:10px;margin-top:auto;padding-bottom:calc(42px + env(safe-area-inset-bottom))}
+.wasla-welcome .wl3-actions .btn{display:flex;justify-content:space-between;align-items:center;width:100%;min-height:56px;padding:18px 22px;border-radius:14px;font:800 17px Tajawal,sans-serif;border:1.5px solid transparent;animation:wl3-spring .7s cubic-bezier(.34,1.56,.64,1) calc(4s + var(--i)*.2s) both}
+.wasla-welcome .wl3-actions .btn:after{content:"←";font-weight:800}
+.wasla-welcome .wl3-actions .btn.wl3-b1{background:var(--w-ac)!important;color:var(--w-onbtn)!important;border-color:transparent!important}
+.wasla-welcome .wl3-actions .btn.wl3-b2{background:var(--w-fg)!important;color:var(--w-bg)!important;border-color:transparent!important}
+.wasla-welcome .wl3-actions .btn.wl3-b3{background:transparent!important;color:var(--w-fg)!important;border-color:color-mix(in srgb,var(--w-fg) 38%,transparent)!important}
+@keyframes wl3-drift{from{transform:translateX(-30px)}to{transform:translateX(30px)}}
+@keyframes wl3-oc{from{clip-path:circle(0 at 50% 50%)}to{clip-path:circle(150vmax at 50% 50%)}}
+@keyframes wl3-ow{to{transform:translateY(-101%)}}
+@keyframes wl3-draw{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}
+@keyframes wl3-pop{from{transform:scale(0)}to{transform:scale(1)}}
+@keyframes wl3-let{
+  0%{opacity:0;transform:translateY(16px) scale(.85);filter:blur(8px);text-shadow:0 0 0 transparent}
+  60%{text-shadow:0 0 22px var(--w-ac)}
+  100%{opacity:1;transform:none;filter:none;text-shadow:0 0 6px color-mix(in srgb,var(--w-fg) 35%,transparent)}
 }
-.wasla-welcome .welcome-wordmark{
-  position:relative;
-  display:block;
-  width:100%;
-  height:130px;
-  flex:0 0 130px;
-  direction:ltr;
-  overflow:visible;
+@keyframes wl3-lout{to{opacity:0;filter:blur(4px)}}
+@keyframes wl3-mark{
+  0%{transform:none;animation-timing-function:cubic-bezier(.65,0,.35,1)}
+  45%,58%{transform:translate(var(--dx1,0px),var(--dy1,0px)) scale(var(--s1,1))}
+  58%{animation-timing-function:cubic-bezier(.65,0,.35,1)}
+  100%{transform:translate(var(--dx2,0px),var(--dy2,0px)) scale(var(--s2,1))}
 }
-
-.wasla-welcome .welcome-logo{
-  position:absolute;
-  left:50%;
-  top:50%;
-  width:110px;
-  height:110px;
-  margin:0;
-  transform:translate(calc(-50% - 120px),-50%);
-  filter:drop-shadow(0 0 18px color-mix(in srgb,var(--accent) 35%,transparent));
-  animation:welcomeLogoCenter 5.85s cubic-bezier(.2,.75,.25,1) forwards;
-}
-.wasla-welcome .welcome-elcome{
-  position:absolute;
-  left:calc(50% - 60px);
-  top:50%;
-  display:flex;
-  flex-direction:row;
-  align-items:center;
-  justify-content:flex-start;
-  gap:3px;
-  transform:translateY(-50%);
-  white-space:nowrap;
-  direction:ltr;
-  color:var(--text-primary);
-  font-family:Tajawal,sans-serif;
-  font-size:clamp(48px,10vw,72px);
-  font-weight:800;
-  letter-spacing:0;
-  transform-origin:left center;
-  animation:welcomeTextClose 5.85s ease-in forwards;
+@keyframes wl3-wc{0%,12%{stroke:var(--w-fg)}32%,58%{stroke:var(--w-onacw)}90%,100%{stroke:var(--w-fg)}}
+@keyframes wl3-sc{0%,12%{stroke:var(--w-ac)}32%,58%{stroke:var(--w-onacs)}90%,100%{stroke:var(--w-ac)}}
+@keyframes wl3-dc{0%,12%{fill:var(--w-ac)}32%,58%{fill:var(--w-onacs)}90%,100%{fill:var(--w-ac)}}
+@keyframes wl3-in{from{opacity:0;transform:translateX(-40px);filter:blur(6px)}to{opacity:1;transform:none;filter:none}}
+@keyframes wl3-up{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+@keyframes wl3-spring{from{opacity:0;transform:translateY(50px) scale(.92)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){
+  .wasla-welcome *{animation:none!important;transition:none!important}
+  .wasla-welcome .wl3-row,.wasla-welcome .wl3-orange{display:none}
+  .wasla-welcome .wl3-final-mark{display:block}
 }
 
-.wasla-welcome .welcome-elcome span{
-  display:block;
-  position:relative;
-  flex:0 0 auto;
-  min-width:.55em;
-  text-align:center;
-  line-height:1.2;
-  animation:welcomeLetterWave 1.35s ease-in-out infinite;
-}
-
-.wasla-welcome .welcome-elcome span:nth-child(1){animation-delay:0s}
-.wasla-welcome .welcome-elcome span:nth-child(2){animation-delay:.12s}
-.wasla-welcome .welcome-elcome span:nth-child(3){animation-delay:.24s}
-.wasla-welcome .welcome-elcome span:nth-child(4){animation-delay:.36s}
-.wasla-welcome .welcome-elcome span:nth-child(5){animation-delay:.48s}
-.wasla-welcome .welcome-elcome span:nth-child(6){animation-delay:.60s}
-.wasla-welcome .welcome-name{
-  margin:0;
-  color:var(--text-primary);
-  font:800 clamp(38px,8vw,58px) Tajawal,sans-serif;
-  opacity:0;
-  animation:waslaWelcomeText .7s ease 5.05s forwards;
-}
-
-.wasla-welcome .welcome-en{
-  color:var(--accent);
-  font:700 12px Arial,sans-serif;
-  letter-spacing:6px;
-  margin-top:3px;
-  opacity:0;
-  animation:waslaWelcomeText .7s ease 5.35s forwards;
-}
-
-.wasla-welcome .welcome-tagline{
-  color:var(--text-secondary);
-  margin:12px 0 30px;
-  font-size:15px;
-  opacity:0;
-  animation:waslaWelcomeText .7s ease 5.55s forwards;
-}
-
-.wasla-welcome .welcome-actions{
-  display:flex;
-  justify-content:center;
-  flex-wrap:wrap;
-  gap:12px;
-  opacity:0;
-  animation:waslaWelcomeText .7s ease 5.75s forwards;
-}
-
-.wasla-welcome .welcome-actions .btn{
-  min-width:155px;
-  min-height:48px;
-}
-
-@keyframes welcomeLetterWave{
-  0%,100%{transform:translateY(0)}
-  25%{transform:translateY(-13px)}
-  50%{transform:translateY(2px)}
-  75%{transform:translateY(-7px)}
-}
-
-@keyframes welcomeTextClose{
-  0%,82%{
-    opacity:1;
-    transform:translateY(-50%) scaleX(1);
-    max-width:400px;
-  }
-  100%{
-    opacity:0;
-    transform:translateY(-50%) scaleX(0);
-    max-width:0;
-  }
-}
-
-@keyframes welcomeLogoCenter{
-  0%,82%{transform:translate(calc(-50% - 120px),-50%)}
-  100%{transform:translate(-50%,-50%)}
-}
-
-@keyframes waslaWelcomeText{
-  from{opacity:0;transform:translateY(14px)}
-  to{opacity:1;transform:translateY(0)}
-}
 
 }
  /* WASLA — Trust & Poise UI Foundation */
@@ -2694,6 +2605,15 @@ function providerCard(p){
  '</article>';
 }
       
+function availRow(p){
+ const names=(p.provider_services||[]).filter(x=>x.is_active).map(x=>x.services?.name_ar).filter(Boolean).slice(0,2).join(" · ");
+ return '<article class="wl-avail">'+
+  '<span class="wl-avail-av">'+esc((p.display_name||"م").trim().slice(0,1))+'</span>'+
+  '<div class="wl-avail-tx"><small>'+esc(names||"مزوّد خدمة")+'</small><b>'+esc(p.display_name||"مزوّد خدمة")+'</b>'+
+  '<span>⭐ '+fmt(p.average_rating||0)+' · <i class="wl-avail-dot"></i>متاح الآن</span></div>'+
+  btn("request","اطلب الخدمة","gold",p.id)+
+ '</article>';
+}
 function landing(isCustomer=s.profile?.role==="customer"){
  const selected=s.cats.find(c=>c.id===s.selectedCategory);
  const categories=s.cats.map(c=>
@@ -2714,6 +2634,12 @@ const query=nrm(s.filter||"");
   .sort((a,b)=>Number(b.average_rating||0)-Number(a.average_rating||0));
  const providers=(query?provShown:provShown.slice(0,4)).map(providerCard).join("")||empty(query?"لا يوجد مزوّدون مطابقون لبحثك":"لا يوجد مزوّدون معتمدون حاليًا");
  const catHits=query&&!selected?s.cats.filter(c=>nrm(c.name_ar).includes(query)):[];
+ const roles=(!query&&!selected&&!s.user)?'<section class="wl-roles" aria-label="ابدأ كـ">'+
+  '<button type="button" class="wl-role first" data-a="rolestart" data-id="provider"><span class="wl-role-ic">🛠️</span><span class="wl-role-tx"><b>أنا فني</b><small>قدّم خدماتك واستقبل طلبات العملاء</small></span><span class="wl-role-ar">←</span></button>'+
+  '<button type="button" class="wl-role" data-a="rolestart" data-id="customer"><span class="wl-role-ic">🙋</span><span class="wl-role-tx"><b>أنا عميل</b><small>اطلب خدمة من مزوّدين معتمدين</small></span><span class="wl-role-ar">←</span></button>'+
+  '</section>':"";
+ const availRows=provShown.filter(p=>p.is_available).slice(0,4).map(availRow).join("");
+ const topProviders=provShown.slice(0,6).map(providerCard).join("")||empty("لا يوجد مزوّدون معتمدون حاليًا");
  const resultsView='<section class="wl-section wl-results" id="searchResults"><div class="wl-heading"><h2>نتائج البحث عن «'+esc((s.filter||"").trim())+'»</h2><p>'+fmt(shown.length)+' خدمة · '+fmt(provShown.length)+' مزوّد</p></div>'+
   (catHits.length?'<div class="wl-categories" style="margin-bottom:14px">'+catHits.map(c=>'<button class="wl-category" data-a="category-open" data-id="'+esc(c.id)+'"><span class="wl-category-icon">'+esc(c.icon||"✦")+'</span><b>'+esc(c.name_ar)+'</b><small>'+fmt(s.services.filter(x=>x.category_id===c.id).length)+' خدمة</small></button>').join("")+'</div>':"")+
   '<div class="wl-heading"><h2>الخدمات</h2></div><div class="wl-cards">'+services+'</div>'+
@@ -2816,7 +2742,36 @@ const query=nrm(s.filter||"");
  '.wasla-landing .wl-hero,.wasla-landing .wl-category{animation:wl-rise .45s ease both}'+
  '@media(max-width:650px){.wasla-landing .wl-categories{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.wasla-landing .wl-cards{gap:9px}.wasla-landing .wl-hero{min-height:225px;padding:24px 19px}}'+
  '@media(max-width:380px){.wasla-landing .wl-categories{grid-template-columns:repeat(2,minmax(0,1fr))}.wasla-landing .wl-cards{grid-template-columns:1fr}.wasla-landing .wl-provider-grid{grid-template-columns:1fr}}'+
- '@media(prefers-reduced-motion:reduce){.wasla-landing *{animation:none!important;transition:none!important}}'+
+ '.wasla-landing{--on-acc:var(--bg-surface);--glass:linear-gradient(160deg,color-mix(in srgb,var(--bg-surface) 84%,transparent),color-mix(in srgb,var(--bg-surface) 46%,transparent));--glass-bd:color-mix(in srgb,var(--accent) 26%,var(--border-color));position:relative}'+
+'.wasla-landing:before{content:"";position:absolute;inset:0;pointer-events:none;z-index:0;background:radial-gradient(520px 360px at 92% 0,color-mix(in srgb,var(--primary) 18%,transparent),transparent),radial-gradient(440px 320px at 0 38%,color-mix(in srgb,var(--accent) 13%,transparent),transparent)}'+
+'.wasla-landing>*{position:relative;z-index:1}'+
+':root[data-theme="dark"] .wasla-landing{--on-acc:var(--bg-main)}'+
+'.wasla-landing .btn.gold{background:linear-gradient(90deg,var(--accent),color-mix(in srgb,var(--accent) 70%,var(--primary)))!important;color:var(--on-acc)!important}'+
+'.wasla-landing .wl-roles{display:grid;gap:10px;margin:14px 0 4px}'+
+'.wasla-landing .wl-role{display:flex;align-items:center;gap:12px;width:100%;padding:13px;border-radius:20px;border:1px solid var(--glass-bd);background:var(--glass);color:var(--text-primary);font-family:Tajawal,sans-serif;text-align:start;cursor:pointer;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);transition:transform .2s,border-color .2s}'+
+'.wasla-landing .wl-role.first{background:linear-gradient(135deg,color-mix(in srgb,var(--primary) 34%,var(--bg-surface)),color-mix(in srgb,var(--accent) 16%,var(--bg-surface)));border-color:color-mix(in srgb,var(--accent) 55%,var(--border-color))}'+
+'.wasla-landing .wl-role:active{transform:scale(.98)}'+
+'.wasla-landing .wl-role-ic{width:50px;height:50px;border-radius:16px;background:var(--border-color);display:grid;place-items:center;font-size:24px;flex:none}'+
+'.wasla-landing .wl-role.first .wl-role-ic{background:linear-gradient(145deg,var(--accent),color-mix(in srgb,var(--accent) 60%,var(--primary)))}'+
+'.wasla-landing .wl-role-tx{flex:1;min-width:0}.wasla-landing .wl-role-tx b{display:block;font:800 15px Tajawal}.wasla-landing .wl-role-tx small{display:block;margin-top:2px;font-size:11px;color:var(--text-secondary)}'+
+'.wasla-landing .wl-role-ar{color:var(--accent);font-weight:800}'+
+'.wasla-landing .wl-search input{background:var(--glass);border-color:var(--glass-bd)}'+
+'.wasla-landing .wl-categories{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x proximity;padding:4px 2px 8px;scrollbar-width:none}.wasla-landing .wl-categories::-webkit-scrollbar{display:none}'+
+'.wasla-landing .wl-category{flex:0 0 84px;width:84px;min-height:0;padding:8px 4px;background:transparent;border:0;box-shadow:none;scroll-snap-align:start}'+
+'.wasla-landing .wl-category:hover{transform:translateY(-3px);border:0}'+
+'.wasla-landing .wl-category-icon{width:58px;height:58px;border-radius:19px;font-size:28px;background:var(--glass);border:1px solid var(--glass-bd)}'+
+'.wasla-landing .wl-category b{font-size:11.5px}'+
+'@media(min-width:900px){.wasla-landing .wl-categories{flex-wrap:wrap;overflow:visible}}'+
+'.wasla-landing .wl-cards>.card,.wasla-landing .wl-provider-card{background:var(--glass)!important;border:1px solid var(--glass-bd)!important;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}'+
+'.wasla-landing .wl-provider-grid.wl-rail{display:flex;gap:14px;overflow-x:auto;scroll-snap-type:x proximity;padding:2px 2px 10px;scrollbar-width:none}.wasla-landing .wl-provider-grid.wl-rail::-webkit-scrollbar{display:none}'+
+'.wasla-landing .wl-provider-grid.wl-rail>.wl-provider-card{flex:0 0 min(300px,82%);scroll-snap-align:start}'+
+'.wasla-landing .wl-avail-list{display:grid;gap:12px}'+
+'.wasla-landing .wl-avail{display:flex;align-items:center;gap:14px;padding:12px;border-radius:22px;border:1px solid var(--glass-bd);background:var(--glass);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}'+
+'.wasla-landing .wl-avail-av{width:56px;height:56px;border-radius:18px;flex:none;display:grid;place-items:center;font:800 24px Tajawal;background:linear-gradient(145deg,color-mix(in srgb,var(--primary) 40%,var(--bg-surface)),color-mix(in srgb,var(--accent) 22%,var(--bg-surface)));color:var(--text-primary)}'+
+'.wasla-landing .wl-avail-tx{flex:1;min-width:0}.wasla-landing .wl-avail-tx small{display:block;color:var(--accent);font-size:11px;font-weight:800}.wasla-landing .wl-avail-tx b{display:block;font:800 15px Tajawal;margin:2px 0 4px}.wasla-landing .wl-avail-tx span{font-size:12px;color:var(--text-secondary)}'+
+'.wasla-landing .wl-avail-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--success);margin-inline-end:4px}'+
+'.wasla-landing .wl-avail .btn{flex:none;min-height:44px;padding:8px 12px;font-size:12px;line-height:1.3}'+
+'@media(prefers-reduced-motion:reduce){.wasla-landing *{animation:none!important;transition:none!important}}'+
  '</style>'+
  header(
  selected?selected.name_ar:"اكتشف الخدمات ومزوّدي الخدمة المعتمدين",
@@ -2824,12 +2779,12 @@ const query=nrm(s.filter||"");
  isCustomer
 )+
 '<main class="wrap wasla-landing '+(isCustomer?"wasla-customer-shell":"")+'">'+
-'<div class="wl-search"><svg class="wl-s-ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="search" type="search" enterkeyhint="search" autocomplete="off" placeholder="ابحث عن خدمة أو تخصص أو مزوّد..." value="'+esc(s.filter||"")+'" aria-label="البحث عن الخدمات">'+((s.filter||"").length?'<button type="button" class="wl-s-x" data-a="search-clear" aria-label="مسح البحث">×</button>':"")+'</div>'+
+roles+'<div class="wl-search"><svg class="wl-s-ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="search" type="search" enterkeyhint="search" autocomplete="off" placeholder="ابحث عن خدمة أو تخصص أو مزوّد..." value="'+esc(s.filter||"")+'" aria-label="البحث عن الخدمات">'+((s.filter||"").length?'<button type="button" class="wl-s-x" data-a="search-clear" aria-label="مسح البحث">×</button>':"")+'</div>'+
  (query&&!selected?resultsView:selected?
   '<div style="margin-bottom:15px">'+btn("category-back","← كل الأقسام","light")+'</div>'+
   '<section class="wl-section"><div class="wl-heading"><h2>خدمات قسم '+esc(selected.name_ar)+'</h2><p>الخدمات المتاحة داخل هذا القسم</p></div><div class="wl-cards">'+services+'</div></section>'
  :
-  '<section class="wl-hero"><div class="wl-hero-content"><div class="wl-eyebrow">✦ منصتك للخدمات في مكان واحد</div><h1>كل اللي محتاجه، <span>تلاقيه في وصلة.</span></h1><p>اكتشف خدمات ومزوّدي خدمة في مصر، قارن اختياراتك، وابدأ طلبك بسهولة.</p>'+btn("showauth","ابدأ الآن","gold")+'</div></section>'+
+
   '<section class="wl-section"><div class="wl-heading"><h2>اكتشف الأقسام</h2><p>كل التخصصات في مكان واحد — اختار وابدأ</p></div><div class="wl-categories">'+categories+'</div></section>'+
   '<section class="wl-ad-slot">'+
  '<div class="wl-ad-content">'+
@@ -2847,7 +2802,8 @@ const query=nrm(s.filter||"");
 '</section>'+
   '<section class="wl-section"><div class="wl-heading"><h2>خدمات مختارة</h2><p>خدمات متاحة تقدر تبدأ بطلبها</p></div><div class="wl-cards">'+services+'</div></section>'+
   '<section class="wl-trust"><div class="wl-trust-item"><strong>اختيارات متنوعة</strong><span>أقسام وخدمات متعددة</span></div><div class="wl-trust-item"><strong>مزوّدون معتمدون</strong><span>ملفات واضحة وتقييمات</span></div><div class="wl-trust-item"><strong>طلب أسهل</strong><span>ابدأ من مكان واحد</span></div></section>'+
-  '<section class="wl-section"><div class="wl-heading"><h2>مزوّدو الخدمة المميزون</h2><p>الأعلى تقييمًا من المزوّدين المعتمدين</p></div><div class="wl-provider-grid">'+providers+'</div></section>'+
+  '<section class="wl-section"><div class="wl-heading"><h2>الأعلى تقييمًا</h2><p>الأعلى تقييمًا من المزوّدين المعتمدين</p></div><div class="wl-provider-grid wl-rail">'+topProviders+'</div></section>'+
+  (availRows?'<section class="wl-section"><div class="wl-heading"><h2>متاحين الآن</h2><p>مزوّدون جاهزون لاستقبال طلبك</p></div><div class="wl-avail-list">'+availRows+'</div></section>':"")+
   '<section class="wl-bottom"><h2>جاهز تبدأ مع وصلة؟</h2><p>أنشئ حسابك واكتشف الخدمات المناسبة ليك.</p>'+btn("showauth","انضم إلى وصلة","gold")+'</section>'
  )+
   '</main>'+
@@ -2855,26 +2811,35 @@ const query=nrm(s.filter||"");
 }
 
       function welcomeView(){
- return '<main class="wasla-welcome">'+
- '<div class="welcome-wordmark">'+
- '<svg class="welcome-logo" viewBox="0 0 64 64" aria-label="W">'+
- '<path d="M7 17 L19 46 L31 25 L43 46 L57 17" fill="none" stroke="var(--text-primary)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>'+
- '<path d="M5 39 C17 57 46 9 59 27" fill="none" stroke="#D6A642" stroke-width="4" stroke-linecap="round"/>'+
- '<circle cx="55" cy="15" r="5" fill="#D6A642"/>'+
- '</svg>'+
- '<span class="welcome-elcome"><span>e</span><span>l</span><span>c</span><span>o</span><span>m</span><span>e</span></span>'+
- '</div>'+
- '<h1 class="welcome-name">وصلة</h1>'+
- '<div class="welcome-en">WASLA</div>'+
- '<p class="welcome-tagline">كل خدمة تبدأ باتصال</p>'+
- '<div class="welcome-actions">'+
- btn("mode","تسجيل الدخول","gold","login")+
- btn("mode","إنشاء حساب","light","signup")+
- btn("showexplore","استكشف الخدمات","light")+
+ return '<main class="wasla-welcome wl3">'+
+ '<div class="wl3-giant" aria-hidden="true">وصلة</div>'+
+ '<div class="wl3-orange" aria-hidden="true"></div>'+
+ '<span class="wl3-slot"><svg class="wl3-final-mark" viewBox="0 0 64 64" aria-hidden="true"><path d="M7 17 L19 46 L31 25 L43 46 L57 17" fill="none" stroke="var(--w-fg)" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 39 C17 57 46 9 59 27" fill="none" stroke="var(--w-ac)" stroke-width="4" stroke-linecap="round"/><circle cx="55" cy="15" r="5" fill="var(--w-ac)"/></svg></span>'+
+ '<h1 class="wl3-title">وصلة</h1>'+
+ '<p class="wl3-tag">كل خدمة<br>تبدأ باتصال.</p>'+
+ '<div class="wl3-row" aria-label="Welcome"><span class="wl3-mark"><svg class="wl3-svg" viewBox="0 0 64 64" aria-hidden="true" style="width:100%;height:100%;overflow:visible;display:block"><path class="w" pathLength="1" d="M7 17 L19 46 L31 25 L43 46 L57 17"/><path class="s" pathLength="1" d="M5 39 C17 57 46 9 59 27"/><circle class="d" cx="55" cy="15" r="5"/></svg></span>'+
+ '<span class="wl3-letters" aria-hidden="true">'+["e","l","c","o","m","e"].map((c,i)=>'<span style="--i:'+i+'">'+c+'</span>').join("")+'</span></div>'+
+ '<div class="wl3-actions">'+
+ btn("mode","تسجيل الدخول","wl3-b1","login",'style="--i:0"')+
+ btn("mode","إنشاء حساب","wl3-b2","signup",'style="--i:1"')+
+ btn("showexplore","استكشاف الخدمات","wl3-b3","",'style="--i:2"')+
  '</div>'+
  '</main>';
  }
-
+ function waslaSplashFit(){
+  const root=document.querySelector(".wasla-welcome.wl3");if(!root)return;
+  const m=root.querySelector(".wl3-mark"),row=root.querySelector(".wl3-row"),sl=root.querySelector(".wl3-slot");if(!m||!row||!sl)return;
+  const rr=row.getBoundingClientRect(),q=sl.getBoundingClientRect(),R=root.getBoundingClientRect();
+  const w=m.offsetWidth;if(!w)return;
+  const cx=rr.left+m.offsetLeft+w/2,cy=rr.top+m.offsetTop+m.offsetHeight/2;
+  m.style.setProperty("--dx1",(R.left+R.width/2-cx)+"px");m.style.setProperty("--dy1",(R.top+R.height/2-cy)+"px");
+  m.style.setProperty("--s1",String(Math.min(R.width*.84,340)/w));
+  m.style.setProperty("--dx2",(q.left+q.width/2-cx)+"px");m.style.setProperty("--dy2",(q.top+q.height/2-cy)+"px");
+  m.style.setProperty("--s2",String(q.width/w));
+ }
+ (function(){let t=0;const go=()=>{clearTimeout(t);t=setTimeout(waslaSplashFit,0)};
+  new MutationObserver(go).observe(document.body,{childList:true,subtree:true});
+  window.addEventListener("resize",go);if(document.fonts&&document.fonts.ready)document.fonts.ready.then(go);go()})();
 
 function fmtDateAr(x){try{return new Date(x).toLocaleString("ar-EG",{dateStyle:"medium",timeStyle:"short"})}catch(_){return ""}}
 function paymentsView(){
@@ -8888,6 +8853,7 @@ if(a==="showexplore"){s.mode="explore";render();return}
 if(a==="showadmin"){s.mode="app";s.tab="home";render();return}
   if(a==="showadmin"){s.mode="app";s.tab="home";render();return}
   if(a==="mode"){s.mode=id;s.notice="";render();return}
+  if(a==="rolestart"){s.mode="signup";s.type=id==="provider"?"provider":"customer";s.notice="";render();return}
 if(a==="tab"){
  if(id==="audit"&&s.profile?.role!=="owner")return;
  s.tab=id;
