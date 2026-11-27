@@ -3700,6 +3700,39 @@ function wcFile(m,url){
  },true));
  document.addEventListener("keydown",e=>{if(e.key==="Escape"){const o=document.querySelector(".wc-lb");if(o)o.remove()}});
 })();
+const WC_ICO_MIC='<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><rect x="9" y="2" width="6" height="13" rx="3" fill="currentColor"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4m-4 0h8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
+const WC_ICO_SEND='<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M3 20l18-8L3 4v6l11 2-11 2z" fill="currentColor" style="transform-origin:center;transform:scaleX(-1)"/></svg>';
+let wcRecTimer=null;
+function wcRecUi(on){
+ const r=document.getElementById("wcRec"),t=document.getElementById("wcRecT"),form=document.getElementById("sendMessage");
+ clearInterval(wcRecTimer);wcRecTimer=null;
+ if(form)form.classList.toggle("wc-recording",!!on);
+ if(!r)return;
+ r.hidden=!on;
+ if(on){const t0=Date.now();if(t)t.textContent="0:00";wcRecTimer=setInterval(()=>{const el=document.getElementById("wcRecT");if(!el){clearInterval(wcRecTimer);return}el.textContent=wcDur((Date.now()-t0)/1000)},500)}
+}
+function wcSyncAction(){
+ const b=document.getElementById("chatMicButton"),f=document.getElementById("sendMessage");
+ if(!b||!f||b.classList.contains("is-recording"))return;
+ const ta=f.querySelector("textarea"),pv=document.getElementById("chatAttachmentPreview");
+ const has=!!(ta&&ta.value.trim())||!!(pv&&pv.style.display!=="none"&&pv.children.length);
+ const mode=has?"send":"mic";
+ if(b.dataset.mode===mode&&b.innerHTML.trim())return;
+ b.dataset.mode=mode;
+ b.innerHTML=has?WC_ICO_SEND:WC_ICO_MIC;
+ b.setAttribute("aria-label",has?"إرسال":"بدء التسجيل");
+}
+document.addEventListener("input",e=>{
+ const ta=e.target;
+ if(ta&&ta.matches&&ta.matches("#sendMessage textarea")){ta.style.height="auto";ta.style.height=Math.min(ta.scrollHeight,120)+"px";wcSyncAction()}
+});
+document.addEventListener("click",e=>{
+ const sh=document.getElementById("wcSheet"),at=e.target.closest&&e.target.closest("#wcAttach");
+ if(!sh)return;
+ if(at){sh.hidden=!sh.hidden;at.setAttribute("aria-expanded",String(!sh.hidden));return}
+ if(!sh.hidden&&(e.target.closest("#wcSheet label,#wcSheet button")||!e.target.closest("#wcSheet"))){sh.hidden=true;const a=document.getElementById("wcAttach");if(a)a.setAttribute("aria-expanded","false")}
+});
+setInterval(wcSyncAction,350);
 function wcTick(read){
  return '<svg viewBox="0 0 16 11" width="16" height="11" aria-hidden="true"><path d="M1.5 5.8 4.8 9 11.5 1.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>'+(read?'<path d="M6.5 8.2 7.4 9 14.5 1.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>':'')+'</svg>';
 }
@@ -3798,35 +3831,25 @@ return '<section class="section wc-section">'+
     '<p class="small" style="margin:5px 0 0">انتهى الطلب، يمكنك الاطلاع على سجل الرسائل ولكن لا يمكن إرسال رسائل جديدة.</p>'+
    '</div>'
   
-: '<form id="sendMessage" class="wasla-chat-form" style="margin-top:14px;padding:10px;border:1px solid var(--border-color);border-radius:18px;background:var(--bg-subtle)">'+
+: '<form id="sendMessage" class="wasla-chat-form wc-form">'+
   '<div id="chatAttachmentPreview" class="wasla-chat-preview" style="display:none"></div>'+
-  
-'<div id="chatDropZone" class="wasla-chat-composer">'+
-  '<div class="wasla-chat-entry">'+
-    '<button class="wasla-send-icon" type="submit" aria-label="إرسال الرسالة">'+
-      '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15M13 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'+
-    '</button>'+
-    '<textarea name="message_text" rows="1" placeholder="اكتب رسالة" style="flex:1;min-width:0;min-height:42px;max-height:120px;resize:none;overflow-y:auto;border:0;outline:0;background:transparent;box-shadow:none;padding:10px 4px;line-height:1.6"></textarea>'+
-    '<label for="chatMediaInput" class="wasla-attach-button" title="إرفاق ملف" aria-label="إرفاق ملف">'+
-      '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 12.5 14.5 6a4 4 0 0 1 5.7 5.7l-8.5 8.5a6 6 0 0 1-8.5-8.5l8-8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>'+
-    '</label>'+
-    '<label for="chatCameraInput" class="wasla-attach-button" title="فتح الكاميرا" aria-label="فتح الكاميرا">'+
-      '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h4l2-3h6l2 3h4v13H3z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="13" r="4" fill="none" stroke="currentColor" stroke-width="2"/></svg>'+
-    '</label>'+
- 
-    '<button id="chatLocationButton" class="wasla-attach-button" type="button" title="إرسال موقعي" aria-label="إرسال موقعي">'+
-      '<svg viewBox="0 0 24 24" aria-hidden="true">'+
-        '<path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>'+
-        '<circle cx="12" cy="10" r="2.5" fill="none" stroke="currentColor" stroke-width="2"/>'+
-      '</svg>'+
-    '</button>'+
-     '</div>'+
-  '<input id="chatMediaInput" type="file" accept="image/*,video/*" style="display:none">'+
-  '<input id="chatCameraInput" type="file" accept="image/*" capture="environment" style="display:none">'+
-  '<button id="chatMicButton" class="wasla-mic-button" type="button" aria-label="بدء التسجيل" title="بدء التسجيل">'+
-    '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="2" width="6" height="13" rx="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4m-4 0h8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>'+
-  '</button>'+
-'</div>'+
+  '<div id="wcSheet" class="wc-sheet" hidden>'+
+    '<label for="chatMediaInput" class="wc-sh-i"><span class="wc-sh-c" style="--c:#7F66FF"><svg viewBox="0 0 24 24" width="24" height="24"><rect x="3" y="4" width="18" height="16" rx="3" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="9" cy="10" r="1.8" fill="currentColor"/><path d="M4 18l5-5 4 4 3-3 4 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg></span><b>صورة أو فيديو</b></label>'+
+    '<label for="chatCameraInput" class="wc-sh-i"><span class="wc-sh-c" style="--c:#E0533D"><svg viewBox="0 0 24 24" width="24" height="24"><path d="M4 8h3l2-3h6l2 3h3v11H4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="13" r="3.5" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></span><b>الكاميرا</b></label>'+
+    '<button id="chatLocationButton" type="button" class="wc-sh-i"><span class="wc-sh-c" style="--c:#1FA971"><svg viewBox="0 0 24 24" width="24" height="24"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="10" r="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></span><b>موقعي</b></button>'+
+  '</div>'+
+  '<div id="chatDropZone" class="wc-bar">'+
+    '<div class="wc-cap">'+
+      '<textarea name="message_text" rows="1" maxlength="2000" placeholder="اكتب رسالة" aria-label="اكتب رسالة"></textarea>'+
+      '<div id="wcRec" class="wc-rec" hidden><i></i><span id="wcRecT">0:00</span><em>جارٍ التسجيل... اضغط للإيقاف</em></div>'+
+      '<button type="button" class="wc-ico" id="wcAttach" aria-label="إرفاق" aria-expanded="false"><svg viewBox="0 0 24 24" width="24" height="24"><path d="M8 12.5 14.5 6a4 4 0 0 1 5.7 5.7l-8.5 8.5a6 6 0 0 1-8.5-8.5l8-8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>'+
+      '<label for="chatCameraInput" class="wc-ico" aria-label="كاميرا"><svg viewBox="0 0 24 24" width="24" height="24"><path d="M4 8h3l2-3h6l2 3h3v11H4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="13" r="3.5" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></label>'+
+    '</div>'+
+    '<button class="wasla-send-icon" type="submit" aria-label="إرسال الرسالة" hidden></button>'+
+    '<input id="chatMediaInput" type="file" accept="image/*,video/*" style="display:none">'+
+    '<input id="chatCameraInput" type="file" accept="image/*" capture="environment" style="display:none">'+
+    '<button id="chatMicButton" class="wasla-mic-button wc-act" type="button" aria-label="بدء التسجيل" title="تسجيل رسالة صوتية"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><rect x="9" y="2" width="6" height="13" rx="3" fill="currentColor"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4m-4 0h8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>'+
+  '</div>'+
 '</form>'
     
 )+
@@ -7956,8 +7979,10 @@ function resetChatMicButton(){
  const button=document.getElementById("chatMicButton");
  if(!button)return;
 
- button.textContent="🎙️";
- button.title="اضغط لبدء التسجيل";
+ button.title="تسجيل رسالة صوتية";
+ button.classList.remove("is-recording");
+ wcRecUi(false);
+ wcSyncAction();
  button.setAttribute("aria-label","بدء التسجيل");
  button.style.background="";
  button.style.color="";
@@ -7968,6 +7993,11 @@ app.addEventListener("click",async e=>{
  if(!button)return;
 
  e.preventDefault();
+ if(button.dataset.mode==="send"){
+  const f=document.getElementById("sendMessage");
+  if(f&&f.requestSubmit)f.requestSubmit();
+  return;
+ }
 
  // الضغطة الثانية أثناء انتظار إذن الميكروفون
  if(chatMicStarting){
@@ -7990,7 +8020,6 @@ app.addEventListener("click",async e=>{
  chatMicStopRequested=false;
  chatMicHaptic();
 
- button.textContent="…";
  button.title="جاري تشغيل الميكروفون — اضغط للإلغاء";
 
  let stream=null;
@@ -8103,10 +8132,11 @@ app.addEventListener("click",async e=>{
   const activeButton=document.getElementById("chatMicButton");
 
   if(activeButton){
-   activeButton.textContent="⏹️";
+   activeButton.innerHTML='<svg viewBox="0 0 24 24" width="22" height="22"><rect x="6" y="6" width="12" height="12" rx="2.5" fill="currentColor"/></svg>';
+   activeButton.classList.add("is-recording");
+   wcRecUi(true);
    activeButton.title="اضغط لإيقاف التسجيل";
    activeButton.setAttribute("aria-label","إيقاف التسجيل");
-   activeButton.style.color="var(--danger)";
   }
 
  }catch(error){
@@ -8858,6 +8888,35 @@ const addButton = () => {
 .wc-img,.wc-vid{display:block;border-radius:8px}
 .wc-aud{display:block;max-width:100%}
 #wcEnd{height:1px}
+.wc-form{padding:8px 8px 8px!important;border:0!important;border-radius:0!important;background:var(--bg-surface)!important;width:min(1080px,100%)!important;box-shadow:0 -1px 0 var(--border-color)!important;bottom:calc(81px + env(safe-area-inset-bottom))!important}
+.wc-bar{display:flex;align-items:flex-end;gap:8px;direction:ltr!important;padding:0!important;border:0!important}
+.wc-cap{flex:1;min-width:0;display:flex;align-items:flex-end;gap:2px;padding:3px 6px 3px 14px;border-radius:24px;background:var(--bg-subtle);border:1px solid var(--border-color);direction:rtl;position:relative;transition:border-color .2s,box-shadow .2s}
+.wc-cap:focus-within{border-color:var(--primary);box-shadow:0 0 0 3px color-mix(in srgb,var(--primary) 16%,transparent)}
+.wc-cap textarea{flex:1;min-width:0;min-height:40px;max-height:120px;resize:none;border:0!important;outline:0!important;background:transparent!important;box-shadow:none!important;padding:9px 2px;line-height:1.55;font-size:16px;color:var(--text-primary);font-family:inherit}
+.wc-ico{width:40px;height:40px;flex:0 0 40px;display:grid;place-items:center;border:0;border-radius:50%;background:transparent;color:var(--text-secondary);cursor:pointer;transition:background .15s,transform .15s}
+.wc-ico:active{transform:scale(.9);background:var(--bg-surface)}
+.wc-act{width:48px!important;height:48px!important;min-width:48px!important;flex:0 0 48px;border-radius:50%!important;display:grid!important;place-items:center;background:var(--primary)!important;color:#fff!important;border:0;box-shadow:0 2px 6px rgba(0,0,0,.2)!important;font-size:0;transition:transform .15s,background .2s}
+.wc-act:active{transform:scale(.92)}
+.wc-act svg{width:24px!important;height:24px!important}
+.wc-act.is-recording{background:#D64545!important;animation:wcpulse 1.2s infinite}
+@keyframes wcpulse{0%{box-shadow:0 0 0 0 rgba(214,69,69,.5)}100%{box-shadow:0 0 0 14px rgba(214,69,69,0)}}
+.wc-rec{position:absolute;inset:0;z-index:2;display:flex;align-items:center;gap:10px;padding:0 16px;border-radius:24px;background:var(--bg-subtle);direction:rtl}
+.wc-rec[hidden]{display:none}
+.wc-rec i{width:10px;height:10px;border-radius:50%;background:#D64545;animation:wcblink 1s infinite}
+@keyframes wcblink{50%{opacity:.25}}
+.wc-rec span{font-variant-numeric:tabular-nums;font-weight:700;direction:ltr}
+.wc-rec em{font-style:normal;font-size:13px;color:var(--text-secondary)}
+.wc-sheet{display:flex;gap:6px;justify-content:center;padding:14px 8px;margin:0 4px 8px;border-radius:18px;background:var(--bg-surface);border:1px solid var(--border-color);box-shadow:0 8px 28px rgba(0,0,0,.16);animation:wcsheet .18s ease-out;direction:rtl}
+.wc-sheet[hidden]{display:none}
+@keyframes wcsheet{from{opacity:0;transform:translateY(10px) scale(.97)}to{opacity:1;transform:none}}
+.wc-sh-i{flex:1;display:flex;flex-direction:column;align-items:center;gap:7px;padding:6px 2px;border:0;background:none;color:var(--text-primary);font:600 12.5px inherit;font-family:inherit;cursor:pointer}
+.wc-sh-i b{font-weight:600}
+.wc-sh-c{width:54px;height:54px;border-radius:50%;display:grid;place-items:center;color:#fff;background:var(--c);transition:transform .15s}
+.wc-sh-i:active .wc-sh-c{transform:scale(.92)}
+.wc-form .wasla-chat-preview{margin:0 4px 8px;border-radius:14px}
+.wasla-send-icon[hidden]{display:none!important}
+.wc-b{animation:wcpop .16s ease-out}
+@keyframes wcpop{from{opacity:0;transform:translateY(4px) scale(.98)}to{opacity:1;transform:none}}
 .wc-imgbtn{display:block;padding:0;border:0;background:none;cursor:zoom-in;border-radius:8px;overflow:hidden;max-width:100%}
 .wc-img{width:min(100%,300px);aspect-ratio:4/3;object-fit:cover;max-height:330px;transition:transform .25s}
 .wc-imgbtn:active .wc-img{transform:scale(.98)}
