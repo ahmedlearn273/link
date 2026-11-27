@@ -2318,7 +2318,7 @@ if(p.status!=="active"){
   
 s.staffAccess=null;s.rq=null;s.rl=null;s.staffSuspended=false;
 await publicData(p.role==="admin"||p.role==="owner"||p.role==="staff");
-s.requests=[];s.quotes=[];s.offers=[];s.apps=[];s.allRequests=[];s.adminProfiles=[];s.chats=[];s.messages=[];s.activeChat=null;s.auditLogs=[];
+s.requests=[];s.quotes=[];s.offers=[];s.apps=[];s.allRequests=[];s.adminProfiles=[];s.chats=[];s.messages=[];try{wcUnsubscribe()}catch(_){}s.activeChat=null;s.auditLogs=[];
 
 if(p.role==="staff"){
  const {data:effPerms,error:staffError}=await db.rpc("my_effective_permissions");
@@ -3747,9 +3747,42 @@ document.addEventListener("click",e=>{
  if(!(e.target.closest&&e.target.closest("#wcJump")))return;
  const b=document.querySelector(".wc-body");if(b){wcNew=0;b.scrollTo({top:b.scrollHeight,behavior:"smooth"})}
 });
+let wcLastPoll=0,wcChan=null,wcChanId=null,wcRtOk=false,wcRtWasDown=false;
+async function wcSignMissing(list){
+ await Promise.all(list.filter(m=>m.attachment_path&&!(s.chatMediaUrls||{})[m.id]).map(async m=>{
+  const r=await db.storage.from("conversation-media").createSignedUrl(m.attachment_path,3600);
+  if(!r.error&&r.data?.signedUrl){s.chatMediaUrls=s.chatMediaUrls||{};s.chatMediaUrls[m.id]=r.data.signedUrl}
+ }));
+}
+async function wcApply(cid,fresh){
+ const body=document.querySelector(".wc-body");
+ if(!body||!s.activeChat||s.activeChat.id!==cid)return;
+ const sig=l=>l.map(m=>m.id+":"+(m.is_read?1:0)+":"+(m.delivered_at?1:0)).join("|");
+ const old=s.messages||[];
+ if(sig(old)===sig(fresh))return;
+ const oldIds=new Set(old.map(m=>m.id));
+ const incoming=fresh.filter(m=>!oldIds.has(m.id)&&m.sender_id!==s.user.id);
+ await wcSignMissing(fresh);
+ if(!s.activeChat||s.activeChat.id!==cid)return;
+ let next=fresh;
+ if(incoming.length&&["customer","provider"].includes(s.profile?.role)){
+  const rr=await db.rpc("mark_conversation_messages_read",{p_conversation_id:cid});
+  if(!rr.error&&rr.data>0)next=fresh.map(m=>m.sender_id!==s.user.id?{...m,is_read:true}:m);
+ }
+ const wasBottom=wcNearBottom(body),prevTop=body.scrollTop;
+ s.messages=next;
+ const doc=new DOMParser().parseFromString("<div>"+chatContent()+"</div>","text/html");
+ const nb=doc.querySelector(".wc-body"),cur=document.querySelector(".wc-body");
+ if(!nb||!cur)return;
+ cur.innerHTML=nb.innerHTML;
+ cur.classList.add("wc-noanim");
+ if(wasBottom){s.wcSig=cid+":"+next.length;cur.scrollTop=cur.scrollHeight}
+ else{cur.scrollTop=prevTop;wcNew+=incoming.length}
+ wcJumpUi();
+}
 async function wcPoll(){
  if(wcPolling||document.hidden||!s.activeChat||!s.user||s.chatLoading)return;
- const body=document.querySelector(".wc-body");if(!body)return;
+ if(!document.querySelector(".wc-body"))return;
  if(document.querySelector("[data-wcv].playing"))return;
  wcPolling=true;
  const cid=s.activeChat.id;
@@ -3758,37 +3791,46 @@ async function wcPoll(){
    .select("id,sender_id,message_text,is_read,created_at,message_type,attachment_path,attachment_mime_type,attachment_size_bytes,media_duration_seconds,location_latitude,location_longitude")
    .eq("conversation_id",cid).order("created_at");
   if(q.error||!s.activeChat||s.activeChat.id!==cid)return;
-  const sig=l=>l.map(m=>m.id+":"+(m.is_read?1:0)).join("|");
-  const old=s.messages||[],fresh=q.data||[];
-  if(sig(old)===sig(fresh))return;
-  const oldIds=new Set(old.map(m=>m.id));
-  const added=fresh.filter(m=>!oldIds.has(m.id));
-  const incoming=added.filter(m=>m.sender_id!==s.user.id);
-  await Promise.all(fresh.filter(m=>m.attachment_path&&!(s.chatMediaUrls||{})[m.id]).map(async m=>{
-   const r=await db.storage.from("conversation-media").createSignedUrl(m.attachment_path,3600);
-   if(!r.error&&r.data?.signedUrl){s.chatMediaUrls=s.chatMediaUrls||{};s.chatMediaUrls[m.id]=r.data.signedUrl}
-  }));
-  if(!s.activeChat||s.activeChat.id!==cid)return;
-  let next=fresh;
-  if(incoming.length&&["customer","provider"].includes(s.profile?.role)){
-   const rr=await db.rpc("mark_conversation_messages_read",{p_conversation_id:cid});
-   if(!rr.error&&rr.data>0)next=fresh.map(m=>m.sender_id!==s.user.id?{...m,is_read:true}:m);
-  }
-  const wasBottom=wcNearBottom(body),prevTop=body.scrollTop;
-  s.messages=next;
-  const doc=new DOMParser().parseFromString("<div>"+chatContent()+"</div>","text/html");
-  const nb=doc.querySelector(".wc-body");
-  const cur=document.querySelector(".wc-body");
-  if(!nb||!cur)return;
-  cur.innerHTML=nb.innerHTML;
-  cur.classList.add("wc-noanim");
-  if(wasBottom){s.wcSig=cid+":"+next.length;cur.scrollTop=cur.scrollHeight}
-  else{cur.scrollTop=prevTop;wcNew+=incoming.length}
-  wcJumpUi();
+  wcLastPoll=Date.now();
+  await wcApply(cid,q.data||[]);
  }catch(_){}
  finally{wcPolling=false}
 }
-setInterval(wcPoll,6000);
+function wcUnsubscribe(){
+ if(wcChan){try{db.removeChannel(wcChan)}catch(_){}}
+ wcChan=null;wcChanId=null;wcRtOk=false;wcRtWasDown=false;
+}
+function wcSubscribe(cid){
+ if(!cid||(wcChan&&wcChanId===cid))return;
+ wcUnsubscribe();
+ try{
+  wcChanId=cid;
+  wcChan=db.channel("wc-messages-"+cid)
+   .on("postgres_changes",{event:"*",schema:"public",table:"messages",filter:"conversation_id=eq."+cid},payload=>{
+    if(!s.activeChat||s.activeChat.id!==cid||wcChanId!==cid)return;
+    const row=payload&&payload.new;
+    if(!row||!row.id||payload.eventType==="DELETE")return;
+    const cur=s.messages||[],i=cur.findIndex(m=>m.id===row.id);
+    let next;
+    if(i>=0){next=cur.slice();next[i]={...cur[i],...row}}
+    else next=cur.concat([row]).sort((x,y)=>String(x.created_at).localeCompare(String(y.created_at)));
+    wcApply(cid,next);
+   })
+   .subscribe(status=>{
+    if(wcChanId!==cid)return;
+    if(status==="SUBSCRIBED"){
+     wcRtOk=true;
+     if(wcRtWasDown){wcRtWasDown=false;wcPoll()}
+    }else if(status==="CHANNEL_ERROR"||status==="TIMED_OUT"||status==="CLOSED"){
+     wcRtOk=false;wcRtWasDown=true;
+    }
+   });
+ }catch(_){wcChan=null;wcChanId=null;wcRtOk=false}
+}
+setInterval(()=>{
+ if(wcRtOk&&Date.now()-wcLastPoll<30000)return;
+ wcPoll();
+},6000);
 function wcAdminChat(list,role,L,MT){
  if(!Array.isArray(list)||!list.length)return '<div class="wc-empty" style="padding:18px"><div class="wc-empty-i"><svg viewBox="0 0 24 24" width="30" height="30"><path d="M4 5h16v11H9l-5 4z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg></div><b>لا توجد رسائل</b></div>';
  let out="",prevDay="",prevRole=null;
@@ -4021,6 +4063,7 @@ if(["customer","provider"].includes(s.profile?.role)){
 s.tab="messages";
 s.chatLoading=0;
 render();
+wcSubscribe(c.id);
       }
 function applications(onlyPending=false){
  const filter=s.providerFilter||"all";
@@ -7851,9 +7894,10 @@ if(["customer","provider"].includes(s.profile?.role)){
  });
  s.chatLoading=0;
  render();
+ wcSubscribe(c.id);
  return;
   }
-  if(a==="chatback"){s.activeChat=null;s.messages=[];s.chatLoading=0;s.wcSig="";render();return}
+  if(a==="chatback"){wcUnsubscribe();s.activeChat=null;s.messages=[];s.chatLoading=0;s.wcSig="";render();return}
   
 if(a==="cancelrequest"){
 
