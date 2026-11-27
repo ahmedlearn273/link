@@ -2925,6 +2925,7 @@ function customerBottomNav(){
 
  return '<style>'+
   '.wasla-customer-page{padding-bottom:calc(105px + env(safe-area-inset-bottom))!important}'+
+'.wasla-customer-page:has(.wc-closed,.wc-lock){padding-bottom:calc(190px + env(safe-area-inset-bottom))!important}'+
 '.wasla-customer-page:has(.wasla-chat-form){padding-bottom:calc(220px + env(safe-area-inset-bottom))!important}'+
 '.wasla-customer-page:has(.wasla-chat-form) .wasla-chat-form{position:fixed;z-index:998;left:50%;transform:translateX(-50%);bottom:calc(81px + env(safe-area-inset-bottom));width:min(1048px,calc(100% - 32px));margin:0!important;box-shadow:0 4px 20px color-mix(in srgb,var(--text-primary) 12%,transparent)}'+
   '.wasla-bottom-nav{position:fixed;z-index:999;bottom:0;left:0;right:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:3px;padding:9px 8px calc(9px + env(safe-area-inset-bottom));background:color-mix(in srgb,var(--bg-surface) 94%,transparent);border-top:1px solid var(--border-color);box-shadow:0 -5px 24px color-mix(in srgb,var(--text-primary) 9%,transparent);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}'+
@@ -3570,6 +3571,7 @@ function providerBottomNav(){
  return '<style>'+
 
   '.wasla-provider-page{padding-bottom:calc(105px + env(safe-area-inset-bottom))!important}'+
+'.wasla-provider-page:has(.wc-closed,.wc-lock){padding-bottom:calc(190px + env(safe-area-inset-bottom))!important}'+
 '.wasla-provider-page:has(.wasla-chat-form){padding-bottom:calc(220px + env(safe-area-inset-bottom))!important}'+
 '.wasla-provider-page:has(.wasla-chat-form) .wasla-chat-form{position:fixed;z-index:998;left:50%;transform:translateX(-50%);bottom:calc(81px + env(safe-area-inset-bottom));width:min(1048px,calc(100% - 32px));margin:0!important;box-shadow:0 4px 20px color-mix(in srgb,var(--text-primary) 12%,transparent)}'+
 
@@ -4190,7 +4192,7 @@ return '<section class="section wc-section">'+
  : s.profile?.status==="suspended"
   ? '<div class="wc-lock"><b>الحساب موقوف</b><span>لا يمكن إرسال أو استقبال رسائل أثناء إيقاف الحساب. تواصل مع الدعم.</span></div>'
   : chatClosed
-  ? '<div class="item" style="margin-top:14px;text-align:center;border:1px solid var(--border-color);background:var(--bg-subtle);border-radius:16px;padding:16px">'+
+  ? '<div class="wc-closed">'+
     '<div style="font-size:22px;margin-bottom:6px">🔒</div>'+
     '<b>المحادثة مغلقة</b>'+
     '<p class="small" style="margin:5px 0 0">انتهى الطلب، يمكنك الاطلاع على سجل الرسائل ولكن لا يمكن إرسال رسائل جديدة.</p>'+
@@ -9549,6 +9551,9 @@ const addButton = () => {
 .wc-unread-t{color:var(--text-primary)!important;font-weight:700}
 .wc-lock{position:fixed;z-index:998;left:50%;transform:translateX(-50%);bottom:calc(81px + env(safe-area-inset-bottom));width:min(1080px,100%);display:flex;flex-direction:column;gap:3px;text-align:center;padding:14px 16px;background:var(--bg-surface);border-top:1px solid var(--border-color);color:var(--text-secondary);font-size:13.5px}
 .wc-lock b{color:var(--text-primary);font-size:15px}
+.wc-closed{position:fixed;z-index:998;left:50%;transform:translateX(-50%);bottom:calc(81px + env(safe-area-inset-bottom));width:min(1080px,100%);box-sizing:border-box;text-align:center;padding:12px 16px;background:var(--bg-surface);border-top:1px solid var(--border-color);color:var(--text-secondary);font-size:13.5px}
+.wc-closed b{color:var(--text-primary);font-size:15px}
+.wc-closed p{margin:4px 0 0}
 .wc-vidpost{position:relative;display:block;padding:0;border:0;background:none;cursor:pointer;border-radius:8px;overflow:hidden;max-width:100%}
 .wc-vplay2{position:absolute;inset:0;display:grid;place-items:center;background:linear-gradient(transparent,rgba(0,0,0,.25))}
 .wc-vplay2 svg{background:rgba(0,0,0,.55);border-radius:50%;padding:12px;width:54px;height:54px}
