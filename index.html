@@ -1342,17 +1342,7 @@ a:focus-visible{
 @keyframes wl3-in{from{opacity:0;transform:translateX(-40px);filter:blur(6px)}to{opacity:1;transform:none;filter:none}}
 @keyframes wl3-up{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
 @keyframes wl3-spring{from{opacity:0;transform:translateY(50px) scale(.92)}to{opacity:1;transform:none}}
-@media(prefers-reduced-motion:reduce){
-  .wasla-welcome *{animation:none!important;transition:none!important}
-  .wasla-welcome .wl3-row,.wasla-welcome .wl3-orange{display:none}
-  .wasla-welcome .wl3-final-mark{display:block}
-  /* reduced motion keeps a soft opacity-only reveal: no movement, no transform */
-  .wasla-welcome .wl3-final-mark,.wasla-welcome .wl3-title,.wasla-welcome .wl3-tag,.wasla-welcome .wl3-actions .btn{animation:wl3-soft .9s ease both!important}
-  .wasla-welcome .wl3-title{animation-delay:.3s!important}
-  .wasla-welcome .wl3-tag{animation-delay:.6s!important}
-  .wasla-welcome .wl3-actions .btn{animation-delay:.9s!important}
-}
-@keyframes wl3-soft{from{opacity:0}to{opacity:1}}
+/* The welcome intro plays in full on every device, like the previous welcome page did (it had no reduced-motion rule). It runs once, about 5 seconds. To honor the OS reduce-motion setting again, restore the reduced-motion block from commit 4ce6955. */
 
 
 }
