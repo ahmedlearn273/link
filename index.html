@@ -2511,6 +2511,7 @@ function recoveryView(){
  '</form></div></div></main>';
       }
 
+function nrm(v){return String(v==null?"":v).toLowerCase().replace(/[\u064B-\u065F\u0670\u0640]/g,"").replace(/[أإآٱ]/g,"ا").replace(/ى/g,"ي").replace(/ة/g,"ه").replace(/[٠-٩]/g,d=>"٠١٢٣٤٥٦٧٨٩".indexOf(d)).trim()}
 function serviceCard(x){
  const image=x.image_url&&String(x.image_url).trim();
 
@@ -2594,14 +2595,22 @@ function landing(isCustomer=s.profile?.role==="customer"){
   '<b>'+esc(c.name_ar)+'</b>'+
   '<small>'+fmt(s.services.filter(x=>x.category_id===c.id).length)+' خدمة</small></button>'
  ).join("")||empty("لا توجد أقسام متاحة حاليًا");
-const query=(s.filter||"").trim().toLowerCase();
- const shown=(selected?s.services.filter(x=>x.category_id===selected.id):s.services.slice(0,6))
-  .filter(x=>!query||[x.name_ar,x.name_en,x.description].some(v=>String(v||"").toLowerCase().includes(query)));
+const query=nrm(s.filter||"");
+ const catName=id=>(s.cats.find(c=>c.id===id)||{}).name_ar||"";
+ const hit=x=>!query||[x.name_ar,x.name_en,x.description,catName(x.category_id)].some(v=>nrm(v).includes(query));
+ const base=selected?s.services.filter(x=>x.category_id===selected.id):(query?s.services:s.services.slice(0,6));
+ const shown=base.filter(hit);
  const services=shown.map(serviceCard).join("")||empty("لا توجد خدمات مطابقة لبحثك حاليًا");
-  const providers=s.providers.slice()
-  .sort((a,b)=>Number(b.average_rating||0)-Number(a.average_rating||0))
-  .slice(0,4).map(providerCard).join("")||empty("لا يوجد مزوّدون معتمدون حاليًا");
-
+ const provHit=p=>!query||[p.display_name,p.city,p.area,p.bio].concat((p.provider_services||[]).filter(x=>x.is_active).map(x=>x.services?.name_ar)).some(v=>nrm(v).includes(query));
+ const provShown=s.providers.slice()
+  .filter(provHit)
+  .sort((a,b)=>Number(b.average_rating||0)-Number(a.average_rating||0));
+ const providers=(query?provShown:provShown.slice(0,4)).map(providerCard).join("")||empty(query?"لا يوجد مزوّدون مطابقون لبحثك":"لا يوجد مزوّدون معتمدون حاليًا");
+ const catHits=query&&!selected?s.cats.filter(c=>nrm(c.name_ar).includes(query)):[];
+ const resultsView='<section class="wl-section wl-results" id="searchResults"><div class="wl-heading"><h2>نتائج البحث عن «'+esc((s.filter||"").trim())+'»</h2><p>'+fmt(shown.length)+' خدمة · '+fmt(provShown.length)+' مزوّد</p></div>'+
+  (catHits.length?'<div class="wl-categories" style="margin-bottom:14px">'+catHits.map(c=>'<button class="wl-category" data-a="category-open" data-id="'+esc(c.id)+'"><span class="wl-category-icon">'+esc(c.icon||"✦")+'</span><b>'+esc(c.name_ar)+'</b><small>'+fmt(s.services.filter(x=>x.category_id===c.id).length)+' خدمة</small></button>').join("")+'</div>':"")+
+  '<div class="wl-heading"><h2>الخدمات</h2></div><div class="wl-cards">'+services+'</div>'+
+  '<div class="wl-heading" style="margin-top:18px"><h2>مزوّدو الخدمة</h2></div><div class="wl-provider-grid">'+providers+'</div></section>';
  return '<style>'+
  '.wasla-landing{padding-bottom:38px;overflow:hidden}'+
 
@@ -2708,8 +2717,8 @@ const query=(s.filter||"").trim().toLowerCase();
  isCustomer
 )+
 '<main class="wrap wasla-landing '+(isCustomer?"wasla-customer-shell":"")+'">'+
-'<div class="wl-search"><input id="search" type="search" placeholder="ابحث عن خدمة أو تخصص..." value="'+esc(s.filter||"")+'" aria-label="البحث عن الخدمات"></div>'+
- (selected?
+'<div class="wl-search"><svg class="wl-s-ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="search" type="search" enterkeyhint="search" autocomplete="off" placeholder="ابحث عن خدمة أو تخصص أو مزوّد..." value="'+esc(s.filter||"")+'" aria-label="البحث عن الخدمات">'+((s.filter||"").length?'<button type="button" class="wl-s-x" data-a="search-clear" aria-label="مسح البحث">×</button>':"")+'</div>'+
+ (query&&!selected?resultsView:selected?
   '<div style="margin-bottom:15px">'+btn("category-back","← كل الأقسام","light")+'</div>'+
   '<section class="wl-section"><div class="wl-heading"><h2>خدمات قسم '+esc(selected.name_ar)+'</h2><p>الخدمات المتاحة داخل هذا القسم</p></div><div class="wl-cards">'+services+'</div></section>'
  :
@@ -8874,6 +8883,7 @@ if(a==="knowledge-view"){
 }
 if(a==="category-open"){s.selectedCategory=id;render();return}
 if(a==="category-back"){s.selectedCategory=null;render();return}
+if(a==="search-clear"){s.filter="";render();const n=document.getElementById("search");if(n)n.focus();return}
   
   
 if(a==="logout"){
@@ -10115,11 +10125,18 @@ app.addEventListener("drop",e=>{
   s.providerSearch=e.target.value;
   const q=s.providerSearch.trim().toLowerCase();
 
+  let vis=0;
   app.querySelectorAll("[data-provider-card]").forEach(card=>{
-   card.style.display=
-    !q||card.dataset.search.toLowerCase().includes(q)
-     ?"":"none";
+   const ok=!q||nrm(card.dataset.search).includes(nrm(q));
+   card.style.display=ok?"":"none";
+   if(ok)vis++;
   });
+  const lst=app.querySelector("[data-provider-card]")?.parentElement;
+  if(lst){
+   let em=document.getElementById("providerSearchEmpty");
+   if(!em){em=document.createElement("div");em.id="providerSearchEmpty";em.className="empty";em.textContent="لا توجد نتائج مطابقة لبحثك.";lst.appendChild(em)}
+   em.style.display=vis?"none":"";
+  }
   return;
  }
 
@@ -10134,6 +10151,13 @@ app.addEventListener("drop",e=>{
   }
  }
 });   
+app.addEventListener("keydown",e=>{
+ if(e.key!=="Enter"||e.isComposing)return;
+ const id=e.target&&e.target.id;
+ if(id==="search"){e.preventDefault();e.target.blur();const r=document.getElementById("searchResults");if(r)r.scrollIntoView({behavior:"smooth",block:"start"});return}
+ const map={rqSearch:"rq-apply",rlSearch:"rl-apply",rqdAsSearch:"rqd-as-search"};
+ if(map[id]){e.preventDefault();const b=app.querySelector('[data-a="'+map[id]+'"]');if(b&&!b.disabled)b.click()}
+});
 async function boot(){
  const status=t=>{
   app.innerHTML='<main class="wrap"><div class="empty">'+t+'</div></main>';
@@ -10854,6 +10878,13 @@ h1,h2,h3,h4{font-family:var(--wasla-font);font-weight:700;letter-spacing:0}
 .pr-list .item>.actions .btn{flex:1 1 0;min-width:0;padding:10px 12px;font-size:13px;border-radius:12px}
 .pr-list .item>.actions:empty{display:none}
 .pr-list .item>.actions>.tag{flex:1 1 100%;text-align:center;padding:10px 12px;border-radius:12px;font-size:13px;font-weight:700}
+
+/* search */
+.wl-search{position:relative}
+.wl-search .wl-s-ic{position:absolute;inset-inline-start:16px;top:50%;transform:translateY(-50%);color:var(--text-secondary);pointer-events:none}
+.wasla-landing .wl-search input#search{padding-inline-start:46px;padding-inline-end:46px}
+.wl-search .wl-s-x{position:absolute;inset-inline-end:10px;top:50%;transform:translateY(-50%);width:30px;height:30px;border:0;border-radius:50%;background:var(--bg-subtle);color:var(--text-secondary);font-size:19px;line-height:1;cursor:pointer;display:grid;place-items:center}
+.wl-results .wl-heading{margin-bottom:10px}
 </style>
 </body></html>
 
