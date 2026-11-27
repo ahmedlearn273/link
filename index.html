@@ -3600,46 +3600,33 @@ if(s.tab==="requests"){
   return true;
  });
 
+ const PRI={
+  new:'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9a6 6 0 0 1 12 0c0 6 2 7 2 7H4s2-1 2-7"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>',
+  tool:'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 0-5 5L3 18l3 3 6.7-6.7a4 4 0 0 0 5-5l-2.4 2.4-2.6-.6-.6-2.6z"/></svg>',
+  ok:'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 12l3 3 5-6"/></svg>'
+ };
+ const prStat=(k,v,l,n)=>'<div class="pr-st '+k+(n?'':' zero')+'"><i>'+PRI[k]+'</i><b>'+v+'</b><span>'+l+'</span></div>';
+
  body=
-  '<section class="section">'+
+  '<section class="section pr-sec">'+
 
-   '<div class="grid small">'+
-
-    '<div class="card">'+
-     '<div class="small">طلبات جديدة</div>'+
-     '<div class="stat">'+fmt(pendingCount)+'</div>'+
-    '</div>'+
-
-    '<div class="card">'+
-     '<div class="small">طلبات جارية</div>'+
-     '<div class="stat">'+fmt(activeCount)+'</div>'+
-    '</div>'+
-
-    '<div class="card">'+
-     '<div class="small">طلبات مكتملة</div>'+
-     '<div class="stat">'+fmt(completedCount)+'</div>'+
-    '</div>'+
-
+   '<div class="pr-stats">'+
+    prStat("new",fmt(pendingCount),"طلبات جديدة",pendingCount)+
+    prStat("tool",fmt(activeCount),"طلبات جارية",activeCount)+
+    prStat("ok",fmt(completedCount),"طلبات مكتملة",completedCount)+
    '</div>'+
 
-   '<div class="sectionhead">'+
-    '<div>'+
-     '<h2>إدارة الطلبات</h2>'+
-     '<p class="small">تابع طلباتك حسب حالتها.</p>'+
-    '</div>'+
-   '</div>'+
+   '<div class="pr-head"><h2>إدارة الطلبات</h2><p>تابع طلباتك حسب حالتها.</p></div>'+
 
-   '<div class="wasla-provider-subnav">'+
+   '<div class="pr-chips" role="tablist">'+
     filters.map(f=>
-     '<button type="button" data-a="provider-request-filter" data-id="'+f[0]+'" class="'+
+     '<button type="button" role="tab" data-a="provider-request-filter" data-id="'+f[0]+'" class="'+
       (selected===f[0]?"active":"")+
-     '">'+
-      f[1]+' ('+fmt(f[2])+')'+
-     '</button>'
+     '">'+f[1]+'<em>'+fmt(f[2])+'</em></button>'
     ).join("")+
    '</div>'+
 
-   '<div class="list">'+
+   '<div class="list pr-list">'+
     requestList(true,filteredRequests)+
    '</div>'+
 
@@ -3790,13 +3777,13 @@ if(s.tab==="requests"){
 
  '<main class="wrap wasla-provider-page">'+
   msg()+
-  '<div class="sectionhead">'+
+  (s.tab==="requests"?"":'<div class="sectionhead">'+
    '<div>'+
     '<h2>'+titles[s.tab]+'</h2>'+
     '<p class="small">مساحة إدارة أعمالك على وصلة.</p>'+
    '</div>'+
    tag(s.provider.verification_status)+
-  '</div>'+
+  '</div>')+
   body+
  '</main>'+
 
@@ -10837,6 +10824,36 @@ h1,h2,h3,h4{font-family:var(--wasla-font);font-weight:700;letter-spacing:0}
 .pdb-id{border:0;width:100%;border-radius:18px;padding:12px 14px;display:flex;align-items:center;gap:12px;color:#efe9db;text-align:start;cursor:pointer;background:linear-gradient(145deg,#1b1a18,#0b0b0a);box-shadow:inset 0 0 0 1px #2c2a25,inset 0 0 0 5px #0d0c0b,inset 0 0 0 6px rgba(217,178,90,.38)}
 .pdb-id .tx{display:block}.pdb-id b{display:block;font-size:15px;background:linear-gradient(180deg,#fbe7a8,#c99a3d);-webkit-background-clip:text;background-clip:text;color:transparent}.pdb-id small{opacity:.75;font-size:11.5px}.pdb-id code{margin-inline-start:auto;font-size:12px;letter-spacing:2px;color:#d9b25a}.pdb-id .lg{width:30px;height:30px;flex:0 0 30px;overflow:hidden;border-radius:50%;display:block}.pdb-id .lg svg,.pdb-id .lg img{width:100%;height:100%;object-fit:cover}
 @media (prefers-reduced-motion:reduce){.pdb-sk{animation:none}.pdb-sw i,.pdb-sw i:after{transition:none}}
+
+/* provider requests page */
+.pr-sec{margin:6px 0 0}
+.pr-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.pr-st{background:var(--bg-surface);border:1px solid var(--border-color);border-radius:16px;padding:11px 10px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.pr-st i{width:30px;height:30px;border-radius:10px;display:grid;place-items:center;color:var(--accent);background:color-mix(in srgb,var(--accent) 16%,transparent);margin-bottom:4px}
+.pr-st.tool i{color:var(--primary);background:color-mix(in srgb,var(--primary) 14%,transparent)}
+.pr-st.ok i{color:var(--success,#16a34a);background:color-mix(in srgb,var(--success,#16a34a) 14%,transparent)}
+.pr-st b{font:800 24px/1.15 Tajawal,"IBM Plex Sans Arabic",sans-serif;color:var(--text-primary);background:none!important}
+.pr-st.zero b{opacity:.4}
+.pr-st span{font-size:11.5px;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pr-head{margin:18px 0 8px}.pr-head h2{margin:0;font:800 19px Tajawal,sans-serif}.pr-head p{margin:2px 0 0;font-size:12.5px;color:var(--text-secondary)}
+.pr-chips{display:flex;gap:7px;overflow-x:auto;padding:2px 0 12px;margin:0 -2px;scrollbar-width:none;-webkit-overflow-scrolling:touch}.pr-chips::-webkit-scrollbar{display:none}
+.pr-chips button{flex:0 0 auto;display:flex;align-items:center;gap:7px;border:1px solid var(--border-color);border-radius:99px;padding:7px 8px 7px 13px;background:var(--bg-surface);color:var(--text-secondary);font-family:inherit;font-size:13px;font-weight:700;cursor:pointer}
+.pr-chips button em{font-style:normal;font-size:11.5px;min-width:22px;text-align:center;padding:2px 6px;border-radius:99px;background:var(--bg-subtle);color:var(--text-secondary)}
+.pr-chips button.active{background:var(--primary);border-color:var(--primary);color:#fff}
+.pr-chips button.active em{background:rgba(255,255,255,.22);color:#fff}
+.pr-list{gap:10px}
+.pr-list .item{padding:14px;border-radius:18px;background:var(--bg-surface)!important;box-shadow:0 4px 14px color-mix(in srgb,var(--text-primary) 7%,transparent)}
+.pr-list .item>.row{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:4px}
+.pr-list .item>.row b{font-size:15.5px;line-height:1.4}
+.pr-list .item>p{margin:3px 0;font-size:12.5px}
+.pr-list .item>p:empty{display:none}
+.pr-list .item>p:nth-of-type(2){color:var(--text-primary);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.pr-list .item>p:nth-of-type(3){display:inline-block;margin-top:6px;padding:3px 10px;border-radius:99px;background:var(--bg-subtle);font-weight:700;color:var(--text-primary)}
+.pr-list .wasla-pay-block{margin:10px 0 2px;border-radius:14px}
+.pr-list .item>.actions{margin-top:12px;padding-top:12px;border-top:1px solid var(--border-color)}
+.pr-list .item>.actions .btn{flex:1 1 0;min-width:0;padding:10px 12px;font-size:13px;border-radius:12px}
+.pr-list .item>.actions:empty{display:none}
+.pr-list .item>.actions>.tag{flex:1 1 100%;text-align:center;padding:10px 12px;border-radius:12px;font-size:13px;font-weight:700}
 </style>
 </body></html>
 
