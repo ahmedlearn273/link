@@ -3790,6 +3790,23 @@ async function wcPoll(){
  finally{wcPolling=false}
 }
 setInterval(wcPoll,6000);
+function wcAdminChat(list,role,L,MT){
+ if(!Array.isArray(list)||!list.length)return '<div class="wc-empty" style="padding:18px"><div class="wc-empty-i"><svg viewBox="0 0 24 24" width="30" height="30"><path d="M4 5h16v11H9l-5 4z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg></div><b>لا توجد رسائل</b></div>';
+ let out="",prevDay="",prevRole=null;
+ list.forEach(x=>{
+  const day=wcDayKey(x.created_at);
+  if(day!==prevDay){out+='<div class="wc-day"><span>'+esc(wcDayLabel(x.created_at))+'</span></div>';prevDay=day;prevRole=null}
+  const r=x.sender_role,first=prevRole!==r;prevRole=r;
+  const kind=r==="customer"?"in":(r==="provider"?"out":"sys");
+  const typ=(x.message_type&&x.message_type!=="text")?'<span class="wc-ty">'+esc(L(MT,x.message_type))+'</span>':"";
+  const text=x.message_text?'<span class="wc-t">'+esc(x.message_text)+'</span>':"";
+  const meta='<span class="wc-m">'+esc(wcTime(x.created_at))+'</span>';
+  if(kind==="sys"){out+='<div class="wc-row wc-c"><div class="wc-b wc-sysb"><div class="wc-n">'+esc(role(r))+'</div>'+typ+text+meta+'</div></div>';return}
+  const side=kind==="out";
+  out+='<div class="wc-row '+(side?'wc-l':'wc-r')+(first?' wc-first':'')+'"><div class="wc-b '+(side?'wc-out':'wc-in')+(first?' wc-tail':'')+'">'+(first?'<div class="wc-n">'+esc(role(r))+'</div>':'')+typ+text+meta+'</div></div>';
+ });
+ return '<div class="wc wc-embed"><div class="wc-body wc-noanim">'+out+'</div></div>';
+}
 function wcTick(read){
  return '<svg viewBox="0 0 16 11" width="16" height="11" aria-hidden="true"><path d="M1.5 5.8 4.8 9 11.5 1.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>'+(read?'<path d="M6.5 8.2 7.4 9 14.5 1.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>':'')+'</svg>';
 }
@@ -4633,7 +4650,7 @@ async function viewPrimeKnowledgeDocument(documentId){
               ((q.agreements||[]).length?'<div class="small"><b>الاتفاقات</b></div>'+q.agreements.map(x=>'<div class="card">'+kv("المبلغ المتفق عليه",money(x.agreed_amount,x.currency))+kv("طريقة الدفع",x.payment_method?L(PM,x.payment_method):null)+kv("تاريخ الاتفاق",rqDate(x.agreed_at))+sched(x.payment_schedule)+'</div>').join(""):"")+
               ((q.approvals||[]).length?'<div class="small"><b>الموافقات</b></div>'+q.approvals.map(x=>'<div class="small">'+esc(role(x.actor_role)+(x.actor_name?" ("+x.actor_name+")":"")+" - "+rqDate(x.approved_at)+(x.payment_method?" - "+L(PM,x.payment_method):""))+'</div>').join(""):"")
             )).join(""),
-            chat:v=>v.map(x=>item('<div class="row"><b>'+esc(role(x.sender_role))+'</b><span class="small">'+esc(rqDate(x.created_at))+'</span></div><p>'+esc(x.message_text||"")+'</p>'+((x.message_type&&x.message_type!=="text")?'<div class="small">نوع الرسالة: '+esc(L(MT,x.message_type))+'</div>':""))).join(""),
+            chat:v=>wcAdminChat(v,role,L,MT),
             payments:v=>v.map(x=>item('<div class="row"><b>'+esc(money(x.amount,x.currency))+'</b><span class="small">'+esc(L(PS,x.payment_status))+'</span></div>'+kv("طريقة الدفع",x.payment_method?L(PM,x.payment_method):null)+kv("نسبة العمولة",x.commission_rate)+kv("مبلغ العمولة",money(x.commission_amount,x.currency))+kv("مستحق مقدم الخدمة",money(x.provider_amount,x.currency))+kv("تاريخ الدفع",x.paid_at?rqDate(x.paid_at):null)+kv("تاريخ الإنشاء",x.created_at?rqDate(x.created_at):null))).join(""),
             notes:v=>v.map(x=>item('<div class="row"><b>'+esc(x.author_name||"—")+'</b><span class="small">'+esc(x.created_at?rqDate(x.created_at):"—")+'</span></div><p>'+esc(x.note||"")+'</p>')).join(""),
             audit:v=>v.map(x=>item('<div class="row"><b>'+esc(L(ACT,x.action))+'</b><span class="small">'+esc(rqDate(x.created_at))+'</span></div><div class="small">'+esc(role(x.actor_role)+(x.actor_code?" ("+x.actor_code+")":"")+" - "+(x.result?L(RES,x.result):""))+'</div>'+((x.old_status||x.new_status)?'<div class="small">'+esc(st(x.old_status)+" ← "+st(x.new_status))+'</div>':""))).join(""),
@@ -8953,6 +8970,12 @@ const addButton = () => {
 .wc-img,.wc-vid{display:block;border-radius:8px}
 .wc-aud{display:block;max-width:100%}
 #wcEnd{height:1px}
+.wc-embed{position:relative;max-height:520px;border-radius:14px}
+.wc-embed .wc-body{overflow-y:auto;max-height:520px;min-height:0;padding-bottom:14px}
+.wc-row.wc-c{justify-content:center;margin-top:8px}
+.wc-sysb{background:var(--chat-divider);color:var(--text-secondary);text-align:center;font-size:13.5px;max-width:86%}
+.wc-ty{display:inline-block;font-size:12px;font-weight:700;opacity:.85;margin-bottom:2px}
+.wc-embed .wc-n{color:inherit}
 .wc-noanim .wc-b{animation:none}
 .wc{position:relative}
 .wc-full{position:fixed}
