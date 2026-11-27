@@ -3897,7 +3897,8 @@ async function wcSignOne(key,path){
    s.wcSignCount=(s.wcSignCount||0)+1;
    return true;
   }
- }catch(_){}
+  s.wcSignErr=s.wcSignErr||{};s.wcSignErr[key]=(r.error&&(r.error.message||String(r.error)))||"no signed url";
+ }catch(e){s.wcSignErr=s.wcSignErr||{};s.wcSignErr[key]=(e&&e.message)||String(e)}
  s.wcSignTry[key]=Date.now();
  return false;
 }
@@ -4161,6 +4162,7 @@ return '<section class="section wc-section">'+
     else if(m.message_type==="audio")media=wcVoice(m,url,side,peer,isAdmin);
     else media=wcFile(m,url);
    }
+   if(!media&&m.attachment_path&&!url&&s.wcSignErr&&s.wcSignErr[m.id])media='<div class="wc-t" style="padding:6px 10px;opacity:.75">⚠️ تعذر تحميل المرفق</div>';
    const hasLoc=m.location_latitude!=null&&m.location_longitude!=null;
    if(hasLoc&&!media)media=wcLoc(m.location_latitude,m.location_longitude);
    const tst=m.is_read?2:(m.delivered_at?1:0);
@@ -7719,6 +7721,9 @@ if(chatAttachmentPreviewUrl){
 s.chatMediaDurationSeconds=null;
  render();
  return;
+ }catch(err){
+  note(err?.message||"تعذر إرسال الرسالة","error");
+  return;
  }finally{wcBusy(false)}
 }
  if(f.id==="accountProfileForm"){
