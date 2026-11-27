@@ -5550,10 +5550,17 @@ if(s.tab==="none"){
 
 const nav=navItems.map(x=>'<button data-a="tab" data-id="'+x[0]+'" class="'+(s.tab===x[0]?"active":"")+'">'+x[1]+'</button>').join("");
  
- return header("لوحة الموظف",nav)+
- '<main class="wrap">'+msg()+
- '<div class="sectionhead"><h2>لوحة الموظف</h2>'+tag("موظف")+'</div>'+
- body+'</main>';
+ const staffHead='<div class="sectionhead"><h2>لوحة الموظف</h2>'+tag("موظف")+'</div>';
+ if(s.profile?.staff_role_code==="ASV"){
+  return header("لوحة الموظف","",true)+
+  '<main class="wrap wasla-staff-bottom-main">'+msg()+staffHead+body+'</main>'+
+  '<nav class="wasla-staff-bottom-nav" aria-label="التنقل الرئيسي">'+nav+
+  '<button data-a="tab" data-id="account" class="'+(s.tab==="account"?"active":"")+'">إعدادات الحساب</button></nav>';
+ }
+ return header("لوحة الموظف","",true)+
+ '<div class="wasla-admin-shell"><aside class="wasla-admin-side"><nav aria-label="قائمة الموظف">'+nav+
+ '<button data-a="tab" data-id="account" class="wasla-side-account">إعدادات الحساب</button></nav></aside>'+
+ '<main class="wrap wasla-admin-main">'+msg()+staffHead+body+'</main></div>';
 }
 
 function render(){
@@ -9614,6 +9621,11 @@ const addButton = () => {
  .wasla-admin-side .wasla-side-account{margin:0;border-top:0;border-radius:11px;padding-top:9px}
  .wasla-admin-main{padding:16px}
 }
+.wasla-staff-bottom-main{padding-bottom:calc(96px + env(safe-area-inset-bottom))}
+.wasla-staff-bottom-nav{position:fixed;z-index:999;bottom:0;left:0;right:0;display:flex;gap:4px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding:9px 8px calc(9px + env(safe-area-inset-bottom));background:color-mix(in srgb,var(--bg-surface) 94%,transparent);border-top:1px solid var(--border-color);backdrop-filter:blur(14px)}
+.wasla-staff-bottom-nav button{flex:1 0 auto;min-width:76px;min-height:48px;padding:6px 10px;border:0;border-radius:13px;background:transparent;color:var(--text-secondary);font:600 12px Tajawal,sans-serif;white-space:nowrap;cursor:pointer}
+.wasla-staff-bottom-nav button.active{background:color-mix(in srgb,var(--accent) 13%,var(--bg-surface));color:var(--accent);font-weight:800}
+@media(min-width:900px){.wasla-staff-bottom-nav{left:50%;right:auto;transform:translateX(-50%);width:min(820px,calc(100% - 40px));border:1px solid var(--border-color);border-bottom:0;border-radius:19px 19px 0 0}}
 .wasla-rate-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:12px 0;padding:10px 12px;border:1px solid var(--border-color);border-radius:12px}
 .wasla-stars{display:inline-flex;flex-direction:row-reverse;gap:2px;direction:ltr}
 .wasla-stars input{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none}
