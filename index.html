@@ -5986,7 +5986,7 @@ const waslaInstall=(function(){
 
 const WASLA_PALETTES=[{"id": "wasla", "name": "وصلة (الحالي)", "l": ["#FAF9F6", "#FFFFFF", "#F3F2EE", "#0F4C5C", "#0B3945", "#EA580C", "#111827", "#6B7280", "#E5E7EB"], "d": ["#121417", "#1C1F24", "#252930", "#2A9D8F", "#21867A", "#F59E0B", "#F9FAFB", "#9CA3AF", "#2D3139"]}, {"id": "ocean", "name": "محيط", "l": ["#F5F8FC", "#FFFFFF", "#EAF0F8", "#1D4ED8", "#1E40AF", "#0891B2", "#0F172A", "#64748B", "#DCE4EF"], "d": ["#0D1320", "#141C2E", "#1B2540", "#60A5FA", "#3B82F6", "#38BDF8", "#F1F5F9", "#94A3B8", "#26324D"]}, {"id": "olive", "name": "زيتون", "l": ["#F6F8F3", "#FFFFFF", "#ECF0E6", "#2F6B3F", "#24542F", "#CA8A04", "#14210F", "#667060", "#DFE5D8"], "d": ["#0F1511", "#172019", "#1F2B22", "#5BBE7A", "#43A262", "#FACC15", "#F1F7F2", "#9CAFA0", "#2A3A2E"]}, {"id": "royal", "name": "ملكي", "l": ["#FAF8FD", "#FFFFFF", "#F1EDF8", "#6D28D9", "#5B21B6", "#DB2777", "#1E1033", "#6B6480", "#E6E0F0"], "d": ["#130F1C", "#1C1629", "#261E37", "#A78BFA", "#8B5CF6", "#F472B6", "#F5F0FF", "#A79EBB", "#33284A"]}, {"id": "sila", "name": "سيلا", "l": ["#FFF7F9", "#FFFFFF", "#FDEAF0", "#D6336C", "#B82A5C", "#F59E7B", "#3A1220", "#8A6472", "#F6D5E0"], "d": ["#1B1015", "#26171D", "#341F28", "#F472A8", "#EC4D8F", "#FDBA9B", "#FFF1F5", "#C9A0B1", "#46293A"]}, {"id": "desert", "name": "صحراوي", "l": ["#FBF6EF", "#FFFFFF", "#F3EADD", "#B5532A", "#923F1D", "#C99A2E", "#2B1A10", "#7A6655", "#EADBC8"], "d": ["#18120D", "#231A13", "#2F241B", "#E08A5B", "#CF7442", "#E6B94F", "#FBF1E6", "#B8A28D", "#3E3025"]}, {"id": "nile", "name": "نيلي", "l": ["#F3F8F8", "#FFFFFF", "#E5F0F0", "#0B5D73", "#084A5C", "#2F9E8F", "#0C1F26", "#5C7078", "#D3E4E5"], "d": ["#0A1519", "#102128", "#173039", "#4FB5C9", "#2FA0B6", "#5FD0B8", "#EAF6F8", "#8FB0B8", "#1F3A44"]}, {"id": "coffee", "name": "قهوة", "l": ["#FAF6F1", "#FFFFFF", "#F0E7DD", "#6F4E37", "#583C29", "#C08552", "#25170E", "#7B6A5D", "#E6D9CB"], "d": ["#171110", "#211917", "#2D2320", "#C9A27E", "#B88B63", "#E0A96D", "#F7EEE6", "#B5A294", "#3B2F2A"]}, {"id": "lemon", "name": "ليموني", "l": ["#F7FAF2", "#FFFFFF", "#EAF2DD", "#3F7D3A", "#2F6230", "#9AAE1B", "#16240F", "#667A5A", "#DCE8CA"], "d": ["#0F150E", "#161F14", "#1F2C1C", "#8FCB6E", "#76B556", "#C6DB4A", "#F0F7E8", "#9DB38E", "#2A3A25"]}, {"id": "sunset", "name": "غروب", "l": ["#FFF8F4", "#FFFFFF", "#FDEBE1", "#D9534A", "#B8403A", "#F2994A", "#33150F", "#85655C", "#F4D8CB"], "d": ["#1A110F", "#251817", "#332120", "#F2766C", "#E85D52", "#F6AE6B", "#FFF0EA", "#C9A397", "#46302C"]}];
 /* ===== Wasla branded UI: toast, confirm, reveal, date-time picker ===== */
-const WUI_LOGO='<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M7 17 L19 46 L31 25 L43 46 L57 17" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 39 C17 57 46 9 59 27" fill="none" stroke="#d9b25a" stroke-width="3.5" stroke-linecap="round"/><circle cx="55" cy="15" r="4.5" fill="#d9b25a"/></svg>';
+const WUI_LOGO='<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M7 17 L19 46 L31 25 L43 46 L57 17" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 39 C17 57 46 9 59 27" fill="none" stroke="var(--accent)" stroke-width="3.5" stroke-linecap="round"/><circle cx="55" cy="15" r="4.5" fill="var(--accent)"/></svg>';
 const waslaUI=(function(){
  const nf=new Intl.NumberFormat("ar-EG",{useGrouping:false});
  const N=x=>String(x).replace(/\d/g,c=>"٠١٢٣٤٥٦٧٨٩"[c]);
@@ -6095,7 +6095,7 @@ const waslaUI=(function(){
  function input(l,name,kind,val,req,id){
   const d=parse(val,kind);
   return '<div class="field wui-f"><span>'+l+'</span><input type="hidden" '+(name?'name="'+name+'" ':'')+(id?'id="'+id+'" ':'')+'value="'+esc(val||"")+'" data-wk="'+kind+'" data-wt="'+esc(l)+'">'+
-   '<button type="button" class="wui-fb'+(d?"":" ph")+'" data-wdt'+(req?' data-req="1"':'')+'><span class="wui-fl">'+esc(d?label(d,kind):(kind==="date"?"اختر التاريخ":"اختر التاريخ والوقت"))+'</span><svg class="wui-fi" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#c99a3d" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></button></div>';
+   '<button type="button" class="wui-fb'+(d?"":" ph")+'" data-wdt'+(req?' data-req="1"':'')+'><span class="wui-fl">'+esc(d?label(d,kind):(kind==="date"?"اختر التاريخ":"اختر التاريخ والوقت"))+'</span><svg class="wui-fi" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></button></div>';
  }
  document.addEventListener("click",async e=>{
   const b=e.target.closest&&e.target.closest("[data-wdt]");if(!b)return;
@@ -10650,40 +10650,40 @@ h1,h2,h3,h4{font-family:var(--wasla-font);font-weight:700;letter-spacing:0}
 @media (prefers-reduced-motion:reduce){.wid-shine,.wid-av{animation:none}}
 #wui-host{position:fixed;inset:0;z-index:2147483000;pointer-events:none;direction:rtl;font-family:inherit}
 .wui-toasts{position:fixed;top:max(12px,env(safe-area-inset-top));left:12px;right:12px;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none}
-.wui-toast{pointer-events:auto;display:flex;align-items:center;gap:10px;max-width:440px;width:100%;padding:11px 14px;border-radius:16px;color:#efe9db;font-size:14px;font-weight:700;line-height:1.5;cursor:pointer;background:linear-gradient(145deg,#1b1a18,#0b0b0a);box-shadow:0 14px 30px rgba(0,0,0,.35),inset 0 0 0 1px rgba(217,178,90,.45);animation:wuiIn .28s cubic-bezier(.2,.9,.3,1.1)}
+.wui-toast{pointer-events:auto;display:flex;align-items:center;gap:10px;max-width:440px;width:100%;padding:11px 14px;border-radius:16px;color:#fff;font-size:14px;font-weight:700;line-height:1.5;cursor:pointer;background:linear-gradient(135deg,var(--primary),var(--primary-hover));box-shadow:0 14px 30px rgba(0,0,0,.35),inset 0 0 0 1px var(--accent);animation:wuiIn .28s cubic-bezier(.2,.9,.3,1.1)}
 .wui-toast.out{opacity:0;transform:translateY(-8px);transition:.2s}
-.wui-ico{flex:0 0 26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:14px;font-weight:900;background:#d9b25a;color:#1b1405}
+.wui-ico{flex:0 0 26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:14px;font-weight:900;background:var(--accent);color:var(--text-primary)}
 .wui-toast.error .wui-ico{background:#e5604f;color:#fff}.wui-toast.error{box-shadow:0 14px 30px rgba(0,0,0,.35),inset 0 0 0 1px rgba(229,96,79,.6)}
 .wui-ov{position:fixed;inset:0;pointer-events:auto;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(8,8,6,.55);backdrop-filter:blur(3px);animation:wuiFade .2s}
 .wui-ov.out{opacity:0;transition:.18s}
-.wui-box{width:100%;max-width:380px;border-radius:22px;overflow:hidden;background:var(--bg-surface,#fff);color:var(--text-primary,#111);box-shadow:0 24px 60px rgba(0,0,0,.45),0 0 0 1px rgba(217,178,90,.5);animation:wuiPop .26s cubic-bezier(.2,.9,.3,1.1)}
-.wui-head,.wui-phead{display:flex;align-items:center;gap:10px;padding:14px 18px;color:#efe9db;background:linear-gradient(145deg,#1b1a18,#0b0b0a);border-bottom:2px solid #d9b25a}
-.wui-head b{font-size:16px;color:#f1d58e}
-.wui-lg{width:28px;height:28px;flex:0 0 28px;color:#efe9db}.wui-lg svg{width:100%;height:100%}
+.wui-box{width:100%;max-width:380px;border-radius:22px;overflow:hidden;background:var(--bg-surface,#fff);color:var(--text-primary,#111);box-shadow:0 24px 60px rgba(0,0,0,.45),0 0 0 1px var(--border-color);animation:wuiPop .26s cubic-bezier(.2,.9,.3,1.1)}
+.wui-head,.wui-phead{display:flex;align-items:center;gap:10px;padding:14px 18px;color:#fff;background:linear-gradient(135deg,var(--primary),var(--primary-hover));border-bottom:2px solid var(--accent)}
+.wui-head b{font-size:16px;color:#fff}
+.wui-lg{width:28px;height:28px;flex:0 0 28px;color:#fff}.wui-lg svg{width:100%;height:100%}
 .wui-body{padding:18px}.wui-body p{margin:0;font-size:15px;line-height:1.8}
 .wui-act{display:flex;gap:8px;padding:0 18px 18px}.wui-act .wui-b{flex:1}
 .wui-b{border:0;border-radius:12px;padding:12px 14px;font:800 14px inherit;font-family:inherit;cursor:pointer;background:var(--bg-subtle,#eee);color:var(--text-primary,#111)}
-.wui-b.gold{background:linear-gradient(180deg,#e8c670,#c99a3d);color:#1b1405}.wui-b.danger{background:#d64b3a;color:#fff}.wui-b.sm{padding:7px 12px;flex:0 0 auto}
+.wui-b.gold{background:var(--accent);color:var(--text-primary)}.wui-b.danger{background:#d64b3a;color:#fff}.wui-b.sm{padding:7px 12px;flex:0 0 auto}
 .wui-b:disabled{opacity:.4}
 .wui-ov.wui-sheet{align-items:flex-end;padding:0}.wui-pk{max-height:92vh;overflow:auto;max-width:420px;border-radius:24px 24px 0 0;padding-bottom:env(safe-area-inset-bottom);animation:wuiUp .3s cubic-bezier(.2,.9,.3,1)}
-.wui-phead small{display:block;font-size:11px;color:#d9b25a;letter-spacing:.5px}.wui-phead b{font-size:15px;color:#f1d58e}
+.wui-phead small{display:block;font-size:11px;color:#fff;opacity:.8;letter-spacing:.5px}.wui-phead b{font-size:15px;color:#fff}
 .wui-pbody{padding:12px 16px 4px}
 .wui-mn{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}.wui-mn b{font-size:16px}
 .wui-mn button{width:36px;height:36px;border-radius:50%;border:1px solid var(--border-color,#ddd);background:transparent;color:inherit;font-size:20px;cursor:pointer}
 .wui-wk,.wui-gr{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center}.wui-wk span{font-size:11px;opacity:.6;padding:4px 0}
 .wui-d{height:38px;border:0;border-radius:50%;background:transparent;color:inherit;font:700 14px inherit;font-family:inherit;cursor:pointer}
-.wui-d.e{pointer-events:none}.wui-d:disabled{opacity:.25}.wui-d.today{box-shadow:inset 0 0 0 1.5px #d9b25a}
-.wui-d.sel{background:linear-gradient(180deg,#e8c670,#c99a3d);color:#1b1405}
+.wui-d.e{pointer-events:none}.wui-d:disabled{opacity:.25}.wui-d.today{box-shadow:inset 0 0 0 1.5px var(--accent)}
+.wui-d.sel{background:var(--accent);color:var(--text-primary)}
 .wui-tm{display:flex;align-items:center;justify-content:center;gap:10px;margin:10px 0 4px;padding:8px;border-radius:16px;background:var(--bg-subtle,#f3f3f3)}
-.wui-st{display:flex;flex-direction:column;align-items:center}.wui-st b{font-size:24px;min-width:44px;text-align:center}.wui-st button{border:0;background:transparent;color:#c99a3d;font-size:14px;padding:2px 12px;cursor:pointer}
+.wui-st{display:flex;flex-direction:column;align-items:center}.wui-st b{font-size:24px;min-width:44px;text-align:center}.wui-st button{border:0;background:transparent;color:var(--accent);font-size:14px;padding:2px 12px;cursor:pointer}
 .wui-co{font-size:22px;font-weight:800}
-.wui-ap{display:flex;flex-direction:column;gap:4px;margin-inline-start:6px}.wui-ap button{border:1px solid var(--border-color,#ddd);background:transparent;color:inherit;border-radius:10px;padding:5px 12px;font:800 13px inherit;font-family:inherit;cursor:pointer}.wui-ap button.on{background:#1b1a18;color:#f1d58e;border-color:#d9b25a}
-.wui-chips{display:flex;gap:8px;justify-content:center;margin:8px 0 12px}.wui-chips button{border:1px solid #d9b25a;color:inherit;background:transparent;border-radius:99px;padding:5px 14px;font:700 12px inherit;font-family:inherit;cursor:pointer}
+.wui-ap{display:flex;flex-direction:column;gap:4px;margin-inline-start:6px}.wui-ap button{border:1px solid var(--border-color,#ddd);background:transparent;color:inherit;border-radius:10px;padding:5px 12px;font:800 13px inherit;font-family:inherit;cursor:pointer}.wui-ap button.on{background:var(--primary);color:#fff;border-color:var(--accent)}
+.wui-chips{display:flex;gap:8px;justify-content:center;margin:8px 0 12px}.wui-chips button{border:1px solid var(--accent);color:inherit;background:transparent;border-radius:99px;padding:5px 14px;font:700 12px inherit;font-family:inherit;cursor:pointer}
 .wui-row{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--border-color,#eee);font-size:14px}.wui-row span{opacity:.7}
 .wui-sec{margin-top:12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px;border-radius:12px;background:var(--bg-subtle,#f3f3f3)}.wui-sec span{font-size:12px;opacity:.7;flex:1 0 100%}.wui-sec code{flex:1;font-size:15px;letter-spacing:1px;overflow-wrap:anywhere}
 .wui-f{display:block}.wui-f>span{display:block;margin-bottom:6px}
 .wui-fb{width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;text-align:start;border:1px solid var(--border-color,#ddd);background:var(--bg-surface,#fff);color:var(--text-primary,#111);border-radius:var(--control-radius,12px);padding:12px 14px;font:600 14px inherit;font-family:inherit;cursor:pointer}
-.wui-fb.ph .wui-fl{opacity:.55}.wui-fb:focus-visible{outline:2px solid #d9b25a}
+.wui-fb.ph .wui-fl{opacity:.55}.wui-fb:focus-visible{outline:2px solid var(--accent)}
 @keyframes wuiIn{from{opacity:0;transform:translateY(-14px) scale(.96)}to{opacity:1;transform:none}}
 @keyframes wuiFade{from{opacity:0}to{opacity:1}}@keyframes wuiPop{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:none}}@keyframes wuiUp{from{transform:translateY(100%)}to{transform:none}}
 @media (prefers-reduced-motion:reduce){.wui-toast,.wui-ov,.wui-box,.wui-pk{animation:none}.wui-toast.out,.wui-ov.out{transition:none}}
