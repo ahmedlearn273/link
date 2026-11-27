@@ -2336,6 +2336,7 @@ if(p.role==="provider"){
 }
 
 s.profile=p;
+try{waslaThemes.fromProfile(p)}catch(_){}
 s.provider=pp;
 
 if(p.status!=="active"){
@@ -2358,6 +2359,7 @@ if(p.status!=="active"){
  }
  }
  s.profile=p;
+try{waslaThemes.fromProfile(p)}catch(_){}
 
  s.serviceQuoteSettings=null;
 
@@ -5976,7 +5978,27 @@ const waslaThemes=(function(){
   saved=current;
   try{localStorage.setItem("wasla_palette",saved)}catch(_){}
   close(true);
+  remote();
  }
+ function curMode(){return root.getAttribute("data-theme")==="dark"?"dark":"light"}
+ function remote(m){
+  try{
+   if(!s.user)return;
+   db.rpc("set_my_theme",{p_palette:saved,p_mode:m||curMode()}).then(function(r){if(r&&r.error)console.warn("[theme]",r.error.message)},function(){});
+  }catch(_){}
+ }
+ function fromProfile(p){
+  try{
+   if(!p||(p.theme_palette===undefined&&p.theme_mode===undefined))return;
+   if(el)return;
+   var pal=WASLA_PALETTES.some(function(x){return x.id===p.theme_palette})?p.theme_palette:"wasla";
+   var md=p.theme_mode==="dark"?"dark":"light";
+   saved=pal;apply(pal);
+   try{localStorage.setItem("wasla_palette",pal)}catch(_){}
+   if(typeof window.__waslaSetMode==="function")window.__waslaSetMode(md);
+  }catch(_){}
+ }
+ window.waslaThemeSync={mode:function(m){remote(m)}};
  document.addEventListener("click",function(e){
   var t=e.target;if(!t||!t.closest)return;
   var o=t.closest("[data-th]");
@@ -5993,7 +6015,7 @@ const waslaThemes=(function(){
   if(ti&&el){apply(ti.getAttribute("data-th-id"));return}
   if(el&&t===el)close(false);
  });
- return {onRender:function(){if(el&&!document.querySelector('[data-th="open"]'))close(false)},isOpen:function(){return !!el}};
+ return {fromProfile:fromProfile,onRender:function(){if(el&&!document.querySelector('[data-th="open"]'))close(false)},isOpen:function(){return !!el}};
 })();
 function render(){
  var navSel=".wasla-admin-side nav,.wasla-staff-bottom-nav",prev=null;
@@ -10023,6 +10045,7 @@ const addButton = () => {
   button.addEventListener("click", () => {
     mode = mode === "dark" ? "light" : "dark";
     applyTheme();
+    try { window.waslaThemeSync && window.waslaThemeSync.mode(mode); } catch (e) {}
   });
 
   if (header) {
@@ -10039,6 +10062,13 @@ const addButton = () => {
 
   applyTheme();
 };
+
+  window.__waslaSetMode = (m) => {
+    const nm = m === "dark" ? "dark" : "light";
+    if (nm === mode) return;
+    mode = nm;
+    applyTheme();
+  };
 
   applyTheme();
   addButton();
