@@ -3628,6 +3628,20 @@ function wcDayLabel(x){
  if(diff>0&&diff<7)return d.toLocaleDateString("ar-EG-u-nu-latn",{weekday:"long",timeZone:WC_TZ});
  return d.toLocaleDateString("ar-EG-u-nu-latn",{day:"numeric",month:"long",year:"numeric",timeZone:WC_TZ});
 }
+const WC_DOC_MAX=25*1024*1024;
+const WC_DOC_TYPES={pdf:"application/pdf",doc:"application/msword",docx:"application/vnd.openxmlformats-officedocument.wordprocessingml.document",xls:"application/vnd.ms-excel",xlsx:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",ppt:"application/vnd.ms-powerpoint",pptx:"application/vnd.openxmlformats-officedocument.presentationml.presentation",txt:"text/plain",zip:"application/zip"};
+function wcDocExt(file){return String(file&&file.name||"").split(".").pop().toLowerCase().replace(/[^a-z0-9]/g,"")}
+function wcDocMime(file){
+ const ext=wcDocExt(file),mime=WC_DOC_TYPES[ext];
+ if(!mime)return null;
+ const t=(file.type||"").toLowerCase();
+ if(t&&t!==mime&&!(ext==="zip"&&(t==="application/x-zip-compressed"||t==="application/x-zip"))&&!(ext==="txt"&&t.startsWith("text/"))&&t!=="application/octet-stream")return null;
+ return mime;
+}
+function wcBusy(on){
+ const b=document.getElementById("chatMicButton");
+ if(b){b.disabled=!!on;b.classList.toggle("wc-busy",!!on)}
+}
 function wcSize(n){n=Number(n)||0;if(n<1024)return n+" B";if(n<1048576)return (n/1024).toFixed(0)+" KB";return (n/1048576).toFixed(1)+" MB"}
 function wcDur(sec){sec=Math.max(0,Math.round(Number(sec)||0));return Math.floor(sec/60)+":"+String(sec%60).padStart(2,"0")}
 function wcBars(seed){
@@ -3651,8 +3665,8 @@ function wcLoc(lat,lng){
  return '<a class="wc-loc" target="_blank" rel="noopener" href="https://www.google.com/maps?q='+q+'"><span class="wc-locmap"><svg viewBox="0 0 24 24" width="34" height="34" aria-hidden="true"><path d="M12 22s7-6.5 7-12a7 7 0 1 0-14 0c0 5.5 7 12 7 12z" fill="#E0533D" stroke="#fff" stroke-width="1.5"/><circle cx="12" cy="10" r="2.6" fill="#fff"/></svg></span><span class="wc-loct"><b>موقع محدد</b><small>'+esc(Number(lat).toFixed(5)+", "+Number(lng).toFixed(5))+'</small><em>فتح في الخرائط</em></span></a>';
 }
 function wcFile(m,url){
- const name=decodeURIComponent(String(m.attachment_path||"ملف").split("/").pop()||"ملف").replace(/^\d+[-_]/,"");
- const ext=(name.split(".").pop()||"").slice(0,4).toUpperCase();
+ const name=m.attachment_name||decodeURIComponent(String(m.attachment_path||"ملف").split("/").pop()||"ملف").replace(/^\d+[-_]/,"");
+ const ext=((name.split(".").length>1?name.split(".").pop():"")||"").slice(0,4).toUpperCase();
  return '<a class="wc-file" href="'+esc(url)+'" target="_blank" rel="noopener" download><span class="wc-fi"><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path d="M6 2h8l5 5v15H6z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M14 2v5h5" fill="none" stroke="currentColor" stroke-width="1.8"/></svg><i>'+esc(ext)+'</i></span><span class="wc-fn"><b>'+esc(name)+'</b><small>'+esc(wcSize(m.attachment_size_bytes))+(ext?' · '+esc(ext):'')+'</small></span></a>';
 }
 (function(){
@@ -3973,6 +3987,7 @@ return '<section class="section wc-section">'+
   '<div id="wcSheet" class="wc-sheet" hidden>'+
     '<label for="chatMediaInput" class="wc-sh-i"><span class="wc-sh-c" style="--c:#7F66FF"><svg viewBox="0 0 24 24" width="24" height="24"><rect x="3" y="4" width="18" height="16" rx="3" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="9" cy="10" r="1.8" fill="currentColor"/><path d="M4 18l5-5 4 4 3-3 4 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg></span><b>صورة أو فيديو</b></label>'+
     '<label for="chatCameraInput" class="wc-sh-i"><span class="wc-sh-c" style="--c:#E0533D"><svg viewBox="0 0 24 24" width="24" height="24"><path d="M4 8h3l2-3h6l2 3h3v11H4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="13" r="3.5" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></span><b>الكاميرا</b></label>'+
+    '<label for="chatDocInput" class="wc-sh-i"><span class="wc-sh-c" style="--c:#2D7DD2"><svg viewBox="0 0 24 24" width="24" height="24"><path d="M6 2h8l5 5v15H6z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M14 2v5h5M9 13h6M9 17h6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span><b>مستند</b></label>'+
     '<button id="chatLocationButton" type="button" class="wc-sh-i"><span class="wc-sh-c" style="--c:#1FA971"><svg viewBox="0 0 24 24" width="24" height="24"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="10" r="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></span><b>موقعي</b></button>'+
   '</div>'+
   '<div id="chatDropZone" class="wc-bar">'+
@@ -3985,6 +4000,7 @@ return '<section class="section wc-section">'+
     '<button class="wasla-send-icon" type="submit" aria-label="إرسال الرسالة" hidden></button>'+
     '<input id="chatMediaInput" type="file" accept="image/*,video/*" style="display:none">'+
     '<input id="chatCameraInput" type="file" accept="image/*" capture="environment" style="display:none">'+
+    '<input id="chatDocInput" type="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip" style="display:none">'+
     '<button id="chatMicButton" class="wasla-mic-button wc-act" type="button" aria-label="بدء التسجيل" title="تسجيل رسالة صوتية"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><rect x="9" y="2" width="6" height="13" rx="3" fill="currentColor"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4m-4 0h8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>'+
   '</div>'+
 '</form>'
@@ -7168,10 +7184,23 @@ if(f.id==="sendMessage"){
  if(!messageText&&!file)
   throw Error("اكتب رسالة أو اختر ملفًا للإرسال");
 
+ wcBusy(true);
+ try{
+
  let attachmentPath=null;
  let messageType="text";
+ let docName=null;
+ let uploadType=null;
 
  if(file){
+  const docMime=(!/^(image|video|audio)\//.test(file.type||""))?wcDocMime(file):null;
+  if(docMime){
+   if(file.size>WC_DOC_MAX)
+    throw Error("حجم المستند أكبر من 25 ميجابايت");
+   messageType="file";
+   docName=file.name;
+   uploadType=docMime;
+  }else{
   if(file.size>50*1024*1024)
    throw Error("حجم الملف أكبر من 50 ميجابايت");
 
@@ -7189,6 +7218,8 @@ if(f.id==="sendMessage"){
    :file.type.startsWith("video/")
     ?"video"
     :"audio";
+  uploadType=file.type;
+  }
 
   const safeExt=(file.name.split(".").pop()||"bin")
    .toLowerCase().replace(/[^a-z0-9]/g,"");
@@ -7205,7 +7236,7 @@ if(f.id==="sendMessage"){
   const bucket=db.storage.from("conversation-media");
 
   const uploaded=await bucket.upload(attachmentPath,file,{
-   contentType:file.type,
+   contentType:uploadType||file.type,
    upsert:false
   });
 
@@ -7219,13 +7250,14 @@ if(f.id==="sendMessage"){
   message_text:messageText,
   message_type:messageType,
   attachment_path:attachmentPath,
-  attachment_mime_type:file?.type||null,
+  attachment_mime_type:file?(uploadType||file.type||null):null,
   attachment_size_bytes:file?.size||null,
   media_duration_seconds:
    messageType==="audio"&&file?.name?.startsWith("voice-message-")
     ?s.chatMediaDurationSeconds
     :null
  };
+ if(docName)payload.attachment_name=docName;
  
  const inserted=await db.from("messages").insert(payload);
 
@@ -7254,6 +7286,7 @@ if(chatAttachmentPreviewUrl){
 s.chatMediaDurationSeconds=null;
  render();
  return;
+ }finally{wcBusy(false)}
 }
  if(f.id==="accountProfileForm"){
  const v=vals(f);
@@ -8588,8 +8621,9 @@ app.addEventListener("toggle", async e => {
 let chatAttachmentPreviewUrl=null;
 
 app.addEventListener("change",e=>{
- if(e.target.id!=="chatMediaInput"&&e.target.id!=="chatCameraInput")return;
+ if(e.target.id!=="chatMediaInput"&&e.target.id!=="chatCameraInput"&&e.target.id!=="chatDocInput")return;
 
+ const isDocInput=e.target.id==="chatDocInput";
  const file=e.target.files?.[0]||null;
  s.chatAttachment=file;
 
@@ -8612,19 +8646,29 @@ previewContainer.style.display="none";
   return;
  }
 
- if(!file.size||file.size>50*1024*1024){
+ if(isDocInput&&!wcDocMime(file)){
+  s.chatAttachment=null;
+  s.chatMediaDurationSeconds=null;
+  e.target.value="";
+  previewContainer.replaceChildren();
+  previewContainer.style.display="none";
+  note("نوع المستند غير مدعوم. المسموح: PDF وWord وExcel وPowerPoint وTXT وZIP.","error");
+  return;
+ }
+
+ if(!file.size||file.size>(isDocInput?WC_DOC_MAX:50*1024*1024)){
   s.chatAttachment=null;
   s.chatMediaDurationSeconds=null;
   e.target.value="";
   previewContainer.replaceChildren();
 previewContainer.style.display="none";
-  note("حجم الملف غير صالح أو أكبر من الحد المسموح (50 ميجابايت).","error");
+  note(isDocInput?"حجم المستند غير صالح أو أكبر من الحد المسموح (25 ميجابايت).":"حجم الملف غير صالح أو أكبر من الحد المسموح (50 ميجابايت).","error");
   return;
  }
 
 const isVoiceMessage=file.name.startsWith("voice-message-");
 
-if(!isVoiceMessage&&
+if(!isVoiceMessage&&!isDocInput&&
    !file.type.startsWith("image/")&&
    !file.type.startsWith("video/")){
   s.chatAttachment=null;
@@ -9020,6 +9064,7 @@ const addButton = () => {
 .wc-img,.wc-vid{display:block;border-radius:8px}
 .wc-aud{display:block;max-width:100%}
 #wcEnd{height:1px}
+.wc-act.wc-busy{opacity:.6;pointer-events:none;animation:wcshim 1s infinite}
 .wc-cap input{flex:1;min-width:0;min-height:44px;border:0!important;outline:0!important;background:transparent!important;box-shadow:none!important;padding:0 4px;font-size:16px;color:var(--text-primary);font-family:inherit}
 .wc-act:disabled{opacity:.55}
 .wc-prime{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;font-size:20px}
