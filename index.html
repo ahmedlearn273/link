@@ -10422,6 +10422,44 @@ const addButton = () => {
   });
 })();
  
+
+/* ===== Branded dropdown (replaces native select UI; native select stays in DOM) ===== */
+(function(){
+ const SKIP="[data-native],.wsel-native";
+ function lbl(sel){const o=sel.options[sel.selectedIndex];return o&&o.value!==""?o.textContent:(o?o.textContent:"")}
+ function title(sel){const l=sel.closest("label");if(!l)return "اختر";const c=l.cloneNode(true);c.querySelectorAll("select,.wsel,svg").forEach(x=>x.remove());return (c.textContent||"").trim()||"اختر"}
+ function sync(sel){const w=sel._wsel;if(!w)return;const b=w.btn;const o=sel.options[sel.selectedIndex];const t=o?o.textContent:"";const sp=b.querySelector("span");sp.textContent=t||"اختر";sp.className=(!o||o.value==="")?"ph":"";b.disabled=sel.disabled}
+ function build(sel){
+  if(sel._wsel||sel.multiple||sel.size>1||sel.matches(SKIP))return;
+  const w=document.createElement("div");w.className="wsel";
+  const b=document.createElement("button");b.type="button";b.className="wsel-btn";b.innerHTML="<span></span>"+cui("chev",18);
+  sel.parentNode.insertBefore(w,sel);w.appendChild(b);w.appendChild(sel);
+  sel.style.cssText="position:absolute;opacity:0;pointer-events:none;width:1px;height:1px;left:0;bottom:0";sel.tabIndex=-1;
+  sel._wsel={btn:b};
+  b.addEventListener("click",ev=>{ev.preventDefault();ev.stopPropagation();if(!sel.disabled)open(sel)});
+  sel.addEventListener("change",()=>sync(sel));
+  new MutationObserver(()=>sync(sel)).observe(sel,{childList:true,subtree:true,attributes:true,attributeFilter:["disabled"]});
+  sync(sel);
+ }
+ function open(sel){
+  const opts=[...sel.options];const ov=document.createElement("div");ov.className="wsel-ov";
+  const many=opts.length>7;
+  ov.innerHTML='<div class="wsel-sh" role="listbox"><div class="grab"></div><h3></h3>'+(many?'<div class="wsel-q">'+cui("search",18)+'<input type="search" placeholder="بحث"></div>':'')+'<div class="wsel-list"></div></div>';
+  ov.querySelector("h3").textContent=title(sel);
+  const list=ov.querySelector(".wsel-list");
+  function draw(q){list.innerHTML="";let n=0;opts.forEach((o,i)=>{if(o.disabled&&o.value==="")return;if(q&&o.textContent.indexOf(q)<0)return;n++;const bt=document.createElement("button");bt.type="button";bt.className="wsel-opt"+(i===sel.selectedIndex?" on":"");bt.setAttribute("role","option");const sp=document.createElement("span");sp.textContent=o.textContent;bt.appendChild(sp);if(i===sel.selectedIndex)bt.insertAdjacentHTML("beforeend",cui("chk",18));bt.addEventListener("click",()=>{sel.selectedIndex=i;sel.dispatchEvent(new Event("input",{bubbles:true}));sel.dispatchEvent(new Event("change",{bubbles:true}));close()});list.appendChild(bt)});if(!n){const e=document.createElement("div");e.className="wsel-empty";e.textContent="لا توجد نتائج";list.appendChild(e)}}
+  function close(){ov.remove();sel._wsel.btn.classList.remove("open");document.removeEventListener("keydown",kd)}
+  function kd(e){if(e.key==="Escape")close()}
+  ov.addEventListener("click",e=>{if(e.target===ov)close()});document.addEventListener("keydown",kd);
+  draw("");const qi=ov.querySelector("input");if(qi)qi.addEventListener("input",()=>draw(qi.value.trim()));
+  document.body.appendChild(ov);sel._wsel.btn.classList.add("open");
+  const on=list.querySelector(".on");if(on)on.scrollIntoView({block:"center"});
+ }
+ function scan(root){(root||document).querySelectorAll("select").forEach(build)}
+ let t=0;function later(){if(t)return;t=setTimeout(()=>{t=0;scan()},30)}
+ function start(){scan();new MutationObserver(later).observe(document.body,{childList:true,subtree:true})}
+ if(document.body)start();else document.addEventListener("DOMContentLoaded",start);
+})();
 </script>
  
 <style>
@@ -11050,6 +11088,25 @@ h1,h2,h3,h4{font-family:var(--wasla-font);font-weight:700;letter-spacing:0}
 .pay-add{width:100%;margin-top:8px;border:1.5px dashed var(--gold,#c9a24b);background:transparent;color:var(--text-primary)}
 .pay-sum{margin-top:8px;font-size:12.5px;font-weight:700;text-align:center}
 .pay-sum.ok{color:var(--success,#1f9d55)}.pay-sum.bad{color:var(--danger)}
+
+/* branded dropdown */
+.wsel{position:relative}
+.wsel-btn{width:100%;display:flex;align-items:center;gap:10px;min-height:46px;padding:10px 13px;margin-top:5px;border:1px solid var(--border-color);border-radius:13px;background:var(--bg-surface);color:var(--text-primary);font:600 14px Tajawal,sans-serif;text-align:start;cursor:pointer}
+.wsel-btn span{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.wsel-btn span.ph{color:var(--text-secondary);font-weight:500}
+.wsel-btn svg{color:var(--text-secondary)}.wsel-btn.open{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 16%,transparent)}
+.wsel-btn[disabled]{opacity:.5}
+.wsel-ov{position:fixed;inset:0;background:rgba(7,25,35,.5);display:flex;align-items:flex-end;justify-content:center;z-index:100000}
+.wsel-sh{width:min(100%,520px);max-height:78dvh;display:flex;flex-direction:column;background:var(--bg-surface);color:var(--text-primary);border-radius:24px 24px 0 0;padding:8px 14px 16px;box-shadow:0 -12px 40px rgba(0,0,0,.25)}
+.wsel-sh .grab{width:42px;height:4px;border-radius:9px;background:var(--border-color);margin:2px auto 10px}
+.wsel-sh h3{margin:0 0 10px;font-size:16px}
+.wsel-q{position:relative;margin-bottom:8px}.wsel-q svg{position:absolute;inset-inline-start:12px;top:50%;transform:translateY(-50%);color:var(--text-secondary)}
+.wsel-q input{width:100%;border:1px solid var(--border-color);border-radius:13px;padding:11px 40px;background:var(--bg-subtle);color:var(--text-primary);font:600 14px Tajawal,sans-serif}
+.wsel-list{overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:2px}
+.wsel-opt{display:flex;align-items:center;gap:10px;padding:13px 12px;border-radius:13px;border:0;background:transparent;color:var(--text-primary);font:600 14.5px Tajawal,sans-serif;text-align:start;cursor:pointer}
+.wsel-opt:active{background:var(--bg-subtle)}
+.wsel-opt.on{background:color-mix(in srgb,var(--accent) 12%,transparent);font-weight:800}
+.wsel-opt svg{margin-inline-start:auto;color:var(--accent)}
+.wsel-empty{padding:22px;text-align:center;color:var(--text-secondary);font-size:13px}
 </style>
 </body></html>
 
