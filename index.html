@@ -2259,6 +2259,7 @@ async function auditEvent(action,entityTable="application",entityId=null,result=
 async function loadCustomerProviderData(p,pp,u){
  const isC=p.role==="customer";
  if(isC)payRtSubscribe(u.id);
+ reqRtSubscribe(u.id);
  const reqQ=isC
   ?db.from("service_requests").select("*,services(name_ar),provider_profiles(display_name,city)").eq("customer_id",u.id).order("created_at",{ascending:false})
   :db.from("service_requests").select("*,services(name_ar)").or("provider_id.eq."+pp.id+",provider_id.is.null").order("created_at",{ascending:false});
@@ -2369,7 +2370,7 @@ if(p.status!=="active"){
   
 s.staffAccess=null;s.rq=null;s.rl=null;s.staffSuspended=false;
 await publicData(p.role==="admin"||p.role==="owner"||p.role==="staff");
-try{payRtUnsub()}catch(_){}s.requests=[];s.payments={};s.wallet=null;s.quotes=[];s.offers=[];s.apps=[];s.allRequests=[];s.adminProfiles=[];s.chats=[];s.messages=[];try{wcUnsubscribe();wcListUnsubscribe()}catch(_){}s.activeChat=null;s.auditLogs=[];
+try{payRtUnsub()}catch(_){}try{reqRtUnsub()}catch(_){}s.requests=[];s.payments={};s.wallet=null;s.quotes=[];s.offers=[];s.apps=[];s.allRequests=[];s.adminProfiles=[];s.chats=[];s.messages=[];try{wcUnsubscribe();wcListUnsubscribe()}catch(_){}s.activeChat=null;s.auditLogs=[];
 
 if(p.role==="staff"){
  const {data:effPerms,error:staffError}=await db.rpc("my_effective_permissions");
@@ -2788,6 +2789,30 @@ function receiptModal(m){
   row("تاريخ الدفع",esc(fmtDateAr(x.paid_at||x.created_at)))+
   row("رقم الإيصال",'<span dir="ltr" style="font-size:12px">'+esc(String(x.id).slice(0,8).toUpperCase())+'</span>')+
   '<p class="small" style="text-align:center;margin-top:10px">شكرًا لاستخدامك وصلة</p></div>';
+}
+var reqRt={chan:null,uid:null,timer:null,busy:false};
+function reqRtUnsub(){try{if(reqRt.chan)db.removeChannel(reqRt.chan)}catch(_){}reqRt.chan=null;reqRt.uid=null;clearTimeout(reqRt.timer)}
+function reqRtKick(){
+ clearTimeout(reqRt.timer);
+ reqRt.timer=setTimeout(async function go(){
+  if(!s.user||!reqRt.chan)return;
+  const ae=document.activeElement;
+  if(reqRt.busy||(ae&&/^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName)&&(ae.value||"").length>0)){reqRt.timer=setTimeout(go,2500);return}
+  reqRt.busy=true;
+  try{await refreshRoleData()}catch(_){}
+  reqRt.busy=false;
+ },700);
+}
+function reqRtSubscribe(uid){
+ if(!uid||(reqRt.chan&&reqRt.uid===uid))return;
+ reqRtUnsub();
+ try{
+  reqRt.uid=uid;
+  reqRt.chan=db.channel("wasla-requests-"+uid)
+   .on("postgres_changes",{event:"*",schema:"public",table:"service_requests"},()=>reqRtKick())
+   .on("postgres_changes",{event:"*",schema:"public",table:"service_quotes"},()=>reqRtKick())
+   .subscribe();
+ }catch(_){reqRt.chan=null;reqRt.uid=null}
 }
 var payRt={chan:null,uid:null};
 function payRtUnsub(){try{if(payRt.chan)db.removeChannel(payRt.chan)}catch(_){}payRt.chan=null;payRt.uid=null}
