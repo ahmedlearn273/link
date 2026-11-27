@@ -5716,6 +5716,115 @@ const nav=navItems.map(x=>'<button data-a="tab" data-id="'+x[0]+'" class="'+(s.t
 }
 
 
+const waslaNotif=(function(){
+ var st={uid:null,list:[],unread:0,ok:true,chan:null,panel:null,swReg:null,loading:false};
+ function stop(){try{if(st.chan)db.removeChannel(st.chan)}catch(_){}st.chan=null;st.uid=null;st.list=[];st.unread=0;st.ok=true;closePanel()}
+ function badge(){
+  var b=document.querySelector(".notif-bell .notif-badge");
+  if(b){b.textContent=st.unread>99?"99+":String(st.unread);b.style.display=st.unread>0?"flex":"none"}
+ }
+ function ago(t){
+  var d=Math.max(0,(Date.now()-new Date(t).getTime())/1000);
+  if(d<60)return "الآن";
+  if(d<3600)return "منذ "+Math.floor(d/60)+" د";
+  if(d<86400)return "منذ "+Math.floor(d/3600)+" س";
+  return "منذ "+Math.floor(d/86400)+" يوم";
+ }
+ async function load(){
+  if(st.loading)return;st.loading=true;
+  try{
+   var r=await db.from("notifications").select("*").order("created_at",{ascending:false}).limit(50);
+   if(r.error){st.ok=false;return}
+   st.ok=true;st.list=r.data||[];st.unread=st.list.filter(function(x){return !x.is_read}).length;
+   badge();if(st.panel)renderPanel();
+  }catch(_){st.ok=false}finally{st.loading=false}
+ }
+ function sysNotify(n){
+  try{
+   if(typeof Notification==="undefined"||Notification.permission!=="granted")return;
+   if(!document.hidden)return;
+   var opt={body:n.body||"",tag:n.id,lang:"ar",dir:"rtl"};
+   if(st.swReg&&st.swReg.showNotification){st.swReg.showNotification(n.title,opt);return}
+   new Notification(n.title,opt);
+  }catch(_){}
+ }
+ function subscribe(uid){
+  try{
+   st.chan=db.channel("wasla-notifs-"+uid)
+    .on("postgres_changes",{event:"INSERT",schema:"public",table:"notifications",filter:"recipient_id=eq."+uid},function(p){
+     var n=p&&p.new;if(!n||!n.id)return;
+     if(st.list.some(function(x){return x.id===n.id}))return;
+     st.list.unshift(n);st.unread+=n.is_read?0:1;badge();
+     if(st.panel)renderPanel();
+     if(document.hidden)sysNotify(n);else{try{note(n.title+(n.body?" - "+n.body:""),"success")}catch(_){}}
+    }).subscribe();
+  }catch(_){st.chan=null}
+ }
+ function start(uid){
+  st.uid=uid;
+  try{if("serviceWorker" in navigator)navigator.serviceWorker.register("/sw.js").then(function(r){st.swReg=r}).catch(function(){})}catch(_){}
+  load().then(function(){if(st.ok&&st.uid===uid)subscribe(uid)});
+ }
+ function bellHtml(){
+  return '<button type="button" class="notif-bell" data-nf="open" aria-label="الإشعارات" title="الإشعارات"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg><span class="notif-badge" style="display:'+(st.unread>0?"flex":"none")+'">'+(st.unread>99?"99+":st.unread)+'</span></button>';
+ }
+ function onRender(){
+  if(!s.user||!s.profile){if(st.uid)stop();return}
+  if(st.uid!==s.user.id){if(st.uid)stop();start(s.user.id)}
+  if(!st.ok)return;
+  var top=document.querySelector(".topline");
+  if(top&&!top.querySelector(".notif-bell")){
+   var tmp=document.createElement("div");tmp.innerHTML=bellHtml();
+   var bell=tmp.firstChild,nav=top.querySelector(":scope > .nav");
+   if(nav)top.insertBefore(bell,nav);else top.appendChild(bell);
+  }
+ }
+ function closePanel(){if(st.panel){st.panel.remove();st.panel=null}}
+ function renderPanel(){
+  var perm=(typeof Notification!=="undefined")?Notification.permission:"unsupported";
+  var h='<div class="wth-panel notif-panel" role="dialog" aria-label="الإشعارات"><div class="notif-head"><h3>الإشعارات</h3><div>'+(st.unread>0?'<button type="button" class="notif-link" data-nf="readall">تحديد الكل كمقروء</button>':'')+'<button type="button" class="notif-link" data-nf="close">إغلاق</button></div></div>';
+  if(perm==="default")h+='<div class="notif-perm"><span>فعّل إشعارات الجهاز عشان توصلك التنبيهات بصوت الموبايل.</span><button type="button" class="btn gold" data-nf="perm">تفعيل</button></div>';
+  else if(perm==="denied")h+='<div class="notif-perm"><span>إشعارات الجهاز مقفولة من إعدادات المتصفح.</span></div>';
+  if(!st.list.length)h+='<div class="empty">مفيش إشعارات لسه.</div>';
+  else h+=st.list.map(function(n){return '<button type="button" class="notif-item'+(n.is_read?'':' unread')+'" data-nf="item" data-nid="'+esc(n.id)+'"><span class="notif-dot"></span><span class="notif-txt"><b>'+esc(n.title)+'</b>'+(n.body?'<span>'+esc(n.body)+'</span>':'')+'<small>'+esc(ago(n.created_at))+'</small></span></button>'}).join("");
+  h+='</div>';
+  st.panel.innerHTML=h;
+ }
+ function openPanel(){
+  closePanel();
+  var el=document.createElement("div");el.className="wth-back";el.setAttribute("data-nf-back","1");
+  document.body.appendChild(el);st.panel=el;renderPanel();load();
+ }
+ function go(n){
+  closePanel();
+  try{
+   var role=s.profile&&s.profile.role;
+   if(n.type==="chat_message"){if(n.request_id)navFire("chat",n.request_id);else navFire("tab","messages")}
+   else if(n.type==="payment_paid"&&role==="customer")navFire("tab","payments");
+   else navFire("tab","requests");
+  }catch(_){}
+ }
+ document.addEventListener("click",function(e){
+  var t=e.target;if(!t||!t.closest)return;
+  var b=t.closest("[data-nf]");
+  if(!b){if(st.panel&&t===st.panel)closePanel();return}
+  var a=b.getAttribute("data-nf");
+  if(a==="open")openPanel();
+  else if(a==="close")closePanel();
+  else if(a==="readall"){
+   st.list=st.list.map(function(x){return Object.assign({},x,{is_read:true})});st.unread=0;badge();if(st.panel)renderPanel();
+   try{db.rpc("mark_all_notifications_read").then(function(){},function(){})}catch(_){}
+  }else if(a==="perm"){
+   try{Notification.requestPermission().then(function(){if(st.panel)renderPanel()})}catch(_){}
+  }else if(a==="item"){
+   var id=b.getAttribute("data-nid"),n=st.list.find(function(x){return x.id===id});
+   if(!n)return;
+   if(!n.is_read){n.is_read=true;st.unread=Math.max(0,st.unread-1);badge();try{db.rpc("mark_notification_read",{p_id:id}).then(function(){},function(){})}catch(_){}}
+   go(n);
+  }
+ });
+ return {onRender:onRender};
+})();
 const WASLA_PALETTES=[{"id": "wasla", "name": "وصلة (الحالي)", "l": ["#FAF9F6", "#FFFFFF", "#F3F2EE", "#0F4C5C", "#0B3945", "#EA580C", "#111827", "#6B7280", "#E5E7EB"], "d": ["#121417", "#1C1F24", "#252930", "#2A9D8F", "#21867A", "#F59E0B", "#F9FAFB", "#9CA3AF", "#2D3139"]}, {"id": "ocean", "name": "محيط", "l": ["#F5F8FC", "#FFFFFF", "#EAF0F8", "#1D4ED8", "#1E40AF", "#0891B2", "#0F172A", "#64748B", "#DCE4EF"], "d": ["#0D1320", "#141C2E", "#1B2540", "#60A5FA", "#3B82F6", "#38BDF8", "#F1F5F9", "#94A3B8", "#26324D"]}, {"id": "olive", "name": "زيتون", "l": ["#F6F8F3", "#FFFFFF", "#ECF0E6", "#2F6B3F", "#24542F", "#CA8A04", "#14210F", "#667060", "#DFE5D8"], "d": ["#0F1511", "#172019", "#1F2B22", "#5BBE7A", "#43A262", "#FACC15", "#F1F7F2", "#9CAFA0", "#2A3A2E"]}, {"id": "royal", "name": "ملكي", "l": ["#FAF8FD", "#FFFFFF", "#F1EDF8", "#6D28D9", "#5B21B6", "#DB2777", "#1E1033", "#6B6480", "#E6E0F0"], "d": ["#130F1C", "#1C1629", "#261E37", "#A78BFA", "#8B5CF6", "#F472B6", "#F5F0FF", "#A79EBB", "#33284A"]}, {"id": "sila", "name": "سيلا", "l": ["#FFF7F9", "#FFFFFF", "#FDEAF0", "#D6336C", "#B82A5C", "#F59E7B", "#3A1220", "#8A6472", "#F6D5E0"], "d": ["#1B1015", "#26171D", "#341F28", "#F472A8", "#EC4D8F", "#FDBA9B", "#FFF1F5", "#C9A0B1", "#46293A"]}, {"id": "desert", "name": "صحراوي", "l": ["#FBF6EF", "#FFFFFF", "#F3EADD", "#B5532A", "#923F1D", "#C99A2E", "#2B1A10", "#7A6655", "#EADBC8"], "d": ["#18120D", "#231A13", "#2F241B", "#E08A5B", "#CF7442", "#E6B94F", "#FBF1E6", "#B8A28D", "#3E3025"]}, {"id": "nile", "name": "نيلي", "l": ["#F3F8F8", "#FFFFFF", "#E5F0F0", "#0B5D73", "#084A5C", "#2F9E8F", "#0C1F26", "#5C7078", "#D3E4E5"], "d": ["#0A1519", "#102128", "#173039", "#4FB5C9", "#2FA0B6", "#5FD0B8", "#EAF6F8", "#8FB0B8", "#1F3A44"]}, {"id": "coffee", "name": "قهوة", "l": ["#FAF6F1", "#FFFFFF", "#F0E7DD", "#6F4E37", "#583C29", "#C08552", "#25170E", "#7B6A5D", "#E6D9CB"], "d": ["#171110", "#211917", "#2D2320", "#C9A27E", "#B88B63", "#E0A96D", "#F7EEE6", "#B5A294", "#3B2F2A"]}, {"id": "lemon", "name": "ليموني", "l": ["#F7FAF2", "#FFFFFF", "#EAF2DD", "#3F7D3A", "#2F6230", "#9AAE1B", "#16240F", "#667A5A", "#DCE8CA"], "d": ["#0F150E", "#161F14", "#1F2C1C", "#8FCB6E", "#76B556", "#C6DB4A", "#F0F7E8", "#9DB38E", "#2A3A25"]}, {"id": "sunset", "name": "غروب", "l": ["#FFF8F4", "#FFFFFF", "#FDEBE1", "#D9534A", "#B8403A", "#F2994A", "#33150F", "#85655C", "#F4D8CB"], "d": ["#1A110F", "#251817", "#332120", "#F2766C", "#E85D52", "#F6AE6B", "#FFF0EA", "#C9A397", "#46302C"]}];
 const waslaThemes=(function(){
  var root=document.documentElement,saved="wasla",current="wasla",el=null;
@@ -5799,6 +5908,7 @@ function render(){
   }catch(_){}
   try{navHistSync()}catch(_){}
   try{waslaThemes.onRender()}catch(_){}
+  try{waslaNotif.onRender()}catch(_){}
  }
 }
 var navHist={init:false,idx:0,stack:[],key:null,target:null,until:0};
@@ -10164,6 +10274,19 @@ h1,h2,h3,h4{font-family:var(--wasla-font);font-weight:700;letter-spacing:0}
 .wth-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;position:sticky;bottom:0;background:var(--bg-surface);padding-top:8px}
 .wth-actions button{flex:1 1 auto;min-height:44px;border-radius:11px;border:1px solid var(--border-color);background:var(--bg-subtle);color:var(--text-primary);font:700 14px Tajawal,sans-serif;cursor:pointer}
 .wth-actions button.go{background:var(--primary);border-color:var(--primary);color:var(--bg-surface)}
+
+.notif-bell{position:relative;border:1px solid var(--border-color);background:var(--bg-subtle);color:var(--text-primary);border-radius:8px;width:38px;height:36px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;flex:0 0 auto;padding:0}
+.topline > .notif-bell{margin-inline-start:8px}
+.topline > .theme-toggle ~ .notif-bell{margin-inline-start:0}
+.notif-badge{position:absolute;top:-6px;inset-inline-end:-6px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#DC2626;color:#fff;font:800 11px Tajawal,sans-serif;align-items:center;justify-content:center}
+.notif-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}.notif-head h3{margin:0}
+.notif-link{border:0;background:none;color:var(--primary);font:700 13px Tajawal,sans-serif;cursor:pointer;padding:6px}
+.notif-perm{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--bg-subtle);border:1px solid var(--border-color);border-radius:12px;padding:10px 12px;margin-bottom:10px;font-size:13px}
+.notif-item{display:flex;gap:10px;align-items:flex-start;width:100%;text-align:start;background:none;border:0;border-bottom:1px solid var(--border-color);padding:12px 4px;color:var(--text-primary);cursor:pointer;font:inherit}
+.notif-item.unread{background:var(--bg-subtle)}
+.notif-dot{width:9px;height:9px;border-radius:50%;margin-top:6px;flex:0 0 auto;background:transparent}
+.notif-item.unread .notif-dot{background:#DC2626}
+.notif-txt{display:flex;flex-direction:column;gap:2px;min-width:0}.notif-txt b{font-size:14px}.notif-txt span{font-size:13px;color:var(--text-secondary);overflow-wrap:anywhere}.notif-txt small{font-size:11px;color:var(--text-secondary)}
 </style>
 </body></html>
 
