@@ -2963,6 +2963,22 @@ function walletView(){
  }).join("")||empty("لا توجد طلبات حتى الآن");
       }
 
+function customerIdCard(){
+ const p=s.profile||{};
+ const rq=s.requests||[];
+ const total=rq.length;
+ const done=rq.filter(r=>r.status==="completed").length;
+ const active=rq.filter(r=>r.status==="accepted"||r.status==="in_progress").length;
+ const LG='<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M7 17 L19 46 L31 25 L43 46 L57 17" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 39 C17 57 46 9 59 27" fill="none" stroke="#d9b25a" stroke-width="3.5" stroke-linecap="round"/><circle cx="55" cy="15" r="4.5" fill="#d9b25a"/></svg>';
+ const av=p.avatar_url?'<img src="'+esc(p.avatar_url)+'" alt="">':LG;
+ return '<section class="section"><div class="wid" aria-label="بطاقة العميل"><div class="wid-tex"></div><div class="wid-shine"></div>'+
+  '<div class="wid-top"><span class="wid-brand">'+LG+'وصلة</span><span class="wid-kind">بطاقة عميل</span></div>'+
+  '<div class="wid-main"><div class="wid-av">'+av+'</div><div class="wid-info"><b class="wid-name">'+esc(p.full_name||"عميل وصلة")+'</b>'+
+  '<span class="wid-sub">'+(p.city?esc(p.city)+' · ':'')+'عميل</span></div></div>'+
+  '<div class="wid-stats"><div><b>'+fmt(total)+'</b><span>إجمالي الطلبات</span></div><div><b>'+fmt(done)+'</b><span>مكتمل</span></div><div><b>'+fmt(active)+'</b><span>جارٍ</span></div></div>'+
+  (p.account_code?'<div class="wid-foot"><span>رقم الحساب</span><b dir="ltr">'+esc(p.account_code)+'</b></div>':'')+
+  '</div></section>';
+}
 function providerIdCard(){
  const pr=s.provider||{},p=s.profile||{};
  const name=pr.display_name||p.full_name||"مزوّد وصلة";
@@ -3078,6 +3094,7 @@ function accountSettingsView(){
   p.role==="customer"
  )+
  '<main class="wrap '+(p.role==="customer"?"wasla-customer-page":"")+'">'+msg()+
+ (p.role==="customer"?customerIdCard():"")+
  accountSettingsBody(p)+
  '</main>'+
  (p.role==="customer"?customerBottomNav():"");
