@@ -5549,8 +5549,14 @@ if(m.type==="request"){
  '<label class="field">وصف المشكلة أو الخدمة المطلوبة<textarea name="description" placeholder="اشرح ما تحتاج إليه بالتفصيل..."></textarea></label>'+
  '</section>'+
  '<section class="section"><h4>موقع تنفيذ الخدمة</h4>'+
- field("الدولة","country","text","الدولة",s.profile.country,true)+
- field("المدينة","city","text","المدينة",s.profile.city,true)+
+ (()=>{
+  const eg=(s.geo.countries||[]).find(x=>x.country_code==="EG");
+  const cs=(s.geo.cities||[]).filter(x=>!eg||x.country_id===eg.id);
+  return '<input type="hidden" name="country_id" value="'+esc(eg?.id||"")+'">'+
+   '<label class="field">الدولة<input type="text" value="'+esc(eg?.name_ar||"مصر")+'" readonly></label>'+
+   '<label class="field">المحافظة<select name="city_id" required><option value="">اختر المحافظة</option>'+cs.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.name_ar)+'</option>').join("")+'</select></label>'+
+   '<label class="field">القسم / المركز<select name="area_id" required disabled><option value="">اختر المحافظة أولاً</option></select><small id="geoAreaStatus">اختر المحافظة أولاً</small></label>';
+ })()+
  field("العنوان","address","text","الحي والشارع", "",true)+
  '</section>'+
  '<section class="section"><h4>الميزانية</h4>'+
@@ -7358,7 +7364,11 @@ console.info("[WASLA signup] اكتمل رفع المستند:", d.document_type
 
  return;
   }
-  if(f.id==="requestForm"){let v=vals(f),r=await db.rpc("create_service_request",{p_service_id:v.service_id,p_title:v.title,p_description:v.description||null,p_country:v.country,p_city:v.city,p_address:v.address,p_budget:v.budget?Number(v.budget):null,p_provider_id:v.provider_id||null});if(r.error)throw r.error;s.modal=null;await loadUser(s.user);note("تم إرسال طلب الخدمة.","success");return}
+  if(f.id==="requestForm"){let v=vals(f);
+   const gC=(s.geo.countries||[]).find(x=>x.id===v.country_id&&x.country_code==="EG"),gT=(s.geo.cities||[]).find(x=>x.id===v.city_id&&x.country_id===v.country_id),gA=(s.geo.areas||[]).find(x=>x.id===v.area_id&&x.city_id===v.city_id);
+   if(!gC||!gT||!gA)throw Error("اختر المحافظة والقسم / المركز بشكل صحيح.");
+   if(!String(v.address||"").trim())throw Error("اكتب العنوان التفصيلي.");
+   let r=await db.rpc("create_service_request",{p_service_id:v.service_id,p_title:v.title,p_description:v.description||null,p_country:gC.name_ar,p_city:gT.name_ar,p_address:String(v.address).trim(),p_budget:v.budget?Number(v.budget):null,p_provider_id:v.provider_id||null,p_country_id:gC.id,p_city_id:gT.id,p_area_id:gA.id});if(r.error)throw r.error;s.modal=null;await loadUser(s.user);note("تم إرسال طلب الخدمة.","success");return}
  
 if(f.id==="cancelRequestForm"){
 
@@ -8057,7 +8067,7 @@ if(a==="viewcustomer"){s.modal={type:"customerDetails",userId:id};render();retur
  note("تمت إزالة الموظف بنجاح.","success");
  return;
   }
-  if(a==="request"){if(!s.user){s.mode="login";note("سجّل الدخول أولًا حتى تتمكن من إرسال طلب خدمة.");return}s.modal={type:"request",providerId:s.providers.some(x=>x.id===id)?id:null,serviceId:s.services.some(x=>x.id===id)?id:null};render();return}
+  if(a==="request"){if(!s.user){s.mode="login";note("سجّل الدخول أولًا حتى تتمكن من إرسال طلب خدمة.");return}if(!(s.geo.cities||[]).length){try{await loadGeoCatalog()}catch(_){}}s.geo.areas=[];s.modal={type:"request",providerId:s.providers.some(x=>x.id===id)?id:null,serviceId:s.services.some(x=>x.id===id)?id:null};render();return}
   if(["addoffer","addservice","addcategory"].includes(a)){s.modal={type:a==="addoffer"?"offer":a==="addservice"?"service":"category"};render();return}
 if(a==="request-details"){
 
@@ -8889,7 +8899,7 @@ app.addEventListener("change",async e=>{
   return;
  }
  if(e.target.name==="city_id"){
-  const form=e.target.closest("#signup");
+  const form=e.target.closest("#signup,#requestForm");
   if(!form)return;
 
   const citySelect=e.target;
