@@ -3959,29 +3959,53 @@ setInterval(()=>{
  if(wcRtOk&&Date.now()-wcLastPoll<30000)return;
  wcPoll();
 },6000);
+async function wcSignAdminChat(list){
+ s.adminChatUrls=s.adminChatUrls||{};
+ if(!Array.isArray(list))return;
+ const bucket=db.storage.from("conversation-media");
+ await Promise.all(list.flatMap(x=>{
+  if(!x||!x.id)return [];
+  const jobs=[];
+  if(typeof x.attachment_path==="string"&&x.attachment_path)jobs.push(bucket.createSignedUrl(x.attachment_path,3600).then(r=>{if(!r.error&&r.data?.signedUrl)s.adminChatUrls[x.id]=r.data.signedUrl}).catch(()=>{}));
+  if(typeof x.thumbnail_path==="string"&&x.thumbnail_path)jobs.push(bucket.createSignedUrl(x.thumbnail_path,3600).then(r=>{if(!r.error&&r.data?.signedUrl)s.adminChatUrls["t:"+x.id]=r.data.signedUrl}).catch(()=>{}));
+  return jobs;
+ }));
+}
 function wcAdminChat(list,role,L,MT){
  if(!Array.isArray(list)||!list.length)return '<div class="wc-empty" style="padding:18px"><div class="wc-empty-i"><svg viewBox="0 0 24 24" width="30" height="30"><path d="M4 5h16v11H9l-5 4z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg></div><b>لا توجد رسائل</b></div>';
+ const urls=s.adminChatUrls||{};
  let out="",prevDay="",prevRole=null;
  list.forEach(x=>{
+  if(!x)return;
   const day=wcDayKey(x.created_at);
   if(day!==prevDay){out+='<div class="wc-day"><span>'+esc(wcDayLabel(x.created_at))+'</span></div>';prevDay=day;prevRole=null}
   const r=x.sender_role,first=prevRole!==r;prevRole=r;
   const kind=r==="customer"?"in":(r==="provider"?"out":"sys");
-  const typ=(x.message_type&&x.message_type!=="text")?'<span class="wc-ty">'+esc(L(MT,x.message_type))+'</span>':"";
-  const text=x.message_text?'<span class="wc-t">'+esc(x.message_text)+'</span>':"";
-  const meta='<span class="wc-m">'+esc(wcTime(x.created_at))+'</span>';
-  if(kind==="sys"){out+='<div class="wc-row wc-c"><div class="wc-b wc-sysb"><div class="wc-n">'+esc(role(r))+'</div>'+typ+text+meta+'</div></div>';return}
   const side=kind==="out";
-  out+='<div class="wc-row '+(side?'wc-l':'wc-r')+(first?' wc-first':'')+'"><div class="wc-b '+(side?'wc-out':'wc-in')+(first?' wc-tail':'')+'">'+(first?'<div class="wc-n">'+esc(role(r))+'</div>':'')+typ+text+meta+'</div></div>';
+  const url=x.attachment_path?urls[x.id]:null,th=urls["t:"+x.id];
+  let media="";
+  const hasLoc=x.location_latitude!=null&&x.location_longitude!=null&&isFinite(Number(x.location_latitude))&&isFinite(Number(x.location_longitude));
+  if(x.attachment_path){
+   if(url){
+    if(x.message_type==="image")media='<button type="button" class="wc-imgbtn" data-wcimg="'+esc(url)+'" aria-label="عرض الصورة"><img class="wc-img" loading="lazy" src="'+esc(url)+'" alt="صورة مرفقة"></button>';
+    else if(x.message_type==="video")media=th
+      ?'<button type="button" class="wc-vidpost" data-wcvid="'+esc(url)+'" aria-label="تشغيل الفيديو"><img class="wc-img" loading="lazy" src="'+esc(th)+'" alt="معاينة الفيديو"><span class="wc-vplay2"><svg viewBox="0 0 24 24" width="30" height="30"><path d="M8 5v14l11-7z" fill="#fff"/></svg></span></button>'
+      :'<video class="wc-vid" controls playsinline preload="metadata" src="'+esc(url)+'"></video>';
+    else if(x.message_type==="audio"||x.message_type==="voice")media=wcVoice({id:x.id,media_duration_seconds:x.media_duration_seconds},url,side,{full_name:role(r)},true);
+    else media=wcFile(x,url);
+   }else{
+    media='<span class="wc-ty">مرفق غير متاح للعرض'+(x.attachment_name?': '+esc(x.attachment_name):'')+'</span>';
+   }
+  }else if(hasLoc)media=wcLoc(x.location_latitude,x.location_longitude);
+  const typ=(!media&&x.message_type&&x.message_type!=="text")?'<span class="wc-ty">'+esc(L(MT,x.message_type))+'</span>':"";
+  const text=x.message_text&&!(hasLoc&&String(x.message_text).startsWith("📍"))?'<span class="wc-t">'+esc(x.message_text)+'</span>':"";
+  const dl=x.delivered_at?'<span class="wc-tick" title="تم التسليم">'+wcTick(1)+'</span>':'';
+  const meta='<span class="wc-m">'+esc(wcTime(x.created_at))+dl+'</span>';
+  const hm=media?' wc-has-media':'';
+  if(kind==="sys"){out+='<div class="wc-row wc-c"><div class="wc-b wc-sysb'+hm+'"><div class="wc-n">'+esc(role(r))+'</div>'+media+typ+text+meta+'</div></div>';return}
+  out+='<div class="wc-row '+(side?'wc-l':'wc-r')+(first?' wc-first':'')+'"><div class="wc-b '+(side?'wc-out':'wc-in')+(first?' wc-tail':'')+hm+'">'+(first?'<div class="wc-n">'+esc(role(r))+'</div>':'')+media+typ+text+meta+'</div></div>';
  });
  return '<div class="wc wc-embed"><div class="wc-body wc-noanim">'+out+'</div></div>';
-}
-function wcListTime(x){
- const d=new Date(x);if(isNaN(d))return "";
- const k=wcDayKey(x),t=new Date();
- if(k===wcDayKey(t))return wcTime(x);
- if(k===wcDayKey(new Date(t.getTime()-86400000)))return "أمس";
- return d.toLocaleDateString("ar-EG-u-nu-latn",{day:"numeric",month:"numeric",year:"2-digit",timeZone:WC_TZ});
 }
 function wcTick(st){const read=st>=1;
  return '<svg viewBox="0 0 16 11" width="16" height="11" aria-hidden="true"><path d="M1.5 5.8 4.8 9 11.5 1.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>'+(read?'<path d="M6.5 8.2 7.4 9 14.5 1.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>':'')+'</svg>';
@@ -4723,6 +4747,7 @@ async function viewPrimeKnowledgeDocument(documentId){
           const {data,error}=await db.rpc("admin_get_request_detail",{p_request_id:id});
           if(error)throw error;
           if(q.detailId!==id)return;
+          try{await wcSignAdminChat(data&&data.chat)}catch(_){}
           q.detail={loading:false,error:"",errorHint:"",data:data||null};
         }catch(err){
           console.error("[admin_get_request_detail]",err);
@@ -4751,6 +4776,7 @@ async function viewPrimeKnowledgeDocument(documentId){
           const {data,error}=await db.rpc("admin_get_request_detail",{p_request_id:id});
           if(error)throw error;
           if(q.detailId!==id)return;
+          try{await wcSignAdminChat(data&&data.chat)}catch(_){}
           q.detail={loading:false,error:"",errorHint:"",data:data||null};
         }catch(err){
           console.error("[admin_get_request_detail refresh]");
