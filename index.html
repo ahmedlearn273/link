@@ -2203,15 +2203,8 @@ function syncServiceAreaCityCheckbox(row) {
 const esc=x=>String(x??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])),fmt=x=>Number(x||0).toLocaleString("ar-SA");
 
 function note(x,t){
- s.notice=x;
- s.noticeType=t||"";
- const el=document.getElementById("appNotice");
- if(el){
-  el.textContent=x;
-  el.className="notice "+(s.noticeType==="error"?"error":s.noticeType==="success"?"success":"");
- }else{
-  render();
- }
+ s.notice="";s.noticeType=t||"";
+ waslaUI.toast(x,t);
 }
 function tag(x){let a={pending:["قيد المراجعة","wait"],accepted:["مقبول","ok"],in_progress:["قيد التنفيذ","wait"],completed:["مكتمل","ok"],cancelled:["ملغي","bad"],approved:["موثّق","ok"],rejected:["مرفوض","bad"],suspended:["موقوف","bad"]}[x]||[x||"—",""];return '<span class="tag '+a[1]+'">'+a[0]+'</span>'}
 
@@ -2230,10 +2223,10 @@ function header(sub,nav,hideAccountNav=false){
 }
       
 function msg(){
- return s.notice?'<div id="appNotice" class="notice '+(s.noticeType==="error"?"error":s.noticeType==="success"?"success":"")+'">'+esc(s.notice)+'</div>':"";
+ return false?'<div id="appNotice" class="notice '+(s.noticeType==="error"?"error":s.noticeType==="success"?"success":"")+'">'+esc(s.notice)+'</div>':"";
 }
 function btn(a,t,k,id,extra){return '<button class="btn '+(k||"")+'" data-a="'+a+'" data-id="'+esc(id||"")+'" '+(extra||"")+'>'+t+'</button>'}
-function field(l,n,type,ph,v,req){return '<label class="field">'+l+'<input name="'+n+'" type="'+(type||"text")+'" placeholder="'+esc(ph||"")+'" value="'+esc(v||"")+'" '+(req?"required":"")+'></label>'}
+function field(l,n,type,ph,v,req){if(type==="datetime-local")return waslaUI.input(l,n,"datetime",v,req);return '<label class="field">'+l+'<input name="'+n+'" type="'+(type||"text")+'" placeholder="'+esc(ph||"")+'" value="'+esc(v||"")+'" '+(req?"required":"")+'></label>'}
 function select(l,n,opts,v){return '<label class="field">'+l+'<select name="'+n+'">'+opts.map(o=>'<option value="'+esc(o.value)+'" '+(String(o.value)===String(v)?"selected":"")+'>'+esc(o.label)+'</option>').join("")+'</select></label>'}
 function empty(x){return '<div class="empty">'+esc(x)+'</div>'}
 
@@ -5431,8 +5424,8 @@ async function viewPrimeKnowledgeDocument(documentId){
           '<label class="field">المدينة<select id="rqCity">'+opt("","كل المدن",f.city_id)+cities.map(c=>opt(c.id,nm(c),f.city_id)).join("")+'</select></label>'+
           '<label class="field">المنطقة<select id="rqArea">'+opt("","كل المناطق",f.area_id)+areas.map(a=>opt(a.id,nm(a),f.area_id)).join("")+'</select></label>'+
           '<label class="field">مقدم الخدمة<select id="rqProvider">'+opt("","كل مقدمي الخدمة",f.provider_id)+(s.providers||[]).map(p=>opt(p.id,p.display_name||"مقدم خدمة",f.provider_id)).join("")+'</select></label>'+
-          '<label class="field">من تاريخ<input id="rqFrom" type="date" value="'+esc(f.date_from)+'"></label>'+
-          '<label class="field">إلى تاريخ<input id="rqTo" type="date" value="'+esc(f.date_to)+'"></label>'+
+          ''+waslaUI.input("من تاريخ","","date",f.date_from,false,"rqFrom")+''+
+          ''+waslaUI.input("إلى تاريخ","","date",f.date_to,false,"rqTo")+''+
           '<label class="field"><span>المتأخر فقط</span><input id="rqLate" type="checkbox"'+(f.late_only?" checked":"")+'></label>'+
         '</div><div class="actions">'+btn("rq-apply","تطبيق","gold")+btn("rq-reset","إعادة ضبط","light")+'</div>';
         const c=q.counters;
@@ -5992,6 +5985,135 @@ const waslaInstall=(function(){
 })();
 
 const WASLA_PALETTES=[{"id": "wasla", "name": "وصلة (الحالي)", "l": ["#FAF9F6", "#FFFFFF", "#F3F2EE", "#0F4C5C", "#0B3945", "#EA580C", "#111827", "#6B7280", "#E5E7EB"], "d": ["#121417", "#1C1F24", "#252930", "#2A9D8F", "#21867A", "#F59E0B", "#F9FAFB", "#9CA3AF", "#2D3139"]}, {"id": "ocean", "name": "محيط", "l": ["#F5F8FC", "#FFFFFF", "#EAF0F8", "#1D4ED8", "#1E40AF", "#0891B2", "#0F172A", "#64748B", "#DCE4EF"], "d": ["#0D1320", "#141C2E", "#1B2540", "#60A5FA", "#3B82F6", "#38BDF8", "#F1F5F9", "#94A3B8", "#26324D"]}, {"id": "olive", "name": "زيتون", "l": ["#F6F8F3", "#FFFFFF", "#ECF0E6", "#2F6B3F", "#24542F", "#CA8A04", "#14210F", "#667060", "#DFE5D8"], "d": ["#0F1511", "#172019", "#1F2B22", "#5BBE7A", "#43A262", "#FACC15", "#F1F7F2", "#9CAFA0", "#2A3A2E"]}, {"id": "royal", "name": "ملكي", "l": ["#FAF8FD", "#FFFFFF", "#F1EDF8", "#6D28D9", "#5B21B6", "#DB2777", "#1E1033", "#6B6480", "#E6E0F0"], "d": ["#130F1C", "#1C1629", "#261E37", "#A78BFA", "#8B5CF6", "#F472B6", "#F5F0FF", "#A79EBB", "#33284A"]}, {"id": "sila", "name": "سيلا", "l": ["#FFF7F9", "#FFFFFF", "#FDEAF0", "#D6336C", "#B82A5C", "#F59E7B", "#3A1220", "#8A6472", "#F6D5E0"], "d": ["#1B1015", "#26171D", "#341F28", "#F472A8", "#EC4D8F", "#FDBA9B", "#FFF1F5", "#C9A0B1", "#46293A"]}, {"id": "desert", "name": "صحراوي", "l": ["#FBF6EF", "#FFFFFF", "#F3EADD", "#B5532A", "#923F1D", "#C99A2E", "#2B1A10", "#7A6655", "#EADBC8"], "d": ["#18120D", "#231A13", "#2F241B", "#E08A5B", "#CF7442", "#E6B94F", "#FBF1E6", "#B8A28D", "#3E3025"]}, {"id": "nile", "name": "نيلي", "l": ["#F3F8F8", "#FFFFFF", "#E5F0F0", "#0B5D73", "#084A5C", "#2F9E8F", "#0C1F26", "#5C7078", "#D3E4E5"], "d": ["#0A1519", "#102128", "#173039", "#4FB5C9", "#2FA0B6", "#5FD0B8", "#EAF6F8", "#8FB0B8", "#1F3A44"]}, {"id": "coffee", "name": "قهوة", "l": ["#FAF6F1", "#FFFFFF", "#F0E7DD", "#6F4E37", "#583C29", "#C08552", "#25170E", "#7B6A5D", "#E6D9CB"], "d": ["#171110", "#211917", "#2D2320", "#C9A27E", "#B88B63", "#E0A96D", "#F7EEE6", "#B5A294", "#3B2F2A"]}, {"id": "lemon", "name": "ليموني", "l": ["#F7FAF2", "#FFFFFF", "#EAF2DD", "#3F7D3A", "#2F6230", "#9AAE1B", "#16240F", "#667A5A", "#DCE8CA"], "d": ["#0F150E", "#161F14", "#1F2C1C", "#8FCB6E", "#76B556", "#C6DB4A", "#F0F7E8", "#9DB38E", "#2A3A25"]}, {"id": "sunset", "name": "غروب", "l": ["#FFF8F4", "#FFFFFF", "#FDEBE1", "#D9534A", "#B8403A", "#F2994A", "#33150F", "#85655C", "#F4D8CB"], "d": ["#1A110F", "#251817", "#332120", "#F2766C", "#E85D52", "#F6AE6B", "#FFF0EA", "#C9A397", "#46302C"]}];
+/* ===== Wasla branded UI: toast, confirm, reveal, date-time picker ===== */
+const WUI_LOGO='<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M7 17 L19 46 L31 25 L43 46 L57 17" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 39 C17 57 46 9 59 27" fill="none" stroke="#d9b25a" stroke-width="3.5" stroke-linecap="round"/><circle cx="55" cy="15" r="4.5" fill="#d9b25a"/></svg>';
+const waslaUI=(function(){
+ const nf=new Intl.NumberFormat("ar-EG",{useGrouping:false});
+ const N=x=>String(x).replace(/\d/g,c=>"٠١٢٣٤٥٦٧٨٩"[c]);
+ const MONTHS=["يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"];
+ const DAYS=["السبت","الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة"];
+ const DOW=d=>DAYS[(d.getDay()+1)%7];
+ const p2=n=>String(n).padStart(2,"0");
+ function host(){let h=document.getElementById("wui-host");if(!h){h=document.createElement("div");h.id="wui-host";document.body.appendChild(h)}return h}
+ function toast(text,type){
+  if(!text)return;
+  const h=host();let box=h.querySelector(".wui-toasts");
+  if(!box){box=document.createElement("div");box.className="wui-toasts";box.setAttribute("aria-live","polite");h.appendChild(box)}
+  const t=document.createElement("div");
+  const k=type==="error"?"error":type==="success"?"success":"info";
+  t.className="wui-toast "+k;t.setAttribute("role",k==="error"?"alert":"status");
+  t.innerHTML='<span class="wui-ico">'+(k==="success"?"✓":k==="error"?"!":"i")+'</span><span class="wui-tx"></span>';
+  t.querySelector(".wui-tx").textContent=text;
+  const kill=()=>{if(!t.parentNode)return;t.classList.add("out");setTimeout(()=>t.remove(),220)};
+  t.addEventListener("click",kill);
+  box.appendChild(t);
+  while(box.children.length>3)box.firstChild.remove();
+  setTimeout(kill,k==="error"?6000:3800);
+ }
+ function modal(inner,cls){
+  return new Promise(res=>{
+   const h=host();const w=document.createElement("div");w.className="wui-ov";
+   w.innerHTML='<div class="wui-box '+(cls||"")+'" role="dialog" aria-modal="true">'+inner+'</div>';
+   const done=v=>{w.classList.add("out");document.removeEventListener("keydown",onk,true);setTimeout(()=>w.remove(),180);res(v)};
+   const onk=e=>{if(e.key==="Escape"){e.stopPropagation();done(null)}};
+   document.addEventListener("keydown",onk,true);
+   w.addEventListener("click",e=>{if(e.target===w){done(null);return}const b=e.target.closest("[data-wui]");if(b)done(b.getAttribute("data-wui"))});
+   h.appendChild(w);w._done=done;
+   const f=w.querySelector("[data-focus]");if(f)setTimeout(()=>f.focus(),30);
+  });
+ }
+ function head(t){return '<div class="wui-head"><span class="wui-lg">'+WUI_LOGO+'</span><b>'+esc(t)+'</b></div>'}
+ async function confirmBox(text,o){
+  o=o||{};
+  const r=await modal(head(o.title||"تأكيد الإجراء")+'<div class="wui-body"><p>'+esc(text)+'</p></div><div class="wui-act"><button type="button" class="wui-b ghost" data-wui="no" data-focus>'+esc(o.no||"إلغاء")+'</button><button type="button" class="wui-b '+(o.danger?"danger":"gold")+'" data-wui="yes">'+esc(o.yes||"تأكيد")+'</button></div>',o.danger?"danger":"");
+  return r==="yes";
+ }
+ async function reveal(title,lines,secret,secretLabel){
+  const rows=(lines||[]).map(l=>'<div class="wui-row"><span>'+esc(l[0])+'</span><b>'+esc(l[1])+'</b></div>').join("");
+  const sec=secret?'<div class="wui-sec"><span>'+esc(secretLabel||"")+'</span><code dir="ltr">'+esc(secret)+'</code><button type="button" class="wui-b gold sm" data-copy>نسخ</button></div>':"";
+  const p=modal(head(title)+'<div class="wui-body">'+rows+sec+'</div><div class="wui-act"><button type="button" class="wui-b gold" data-wui="ok" data-focus>تم</button></div>');
+  setTimeout(()=>{const b=document.querySelector(".wui-ov [data-copy]");if(b)b.onclick=async()=>{try{await navigator.clipboard.writeText(secret);b.textContent="تم النسخ ✓"}catch(_){b.textContent="انسخ يدويًا"}}},40);
+  return p;
+ }
+ /* date-time picker */
+ function parse(v,kind){
+  if(!v)return null;const m=String(v).match(/^(\d{4})-(\d{2})-(\d{2})(?:T(\d{2}):(\d{2}))?/);if(!m)return null;
+  return new Date(+m[1],+m[2]-1,+m[3],kind==="date"?0:+(m[4]||0),kind==="date"?0:+(m[5]||0));
+ }
+ function iso(d,kind){const a=d.getFullYear()+"-"+p2(d.getMonth()+1)+"-"+p2(d.getDate());return kind==="date"?a:a+"T"+p2(d.getHours())+":"+p2(d.getMinutes())}
+ function label(d,kind){
+  if(!d)return "";
+  let t=DOW(d)+" "+N(d.getDate())+" "+MONTHS[d.getMonth()]+" "+N(d.getFullYear());
+  if(kind!=="date"){const h=d.getHours()%12||12;t+=" · "+N(h)+":"+N(p2(d.getMinutes()))+" "+(d.getHours()>=12?"م":"ص")}
+  return t;
+ }
+ function pick(cur,kind,title){
+  const now=new Date();let sel=cur||null;
+  let view=new Date((sel||now).getFullYear(),(sel||now).getMonth(),1);
+  let hr=sel?sel.getHours():9,mi=sel?sel.getMinutes():0;
+  if(!sel&&kind!=="date"){hr=now.getHours()+1;if(hr>23)hr=23;mi=0}
+  const today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  return new Promise(res=>{
+   const w=document.createElement("div");w.className="wui-ov wui-sheet";
+   w.innerHTML='<div class="wui-box wui-pk" role="dialog" aria-modal="true"></div>';
+   const box=w.firstChild;
+   const done=v=>{w.classList.add("out");document.removeEventListener("keydown",onk,true);setTimeout(()=>w.remove(),200);res(v)};
+   const onk=e=>{if(e.key==="Escape"){e.stopPropagation();done(undefined)}};
+   document.addEventListener("keydown",onk,true);
+   function draw(){
+    const first=view.getDay(),off=(first+1)%7,dim=new Date(view.getFullYear(),view.getMonth()+1,0).getDate();
+    let cells="";for(let i=0;i<off;i++)cells+='<span class="wui-d e"></span>';
+    for(let d=1;d<=dim;d++){
+     const dt=new Date(view.getFullYear(),view.getMonth(),d);
+     const past=dt<today,isSel=sel&&dt.getTime()===new Date(sel.getFullYear(),sel.getMonth(),sel.getDate()).getTime(),isT=dt.getTime()===today.getTime();
+     cells+='<button type="button" class="wui-d'+(isSel?" sel":"")+(isT?" today":"")+'" data-day="'+d+'"'+(past?" disabled":"")+'>'+N(d)+'</button>';
+    }
+    const h12=hr%12||12,pm=hr>=12;
+    box.innerHTML='<div class="wui-phead"><span class="wui-lg">'+WUI_LOGO+'</span><div><small>'+esc(title||"اختر الموعد")+'</small><b>'+(sel?esc(label(new Date(sel.getFullYear(),sel.getMonth(),sel.getDate(),hr,mi),kind)):"لم يتم الاختيار")+'</b></div></div>'+
+     '<div class="wui-pbody"><div class="wui-mn"><button type="button" data-nav="1" aria-label="الشهر التالي">‹</button><b>'+MONTHS[view.getMonth()]+" "+N(view.getFullYear())+'</b><button type="button" data-nav="-1" aria-label="الشهر السابق">›</button></div>'+
+     '<div class="wui-wk">'+["سبت","أحد","اثنين","ثلاثاء","أربعاء","خميس","جمعة"].map(x=>'<span>'+x+'</span>').join("")+'</div><div class="wui-gr">'+cells+'</div>'+
+     (kind!=="date"?'<div class="wui-tm"><div class="wui-st"><button type="button" data-h="1">▲</button><b>'+N(p2(h12))+'</b><button type="button" data-h="-1">▼</button></div><span class="wui-co">:</span><div class="wui-st"><button type="button" data-m="5">▲</button><b>'+N(p2(mi))+'</b><button type="button" data-m="-5">▼</button></div><div class="wui-ap"><button type="button" data-ap="0" class="'+(pm?"":"on")+'">ص</button><button type="button" data-ap="1" class="'+(pm?"on":"")+'">م</button></div></div>':"")+
+     '<div class="wui-chips"><button type="button" data-q="today">اليوم</button><button type="button" data-q="tom">غدًا</button><button type="button" data-q="week">بعد أسبوع</button></div></div>'+
+     '<div class="wui-act"><button type="button" class="wui-b ghost" data-clear>مسح</button><button type="button" class="wui-b ghost" data-cancel>إلغاء</button><button type="button" class="wui-b gold" data-ok'+(sel?"":" disabled")+'>تأكيد</button></div>';
+   }
+   box.addEventListener("click",e=>{
+    const t=e.target.closest("button");if(!t)return;
+    if(t.dataset.day){sel=new Date(view.getFullYear(),view.getMonth(),+t.dataset.day);draw()}
+    else if(t.dataset.nav){view=new Date(view.getFullYear(),view.getMonth()+ +t.dataset.nav,1);draw()}
+    else if(t.dataset.h){hr=(hr+ +t.dataset.h+24)%24;draw()}
+    else if(t.dataset.m){mi=(mi+ +t.dataset.m+60)%60;draw()}
+    else if(t.dataset.ap){const pm=t.dataset.ap==="1";hr=(hr%12)+(pm?12:0);draw()}
+    else if(t.dataset.q){const d=new Date(today);if(t.dataset.q==="tom")d.setDate(d.getDate()+1);if(t.dataset.q==="week")d.setDate(d.getDate()+7);sel=d;view=new Date(d.getFullYear(),d.getMonth(),1);draw()}
+    else if("clear" in t.dataset)done(null);
+    else if("cancel" in t.dataset)done(undefined);
+    else if("ok" in t.dataset&&sel){done(new Date(sel.getFullYear(),sel.getMonth(),sel.getDate(),kind==="date"?0:hr,kind==="date"?0:mi))}
+   });
+   w.addEventListener("click",e=>{if(e.target===w)done(undefined)});
+   draw();host().appendChild(w);
+  });
+ }
+ function input(l,name,kind,val,req,id){
+  const d=parse(val,kind);
+  return '<div class="field wui-f"><span>'+l+'</span><input type="hidden" '+(name?'name="'+name+'" ':'')+(id?'id="'+id+'" ':'')+'value="'+esc(val||"")+'" data-wk="'+kind+'" data-wt="'+esc(l)+'">'+
+   '<button type="button" class="wui-fb'+(d?"":" ph")+'" data-wdt'+(req?' data-req="1"':'')+'><span class="wui-fl">'+esc(d?label(d,kind):(kind==="date"?"اختر التاريخ":"اختر التاريخ والوقت"))+'</span><svg class="wui-fi" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#c99a3d" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></button></div>';
+ }
+ document.addEventListener("click",async e=>{
+  const b=e.target.closest&&e.target.closest("[data-wdt]");if(!b)return;
+  e.preventDefault();
+  const hid=b.parentNode.querySelector('input[type=hidden]');if(!hid)return;
+  const kind=hid.getAttribute("data-wk")||"datetime";
+  const r=await pick(parse(hid.value,kind),kind,hid.getAttribute("data-wt"));
+  if(r===undefined)return;
+  hid.value=r?iso(r,kind):"";
+  const sp=b.querySelector(".wui-fl");
+  sp.textContent=r?label(r,kind):(kind==="date"?"اختر التاريخ":"اختر التاريخ والوقت");
+  b.classList.toggle("ph",!r);
+  hid.dispatchEvent(new Event("input",{bubbles:true}));hid.dispatchEvent(new Event("change",{bubbles:true}));
+ },true);
+ function flush(){if(s.notice){const m=s.notice,t=s.noticeType;s.notice="";toast(m,t)}}
+ return {toast,confirm:confirmBox,reveal,input,flush,label};
+})();
+
 const waslaThemes=(function(){
  var root=document.documentElement,saved="wasla",current="wasla",el=null;
  try{var sv=localStorage.getItem("wasla_palette");if(sv&&WASLA_PALETTES.some(function(x){return x.id===sv}))saved=sv}catch(_){}
@@ -6093,6 +6215,7 @@ function render(){
    }
   }catch(_){}
   try{navHistSync()}catch(_){}
+  try{waslaUI.flush()}catch(_){}
   try{waslaThemes.onRender()}catch(_){}
   try{waslaNotif.onRender()}catch(_){}
   try{waslaInstall.onRender()}catch(_){}
@@ -8221,14 +8344,7 @@ let r=await db.functions.invoke("admin-create-staff",{
  s.modal=null;
  await loadUser(s.user);
 
- prompt(
-  "تم إنشاء حساب الموظف بنجاح.\n"+
-  "الكود الوظيفي: "+r.data.account_code+"\n"+
-  "الرتبة: "+r.data.staff_title+"\n"+
-  "كود الرول: "+r.data.staff_role_code+
-  "\n\nانسخ كلمة المرور المؤقتة وسلمها للموظف:",
-  r.data.temporary_password
- );
+ await waslaUI.reveal("تم إنشاء حساب الموظف",[["الكود الوظيفي",r.data.account_code],["الرتبة",r.data.staff_title],["كود الرول",r.data.staff_role_code]],r.data.temporary_password,"كلمة المرور المؤقتة، انسخها وسلّمها للموظف");
 
  note("تم إنشاء حساب الموظف بنجاح. كلمة المرور المؤقتة ظهرت لك مرة واحدة.","success");
  return;
@@ -8632,7 +8748,7 @@ if(a==="request-filter"){
   if(a==="knowledge-resume-release"){
  if(s.profile?.role!=="owner")return;
 
- if(!confirm("هل تريد استكمال تجهيز مسودة الإصدار؟ سيتم التحقق من المستندات وإعادة استخدام الأجزاء المحفوظة دون تكرارها."))return;
+ if(!await waslaUI.confirm("هل تريد استكمال تجهيز مسودة الإصدار؟ سيتم التحقق من المستندات وإعادة استخدام الأجزاء المحفوظة دون تكرارها."))return;
 
  await resumePrimeKnowledgeRelease(id);
  return;
@@ -8640,7 +8756,7 @@ if(a==="request-filter"){
   if(a==="knowledge-publish-release"){
  if(s.profile?.role!=="owner")return;
 
- if(!confirm("هل أنت متأكد من نشر إصدار قاعدة المعرفة؟ سيتم استبدال الإصدار الحالي."))return;
+ if(!await waslaUI.confirm("هل أنت متأكد من نشر إصدار قاعدة المعرفة؟ سيتم استبدال الإصدار الحالي."))return;
 
  const {data,error}=await db.functions.invoke("prime-knowledge-admin",{
   body:{
@@ -8790,7 +8906,7 @@ if(a==="viewcustomer"){s.modal={type:"customerDetails",userId:id};render();retur
  if(!["admin","owner"].includes(s.profile?.role))throw Error("غير مصرح لك بهذه العملية");
  let x=s.staff.find(y=>y.id===id);
  if(!x)throw Error("الموظف غير موجود");
- if(!confirm("سيتم استبدال كلمة المرور الحالية لـ "+(x.full_name||"هذا الموظف")+" بكلمة مرور جديدة، ولن تعمل كلمة المرور القديمة بعدها. هل تريد المتابعة؟"))return;
+ if(!await waslaUI.confirm("سيتم استبدال كلمة المرور الحالية لـ "+(x.full_name||"هذا الموظف")+" بكلمة مرور جديدة، ولن تعمل كلمة المرور القديمة بعدها. هل تريد المتابعة؟"))return;
  s.resettingStaffPassword=true;
  try{
   const r=await db.functions.invoke("admin-reset-staff-password",{body:{user_id:id}});
@@ -8822,7 +8938,7 @@ if(a==="viewcustomer"){s.modal={type:"customerDetails",userId:id};render();retur
   if(a==="removestaff"){
  let x=s.staff.find(y=>y.id===id);
  if(!x)throw Error("الموظف غير موجود");
- if(!confirm("هل تريد إزالة "+(x.full_name||"هذا الموظف")+" من الموظفين؟"))return;
+ if(!await waslaUI.confirm("هل تريد إزالة "+(x.full_name||"هذا الموظف")+" من الموظفين؟"))return;
  let r=await db.rpc("admin_remove_staff",{p_user_id:id});
  if(r.error)throw r.error;
  await loadUser(s.user);
@@ -9086,7 +9202,7 @@ if(a==="cancelrequest"){
   if(a==="receipt"){s.modal={type:"receipt",paymentId:id};render();return}
   if(a==="wallet-more"){await loadWallet(true);return}
   if(a==="cash-received"){
-   if(!confirm("تأكيد إنك استلمت المبلغ كاش من العميل؟ الإجراء ده مينفعش يتراجع عنه."))return;
+   if(!await waslaUI.confirm("تأكيد إنك استلمت المبلغ كاش من العميل؟ الإجراء ده مينفعش يتراجع عنه."))return;
    const r=await db.rpc("confirm_cash_received",{p_request_id:id});
    if(r.error)throw r.error;
    await loadPayments();s.wallet=null;render();
@@ -10532,6 +10648,45 @@ h1,h2,h3,h4{font-family:var(--wasla-font);font-weight:700;letter-spacing:0}
 @keyframes widShine{0%,55%{inset-inline-start:-80%}100%{inset-inline-start:130%}}
 @keyframes widFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
 @media (prefers-reduced-motion:reduce){.wid-shine,.wid-av{animation:none}}
+#wui-host{position:fixed;inset:0;z-index:2147483000;pointer-events:none;direction:rtl;font-family:inherit}
+.wui-toasts{position:fixed;top:max(12px,env(safe-area-inset-top));left:12px;right:12px;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none}
+.wui-toast{pointer-events:auto;display:flex;align-items:center;gap:10px;max-width:440px;width:100%;padding:11px 14px;border-radius:16px;color:#efe9db;font-size:14px;font-weight:700;line-height:1.5;cursor:pointer;background:linear-gradient(145deg,#1b1a18,#0b0b0a);box-shadow:0 14px 30px rgba(0,0,0,.35),inset 0 0 0 1px rgba(217,178,90,.45);animation:wuiIn .28s cubic-bezier(.2,.9,.3,1.1)}
+.wui-toast.out{opacity:0;transform:translateY(-8px);transition:.2s}
+.wui-ico{flex:0 0 26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:14px;font-weight:900;background:#d9b25a;color:#1b1405}
+.wui-toast.error .wui-ico{background:#e5604f;color:#fff}.wui-toast.error{box-shadow:0 14px 30px rgba(0,0,0,.35),inset 0 0 0 1px rgba(229,96,79,.6)}
+.wui-ov{position:fixed;inset:0;pointer-events:auto;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(8,8,6,.55);backdrop-filter:blur(3px);animation:wuiFade .2s}
+.wui-ov.out{opacity:0;transition:.18s}
+.wui-box{width:100%;max-width:380px;border-radius:22px;overflow:hidden;background:var(--bg-surface,#fff);color:var(--text-primary,#111);box-shadow:0 24px 60px rgba(0,0,0,.45),0 0 0 1px rgba(217,178,90,.5);animation:wuiPop .26s cubic-bezier(.2,.9,.3,1.1)}
+.wui-head,.wui-phead{display:flex;align-items:center;gap:10px;padding:14px 18px;color:#efe9db;background:linear-gradient(145deg,#1b1a18,#0b0b0a);border-bottom:2px solid #d9b25a}
+.wui-head b{font-size:16px;color:#f1d58e}
+.wui-lg{width:28px;height:28px;flex:0 0 28px;color:#efe9db}.wui-lg svg{width:100%;height:100%}
+.wui-body{padding:18px}.wui-body p{margin:0;font-size:15px;line-height:1.8}
+.wui-act{display:flex;gap:8px;padding:0 18px 18px}.wui-act .wui-b{flex:1}
+.wui-b{border:0;border-radius:12px;padding:12px 14px;font:800 14px inherit;font-family:inherit;cursor:pointer;background:var(--bg-subtle,#eee);color:var(--text-primary,#111)}
+.wui-b.gold{background:linear-gradient(180deg,#e8c670,#c99a3d);color:#1b1405}.wui-b.danger{background:#d64b3a;color:#fff}.wui-b.sm{padding:7px 12px;flex:0 0 auto}
+.wui-b:disabled{opacity:.4}
+.wui-ov.wui-sheet{align-items:flex-end;padding:0}.wui-pk{max-height:92vh;overflow:auto;max-width:420px;border-radius:24px 24px 0 0;padding-bottom:env(safe-area-inset-bottom);animation:wuiUp .3s cubic-bezier(.2,.9,.3,1)}
+.wui-phead small{display:block;font-size:11px;color:#d9b25a;letter-spacing:.5px}.wui-phead b{font-size:15px;color:#f1d58e}
+.wui-pbody{padding:12px 16px 4px}
+.wui-mn{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}.wui-mn b{font-size:16px}
+.wui-mn button{width:36px;height:36px;border-radius:50%;border:1px solid var(--border-color,#ddd);background:transparent;color:inherit;font-size:20px;cursor:pointer}
+.wui-wk,.wui-gr{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center}.wui-wk span{font-size:11px;opacity:.6;padding:4px 0}
+.wui-d{height:38px;border:0;border-radius:50%;background:transparent;color:inherit;font:700 14px inherit;font-family:inherit;cursor:pointer}
+.wui-d.e{pointer-events:none}.wui-d:disabled{opacity:.25}.wui-d.today{box-shadow:inset 0 0 0 1.5px #d9b25a}
+.wui-d.sel{background:linear-gradient(180deg,#e8c670,#c99a3d);color:#1b1405}
+.wui-tm{display:flex;align-items:center;justify-content:center;gap:10px;margin:10px 0 4px;padding:8px;border-radius:16px;background:var(--bg-subtle,#f3f3f3)}
+.wui-st{display:flex;flex-direction:column;align-items:center}.wui-st b{font-size:24px;min-width:44px;text-align:center}.wui-st button{border:0;background:transparent;color:#c99a3d;font-size:14px;padding:2px 12px;cursor:pointer}
+.wui-co{font-size:22px;font-weight:800}
+.wui-ap{display:flex;flex-direction:column;gap:4px;margin-inline-start:6px}.wui-ap button{border:1px solid var(--border-color,#ddd);background:transparent;color:inherit;border-radius:10px;padding:5px 12px;font:800 13px inherit;font-family:inherit;cursor:pointer}.wui-ap button.on{background:#1b1a18;color:#f1d58e;border-color:#d9b25a}
+.wui-chips{display:flex;gap:8px;justify-content:center;margin:8px 0 12px}.wui-chips button{border:1px solid #d9b25a;color:inherit;background:transparent;border-radius:99px;padding:5px 14px;font:700 12px inherit;font-family:inherit;cursor:pointer}
+.wui-row{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--border-color,#eee);font-size:14px}.wui-row span{opacity:.7}
+.wui-sec{margin-top:12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px;border-radius:12px;background:var(--bg-subtle,#f3f3f3)}.wui-sec span{font-size:12px;opacity:.7;flex:1 0 100%}.wui-sec code{flex:1;font-size:15px;letter-spacing:1px;overflow-wrap:anywhere}
+.wui-f{display:block}.wui-f>span{display:block;margin-bottom:6px}
+.wui-fb{width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;text-align:start;border:1px solid var(--border-color,#ddd);background:var(--bg-surface,#fff);color:var(--text-primary,#111);border-radius:var(--control-radius,12px);padding:12px 14px;font:600 14px inherit;font-family:inherit;cursor:pointer}
+.wui-fb.ph .wui-fl{opacity:.55}.wui-fb:focus-visible{outline:2px solid #d9b25a}
+@keyframes wuiIn{from{opacity:0;transform:translateY(-14px) scale(.96)}to{opacity:1;transform:none}}
+@keyframes wuiFade{from{opacity:0}to{opacity:1}}@keyframes wuiPop{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:none}}@keyframes wuiUp{from{transform:translateY(100%)}to{transform:none}}
+@media (prefers-reduced-motion:reduce){.wui-toast,.wui-ov,.wui-box,.wui-pk{animation:none}.wui-toast.out,.wui-ov.out{transition:none}}
 </style>
 </body></html>
 
