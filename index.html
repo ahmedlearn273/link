@@ -5554,6 +5554,11 @@ const nav=navItems.map(x=>'<button data-a="tab" data-id="'+x[0]+'" class="'+(s.t
 
 function render(){
    if(s.mode==="recovery"){app.innerHTML=recoveryView();return}
+   try{
+    if(s.user&&typeof s.tab==="string"&&s.tab!=="account"&&s.tab!=="providerDossier"){
+     sessionStorage.setItem("wasla_view_v1",JSON.stringify({uid:s.user.id,tab:s.tab,rf:s.requestFilter}));
+    }
+   }catch(_){}
 if(
  s.user &&
  s.profile?.role==="provider" &&
@@ -7234,6 +7239,8 @@ if(f.id==="login"){
  });
 
  if(r.error)throw r.error;
+ s.tab="home";
+ try{sessionStorage.removeItem("wasla_view_v1")}catch(_){}
  await loadUser(r.data.user);
  await auditEvent("USER_LOGIN","application",r.data.user.id);
  return;
@@ -8102,6 +8109,8 @@ if(a==="logout-confirm"){
  s.user=null;
  s.profile=null;
  s.provider=null;
+ s.tab="home";
+ try{sessionStorage.removeItem("wasla_view_v1")}catch(_){}
  s.mode="welcome";
  render();
  return;
@@ -9299,6 +9308,13 @@ async function boot(){
   render();
  }else if(r.data.session?.user){
   
+  try{
+   const saved=JSON.parse(sessionStorage.getItem("wasla_view_v1")||"null");
+   if(saved&&saved.uid===r.data.session.user.id&&typeof saved.tab==="string"&&saved.tab!=="account"&&saved.tab!=="providerDossier"){
+    s.tab=saved.tab;
+    if(typeof saved.rf==="string")s.requestFilter=saved.rf;
+   }
+  }catch(_){}
   await loadUser(r.data.session.user);
  }else{
   s.mode="welcome";
@@ -9311,7 +9327,11 @@ async function boot(){
    render();
    return;
   }
-  if(session?.user&&session.user.id!==s.user?.id)loadUser(session.user);
+  if(session?.user&&session.user.id!==s.user?.id){
+   s.tab="home";
+   try{sessionStorage.removeItem("wasla_view_v1")}catch(_){}
+   loadUser(session.user);
+  }
   else if(!session){
    s.user=null;
    s.profile=null;
