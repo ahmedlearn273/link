@@ -2893,25 +2893,24 @@ function accountSettingsView(){
  (p.role==="customer"?customerBottomNav():"");
 }
       function assistantView(){
- return '<section class="section">'+
-  '<div class="card">'+
-   '<h2>PRIME AI</h2>'+
-   '<p class="small">مساعدك الذكي داخل منصة وصلة.</p>'+
-   '<div class="list" style="margin:16px 0">'+
-    (s.aiMessages.map(m=>
-     '<article class="item">'+
-      '<b>'+(m.role==="user"?"أنت":"PRIME")+'</b>'+
-      '<p style="white-space:pre-wrap">'+esc(m.text)+'</p>'+
-     '</article>'
-    ).join("")||'<p class="small">أهلًا بك، أنا PRIME. كيف أقدر أساعدك؟</p>')+
-   '</div>'+
-   '<form id="waslaAiForm">'+
-    '<input name="message" maxlength="250" placeholder="اسأل PRIME..." required>'+
-    '<button class="btn gold" '+(s.aiBusy?"disabled":"")+'>'+
-     (s.aiBusy?"جارٍ الرد...":"إرسال")+
-    '</button>'+
-   '</form>'+
+ const msgs=s.aiMessages||[];
+ let prevRole=null;
+ const rows=msgs.map(m=>{
+  const own=m.role==="user",first=prevRole!==m.role;prevRole=m.role;
+  return '<div class="wc-row '+(own?'wc-l':'wc-r')+(first?' wc-first':'')+'"><div class="wc-b '+(own?'wc-out':'wc-in')+(first?' wc-tail':'')+'"><span class="wc-t">'+esc(m.text)+'</span><span class="wc-m">&nbsp;</span></div></div>';
+ }).join("");
+ const typing=s.aiBusy?'<div class="wc-row wc-r wc-first"><div class="wc-b wc-in wc-tail wc-typing"><i></i><i></i><i></i></div></div>':"";
+ const welcome='<div class="wc-empty"><div class="wc-empty-i wc-prime">✦</div><b>أهلًا بك، أنا PRIME</b><span>كيف أقدر أساعدك اليوم؟ اسألني عن الخدمات والطلبات.</span></div>';
+ setTimeout(()=>{const b=document.querySelector(".wc-body");if(b)b.scrollTop=b.scrollHeight},0);
+ return '<section class="section wc-section">'+
+  '<div class="wc wc-full">'+
+   '<div class="wc-head"><div class="wc-ava wc-prime">✦</div><div class="wc-hn"><b>PRIME AI</b><span>'+(s.aiBusy?'يكتب الآن...':'مساعدك الذكي داخل وصلة')+'</span></div></div>'+
+   '<div class="wc-body">'+(rows||welcome)+typing+'<div id="wcEnd"></div></div>'+
   '</div>'+
+  '<form id="waslaAiForm" class="wasla-chat-form wc-form">'+
+   '<div class="wc-bar"><div class="wc-cap"><input name="message" maxlength="250" placeholder="اسأل PRIME..." autocomplete="off" required></div>'+
+   '<button class="wc-act" type="submit" aria-label="إرسال" '+(s.aiBusy?"disabled":"")+'><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M3 20l18-8L3 4v6l11 2-11 2z" fill="currentColor" style="transform-origin:center;transform:scaleX(-1)"/></svg></button></div>'+
+  '</form>'+
  '</section>';
       }
   
@@ -8967,6 +8966,14 @@ const addButton = () => {
 .wc-img,.wc-vid{display:block;border-radius:8px}
 .wc-aud{display:block;max-width:100%}
 #wcEnd{height:1px}
+.wc-cap input{flex:1;min-width:0;min-height:44px;border:0!important;outline:0!important;background:transparent!important;box-shadow:none!important;padding:0 4px;font-size:16px;color:var(--text-primary);font-family:inherit}
+.wc-act:disabled{opacity:.55}
+.wc-prime{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;font-size:20px}
+.wc-empty-i.wc-prime{font-size:32px}
+.wc-typing{display:flex;gap:5px;align-items:center;min-width:56px;padding:12px 14px}
+.wc-typing i{width:7px;height:7px;border-radius:50%;background:var(--text-secondary);animation:wctype 1.2s infinite}
+.wc-typing i:nth-child(2){animation-delay:.18s}.wc-typing i:nth-child(3){animation-delay:.36s}
+@keyframes wctype{0%,60%,100%{opacity:.3;transform:translateY(0)}30%{opacity:1;transform:translateY(-4px)}}
 .wc-list{display:flex;flex-direction:column;background:var(--bg-surface);border:1px solid var(--border-color);border-radius:16px;overflow:hidden}
 .wc-li{display:flex;align-items:center;gap:12px;width:100%;padding:12px 14px;border:0;border-bottom:1px solid var(--border-color);background:transparent;color:var(--text-primary);font-family:inherit;text-align:start;cursor:pointer;transition:background .15s}
 .wc-li:last-child{border-bottom:0}
