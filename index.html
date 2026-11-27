@@ -1346,7 +1346,13 @@ a:focus-visible{
   .wasla-welcome *{animation:none!important;transition:none!important}
   .wasla-welcome .wl3-row,.wasla-welcome .wl3-orange{display:none}
   .wasla-welcome .wl3-final-mark{display:block}
+  /* reduced motion keeps a soft opacity-only reveal: no movement, no transform */
+  .wasla-welcome .wl3-final-mark,.wasla-welcome .wl3-title,.wasla-welcome .wl3-tag,.wasla-welcome .wl3-actions .btn{animation:wl3-soft .9s ease both!important}
+  .wasla-welcome .wl3-title{animation-delay:.3s!important}
+  .wasla-welcome .wl3-tag{animation-delay:.6s!important}
+  .wasla-welcome .wl3-actions .btn{animation-delay:.9s!important}
 }
+@keyframes wl3-soft{from{opacity:0}to{opacity:1}}
 
 
 }
@@ -6486,6 +6492,7 @@ app.innerHTML=((s.profile?.role==="admin"||s.profile?.role==="owner")?'<main cla
  return;
 }
  
+ if(/[?&]splash(=|&|$)/.test(location.search)){app.innerHTML=welcomeView();return}
  if(!s.user){app.innerHTML=(s.mode==="welcome"?welcomeView():s.mode==="explore"?landing():authView())+'<div class="foot">منصة وصله · جميع الحقوق محفوظة</div>';return}
 if(s.tab==="account"){
  app.innerHTML=accountSettingsView();
