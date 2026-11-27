@@ -3765,7 +3765,7 @@ async function wcApply(cid,fresh){
  await wcSignMissing(fresh);
  if(!s.activeChat||s.activeChat.id!==cid)return;
  let next=fresh;
- if(incoming.length&&["customer","provider"].includes(s.profile?.role)){
+ if(incoming.length&&!document.hidden&&["customer","provider"].includes(s.profile?.role)){
   const rr=await db.rpc("mark_conversation_messages_read",{p_conversation_id:cid});
   if(!rr.error&&rr.data>0)next=fresh.map(m=>m.sender_id!==s.user.id?{...m,is_read:true}:m);
  }
@@ -3788,7 +3788,7 @@ async function wcPoll(){
  const cid=s.activeChat.id;
  try{
   const q=await db.from("messages")
-   .select("id,sender_id,message_text,is_read,created_at,message_type,attachment_path,attachment_mime_type,attachment_size_bytes,media_duration_seconds,location_latitude,location_longitude")
+   .select("id,sender_id,message_text,is_read,created_at,message_type,attachment_path,attachment_mime_type,attachment_size_bytes,media_duration_seconds,location_latitude,location_longitude,delivered_at,thumbnail_path,attachment_name")
    .eq("conversation_id",cid).order("created_at");
   if(q.error||!s.activeChat||s.activeChat.id!==cid)return;
   wcLastPoll=Date.now();
@@ -3796,6 +3796,15 @@ async function wcPoll(){
  }catch(_){}
  finally{wcPolling=false}
 }
+document.addEventListener("visibilitychange",async()=>{
+ if(document.hidden||!s.activeChat||!s.user||!["customer","provider"].includes(s.profile?.role))return;
+ const cid=s.activeChat.id;
+ if(!(s.messages||[]).some(m=>m.sender_id!==s.user.id&&!m.is_read))return;
+ try{
+  const rr=await db.rpc("mark_conversation_messages_read",{p_conversation_id:cid});
+  if(!rr.error&&rr.data>0&&s.activeChat&&s.activeChat.id===cid)s.messages=s.messages.map(m=>m.sender_id!==s.user.id?{...m,is_read:true}:m);
+ }catch(_){}
+});
 function wcUnsubscribe(){
  if(wcChan){try{db.removeChannel(wcChan)}catch(_){}}
  wcChan=null;wcChanId=null;wcRtOk=false;wcRtWasDown=false;
@@ -3855,7 +3864,7 @@ function wcListTime(x){
  if(k===wcDayKey(new Date(t.getTime()-86400000)))return "أمس";
  return d.toLocaleDateString("ar-EG-u-nu-latn",{day:"numeric",month:"numeric",year:"2-digit",timeZone:WC_TZ});
 }
-function wcTick(read){
+function wcTick(st){const read=st>=1;
  return '<svg viewBox="0 0 16 11" width="16" height="11" aria-hidden="true"><path d="M1.5 5.8 4.8 9 11.5 1.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>'+(read?'<path d="M6.5 8.2 7.4 9 14.5 1.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>':'')+'</svg>';
 }
 function wcScroll(){
@@ -3930,7 +3939,8 @@ return '<section class="section wc-section">'+
    }
    const hasLoc=m.location_latitude!=null&&m.location_longitude!=null;
    if(hasLoc&&!media)media=wcLoc(m.location_latitude,m.location_longitude);
-   const ticks=(own&&!isAdmin)?'<span class="wc-tick'+(m.is_read?' read':'')+'" title="'+(m.is_read?'مقروءة':'تم الإرسال')+'">'+wcTick(!!m.is_read)+'</span>':'';
+   const tst=m.is_read?2:(m.delivered_at?1:0);
+   const ticks=(own&&!isAdmin)?'<span class="wc-tick'+(tst===2?' read':'')+'" title="'+['تم الإرسال','تم التسليم','مقروءة'][tst]+'">'+wcTick(tst)+'</span>':'';
    const meta='<span class="wc-m">'+esc(wcTime(m.created_at))+ticks+'</span>';
    const text=m.message_text?'<span class="wc-t">'+esc(m.message_text)+'</span>':'';
    out+='<div class="wc-row '+(side?'wc-l':'wc-r')+(first?' wc-first':'')+'">'+
@@ -4039,7 +4049,7 @@ const peerResult = await db.rpc("get_conversation_peer_profile", {
 if (peerResult.error) throw peerResult.error;
 s.chatPeerProfile = peerResult.data?.[0] || null;
  const r=await db.from("messages")
- .select("id,sender_id,message_text,is_read,created_at,message_type,attachment_path,attachment_mime_type,attachment_size_bytes,media_duration_seconds,location_latitude,location_longitude")
+ .select("id,sender_id,message_text,is_read,created_at,message_type,attachment_path,attachment_mime_type,attachment_size_bytes,media_duration_seconds,location_latitude,location_longitude,delivered_at,thumbnail_path,attachment_name")
  .eq("conversation_id",c.id)
  .order("created_at");
 if(r.error)throw r.error;
@@ -7228,7 +7238,7 @@ if(f.id==="sendMessage"){
  }
 
  const q=await db.from("messages")
-  .select("id,sender_id,message_text,is_read,created_at,message_type,attachment_path,attachment_mime_type,attachment_size_bytes,media_duration_seconds,location_latitude,location_longitude")
+  .select("id,sender_id,message_text,is_read,created_at,message_type,attachment_path,attachment_mime_type,attachment_size_bytes,media_duration_seconds,location_latitude,location_longitude,delivered_at,thumbnail_path,attachment_name")
   .eq("conversation_id",s.activeChat.id)
   .order("created_at");
 
@@ -7871,7 +7881,7 @@ if(["customer","provider"].includes(s.profile?.role)){
 }
 
 let q=await db.from("messages")
-  .select("id,sender_id,message_text,is_read,created_at,message_type,attachment_path,attachment_mime_type,attachment_size_bytes,media_duration_seconds,location_latitude,location_longitude")
+  .select("id,sender_id,message_text,is_read,created_at,message_type,attachment_path,attachment_mime_type,attachment_size_bytes,media_duration_seconds,location_latitude,location_longitude,delivered_at,thumbnail_path,attachment_name")
   .eq("conversation_id",c.id)
   .order("created_at");
  if(q.error)throw q.error;
@@ -8365,7 +8375,7 @@ app.addEventListener("click", async e => {
     }
 
     const q = await db.from("messages")
-      .select("id,sender_id,message_text,is_read,created_at,message_type,attachment_path,attachment_mime_type,attachment_size_bytes,media_duration_seconds,location_latitude,location_longitude")
+      .select("id,sender_id,message_text,is_read,created_at,message_type,attachment_path,attachment_mime_type,attachment_size_bytes,media_duration_seconds,location_latitude,location_longitude,delivered_at,thumbnail_path,attachment_name")
       .eq("conversation_id", conversationId)
       .order("created_at");
 
