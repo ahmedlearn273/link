@@ -3618,6 +3618,13 @@ function wcDayKey(x){
  const d=new Date(x);if(isNaN(d))return "";
  return d.toLocaleDateString("en-CA",{timeZone:WC_TZ});
 }
+function wcListTime(x){
+ const d=new Date(x);if(isNaN(d))return "";
+ const key=wcDayKey(x),today=new Date();
+ if(key===wcDayKey(today))return wcTime(x);
+ if(key===wcDayKey(new Date(today.getTime()-86400000)))return "أمس";
+ return d.toLocaleDateString("en-GB",{day:"2-digit",month:"2-digit",year:"2-digit",timeZone:WC_TZ});
+}
 function wcDayLabel(x){
  const d=new Date(x);if(isNaN(d))return "";
  const key=wcDayKey(x),today=new Date();
