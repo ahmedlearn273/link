@@ -3901,11 +3901,15 @@ async function wcSignThumbs(list){
 const wcDelivBusy=new Set();
 async function wcMarkDelivered(cid){
  if(!cid||!s.user||!["customer","provider"].includes(s.profile?.role)||wcDelivBusy.has(cid))return false;
+ s.wcDelivFail=s.wcDelivFail||{};
+ if(Date.now()-(s.wcDelivFail[cid]||0)<WC_SIGN_BACKOFF)return false;
  wcDelivBusy.add(cid);
  try{
   const r=await db.rpc("mark_conversation_messages_delivered",{p_conversation_id:cid});
-  return !r.error&&Number(r.data)>0;
- }catch(_){return false}
+  if(r.error){s.wcDelivFail[cid]=Date.now();return false}
+  delete s.wcDelivFail[cid];
+  return Number(r.data)>0;
+ }catch(_){s.wcDelivFail[cid]=Date.now();return false}
  finally{wcDelivBusy.delete(cid)}
 }
 async function wcApply(cid,fresh){
@@ -3916,8 +3920,8 @@ async function wcApply(cid,fresh){
  const changed=sig(old)!==sig(fresh);
  const needSign=fresh.some(wcNeedsSign);
  const isCP=["customer","provider"].includes(s.profile?.role);
- s.wcDelivTry=s.wcDelivTry||{};
- const needDeliv=isCP&&fresh.some(m=>m.sender_id!==s.user.id&&!m.delivered_at&&!m.is_read)&&Date.now()-(s.wcDelivTry[cid]||0)>=WC_SIGN_BACKOFF;
+ s.wcDelivFail=s.wcDelivFail||{};
+ const needDeliv=isCP&&fresh.some(m=>m.sender_id!==s.user.id&&!m.delivered_at&&!m.is_read)&&Date.now()-(s.wcDelivFail[cid]||0)>=WC_SIGN_BACKOFF;
  if(!changed&&!needSign&&!needDeliv)return;
  const signedBefore=s.wcSignCount||0;
  if(needSign){
@@ -3929,7 +3933,6 @@ async function wcApply(cid,fresh){
  const incoming=fresh.filter(m=>!oldIds.has(m.id)&&m.sender_id!==s.user.id);
  let next=fresh,delivNow=false;
  if(["customer","provider"].includes(s.profile?.role)&&fresh.some(m=>m.sender_id!==s.user.id&&!m.delivered_at&&!m.is_read)){
-  s.wcDelivTry[cid]=Date.now();
   const stamped=await wcMarkDelivered(cid);
   if(stamped)delivNow=true;
   if(stamped&&s.activeChat&&s.activeChat.id===cid){
