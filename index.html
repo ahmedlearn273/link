@@ -5754,7 +5754,7 @@ const waslaNotif=(function(){
  }
  function badge(){
   var b=document.querySelector(".notif-bell .notif-badge");
-  if(b){b.textContent=st.unread>99?"99+":String(st.unread);b.style.display=st.unread>0?"flex":"none"}
+  if(b){b.textContent=st.unread>99?"99+":String(st.unread);b.style.display="flex";b.classList.toggle("zero",st.unread===0)}
  }
  function ago(t){
   var d=Math.max(0,(Date.now()-new Date(t).getTime())/1000);
@@ -5800,7 +5800,7 @@ const waslaNotif=(function(){
   ensurePush();
  }
  function bellHtml(){
-  return '<button type="button" class="notif-bell'+((typeof Notification!=="undefined"&&Notification.permission==="default")?' notif-ask':'')+'" data-nf="open" aria-label="الإشعارات" title="الإشعارات"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg><span class="notif-badge" style="display:'+(st.unread>0?"flex":"none")+'">'+(st.unread>99?"99+":st.unread)+'</span></button>';
+  return '<button type="button" class="notif-bell'+((typeof Notification!=="undefined"&&Notification.permission==="default")?' notif-ask':'')+'" data-nf="open" aria-label="الإشعارات" title="الإشعارات"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg><span class="notif-badge'+(st.unread>0?'':' zero')+'" style="display:flex">'+(st.unread>99?"99+":st.unread)+'</span></button>';
  }
  function onRender(){
   if(!s.user||!s.profile){if(st.uid)stop();return}
@@ -10382,6 +10382,13 @@ h1,h2,h3,h4{font-family:var(--wasla-font);font-weight:700;letter-spacing:0}
 .inst-go{border:0;background:#D6A642;color:#1b1405;font:800 14px Tajawal,sans-serif;border-radius:10px;padding:9px 16px;cursor:pointer;flex:0 0 auto}
 .inst-x{border:0;background:none;color:var(--text-secondary);font-size:16px;cursor:pointer;padding:6px;flex:0 0 auto}
 .inst-steps{margin:0 0 14px;padding-inline-start:20px;line-height:2;font-size:14px}.inst-share{display:inline-block;border:1px solid var(--border-color);border-radius:6px;padding:0 6px}
+
+.topline{justify-content:flex-start!important}
+.topline > .theme-toggle{margin-inline-start:auto!important}
+.topline > .notif-bell{margin-inline-start:0!important}
+.topline > .brand-lockup + .notif-bell{margin-inline-start:auto!important}
+.notif-badge.zero{background:var(--border-color);color:var(--text-secondary)}
+.notif-ask::after{top:auto;bottom:3px}
 </style>
 </body></html>
 
