@@ -2254,19 +2254,68 @@ async function auditEvent(action,entityTable="application",entityId=null,result=
  ]);
  s.cats=c.data||[];s.services=v.data||[];s.providers=p.data||[];
 }
+
+async function loadCustomerProviderData(p,pp,u){
+ const isC=p.role==="customer";
+ const reqQ=isC
+  ?db.from("service_requests").select("*,services(name_ar),provider_profiles(display_name,city)").eq("customer_id",u.id).order("created_at",{ascending:false})
+  :db.from("service_requests").select("*,services(name_ar)").or("provider_id.eq."+pp.id+",provider_id.is.null").order("created_at",{ascending:false});
+ const quoteQ=isC
+  ?db.from("service_quotes").select("*").eq("customer_id",u.id).order("created_at",{ascending:false})
+  :db.from("service_quotes").select("*").eq("provider_id",pp.id).order("created_at",{ascending:false});
+ const [r,ch,o,rv,qr,provRow]=await Promise.all([
+  reqQ,
+  wcChatsQuery(),
+  isC?Promise.resolve(null):db.from("provider_services").select("*,services(name_ar)").eq("provider_id",pp.id),
+  isC?db.from("reviews").select("request_id").eq("customer_id",u.id).then(x=>x,()=>null):Promise.resolve(null),
+  quoteQ,
+  isC?Promise.resolve(null):db.from("provider_profiles").select("*").eq("user_id",u.id).maybeSingle(),
+  loadPayments()
+ ]);
+ if(qr.error)throw qr.error;
+ s.requests=r.data||[];s.chats=ch.data||[];
+ if(!isC){s.offers=(o&&o.data)||[];if(provRow&&provRow.data){s.provider=provRow.data}}
+ if(isC){s.reviewedIds=new Set(((rv&&rv.data)||[]).map(x=>x.request_id))}
+ s.quotes=qr.data||[];
+ if(s.quotes.length){
+  const ids=s.quotes.map(x=>x.id);
+  const [vr,er]=await Promise.all([
+   db.from("service_quote_versions").select("*").in("quote_id",ids),
+   isC?Promise.resolve({data:[]}):db.from("service_quote_events").select("quote_id,event_type,note,created_at").in("quote_id",ids).eq("event_type","customer_revision_requested").order("created_at",{ascending:false})
+  ]);
+  if(vr.error)throw vr.error;
+  if(er.error)throw er.error;
+  s.quotes=s.quotes.map(quote=>{
+   const out={...quote,currentVersion:(vr.data||[]).find(v=>v.quote_id===quote.id&&v.version_number===quote.current_version)||null};
+   if(!isC)out.revisionNote=(er.data||[]).find(e=>e.quote_id===quote.id)?.note||null;
+   return out;
+  });
+ }
+}
+async function refreshRoleData(){
+ const t0=performance.now();
+ const u=s.user,p=s.profile;
+ if(!u||!p)return;
+ if(p.role!=="customer"&&!(p.role==="provider"&&s.provider)){await loadUser(u);return}
+ try{
+  await loadCustomerProviderData(p,s.provider,u);
+  render();
+ }catch(err){
+  console.error("[refreshRoleData]",err);
+  note((err&&err.message)||"تعذّر تحديث البيانات.","error");
+ }
+ console.log("[perf] refreshRoleData ms:",Math.round(performance.now()-t0));
+}
 async function loadUser(u){
  s.user=u;s.profile=null;s.provider=null;s.notice="";
  if(!u){render();return}
- let {data:p,error}=await db.from("profiles").select("*").eq("id",u.id).maybeSingle();
+ const [profRes,provPre]=await Promise.all([db.from("profiles").select("*").eq("id",u.id).maybeSingle(),db.from("provider_profiles").select("*").eq("user_id",u.id).maybeSingle()]);
+ let {data:p,error}=profRes;
  if(error||!p){console.error(error);note("تعذّر تحميل ملف الحساب.","error");return}
  let pp=null;
 
 if(p.role==="provider"){
- let {data:providerData,error:providerError}=await db
-  .from("provider_profiles")
-  .select("*")
-  .eq("user_id",u.id)
-  .maybeSingle();
+ let {data:providerData,error:providerError}=provPre;
 
  if(providerError)throw providerError;
 
@@ -2312,7 +2361,7 @@ if(p.status!=="active"){
   s.serviceQuoteSettings=quoteSettings;
  }
 
- await auditEvent("ACCOUNT_SESSION_LOADED","profiles",u.id,"success",{
+ auditEvent("ACCOUNT_SESSION_LOADED","profiles",u.id,"success",{
   role:p.role
  });
   
@@ -2340,75 +2389,8 @@ if(p.role==="staff"){
  }
  s.staffAccess={permissions:effPerms.permissions.filter(x=>typeof x==="string"),is_active:true};
 }
- if(p.role==="customer"){
-  const [r,ch]=await Promise.all([db.from("service_requests").select("*,services(name_ar),provider_profiles(display_name,city)").eq("customer_id",u.id).order("created_at",{ascending:false}),wcChatsQuery()]);
-  s.requests=r.data||[];s.chats=ch.data||[];await loadPayments();
-  try{const rv=await db.from("reviews").select("request_id").eq("customer_id",u.id);s.reviewedIds=new Set((rv.data||[]).map(x=>x.request_id))}catch(_){s.reviewedIds=new Set()}
-const {data:q,error:qError}=await db
- .from("service_quotes")
- .select("*")
- .eq("customer_id",u.id)
- .order("created_at",{ascending:false});
-
-if(qError)throw qError;
-s.quotes=q||[];
-if(s.quotes.length){
- const {data:versions,error:versionsError}=await db
-  .from("service_quote_versions")
-  .select("*")
-  .in("quote_id",s.quotes.map(x=>x.id));
-
- if(versionsError)throw versionsError;
-
- s.quotes=s.quotes.map(quote=>({
-  ...quote,
-  currentVersion:(versions||[]).find(version=>
-   version.quote_id===quote.id &&
-   version.version_number===quote.current_version
-  )||null
- }));
-}
- }else if(p.role==="provider"&&pp){
-  const [r,o,ch]=await Promise.all([db.from("service_requests").select("*,services(name_ar)").or("provider_id.eq."+pp.id+",provider_id.is.null").order("created_at",{ascending:false}),db.from("provider_services").select("*,services(name_ar)").eq("provider_id",pp.id),wcChatsQuery()]);
-  s.requests=r.data||[];s.offers=o.data||[];s.chats=ch.data||[];await loadPayments();
-const {data:q,error:qError}=await db
- .from("service_quotes")
- .select("*")
- .eq("provider_id",pp.id)
- .order("created_at",{ascending:false});
-
-if(qError)throw qError;
-
-s.quotes=q||[];
-
-if(s.quotes.length){
- const {data:versions,error:versionsError}=await db
-  .from("service_quote_versions")
-  .select("*")
-  .in("quote_id",s.quotes.map(x=>x.id));
-
- if(versionsError)throw versionsError;
-
- const {data:revisionEvents,error:revisionEventsError}=await db
-  .from("service_quote_events")
-  .select("quote_id,event_type,note,created_at")
-  .in("quote_id",s.quotes.map(x=>x.id))
-  .eq("event_type","customer_revision_requested")
-  .order("created_at",{ascending:false});
-
- if(revisionEventsError)throw revisionEventsError;
-
- s.quotes=s.quotes.map(quote=>({
-  ...quote,
-  currentVersion:(versions||[]).find(version=>
-   version.quote_id===quote.id &&
-   version.version_number===quote.current_version
-  )||null,
-  revisionNote:(revisionEvents||[]).find(event=>
-   event.quote_id===quote.id
-  )?.note||null
- }));
-}
+ if(p.role==="customer"||(p.role==="provider"&&pp)){
+  await loadCustomerProviderData(p,pp,u);
  }else if(p.role==="admin"||p.role==="owner"){
   const [a,r,profiles,permissions,chats]=await Promise.all([
     db.rpc("admin_list_providers"),
@@ -4385,15 +4367,12 @@ async function loadChatMediaUrls(messages){
  if(!c){if(s.profile.role!=="customer")throw Error("يجب أن يبدأ العميل المحادثة أولًا");const q=s.requests.find(x=>x.id===requestId);if(!q||!q.provider_id||!["accepted","in_progress"].includes(q.status))throw Error("المحادثة متاحة بعد قبول الطلب");const r=await db.from("conversations").insert({request_id:q.id,customer_id:s.user.id,provider_id:q.provider_id}).select("id,request_id,customer_id,provider_id,last_message_at").single();if(r.error)throw r.error;c=r.data;s.chats.unshift(c)}
  s.activeChat=c;
 s.tab="messages";s.messages=[];s.chatPeerProfile=null;s.chatLoading=Date.now();render();
-const peerResult = await db.rpc("get_conversation_peer_profile", {
-  p_conversation_id: c.id
-});
-if (peerResult.error) throw peerResult.error;
-s.chatPeerProfile = peerResult.data?.[0] || null;
- const r=await db.from("messages")
+const [peerResult,r]=await Promise.all([db.rpc("get_conversation_peer_profile",{p_conversation_id:c.id}),db.from("messages")
  .select("id,sender_id,message_text,is_read,created_at,message_type,attachment_path,attachment_mime_type,attachment_size_bytes,media_duration_seconds,location_latitude,location_longitude,delivered_at,thumbnail_path,attachment_name")
  .eq("conversation_id",c.id)
- .order("created_at");
+ .order("created_at")]);
+if (peerResult.error) throw peerResult.error;
+s.chatPeerProfile = peerResult.data?.[0] || null;
 if(r.error)throw r.error;
 s.messages=r.data||[];
 await loadChatMediaUrls(s.messages);
@@ -4413,7 +4392,7 @@ if(["customer","provider"].includes(s.profile?.role)){
   );
  }
 }
- await auditEvent("CONVERSATION_VIEWED","conversations",c.id,"success",{
+ auditEvent("CONVERSATION_VIEWED","conversations",c.id,"success",{
  messages_count:s.messages.length
 });
 s.tab="messages";
@@ -6997,7 +6976,7 @@ if(f.id==="suspendProviderForm"){
 
  if(error)throw error;
 
- await loadUser(s.user);
+ await refreshRoleData();
 
  s.modal={
   type:"requestDetails",
@@ -7050,7 +7029,7 @@ if(f.id==="suspendProviderForm"){
 
  if(error)throw error;
 
- await loadUser(s.user);
+ await refreshRoleData();
 
  s.modal={
   type:"requestDetails",
@@ -7205,7 +7184,7 @@ if(String(v.currency||"").toUpperCase()!==expectedCurrency)
  if(error)throw error;
 
  s.modal=null;
- await loadUser(s.user);
+ await refreshRoleData();
  note("تم إرسال عرض السعر بنجاح.","success");
  return;
 }
@@ -7674,7 +7653,7 @@ console.info("[WASLA signup] اكتمل رفع المستند:", d.document_type
    const gC=(s.geo.countries||[]).find(x=>x.id===v.country_id&&x.country_code==="EG"),gT=(s.geo.cities||[]).find(x=>x.id===v.city_id&&x.country_id===v.country_id),gA=(s.geo.areas||[]).find(x=>x.id===v.area_id&&x.city_id===v.city_id);
    if(!gC||!gT||!gA)throw Error("اختر المحافظة والقسم / المركز بشكل صحيح.");
    if(!String(v.address||"").trim())throw Error("اكتب العنوان التفصيلي.");
-   let r=await db.rpc("create_service_request",{p_service_id:v.service_id,p_title:v.title,p_description:v.description||null,p_country:gC.name_ar,p_city:gT.name_ar,p_address:String(v.address).trim(),p_budget:v.budget?Number(v.budget):null,p_provider_id:v.provider_id||null,p_country_id:gC.id,p_city_id:gT.id,p_area_id:gA.id});if(r.error)throw r.error;s.modal=null;await loadUser(s.user);note("تم إرسال طلب الخدمة.","success");return}
+   let r=await db.rpc("create_service_request",{p_service_id:v.service_id,p_title:v.title,p_description:v.description||null,p_country:gC.name_ar,p_city:gT.name_ar,p_address:String(v.address).trim(),p_budget:v.budget?Number(v.budget):null,p_provider_id:v.provider_id||null,p_country_id:gC.id,p_city_id:gT.id,p_area_id:gA.id});if(r.error)throw r.error;s.modal=null;await refreshRoleData();note("تم إرسال طلب الخدمة.","success");return}
  
 if(f.id==="cancelRequestForm"){
 
@@ -7697,13 +7676,13 @@ if(f.id==="cancelRequestForm"){
  if(result.error)throw result.error;
 
  s.modal=null;
- await loadUser(s.user);
+ await refreshRoleData();
 
  note("تم إلغاء الطلب وحفظ سبب الإلغاء في سجله.","success");
  return;
 }
  
- if(f.id==="offerForm"){let v=vals(f),r=await db.rpc("add_own_provider_service",{p_service_id:v.service_id,p_price:Number(v.price),p_currency:v.currency,p_price_type:v.price_type});if(r.error)throw r.error;s.modal=null;await loadUser(s.user);note("تمت إضافة الخدمة.","success");return}
+ if(f.id==="offerForm"){let v=vals(f),r=await db.rpc("add_own_provider_service",{p_service_id:v.service_id,p_price:Number(v.price),p_currency:v.currency,p_price_type:v.price_type});if(r.error)throw r.error;s.modal=null;await refreshRoleData();note("تمت إضافة الخدمة.","success");return}
   if(f.id==="serviceForm"){let v=vals(f),r=await db.rpc("admin_create_service",{p_category_id:v.category_id,p_name_ar:v.name_ar,p_name_en:v.name_en||null,p_description:v.description||null});if(r.error)throw r.error;s.modal=null;await loadUser(s.user);note("تمت إضافة الخدمة.","success");return}
   
 
@@ -7813,7 +7792,7 @@ let r=await db.functions.invoke("admin-create-staff",{
  return;
   }
   if(f.id==="categoryForm"){let v=vals(f),r=await db.rpc("admin_create_category",{p_name_ar:v.name_ar,p_name_en:v.name_en||null,p_slug:v.slug,p_icon:v.icon||null});if(r.error)throw r.error;s.modal=null;await loadUser(s.user);note("تمت إضافة التصنيف.","success");return}
-  if(f.id==="reviewForm"){let v=vals(f);const rt=Number(v.rating),sr=Number(v.service_rating),pr=Number(v.platform_rating);if(![rt,sr,pr].every(n=>Number.isInteger(n)&&n>=1&&n<=5))throw Error("قيّم الخدمة والفني والمنصة من 1 إلى 5.");let r=await db.from("reviews").insert({request_id:v.request_id,provider_id:v.provider_id,customer_id:s.user.id,rating:rt,service_rating:sr,platform_rating:pr,comment:(v.comment||"").trim()||null});if(r.error){if(r.error.code==="23505")throw Error("سبق أن قيّمت هذا الطلب.");throw r.error}s.modal=null;await loadUser(s.user);note("تم إرسال تقييمك. شكرًا لك.","success");return}
+  if(f.id==="reviewForm"){let v=vals(f);const rt=Number(v.rating),sr=Number(v.service_rating),pr=Number(v.platform_rating);if(![rt,sr,pr].every(n=>Number.isInteger(n)&&n>=1&&n<=5))throw Error("قيّم الخدمة والفني والمنصة من 1 إلى 5.");let r=await db.from("reviews").insert({request_id:v.request_id,provider_id:v.provider_id,customer_id:s.user.id,rating:rt,service_rating:sr,platform_rating:pr,comment:(v.comment||"").trim()||null});if(r.error){if(r.error.code==="23505")throw Error("سبق أن قيّمت هذا الطلب.");throw r.error}s.modal=null;await refreshRoleData();note("تم إرسال تقييمك. شكرًا لك.","success");return}
 if(f.id==="sendMessage"){
  const v=vals(f);
  const messageText=(v.message_text||"").trim();
@@ -8493,7 +8472,7 @@ if(a==="quote-provider-approve"){
 
  if(error)throw error;
 
- await loadUser(s.user);
+ await refreshRoleData();
 
  s.modal=null;
  render();
@@ -8593,7 +8572,7 @@ if(["customer","provider"].includes(s.profile?.role)){
   );
  }
 }
-   await auditEvent("CONVERSATION_VIEWED","conversations",c.id,"success",{
+   auditEvent("CONVERSATION_VIEWED","conversations",c.id,"success",{
   messages_count:s.messages.length
  });
  s.chatLoading=0;
@@ -8640,7 +8619,7 @@ if(a==="cancelrequest"){
  render();
  return;
  } 
-  if(a==="claim"){let r=await db.rpc("claim_service_request",{p_request_id:id});if(r.error)throw r.error;await loadUser(s.user);note("تم قبول الطلب وإسناده إليك.","success");return}
+  if(a==="claim"){const q0=s.requests.find(x=>x.id===id),old0=q0?{provider_id:q0.provider_id,status:q0.status}:null;if(q0&&s.provider){q0.provider_id=s.provider.id;q0.status="accepted";render()}let r=await db.rpc("claim_service_request",{p_request_id:id});if(r.error){if(q0&&old0){Object.assign(q0,old0);render()}throw r.error}await refreshRoleData();note("تم قبول الطلب وإسناده إليك.","success");return}
   if(a==="wallet-more"){await loadWallet(true);return}
   if(a==="cash-received"){
    if(!confirm("تأكيد إنك استلمت المبلغ كاش من العميل؟ الإجراء ده مينفعش يتراجع عنه."))return;
@@ -8650,9 +8629,9 @@ if(a==="cancelrequest"){
    note("تم تأكيد استلام الكاش وتسجيله في محفظتك.","success");
    return;
   }
-  if(a==="advance"){let r=await db.rpc("advance_service_request",{p_request_id:id,p_next_status:b.dataset.next});if(r.error)throw r.error;await loadUser(s.user);note("تم تحديث حالة الطلب.","success");return}
-  if(a==="availability"){let r=await db.rpc("toggle_own_provider_availability");if(r.error)throw r.error;await loadUser(s.user);note("تم تحديث التوفر.","success");return}
-  if(a==="toggleoffer"){let r=await db.rpc("toggle_own_provider_service",{p_provider_service_id:id});if(r.error)throw r.error;await loadUser(s.user);return}
+  if(a==="advance"){const q0=s.requests.find(x=>x.id===id),old0=q0?q0.status:null;if(q0&&b.dataset.next){q0.status=b.dataset.next;render()}let r=await db.rpc("advance_service_request",{p_request_id:id,p_next_status:b.dataset.next});if(r.error){if(q0){q0.status=old0;render()}throw r.error}await refreshRoleData();note("تم تحديث حالة الطلب.","success");return}
+  if(a==="availability"){const old0=s.provider?s.provider.is_available:null;if(s.provider){s.provider.is_available=!old0;render()}let r=await db.rpc("toggle_own_provider_availability");if(r.error){if(s.provider){s.provider.is_available=old0;render()}throw r.error}await refreshRoleData();note("تم تحديث التوفر.","success");return}
+  if(a==="toggleoffer"){const o0=(s.offers||[]).find(x=>x.id===id),old0=o0?o0.is_active:null;if(o0){o0.is_active=!old0;render()}let r=await db.rpc("toggle_own_provider_service",{p_provider_service_id:id});if(r.error){if(o0){o0.is_active=old0;render()}throw r.error}await refreshRoleData();return}
 if(a==="lift-provider-suspension-open"){
 
   if(!["admin","owner"].includes(s.profile?.role))
