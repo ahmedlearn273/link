@@ -5564,6 +5564,25 @@ const nav=navItems.map(x=>'<button data-a="tab" data-id="'+x[0]+'" class="'+(s.t
 }
 
 function render(){
+ var navSel=".wasla-admin-side nav,.wasla-staff-bottom-nav",prev=null;
+ try{var pn=document.querySelector(navSel);if(pn)prev=pn.scrollLeft}catch(_){}
+ try{return renderCore()}finally{
+  try{
+   var n=document.querySelector(navSel);
+   if(n){
+    if(prev!==null)n.scrollLeft=prev;
+    var a=n.querySelector("button.active");
+    if(a){
+     var nr=n.getBoundingClientRect(),ar=a.getBoundingClientRect();
+     if(ar.left<nr.left||ar.right>nr.right){
+      n.scrollLeft+=(ar.left+ar.width/2)-(nr.left+nr.width/2);
+     }
+    }
+   }
+  }catch(_){}
+ }
+}
+function renderCore(){
    if(s.mode==="recovery"){app.innerHTML=recoveryView();return}
    try{
     if(s.user&&typeof s.tab==="string"&&s.tab!=="account"&&s.tab!=="providerDossier"){
