@@ -11,8 +11,16 @@ const allowed = [
   "providers.review", "requests.view", "requests.manage", "services.view",
   "services.manage", "categories.view", "categories.manage", "messages.view",
   "payments.view", "payments.manage", "reports.view", "ads.view", "ads.manage",
-  "settings.view", "settings.manage"
+  "settings.view", "settings.manage",
+  "wallet.view", "wallet.manage", "payouts.prepare"
 ];
+
+const financialKeys = [
+  "payments.view", "payments.manage", "wallet.view", "wallet.manage",
+  "payouts.prepare"
+];
+
+const financialRestrictedMessage = "Financial permissions are restricted to FIN staff";
 
 const hierarchy: Record<string, string> = {
   ASV: "مشرف منطقة",
@@ -104,6 +112,12 @@ Deno.serve(async req => {
       )
     ) {
       return reply({ error: "Invalid permissions" }, 400);
+    }
+    if (
+      roleCode !== "FIN" &&
+      permissions.some((value: unknown) => financialKeys.includes(value as string))
+    ) {
+      return reply({ error: financialRestrictedMessage }, 400);
     }
 
     const uniquePermissions = [...new Set(permissions as string[])];
@@ -198,7 +212,12 @@ Deno.serve(async req => {
         created_by: actor.id
       });
 
-    if (permissionsError) throw new Error("Could not save employee permissions");
+    if (permissionsError) {
+      if (permissionsError.message?.includes(financialRestrictedMessage)) {
+        throw new Error(financialRestrictedMessage);
+      }
+      throw new Error("Could not save employee permissions");
+    }
 
     const { error: auditError } = await admin.from("audit_logs").insert({
       actor_id: actor.id,

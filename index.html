@@ -2412,7 +2412,7 @@ if(s.quotes.length){
   const [a,r,profiles,permissions,chats]=await Promise.all([
     db.rpc("admin_list_providers"),
     db.from("service_requests").select("*,services(name_ar)").order("created_at",{ascending:false}).limit(100),
-    db.from("profiles").select("id,full_name,phone,city,country,role,status").in("role",["customer","staff"]),
+    db.from("profiles").select("id,full_name,phone,city,country,role,status,staff_role_code,staff_title").in("role",["customer","staff"]),
     db.from("staff_permissions").select("*"),
     db.from("conversations").select("id,request_id,customer_id,provider_id,last_message_at,service_requests(title)").order("last_message_at",{ascending:false})
   ]);
@@ -5411,8 +5411,9 @@ const STAFF_PERMISSION_OPTIONS=[
  ["support.manage","إدارة الدعم",false,false],
  ["reports.export","تصدير التقارير",false,true],
  ["reports.import","استيراد التقارير",false,true],
- ["wallet.view","عرض المحفظة",false,false],
- ["wallet.manage","إدارة المحفظة",false,false],
+ ["wallet.view","عرض المحفظة",true,false],
+ ["wallet.manage","إدارة المحفظة",true,false],
+ ["payouts.prepare","تجهيز التسويات",true,false],
  ["customers.contact","التواصل مع العملاء",false,true]
 ];
 // أقسام لوحة الموظف: [التبويب, العنوان, الصلاحيات التي تفتحه]
@@ -5434,13 +5435,45 @@ const STAFF_NAV_ITEMS=[
 // الأقسام المنفذة فعليًا في لوحة الموظف. الباقي صفحة مؤقتة بلا تحميل بيانات.
 const STAFF_IMPLEMENTED_TABS=["home","services","categories","requests"];
 const STAFF_PLACEHOLDER_TEXT="القسم ده ضمن مراحل التنفيذ التالية. مش بيتم تحميل بيانات أو تنفيذ عمليات من الصفحة دي حاليًا.";
-function staffPermissionOptionsHtml(selected=[]){
+// المفاتيح المالية: تُمنح لموظفي رتبة FIN فقط (الحماية الأساسية في قاعدة البيانات، وهنا منع مبكر في الواجهة)
+const FINANCIAL_PERMISSION_KEYS=["payments.view","payments.manage","wallet.view","wallet.manage","payouts.prepare"];
+const FINANCIAL_RESTRICTED_EN="Financial permissions are restricted to FIN staff";
+const FINANCIAL_RESTRICTED_AR="الصلاحيات المالية مخصصة لموظفي الإدارة المالية فقط.";
+function staffPermissionOptionsHtml(selected=[],roleCode="ASV"){
  return STAFF_PERMISSION_OPTIONS.map(x=>{
   const key=x[0],adminOnly=x[3];
+  const financial=FINANCIAL_PERMISSION_KEYS.includes(key);
+  const finLocked=financial&&roleCode!=="FIN";
+  const locked=adminOnly||finLocked;
   return '<label class="item"><input type="checkbox" name="permissions" value="'+esc(key)+'"'+
-   (selected.includes(key)?" checked":"")+(adminOnly?" disabled":"")+'> '+esc(x[1])+
-   (adminOnly?' <span class="muted small">(للإدارة فقط)</span>':"")+'</label>';
+   (financial?' data-financial="1"':"")+
+   (selected.includes(key)&&!locked?" checked":"")+(locked?" disabled":"")+'> '+esc(x[1])+
+   (adminOnly?' <span class="muted small">(للإدارة فقط)</span>':"")+
+   (financial?' <span class="muted small fin-badge"'+(finLocked?"":' style="display:none"')+'>(للمالية فقط)</span>':"")+'</label>';
  }).join("");
+}
+function syncFinancialPermissionOptions(form){
+ const role=form.elements.staff_role_code?.value;
+ form.querySelectorAll('input[data-financial="1"]').forEach(input=>{
+  const locked=role!=="FIN";
+  if(locked)input.checked=false;
+  input.disabled=locked;
+  const badge=input.parentElement?.querySelector(".fin-badge");
+  if(badge)badge.style.display=locked?"":"none";
+ });
+}
+async function readFunctionError(err){
+ try{
+  const c=err&&err.context;
+  if(c&&typeof c.json==="function"){
+   const b=await c.json();
+   if(b&&b.error)return String(b.error);
+  }
+ }catch(_e){}
+ return String(err&&err.message||"");
+}
+function isFinancialRestrictedError(msg){
+ return String(msg||"").includes(FINANCIAL_RESTRICTED_EN);
 }
 function checkedStaffPermissions(form){
  return Array.from(form.querySelectorAll('input[name="permissions"]:checked:not(:disabled)')).map(x=>x.value);
@@ -5677,7 +5710,7 @@ if(m.type==="addstaff"){
  '<section class="section"><b>'+esc(x.full_name||"موظف بدون اسم")+'</b>'+
  '<p class="muted">'+esc(x.email||"")+'</p></section>'+
  '<section class="section"><h4>الصلاحيات</h4><div class="list">'+
- staffPermissionOptionsHtml(selected)+
+ staffPermissionOptionsHtml(selected,x.staff_role_code)+
  '</div></section>'+
  '<section class="section">'+select("حالة الحساب","is_active",[{value:"true",label:"نشط"},{value:"false",label:"موقوف"}],x.staff_permissions?.is_active?"true":"false")+'</section>'+
  '<div class="actions"><button class="btn gold">حفظ الصلاحيات</button></div></form>';
@@ -7485,8 +7518,12 @@ let r=await db.functions.invoke("admin-create-staff",{
   }
 });
  
- if(r.error)throw r.error;
- if(r.data?.error)throw Error(r.data.error);
+ if(r.error){
+  const edgeMessage=await readFunctionError(r.error);
+  if(isFinancialRestrictedError(edgeMessage))throw Error(FINANCIAL_RESTRICTED_AR);
+  throw r.error;
+ }
+ if(r.data?.error)throw Error(isFinancialRestrictedError(r.data.error)?FINANCIAL_RESTRICTED_AR:r.data.error);
  if(!r.data?.user_id)throw Error("تعذّر إنشاء حساب الموظف: لم يصل معرّف الحساب.");
 
  const saved=await db.rpc("admin_upsert_staff",{
@@ -7496,6 +7533,7 @@ let r=await db.functions.invoke("admin-create-staff",{
  });
 
  if(saved.error){
+  const financialDenied=isFinancialRestrictedError(saved.error.message);
   const disabled=await db.rpc("admin_upsert_staff",{
    p_user_id:r.data.user_id,
    p_permissions:[],
@@ -7504,7 +7542,7 @@ let r=await db.functions.invoke("admin-create-staff",{
   s.modal=null;
   try{await loadUser(s.user);}catch(_e){}
   if(disabled.error)throw Error("تم إنشاء حساب الموظف لكن فشل حفظ صلاحياته وفشل إيقافه تلقائيًا. تدخل المالك فورًا لإيقاف الحساب ("+(r.data.account_code||r.data.user_id)+"). لم تُعرض كلمة المرور المؤقتة.");
-  throw Error("تم إنشاء حساب الموظف لكن فشل حفظ صلاحياته، فتم إيقاف الحساب تلقائيًا. لم تُعرض كلمة المرور المؤقتة. حاول مرة أخرى بعد مراجعة الإدارة.");
+  throw Error((financialDenied?FINANCIAL_RESTRICTED_AR+" ":"")+"تم إنشاء حساب الموظف لكن فشل حفظ صلاحياته، فتم إيقاف الحساب تلقائيًا. لم تُعرض كلمة المرور المؤقتة. حاول مرة أخرى بعد مراجعة الإدارة.");
  }
 
  if(!r.data?.temporary_password){
@@ -7540,7 +7578,10 @@ let r=await db.functions.invoke("admin-create-staff",{
   p_permissions:permissions,
   p_is_active:isActive
  });
- if(r.error)throw r.error;
+ if(r.error){
+  if(isFinancialRestrictedError(r.error.message))throw Error(FINANCIAL_RESTRICTED_AR);
+  throw r.error;
+ }
  s.modal=null;
  await loadUser(s.user);
  note("تم تحديث صلاحيات الموظف.","success");
@@ -9007,6 +9048,10 @@ app.addEventListener("toggle", async e => {
       "تعذّر تحميل الأقسام. حاول مرة أخرى.";
   }
 }, true);
+app.addEventListener("change",e=>{
+ if(e.target.name!=="staff_role_code"||e.target.form?.id!=="addStaffForm")return;
+ syncFinancialPermissionOptions(e.target.form);
+});
 let chatAttachmentPreviewUrl=null;
 
 app.addEventListener("change",e=>{
