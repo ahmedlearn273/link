@@ -3694,8 +3694,10 @@ async function wcChatsQuery(){
  return await db.from("conversations").select("id,request_id,customer_id,provider_id,last_message_at,service_requests(title)").order("last_message_at",{ascending:false});
 }
 let wcListChan=null,wcListOk=false,wcListDown=false,wcListTimer=null,wcListLast=0,wcListBusy=false;
+let wcListPending=false;
 async function wcRefreshChats(){
- if(wcListBusy||!s.user||!["customer","provider"].includes(s.profile?.role))return;
+ if(!s.user||!["customer","provider"].includes(s.profile?.role))return;
+ if(wcListBusy){wcListPending=true;return}
  wcListBusy=true;
  try{
   const r=await wcChatsQuery();
@@ -3706,7 +3708,10 @@ async function wcRefreshChats(){
   s.chats=r.data;
   if(s.tab==="messages"&&!s.activeChat&&!document.hidden)render();
  }catch(_){}
- finally{wcListBusy=false}
+ finally{
+  wcListBusy=false;
+  if(wcListPending){wcListPending=false;wcListKick()}
+ }
 }
 function wcListKick(){
  clearTimeout(wcListTimer);
@@ -3721,7 +3726,18 @@ function wcListSubscribe(){
  try{
   wcListChan=db.channel("wc-list-"+s.user.id)
    .on("postgres_changes",{event:"*",schema:"public",table:"conversations"},()=>wcListKick())
-   .on("postgres_changes",{event:"*",schema:"public",table:"messages"},()=>wcListKick())
+   .on("postgres_changes",{event:"*",schema:"public",table:"messages"},payload=>{
+    wcListKick();
+    try{
+     const n=payload&&payload.new;
+     if(payload&&payload.eventType==="INSERT"&&n&&n.id&&n.conversation_id&&n.sender_id&&n.sender_id!==s.user?.id){
+      s.wcDelivSeen=s.wcDelivSeen||new Set();
+      if(s.wcDelivSeen.has(n.id))return;
+      s.wcDelivSeen.add(n.id);
+      if(!(s.activeChat&&s.activeChat.id===n.conversation_id))wcMarkDelivered(n.conversation_id);
+     }
+    }catch(_){}
+   })
    .subscribe(status=>{
     if(status==="SUBSCRIBED"){wcListOk=true;if(wcListDown){wcListDown=false;wcListKick()}}
     else if(status==="CHANNEL_ERROR"||status==="TIMED_OUT"||status==="CLOSED"){wcListOk=false;wcListDown=true}
@@ -3854,34 +3870,77 @@ document.addEventListener("click",e=>{
  const b=document.querySelector(".wc-body");if(b){wcNew=0;b.scrollTo({top:b.scrollHeight,behavior:"smooth"})}
 });
 let wcLastPoll=0,wcChan=null,wcChanId=null,wcRtOk=false,wcRtWasDown=false;
+const WC_URL_TTL=3000000,WC_SIGN_BACKOFF=15000;
+function wcUrlOk(key){
+ return !!(s.chatMediaUrls&&s.chatMediaUrls[key])&&(Date.now()-((s.chatUrlAt&&s.chatUrlAt[key])||0)<WC_URL_TTL);
+}
+function wcNeedsSign(m){
+ return (!!m.attachment_path&&!wcUrlOk(m.id))||(!!m.thumbnail_path&&!wcUrlOk("t:"+m.id));
+}
+async function wcSignOne(key,path){
+ s.wcSignTry=s.wcSignTry||{};
+ if(Date.now()-(s.wcSignTry[key]||0)<WC_SIGN_BACKOFF)return false;
+ try{
+  const r=await db.storage.from("conversation-media").createSignedUrl(path,3600);
+  if(!r.error&&r.data?.signedUrl){
+   s.chatMediaUrls=s.chatMediaUrls||{};s.chatUrlAt=s.chatUrlAt||{};
+   s.chatMediaUrls[key]=r.data.signedUrl;s.chatUrlAt[key]=Date.now();
+   delete s.wcSignTry[key];
+   s.wcSignCount=(s.wcSignCount||0)+1;
+   return true;
+  }
+ }catch(_){}
+ s.wcSignTry[key]=Date.now();
+ return false;
+}
 async function wcSignMissing(list){
- await Promise.all(list.filter(m=>m.attachment_path&&!(s.chatMediaUrls||{})[m.id]).map(async m=>{
-  const r=await db.storage.from("conversation-media").createSignedUrl(m.attachment_path,3600);
-  if(!r.error&&r.data?.signedUrl){s.chatMediaUrls=s.chatMediaUrls||{};s.chatMediaUrls[m.id]=r.data.signedUrl}
- }));
+ await Promise.all(list.filter(m=>m.attachment_path&&!wcUrlOk(m.id)).map(m=>wcSignOne(m.id,m.attachment_path)));
 }
 async function wcSignThumbs(list){
- await Promise.all(list.filter(m=>m.thumbnail_path&&!(s.chatMediaUrls||{})["t:"+m.id]).map(async m=>{
-  const r=await db.storage.from("conversation-media").createSignedUrl(m.thumbnail_path,3600);
-  if(!r.error&&r.data?.signedUrl){s.chatMediaUrls=s.chatMediaUrls||{};s.chatMediaUrls["t:"+m.id]=r.data.signedUrl}
- }));
+ await Promise.all(list.filter(m=>m.thumbnail_path&&!wcUrlOk("t:"+m.id)).map(m=>wcSignOne("t:"+m.id,m.thumbnail_path)));
+}
+const wcDelivBusy=new Set();
+async function wcMarkDelivered(cid){
+ if(!cid||!s.user||!["customer","provider"].includes(s.profile?.role)||wcDelivBusy.has(cid))return false;
+ wcDelivBusy.add(cid);
+ try{
+  const r=await db.rpc("mark_conversation_messages_delivered",{p_conversation_id:cid});
+  return !r.error&&Number(r.data)>0;
+ }catch(_){return false}
+ finally{wcDelivBusy.delete(cid)}
 }
 async function wcApply(cid,fresh){
  const body=document.querySelector(".wc-body");
  if(!body||!s.activeChat||s.activeChat.id!==cid)return;
  const sig=l=>l.map(m=>m.id+":"+(m.is_read?1:0)+":"+(m.delivered_at?1:0)).join("|");
  const old=s.messages||[];
- if(sig(old)===sig(fresh))return;
+ const changed=sig(old)!==sig(fresh);
+ const needSign=fresh.some(wcNeedsSign);
+ if(!changed&&!needSign)return;
+ const signedBefore=s.wcSignCount||0;
+ if(needSign){
+  try{await wcSignMissing(fresh)}catch(_){}
+  try{await wcSignThumbs(fresh)}catch(_){}
+ }
+ if(!changed&&(s.wcSignCount||0)===signedBefore)return;
+ if(!s.activeChat||s.activeChat.id!==cid)return;
  const oldIds=new Set(old.map(m=>m.id));
  const incoming=fresh.filter(m=>!oldIds.has(m.id)&&m.sender_id!==s.user.id);
- await wcSignMissing(fresh);
- await wcSignThumbs(fresh);
- if(!s.activeChat||s.activeChat.id!==cid)return;
  let next=fresh;
- if(incoming.length&&!document.hidden&&["customer","provider"].includes(s.profile?.role)){
-  const rr=await db.rpc("mark_conversation_messages_read",{p_conversation_id:cid});
-  if(!rr.error&&rr.data>0)next=fresh.map(m=>m.sender_id!==s.user.id?{...m,is_read:true}:m);
+ if(["customer","provider"].includes(s.profile?.role)&&fresh.some(m=>m.sender_id!==s.user.id&&!m.delivered_at&&!m.is_read)){
+  const stamped=await wcMarkDelivered(cid);
+  if(stamped&&s.activeChat&&s.activeChat.id===cid){
+   const now=new Date().toISOString();
+   next=next.map(m=>(m.sender_id!==s.user.id&&!m.delivered_at)?{...m,delivered_at:now}:m);
+  }
  }
+ if(incoming.length&&!document.hidden&&["customer","provider"].includes(s.profile?.role)){
+  try{
+   const rr=await db.rpc("mark_conversation_messages_read",{p_conversation_id:cid});
+   if(!rr.error&&rr.data>0)next=next.map(m=>m.sender_id!==s.user.id?{...m,is_read:true}:m);
+  }catch(_){}
+ }
+ if(!s.activeChat||s.activeChat.id!==cid)return;
  const wasBottom=wcNearBottom(body),prevTop=body.scrollTop;
  s.messages=next;
  const doc=new DOMParser().parseFromString("<div>"+chatContent()+"</div>","text/html");
@@ -4007,8 +4066,9 @@ function wcAdminChat(list,role,L,MT){
  });
  return '<div class="wc wc-embed"><div class="wc-body wc-noanim">'+out+'</div></div>';
 }
-function wcTick(st){const read=st>=1;
- return '<svg viewBox="0 0 16 11" width="16" height="11" aria-hidden="true"><path d="M1.5 5.8 4.8 9 11.5 1.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>'+(read?'<path d="M6.5 8.2 7.4 9 14.5 1.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>':'')+'</svg>';
+function wcTick(st){
+ const two=st>=2;
+ return '<svg viewBox="0 0 16 11" width="16" height="11" aria-hidden="true"'+(st===0?' style="opacity:.6"':'')+'><path d="M1.5 5.8 4.8 9 11.5 1.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>'+(two?'<path d="M6.5 8.2 7.4 9 14.5 1.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>':'')+'</svg>';
 }
 function wcScroll(){
  const end=document.getElementById("wcEnd");
@@ -4180,9 +4240,12 @@ async function loadChatMediaUrls(messages){
 
  const results=await Promise.all(
   mediaMessages.map(async m=>{
-   const result=await db.storage
-    .from("conversation-media")
-    .createSignedUrl(m.attachment_path,3600);
+   let result={error:true};
+   try{
+    result=await db.storage
+     .from("conversation-media")
+     .createSignedUrl(m.attachment_path,3600);
+   }catch(_){}
 
    return {
     id:m.id,
@@ -4198,13 +4261,18 @@ async function loadChatMediaUrls(messages){
  const thumbMessages=(messages||[]).filter(m=>m.thumbnail_path);
  const thumbResults=await Promise.all(
   thumbMessages.map(async m=>{
-   const result=await db.storage
-    .from("conversation-media")
-    .createSignedUrl(m.thumbnail_path,3600);
+   let result={error:true};
+   try{
+    result=await db.storage
+     .from("conversation-media")
+     .createSignedUrl(m.thumbnail_path,3600);
+   }catch(_){}
    return {id:"t:"+m.id,url:result.error?null:result.data?.signedUrl||null};
   })
  );
  thumbResults.filter(x=>x.url).forEach(x=>{s.chatMediaUrls[x.id]=x.url});
+ s.chatUrlAt={};s.wcSignTry={};
+ Object.keys(s.chatMediaUrls).forEach(k=>{s.chatUrlAt[k]=Date.now()});
 }
       async function openChatForRequest(requestId){
  let c=s.chats.find(x=>x.request_id===requestId);
@@ -4224,6 +4292,10 @@ if(r.error)throw r.error;
 s.messages=r.data||[];
 await loadChatMediaUrls(s.messages);
 if(["customer","provider"].includes(s.profile?.role)){
+ try{
+  if(s.messages.some(x=>x.sender_id!==s.user.id&&!x.delivered_at&&!x.is_read)&&await wcMarkDelivered(c.id))
+   s.messages=s.messages.map(x=>(x.sender_id!==s.user.id&&!x.delivered_at)?{...x,delivered_at:new Date().toISOString()}:x);
+ }catch(_){}
  const readResult=await db.rpc("mark_conversation_messages_read",{
   p_conversation_id:c.id
  });
@@ -8088,6 +8160,10 @@ let q=await db.from("messages")
  s.messages=q.data||[];
 await loadChatMediaUrls(s.messages);
 if(["customer","provider"].includes(s.profile?.role)){
+ try{
+  if(s.messages.some(x=>x.sender_id!==s.user.id&&!x.delivered_at&&!x.is_read)&&await wcMarkDelivered(c.id))
+   s.messages=s.messages.map(x=>(x.sender_id!==s.user.id&&!x.delivered_at)?{...x,delivered_at:new Date().toISOString()}:x);
+ }catch(_){}
  const readResult=await db.rpc("mark_conversation_messages_read",{
   p_conversation_id:c.id
  });
