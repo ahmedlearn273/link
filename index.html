@@ -3733,8 +3733,7 @@ function wcListSubscribe(){
      if(payload&&payload.eventType==="INSERT"&&n&&n.id&&n.conversation_id&&n.sender_id&&n.sender_id!==s.user?.id){
       s.wcDelivSeen=s.wcDelivSeen||new Set();
       if(s.wcDelivSeen.has(n.id))return;
-      s.wcDelivSeen.add(n.id);
-      if(!(s.activeChat&&s.activeChat.id===n.conversation_id))wcMarkDelivered(n.conversation_id);
+      if(!(s.activeChat&&s.activeChat.id===n.conversation_id))wcMarkDelivered(n.conversation_id).then(ok=>{if(ok)s.wcDelivSeen.add(n.id)}).catch(()=>{});
      }
     }catch(_){}
    })
@@ -3916,19 +3915,23 @@ async function wcApply(cid,fresh){
  const old=s.messages||[];
  const changed=sig(old)!==sig(fresh);
  const needSign=fresh.some(wcNeedsSign);
- if(!changed&&!needSign)return;
+ const isCP=["customer","provider"].includes(s.profile?.role);
+ s.wcDelivTry=s.wcDelivTry||{};
+ const needDeliv=isCP&&fresh.some(m=>m.sender_id!==s.user.id&&!m.delivered_at&&!m.is_read)&&Date.now()-(s.wcDelivTry[cid]||0)>=WC_SIGN_BACKOFF;
+ if(!changed&&!needSign&&!needDeliv)return;
  const signedBefore=s.wcSignCount||0;
  if(needSign){
   try{await wcSignMissing(fresh)}catch(_){}
   try{await wcSignThumbs(fresh)}catch(_){}
  }
- if(!changed&&(s.wcSignCount||0)===signedBefore)return;
  if(!s.activeChat||s.activeChat.id!==cid)return;
  const oldIds=new Set(old.map(m=>m.id));
  const incoming=fresh.filter(m=>!oldIds.has(m.id)&&m.sender_id!==s.user.id);
- let next=fresh;
+ let next=fresh,delivNow=false;
  if(["customer","provider"].includes(s.profile?.role)&&fresh.some(m=>m.sender_id!==s.user.id&&!m.delivered_at&&!m.is_read)){
+  s.wcDelivTry[cid]=Date.now();
   const stamped=await wcMarkDelivered(cid);
+  if(stamped)delivNow=true;
   if(stamped&&s.activeChat&&s.activeChat.id===cid){
    const now=new Date().toISOString();
    next=next.map(m=>(m.sender_id!==s.user.id&&!m.delivered_at)?{...m,delivered_at:now}:m);
@@ -3940,6 +3943,7 @@ async function wcApply(cid,fresh){
    if(!rr.error&&rr.data>0)next=next.map(m=>m.sender_id!==s.user.id?{...m,is_read:true}:m);
   }catch(_){}
  }
+ if(!changed&&!delivNow&&(s.wcSignCount||0)===signedBefore)return;
  if(!s.activeChat||s.activeChat.id!==cid)return;
  const wasBottom=wcNearBottom(body),prevTop=body.scrollTop;
  s.messages=next;
