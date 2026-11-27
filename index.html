@@ -2318,7 +2318,7 @@ if(p.status!=="active"){
   
 s.staffAccess=null;s.rq=null;s.rl=null;s.staffSuspended=false;
 await publicData(p.role==="admin"||p.role==="owner"||p.role==="staff");
-s.requests=[];s.quotes=[];s.offers=[];s.apps=[];s.allRequests=[];s.adminProfiles=[];s.chats=[];s.messages=[];try{wcUnsubscribe()}catch(_){}s.activeChat=null;s.auditLogs=[];
+s.requests=[];s.quotes=[];s.offers=[];s.apps=[];s.allRequests=[];s.adminProfiles=[];s.chats=[];s.messages=[];try{wcUnsubscribe();wcListUnsubscribe()}catch(_){}s.activeChat=null;s.auditLogs=[];
 
 if(p.role==="staff"){
  const {data:effPerms,error:staffError}=await db.rpc("my_effective_permissions");
@@ -2341,7 +2341,7 @@ if(p.role==="staff"){
  s.staffAccess={permissions:effPerms.permissions.filter(x=>typeof x==="string"),is_active:true};
 }
  if(p.role==="customer"){
-  const [r,ch]=await Promise.all([db.from("service_requests").select("*,services(name_ar),provider_profiles(display_name,city)").eq("customer_id",u.id).order("created_at",{ascending:false}),db.from("conversations").select("id,request_id,customer_id,provider_id,last_message_at,service_requests(title)").eq("customer_id",u.id).order("last_message_at",{ascending:false})]);
+  const [r,ch]=await Promise.all([db.from("service_requests").select("*,services(name_ar),provider_profiles(display_name,city)").eq("customer_id",u.id).order("created_at",{ascending:false}),wcChatsQuery()]);
   s.requests=r.data||[];s.chats=ch.data||[];
 const {data:q,error:qError}=await db
  .from("service_quotes")
@@ -2368,7 +2368,7 @@ if(s.quotes.length){
  }));
 }
  }else if(p.role==="provider"&&pp){
-  const [r,o,ch]=await Promise.all([db.from("service_requests").select("*,services(name_ar)").or("provider_id.eq."+pp.id+",provider_id.is.null").order("created_at",{ascending:false}),db.from("provider_services").select("*,services(name_ar)").eq("provider_id",pp.id),db.from("conversations").select("id,request_id,customer_id,provider_id,last_message_at,service_requests(title)").eq("provider_id",pp.id).order("last_message_at",{ascending:false})]);
+  const [r,o,ch]=await Promise.all([db.from("service_requests").select("*,services(name_ar)").or("provider_id.eq."+pp.id+",provider_id.is.null").order("created_at",{ascending:false}),db.from("provider_services").select("*,services(name_ar)").eq("provider_id",pp.id),wcChatsQuery()]);
   s.requests=r.data||[];s.offers=o.data||[];s.chats=ch.data||[];
 const {data:q,error:qError}=await db
  .from("service_quotes")
@@ -3666,6 +3666,68 @@ function wcVideoThumb(file){
   }catch(_){finish(null)}
  });
 }
+const WC_STATUS_AR={pending:"قيد الانتظار",accepted:"مقبول",in_progress:"جاري التنفيذ",completed:"مكتمل",cancelled:"ملغي",canceled:"ملغي"};
+function wcPreview(c){
+ const t=String(c.last_message_type||"").toLowerCase();
+ const own=c.last_message_sender_id&&s.user&&c.last_message_sender_id===s.user.id;
+ let txt="";
+ if(!t&&!c.last_message_text)return "";
+ if(t==="image")txt="📷 صورة";
+ else if(t==="video")txt="🎬 فيديو";
+ else if(t==="audio"||t==="voice")txt="🎤 رسالة صوتية";
+ else if(t==="location")txt="📍 تمت مشاركة الموقع";
+ else if(t==="file")txt="📄 "+(typeof c.last_message_text==="string"&&c.last_message_text.trim()?c.last_message_text.trim():"ملف مرفق");
+ else txt=typeof c.last_message_text==="string"?c.last_message_text.trim():"";
+ if(!txt)return "";
+ return (own?"أنت: ":"")+txt;
+}
+async function wcChatsQuery(){
+ try{
+  const r=await db.rpc("list_my_conversations");
+  if(!r.error&&Array.isArray(r.data)){
+   return {data:r.data.map(x=>({
+    ...x,
+    service_requests:{title:x.request_title||null}
+   })),error:null};
+  }
+ }catch(_){}
+ return await db.from("conversations").select("id,request_id,customer_id,provider_id,last_message_at,service_requests(title)").order("last_message_at",{ascending:false});
+}
+let wcListChan=null,wcListOk=false,wcListDown=false,wcListTimer=null,wcListLast=0,wcListBusy=false;
+async function wcRefreshChats(){
+ if(wcListBusy||!s.user||!["customer","provider"].includes(s.profile?.role))return;
+ wcListBusy=true;
+ try{
+  const r=await wcChatsQuery();
+  if(r.error||!Array.isArray(r.data))return;
+  wcListLast=Date.now();
+  const sig=l=>JSON.stringify((l||[]).map(c=>[c.id,c.last_message_at,c.unread_count,c.last_message_text,c.last_message_type,c.request_status]));
+  if(sig(r.data)===sig(s.chats))return;
+  s.chats=r.data;
+  if(s.tab==="messages"&&!s.activeChat&&!document.hidden)render();
+ }catch(_){}
+ finally{wcListBusy=false}
+}
+function wcListKick(){
+ clearTimeout(wcListTimer);
+ wcListTimer=setTimeout(wcRefreshChats,700);
+}
+function wcListUnsubscribe(){
+ if(wcListChan){try{db.removeChannel(wcListChan)}catch(_){}}
+ wcListChan=null;wcListOk=false;wcListDown=false;
+}
+function wcListSubscribe(){
+ if(wcListChan||!s.user||!["customer","provider"].includes(s.profile?.role))return;
+ try{
+  wcListChan=db.channel("wc-list-"+s.user.id)
+   .on("postgres_changes",{event:"*",schema:"public",table:"conversations"},()=>wcListKick())
+   .on("postgres_changes",{event:"*",schema:"public",table:"messages"},()=>wcListKick())
+   .subscribe(status=>{
+    if(status==="SUBSCRIBED"){wcListOk=true;if(wcListDown){wcListDown=false;wcListKick()}}
+    else if(status==="CHANNEL_ERROR"||status==="TIMED_OUT"||status==="CLOSED"){wcListOk=false;wcListDown=true}
+   });
+ }catch(_){wcListChan=null;wcListOk=false}
+}
 function wcSize(n){n=Number(n)||0;if(n<1024)return n+" B";if(n<1048576)return (n/1024).toFixed(0)+" KB";return (n/1048576).toFixed(1)+" MB"}
 function wcDur(sec){sec=Math.max(0,Math.round(Number(sec)||0));return Math.floor(sec/60)+":"+String(sec%60).padStart(2,"0")}
 function wcBars(seed){
@@ -3888,6 +3950,12 @@ function wcSubscribe(cid){
  }catch(_){wcChan=null;wcChanId=null;wcRtOk=false}
 }
 setInterval(()=>{
+ if(!s.user){if(wcListChan)wcListUnsubscribe()}
+ else{
+  wcListSubscribe();
+  const age=Date.now()-wcListLast;
+  if((!wcListOk&&age>30000)||age>120000)wcRefreshChats();
+ }
  if(wcRtOk&&Date.now()-wcLastPoll<30000)return;
  wcPoll();
 },6000);
@@ -3953,14 +4021,14 @@ const providerName=
 
 const peerName=isAdmin
  ?customerName+" — "+providerName
- :(s.chatPeerProfile?.full_name||
+ :(s.chatPeerProfile?.full_name||s.activeChat.peer_name||
    (s.profile?.role==="customer"?providerName:customerName));
 
 return '<section class="section wc-section">'+
  '<div class="wc'+(isAdmin?'':' wc-full')+'">'+
  '<div class="wc-head">'+
   '<button type="button" class="wc-back" data-a="chatback" data-id="" aria-label="رجوع"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M4 12h16M14 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>'+
-  '<div class="wc-ava">'+((!isAdmin&&s.chatPeerProfile?.avatar_url)?'<img src="'+esc(s.chatPeerProfile.avatar_url)+'" alt="">':esc((peerName.trim().charAt(0)||"؟")))+'</div>'+
+  '<div class="wc-ava">'+((!isAdmin&&(s.chatPeerProfile?.avatar_url||s.activeChat.peer_avatar_url))?'<img src="'+esc(s.chatPeerProfile?.avatar_url||s.activeChat.peer_avatar_url)+'" alt="">':esc((peerName.trim().charAt(0)||"؟")))+'</div>'+
   '<div class="wc-hn"><b>'+esc(peerName)+'</b><span>'+esc(requestTitle)+(requestRef?' · '+esc(requestRef):'')+'</span></div>'+
  '</div>'+
  '<div class="wc-body">'+
@@ -4061,13 +4129,18 @@ return '<section class="section wc-section">'+
   '<span class="tag">'+fmt(chats.length)+' محادثة</span></div>'+
   '<div class="wc-list">'+
   (chats.map(c=>{
-   const title=c.service_requests?.title||"محادثة طلب خدمة";
+   const title=c.request_title||c.service_requests?.title||"محادثة طلب خدمة";
    const ref=c.request_id?String(c.request_id).slice(0,8).toUpperCase():"";
    const when=c.last_message_at?wcListTime(c.last_message_at):"";
+   const peer=(typeof c.peer_name==="string"&&c.peer_name.trim())?c.peer_name.trim():title;
+   const avatar=(typeof c.peer_avatar_url==="string"&&c.peer_avatar_url)?'<img src="'+esc(c.peer_avatar_url)+'" alt="">':esc((peer.charAt(0)||"؟"));
+   const prev=wcPreview(c);
+   const unread=Number(c.unread_count)||0;
+   const stl=c.request_status?(WC_STATUS_AR[c.request_status]||c.request_status):"";
    return '<button type="button" class="wc-li" data-a="chatopen" data-id="'+esc(c.id)+'">'+
-    '<span class="wc-ava wc-li-a">'+esc((title.trim().charAt(0)||"؟"))+'</span>'+
-    '<span class="wc-li-m"><b>'+esc(title)+'</b><small>'+(c.last_message_at?'طلب '+esc(ref):'لا توجد رسائل بعد · طلب '+esc(ref))+'</small></span>'+
-    '<span class="wc-li-t">'+esc(when)+'</span>'+
+    '<span class="wc-ava wc-li-a">'+avatar+'</span>'+
+    '<span class="wc-li-m"><b>'+esc(peer)+'</b><small class="'+(unread?'wc-unread-t':'')+'">'+esc(prev||'لا توجد رسائل بعد')+'</small><small class="wc-li-req">'+esc(title+(stl?' · '+stl:'')+' · '+ref)+'</small></span>'+
+    '<span class="wc-li-e"><span class="wc-li-t'+(unread?' wc-unread-t':'')+'">'+esc(when)+'</span>'+(unread?'<i class="wc-badge">'+(unread>99?'99+':unread)+'</i>':'')+'</span>'+
    '</button>';
   }).join("")||'<div class="wc-empty"><div class="wc-empty-i"><svg viewBox="0 0 24 24" width="34" height="34" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg></div><b>لا توجد محادثات بعد</b><span>تظهر هنا محادثاتك مع مزودي الخدمة عند فتح طلب.</span></div>')+
   '</div>'+
@@ -8008,7 +8081,7 @@ if(["customer","provider"].includes(s.profile?.role)){
  wcSubscribe(c.id);
  return;
   }
-  if(a==="chatback"){wcUnsubscribe();s.activeChat=null;s.messages=[];s.chatLoading=0;s.wcSig="";render();return}
+  if(a==="chatback"){wcUnsubscribe();s.activeChat=null;s.messages=[];s.chatLoading=0;s.wcSig="";render();wcListKick();return}
   
 if(a==="cancelrequest"){
 
@@ -9132,6 +9205,12 @@ const addButton = () => {
 .wc-img,.wc-vid{display:block;border-radius:8px}
 .wc-aud{display:block;max-width:100%}
 #wcEnd{height:1px}
+.wc-li-a img{width:100%;height:100%;object-fit:cover}
+.wc-li-req{opacity:.8;font-size:12px!important}
+.wc-li-e{display:flex;flex-direction:column;align-items:flex-end;gap:6px;align-self:flex-start;padding-top:2px}
+.wc-li-e .wc-li-t{padding-top:0}
+.wc-badge{min-width:22px;height:22px;padding:0 6px;border-radius:11px;background:var(--accent);color:#fff;font:700 12px/22px inherit;font-style:normal;text-align:center}
+.wc-unread-t{color:var(--text-primary)!important;font-weight:700}
 .wc-lock{position:fixed;z-index:998;left:50%;transform:translateX(-50%);bottom:calc(81px + env(safe-area-inset-bottom));width:min(1080px,100%);display:flex;flex-direction:column;gap:3px;text-align:center;padding:14px 16px;background:var(--bg-surface);border-top:1px solid var(--border-color);color:var(--text-secondary);font-size:13.5px}
 .wc-lock b{color:var(--text-primary);font-size:15px}
 .wc-vidpost{position:relative;display:block;padding:0;border:0;background:none;cursor:pointer;border-radius:8px;overflow:hidden;max-width:100%}
