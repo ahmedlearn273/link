@@ -2228,6 +2228,111 @@ function msg(){
 function btn(a,t,k,id,extra){return '<button class="btn '+(k||"")+'" data-a="'+a+'" data-id="'+esc(id||"")+'" '+(extra||"")+'>'+t+'</button>'}
 function payRefresh(){const f=document.getElementById("quoteForm");if(!f)return;const rows=[...f.querySelectorAll(".pay-row")];const add=f.querySelector(".pay-add");if(add)add.style.display=rows.some(x=>x.style.display==="none")?"":"none";const tot=Number((f.querySelector('[name="amount"]')||{}).value||0);let sum=0;rows.forEach(r=>{if(r.style.display!=="none")sum+=Number((r.querySelector('[name^="schedule_amount_"]')||{}).value||0)});const el=document.getElementById("paySum");if(el){if(!sum){el.textContent="";el.className="pay-sum"}else{const ok=Math.abs(sum-tot)<0.005;el.className="pay-sum "+(ok?"ok":"bad");el.textContent=ok?"مجموع الدفعات يساوي الإجمالي ("+sum+")":"مجموع الدفعات "+sum+" من "+tot+(sum<tot?" (متبقي "+(tot-sum)+")":" (زيادة "+(sum-tot)+")")}}}
 document.addEventListener("input",e=>{if(e.target&&e.target.form&&e.target.form.id==="quoteForm")payRefresh()});
+
+/* ===== Provider service areas: edits are REQUESTS for admin approval, never direct writes ===== */
+function areaQueueKey(){return "wasla_area_queue_"+((s.user&&s.user.id)||"")}
+function areaEgypt(){return (s.geo.countries||[]).find(x=>x.country_code==="EG")}
+async function loadAreasEdit(){
+ const old=s.areaEdit||{};
+ s.areaEdit={loading:true,sel:new Set(),map:{},added:new Set(),open:new Set(),q:{},loaded:{},saved:null,savedUnknown:false,all:false};
+ render();
+ const E=s.areaEdit;
+ try{
+  const eg=areaEgypt();
+  if(!eg||!(s.geo.cities||[]).some(c=>c.country_id===eg.id)){await loadGeoCatalog(eg?eg.id:null,null)}
+  const eg2=areaEgypt();
+  if(eg2){
+   const r=await db.rpc("get_active_geo_catalog",{p_country_id:eg2.id,p_city_id:null});
+   if(!r.error&&r.data){
+    (r.data.areas||[]).forEach(a=>{E.map[a.id]={name:a.name_ar,city_id:a.city_id}});
+    E.all=Object.keys(E.map).length>0;
+    if(E.all)(s.geo.cities||[]).forEach(c=>{E.loaded[c.id]=true});
+   }
+  }
+  const sv=await db.rpc("get_my_service_areas");
+  if(sv.error){E.savedUnknown=true;E.saved=new Set()}
+  else{const ids=(Array.isArray(sv.data)?sv.data:[]).map(x=>typeof x==="string"?x:(x&&(x.area_id||x.id)));E.saved=new Set(ids.filter(Boolean));ids.filter(Boolean).forEach(i=>E.sel.add(i))}
+ }catch(e){console.warn("[areas]",e);E.savedUnknown=true;E.saved=E.saved||new Set()}
+ E.loading=false;
+ if(s.providerProfileTab==="areas")render();
+}
+async function areaLoadCity(cityId){
+ const E=s.areaEdit;if(!E||E.loaded[cityId])return;
+ E.loaded[cityId]=true;
+ const eg=areaEgypt();
+ try{
+  const r=await db.rpc("get_active_geo_catalog",{p_country_id:eg&&eg.id,p_city_id:cityId});
+  if(r.error)throw r.error;
+  (r.data?.areas||[]).filter(a=>a.city_id===cityId).forEach(a=>{E.map[a.id]={name:a.name_ar,city_id:cityId}});
+ }catch(e){E.loaded[cityId]=false;console.warn("[areas]",e)}
+ render();
+}
+function areaCityAreas(E,cityId){return Object.keys(E.map).filter(i=>E.map[i].city_id===cityId).sort((a,b)=>E.map[a].name.localeCompare(E.map[b].name,"ar"))}
+function areasTab(){
+ const E=s.areaEdit;
+ if(!E||E.loading)return '<section class="section"><div class="empty">جاري تحميل المناطق...</div></section>';
+ const eg=areaEgypt();
+ const cities=(s.geo.cities||[]).filter(c=>eg&&c.country_id===eg.id).sort((a,b)=>String(a.name_ar).localeCompare(String(b.name_ar),"ar"));
+ const cityName=id=>(cities.find(c=>c.id===id)||{}).name_ar||"";
+ const pend=(s.myReqs||[]).find(r=>r.kind==="service_areas"&&r.status==="pending");
+ let queued=null;try{queued=JSON.parse(localStorage.getItem(areaQueueKey())||"null")}catch(_){}
+ const ids=[...E.sel];
+ const shownCities=cities.filter(c=>E.added.has(c.id)||ids.some(i=>E.map[i]&&E.map[i].city_id===c.id));
+ const unknownCount=ids.filter(i=>!E.map[i]).length;
+ const dirty=!E.saved||ids.length!==E.saved.size||ids.some(i=>!E.saved.has(i));
+ const pills=ids.filter(i=>E.map[i]).slice(0,10).map(i=>'<span class="ar-pill">'+esc(E.map[i].name)+' <i>'+esc(cityName(E.map[i].city_id))+'</i></span>').join("")+(ids.length>10?'<span class="ar-pill"><i>+'+fmt(ids.length-10)+' أخرى</i></span>':"");
+ const govCount=new Set(ids.filter(i=>E.map[i]).map(i=>E.map[i].city_id)).size;
+ let h='<div class="ar-wrap">';
+ h+='<div class="ar-note ar-lock">'+cui("lock",16)+' مناطق الخدمة مش بتتعدل مباشرة: أي تغيير بيتبعت للإدارة كطلب وبيتطبق بعد الموافقة.</div>';
+ if(pend)h+='<div class="ar-banner">'+cui("hour",16)+' عندك طلب تعديل مناطق قيد المراجعة ('+fmt((pend.payload?.area_ids||[]).length)+' قسم). مش هتقدر تبعت طلب جديد لحد ما الإدارة ترد عليه.</div>';
+ if(queued&&!pend)h+='<div class="ar-banner warn">طلبك ('+fmt((queued.ids||[]).length)+' قسم) اتحفظ على جهازك بس ولسه مبعتش للإدارة، لأن خطوة قاعدة البيانات الخاصة بالمناطق مش مفعّلة. هيتبعت أول ما تتفعّل.</div>';
+ if(E.savedUnknown)h+='<div class="ar-banner warn">مش قادرين نقرا مناطقك المحفوظة دلوقتي (خطوة قاعدة البيانات الخاصة بالمناطق مش مفعّلة). تقدر تحضّر الاختيار، لكن مش هيتبعت.</div>';
+ h+='<div class="ar-sum"><div class="ar-row"><div class="ar-k"><b>'+fmt(govCount)+'</b><small>محافظات</small></div><div class="ar-k"><b>'+fmt(ids.length)+'</b><small>قسم / مركز</small></div></div>';
+ h+='<h4>المناطق المختارة</h4><div class="ar-pills">'+(pills||'<span class="muted small">لسه ما اخترتش مناطق.</span>')+'</div></div>';
+ shownCities.forEach(c=>{
+  const list=areaCityAreas(E,c.id),open=E.open.has(c.id),q=(E.q[c.id]||"").trim();
+  const n=list.filter(i=>E.sel.has(i)).length,all=list.length&&n===list.length;
+  const st=all?"on":(n?"part":"");
+  h+='<section class="ar-gov"><button type="button" class="ar-gh" data-a="ar-open" data-id="'+esc(c.id)+'"><span class="ar-cb '+st+'">'+(all?cui("chk",13):n?"–":"")+'</span><span class="ar-nm">'+esc(c.name_ar)+'<small>'+(E.loaded[c.id]||E.all?(all?'كل الأقسام ('+fmt(list.length)+')':fmt(n)+' من '+fmt(list.length)+' أقسام'):'جاري التحميل')+'</small></span><span class="ar-ch'+(open?" up":"")+'">'+cui("chev",18)+'</span></button>';
+  if(open){
+   h+='<div class="ar-bd"><div class="ar-tools"><input class="ar-q" data-area-q="'+esc(c.id)+'" placeholder="ابحث عن قسم أو مركز" value="'+esc(E.q[c.id]||"")+'"><button type="button" class="ar-lnk" data-a="ar-all" data-id="'+esc(c.id)+'">'+(all?"إلغاء الكل":"اختيار الكل")+'</button></div><div class="ar-ar">';
+   const shown=list.filter(i=>!q||E.map[i].name.indexOf(q)>-1);
+   h+=shown.map(i=>'<button type="button" class="ar-a'+(E.sel.has(i)?" on":"")+'" data-a="ar-toggle" data-id="'+esc(i)+'"><span class="ar-cb '+(E.sel.has(i)?"on":"")+'">'+(E.sel.has(i)?cui("chk",12):"")+'</span>'+esc(E.map[i].name)+'</button>').join("")||'<small class="muted">لا توجد أقسام.</small>';
+   h+='</div><button type="button" class="ar-rm" data-a="ar-remove" data-id="'+esc(c.id)+'">إزالة المحافظة</button></div>';
+  }
+  h+='</section>';
+ });
+ const rest=cities.filter(c=>!shownCities.some(x=>x.id===c.id));
+ if(rest.length)h+='<label class="field">إضافة محافظة<select id="arAddCity"><option value="">اختر محافظة</option>'+rest.map(c=>'<option value="'+esc(c.id)+'">'+esc(c.name_ar)+'</option>').join("")+'</select></label>';
+ if(unknownCount)h+='<div class="ar-note">'+fmt(unknownCount)+' قسم محفوظ لسه أسماؤهم بتتحمل، افتح المحافظة بتاعتهم.</div>';
+ h+='<div class="ar-bar"><div class="ar-info">'+(dirty?"تعديلات لم تُرسل":"لا توجد تعديلات")+'<br>'+fmt(govCount)+' محافظات، '+fmt(ids.length)+' قسم</div><button type="button" class="btn light" data-a="ar-reset"'+(dirty?"":" disabled")+'>إلغاء</button><button type="button" class="btn gold" data-a="ar-submit"'+(dirty&&ids.length&&!pend?"":" disabled")+'>إرسال للموافقة</button></div>';
+ return h+'</div>';
+}
+async function areaSubmit(){
+ const E=s.areaEdit;if(!E)return;
+ const ids=[...E.sel];
+ if(!ids.length)throw Error("لازم تختار منطقة واحدة على الأقل.");
+ if((s.myReqs||[]).some(r=>r.kind==="service_areas"&&r.status==="pending"))throw Error("عندك طلب مناطق قيد المراجعة بالفعل.");
+ if(!await waslaUI.confirm("هيتبعت طلب تعديل مناطقك ("+ids.length+" قسم) للإدارة، ومناطقك الحالية هتفضل زي ما هي لحد الموافقة. تكمل؟",{yes:"إرسال",title:"طلب تعديل المناطق"}))return;
+ const r=await db.rpc("submit_area_change",{p_area_ids:ids});
+ if(r.error){
+  if(/submit_area_change|PGRST202|42883/.test(r.error.code+" "+r.error.message)){
+   try{localStorage.setItem(areaQueueKey(),JSON.stringify({ids,at:Date.now()}))}catch(_){}
+   render();note("الطلب اتحفظ على جهازك بس. خطوة قاعدة البيانات الخاصة بالمناطق لسه مش مفعّلة، فمبعتش للإدارة.","");return
+  }
+  throw r.error
+ }
+ try{localStorage.removeItem(areaQueueKey())}catch(_){}
+ await refreshRoleData();
+ note("اتبعت طلب تعديل المناطق للإدارة، وهيتطبق بعد الموافقة.","success");
+ render();
+}
+document.addEventListener("change",e=>{
+ if(e.target&&e.target.id==="arAddCity"&&s.areaEdit&&e.target.value){const id=e.target.value;s.areaEdit.added.add(id);s.areaEdit.open.add(id);render();areaLoadCity(id)}
+});
+document.addEventListener("input",e=>{
+ const t=e.target;if(t&&t.dataset&&t.dataset.areaQ&&s.areaEdit){s.areaEdit.q[t.dataset.areaQ]=t.value;const pos=t.selectionStart;render();const n=document.querySelector('[data-area-q="'+t.dataset.areaQ+'"]');if(n){n.focus();try{n.setSelectionRange(pos,pos)}catch(_){}}}
+});
 function field(l,n,type,ph,v,req){if(type==="datetime-local")return waslaUI.input(l,n,"datetime",v,req);return '<label class="field">'+l+'<input name="'+n+'" type="'+(type||"text")+'" placeholder="'+esc(ph||"")+'" value="'+esc(v||"")+'" '+(req?"required":"")+'></label>'}
 function select(l,n,opts,v){return '<label class="field">'+l+'<select name="'+n+'">'+opts.map(o=>'<option value="'+esc(o.value)+'" '+(String(o.value)===String(v)?"selected":"")+'>'+esc(o.label)+'</option>').join("")+'</select></label>'}
 function empty(x){return '<div class="empty">'+esc(x)+'</div>'}
@@ -3183,8 +3288,10 @@ function approvalsBody(){
   const who=esc(r.requester_name||"مزوّد")+(r.requester_code?' <small class="muted" dir="ltr">'+esc(r.requester_code)+'</small>':"");
   const det=r.kind==="service_suggestion"
    ?'<p><b>اقتراح خدمة جديدة:</b> '+esc(r.payload?.name||"")+'</p><p class="small">القسم: '+esc(r.category_name||"—")+'</p>'
+   :r.kind==="service_areas"
+   ?'<p><b>تعديل مناطق الخدمة</b></p><p class="small">عدد الأقسام المطلوبة: <b>'+esc(String((r.payload?.area_ids||[]).length))+'</b></p>'
    :'<p><b>تعديل بيانات</b></p>'+Object.keys(r.payload||{}).map(k=>'<p class="small">'+esc(L[k]||k)+': <b>'+esc(String(r.payload[k]??"—"))+'</b></p>').join("");
-  return '<article class="item"><div class="row"><b>'+who+'</b><span class="sv-st">'+(r.kind==="service_suggestion"?"خدمة":"بيانات")+'</span></div>'+det+
+  return '<article class="item"><div class="row"><b>'+who+'</b><span class="sv-st">'+(r.kind==="service_suggestion"?"خدمة":r.kind==="service_areas"?"مناطق":"بيانات")+'</span></div>'+det+
    '<p class="muted small">'+(r.created_at?new Date(r.created_at).toLocaleString("ar-SA"):"")+'</p>'+
    '<div class="actions"><button type="button" class="btn gold" data-a="approve-req" data-id="'+esc(r.id)+'">موافقة</button><button type="button" class="btn light" data-a="reject-req" data-id="'+esc(r.id)+'">رفض</button></div></article>';
  }).join("")||'<div class="empty">لا توجد طلبات معلّقة.</div>';
@@ -3219,7 +3326,7 @@ function providerDashboard(){
  const skel='<span class="pdb-sk"></span>';
  const money=v=>moneyAr(v)+" ج.م";
  const pendR=(s.myReqs||[]).filter(r=>r.status==="pending");
- const pendTxt=pendR.length?pendR.map(r=>r.kind==="service_suggestion"?'اقتراح "'+esc(r.payload?.name||"")+'"':"تعديل بياناتك").join(" و "):"";
+ const pendTxt=pendR.length?pendR.map(r=>r.kind==="service_suggestion"?'اقتراح "'+esc(r.payload?.name||"")+'"':r.kind==="service_areas"?"تعديل مناطقك":"تعديل بياناتك").join(" و "):"";
  const st=pr.verification_status;
  const sw=isBusy?'<span class="pdb-sw busy">مشغول</span>':'<button type="button" class="pdb-sw '+(pr.is_available?"on":"off")+'" data-a="availability" aria-pressed="'+(pr.is_available?"true":"false")+'">'+(pr.is_available?"متاح":"خارج الخدمة")+'<i></i></button>';
  const reqRows=(openNew.concat(active)).slice(0,3).map(q=>{
@@ -3680,6 +3787,10 @@ if(s.tab==="requests"){
      (profileTab==="services"?"active":"")+
     '">خدماتي</button>'+
 
+    '<button type="button" data-a="provider-profile-tab" data-id="areas" class="'+
+     (profileTab==="areas"?"active":"")+
+    '">مناطقي</button>'+
+
     '<button type="button" data-a="provider-profile-tab" data-id="wallet" class="'+
      (profileTab==="wallet"?"active":"")+
     '">المحفظة</button>'+
@@ -3694,6 +3805,8 @@ if(s.tab==="requests"){
    body+=walletView();
   }else if(profileTab==="settings"){
    body+=accountSettingsBody(s.profile||{});
+  }else if(profileTab==="areas"){
+   body+=areasTab();
   }else if(profileTab==="services"){
 
    body+=providerServicesTab();
@@ -8785,15 +8898,22 @@ if(a==="tab"){
  return;
 }
 
+if(a==="ar-open"){const E=s.areaEdit;if(!E)return;if(E.open.has(id))E.open.delete(id);else{E.open.add(id);areaLoadCity(id)}render();return}
+if(a==="ar-toggle"){const E=s.areaEdit;if(!E)return;if(E.sel.has(id))E.sel.delete(id);else E.sel.add(id);render();return}
+if(a==="ar-all"){const E=s.areaEdit;if(!E)return;const l=areaCityAreas(E,id);const all=l.length&&l.every(i=>E.sel.has(i));l.forEach(i=>{if(all)E.sel.delete(i);else E.sel.add(i)});render();return}
+if(a==="ar-remove"){const E=s.areaEdit;if(!E)return;areaCityAreas(E,id).forEach(i=>E.sel.delete(i));E.added.delete(id);E.open.delete(id);render();return}
+if(a==="ar-reset"){const E=s.areaEdit;if(!E)return;E.sel=new Set(E.saved||[]);E.added=new Set();render();return}
+if(a==="ar-submit"){await areaSubmit();return}
 if(a==="provider-profile-tab"){
 
  if(s.profile?.role!=="provider")return;
 
- if(!["profile","services","wallet","settings"].includes(id))return;
+ if(!["profile","services","areas","wallet","settings"].includes(id))return;
 
  s.providerProfileTab=id;
 
  render();
+ if(id==="areas")loadAreasEdit();
  if(id==="wallet")loadWallet(false);
 
  return;
@@ -11107,6 +11227,36 @@ h1,h2,h3,h4{font-family:var(--wasla-font);font-weight:700;letter-spacing:0}
 .wsel-opt.on{background:color-mix(in srgb,var(--accent) 12%,transparent);font-weight:800}
 .wsel-opt svg{margin-inline-start:auto;color:var(--accent)}
 .wsel-empty{padding:22px;text-align:center;color:var(--text-secondary);font-size:13px}
+
+.ar-wrap{display:flex;flex-direction:column;gap:12px;padding-bottom:96px}
+.ar-note{font-size:12px;color:var(--text-secondary);background:var(--bg-subtle);border-radius:12px;padding:10px 12px;display:flex;gap:8px;align-items:center}
+.ar-banner{font:700 12.5px Tajawal,sans-serif;background:var(--warning-bg);color:var(--warning);border-radius:12px;padding:10px 12px;display:flex;gap:8px;align-items:center}
+.ar-banner.warn{background:var(--danger-bg);color:var(--danger)}
+.ar-sum{background:var(--bg-surface);border:1px solid var(--border-color);border-radius:18px;padding:14px;box-shadow:var(--surface-shadow)}
+.ar-row{display:flex;gap:10px}.ar-k{flex:1;background:var(--bg-subtle);border-radius:13px;padding:10px;text-align:center}
+.ar-k b{display:block;font:800 22px Tajawal,sans-serif;color:var(--primary)}.ar-k small{color:var(--text-secondary);font-size:11.5px}
+.ar-sum h4{margin:12px 0 6px;font:800 13px Tajawal,sans-serif}
+.ar-pills{display:flex;flex-wrap:wrap;gap:6px}
+.ar-pill{display:inline-flex;gap:5px;padding:5px 10px;border-radius:99px;font:700 12px Tajawal,sans-serif;background:color-mix(in srgb,var(--accent) 12%,transparent);border:1px solid color-mix(in srgb,var(--accent) 35%,transparent)}
+.ar-pill i{font-style:normal;color:var(--text-secondary);font-weight:600}
+.ar-gov{background:var(--bg-surface);border:1px solid var(--border-color);border-radius:18px;overflow:hidden}
+.ar-gh{width:100%;display:flex;align-items:center;gap:10px;padding:14px;border:0;background:transparent;color:var(--text-primary);text-align:start;cursor:pointer}
+.ar-nm{flex:1;font:800 15px Tajawal,sans-serif}.ar-nm small{display:block;font:600 11.5px Tajawal,sans-serif;color:var(--text-secondary)}
+.ar-cb{width:22px;height:22px;border-radius:7px;border:2px solid var(--border-color);display:grid;place-items:center;color:#fff;flex:0 0 22px;font-weight:800}
+.ar-cb.on{background:var(--accent);border-color:var(--accent)}.ar-cb.part{background:color-mix(in srgb,var(--accent) 25%,transparent);border-color:var(--accent);color:var(--accent)}
+.ar-ch{transition:transform .2s}.ar-ch.up{transform:rotate(180deg)}
+.ar-bd{padding:0 14px 14px;border-top:1px solid var(--border-color)}
+.ar-tools{display:flex;gap:8px;align-items:center;margin:12px 0 10px}
+.ar-q{flex:1;border:1px solid var(--border-color);border-radius:12px;padding:9px 12px;background:var(--bg-subtle);color:var(--text-primary)}
+.ar-lnk{border:0;background:transparent;color:var(--primary);font:800 12.5px Tajawal,sans-serif;white-space:nowrap}
+.ar-ar{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ar-a{display:flex;align-items:center;gap:8px;padding:10px 11px;border-radius:12px;border:1px solid var(--border-color);background:var(--bg-surface);color:var(--text-primary);font:700 13px Tajawal,sans-serif;text-align:start}
+.ar-a.on{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,transparent)}
+.ar-a .ar-cb{width:18px;height:18px;flex-basis:18px;border-radius:6px}
+.ar-rm{border:0;background:transparent;color:var(--danger);font:700 12px Tajawal,sans-serif;margin-top:12px}
+.ar-bar{position:fixed;bottom:calc(70px + env(safe-area-inset-bottom));left:0;right:0;z-index:900;background:color-mix(in srgb,var(--bg-surface) 95%,transparent);border-top:1px solid var(--border-color);padding:10px 14px;display:flex;gap:10px;align-items:center;backdrop-filter:blur(12px)}
+.ar-info{flex:1;font:700 12px Tajawal,sans-serif;color:var(--text-secondary)}
+.ar-bar button[disabled]{opacity:.45}
 </style>
 </body></html>
 
