@@ -4441,7 +4441,7 @@ function applications(onlyPending=false){
  ).join("")||empty("لا توجد طلبات مرتبطة بمقدّم الخدمة.");
 
  const reviews=(d.reviews||[]).map(x=>
-  '<article class="item"><div class="row"><b>'+
+  '<article class="item"><div class="row rqd-head"><b>'+
   'التقييم: '+fmt(x.rating)+' / 5</b>'+
   '<span class="small">'+date(x.created_at)+'</span></div>'+
   '<p>'+esc(x.comment||"لا يوجد تعليق")+'</p>'+
@@ -5963,7 +5963,7 @@ if(m.type==="providerQuoteDetails"){
       };
 
       return '<div class="item">'+
-       '<div class="row">'+
+       '<div class="row rqd-head">'+
         '<b>الدفعة '+(
  ["الأولى","الثانية","الثالثة","الرابعة","الخامسة",
   "السادسة","السابعة","الثامنة","التاسعة","العاشرة"]
@@ -6197,7 +6197,7 @@ const quoteSection=quote&&version
        };
 
        return '<div class="item">'+
-        '<div class="row">'+
+        '<div class="row rqd-head">'+
          '<b>الدفعة '+(
  ["الأولى","الثانية","الثالثة","الرابعة","الخامسة",
   "السادسة","السابعة","الثامنة","التاسعة","العاشرة"]
