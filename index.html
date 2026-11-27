@@ -2990,6 +2990,48 @@ function customerAccountBody(p){
    '<div class="actions"><button class="btn gold">تحديث كلمة المرور</button></div></form>')+
   '<button type="button" class="cu-out" data-a="logout" data-id="">تسجيل الخروج</button></section>';
 }
+
+const CU_OFFERS=[
+ {tag:"من وصلة",title:"اطلب خدمتك في دقائق",sub:"اكتب مشكلتك واختار الوقت المناسب، ومزوّد معتمد يتواصل معاك",cta:"اطلب الآن",ic:"tool"},
+ {tag:"مزوّدون معتمدون",title:"فنيين موثّقين وتقييمات حقيقية",sub:"اطّلع على ملف المزوّد وتقييمات العملاء قبل ما تطلب",cta:"استكشف المزوّدين",ic:"user"},
+ {tag:"تابع طلبك",title:"عرض سعر واضح قبل التنفيذ",sub:"قارن العروض واقبل المناسب ليك وتابع الدفع من التطبيق",cta:"ابدأ طلب",ic:"wallet"}
+];
+function cuBannerTick(){
+ try{
+  const t=document.querySelector(".cu-bn-t");if(!t)return;
+  const n=CU_OFFERS.length;s.cuBn=((s.cuBn||0)+1)%n;
+  t.style.transform="translateX(-"+(s.cuBn*100)+"%)";
+  document.querySelectorAll(".cu-bn-d i").forEach((d,i)=>d.classList.toggle("on",i===s.cuBn));
+ }catch(_){}
+}
+if(!window.__cuBnTimer)window.__cuBnTimer=setInterval(cuBannerTick,5000);
+function customerHome(){
+ const p=s.profile||{};
+ const first=String(p.full_name||"").trim().split(/\s+/)[0]||"";
+ const av=p.avatar_url?'<img src="'+esc(p.avatar_url)+'" alt="">':esc((first||"و").slice(0,1));
+ const idx=s.cuBn||0;
+ const banner='<div class="cu-bn"><div class="cu-bn-s"><div class="cu-bn-t" style="transform:translateX(-'+(idx*100)+'%)">'+CU_OFFERS.map((o,i)=>
+  '<div class="cu-bn-c" style="background:linear-gradient(135deg,'+(i===1?'var(--primary),var(--primary-hover)':'var(--accent),var(--accent-hover)')+')"><span class="tg">'+esc(o.tag)+'</span><b>'+esc(o.title)+'</b><small>'+esc(o.sub)+'</small>'+
+  '<button type="button" class="cu-bn-b" data-a="'+(i===1?"cu-providers":"request")+'" data-id="">'+esc(o.cta)+'</button>'+cui(o.ic,92).replace('<svg','<svg class="deco"')+'</div>').join("")+
+  '</div></div><div class="cu-bn-d">'+CU_OFFERS.map((o,i)=>'<i class="'+(i===idx?"on":"")+'"></i>').join("")+'</div></div>';
+ const cur=(s.requests||[]).filter(q=>["pending","accepted","in_progress"].includes(q.status)).sort((a,b)=>String(b.created_at||"").localeCompare(String(a.created_at||"")))[0];
+ const stAr={pending:"قيد المراجعة",accepted:"مقبول",in_progress:"قيد التنفيذ"};
+ const hero=cur?'<div class="cu-hero"><small>طلبك الحالي</small><b class="big">'+esc(cur.title||cur.services?.name_ar||"طلب خدمة")+'</b><div class="row"><span class="cu-pill">'+(stAr[cur.status]||"")+'</span><span>'+(cur.provider_profiles?.display_name?'مع '+esc(cur.provider_profiles.display_name):'بانتظار تعيين مقدم خدمة')+'</span><button type="button" class="go" data-a="request-details" data-id="'+esc(cur.id)+'">تفاصيل</button></div></div>':"";
+ const cats=(s.cats||[]).map(c=>'<button type="button" class="cu-cat" data-a="category-open" data-id="'+esc(c.id)+'"><i>'+esc(c.icon||"✦")+'</i>'+esc(c.name_ar)+'</button>').join("");
+ const svcs=(s.services||[]).slice(0,6).map(x=>'<div class="cu-svc"><span class="d">'+cui("tool")+'</span><div class="t"><b>'+esc(x.name_ar)+'</b><small>'+esc(x.description||"خدمة متاحة للطلب")+'</small></div><button type="button" class="cu-go" data-a="request" data-id="'+esc(x.id)+'">اطلب</button></div>').join("");
+ const provs=(s.providers||[]).slice().sort((a,b)=>Number(b.average_rating||0)-Number(a.average_rating||0)).slice(0,6).map(pr=>
+  '<div class="cu-prov"><span class="a">'+esc((pr.display_name||"م").trim().slice(0,1))+'</span><b>'+esc(pr.display_name||"مزوّد خدمة")+'</b><small>'+esc([pr.city,pr.country].filter(Boolean).join("، ")||"مصر")+'</small>'+
+  '<div class="m"><span>★ '+fmt(pr.average_rating||0)+'</span><span><i class="dot'+(pr.is_available?"":" off")+'"></i> '+(pr.is_available?"متاح":"غير متاح")+'</span></div><button type="button" class="cu-go" data-a="request" data-id="'+esc(pr.id)+'">اطلب الخدمة</button></div>').join("");
+ return header("الرئيسية","",true)+
+ '<main class="wrap wasla-customer-page"><div class="cu">'+msg()+
+ '<div class="cu-hello"><div class="cu-av">'+av+'</div><div><h2>أهلاً'+(first?' يا '+esc(first):'')+'</h2><p>عايز تطلب إيه النهاردة؟</p></div></div>'+
+ '<div class="cu-search wl-search"><svg class="wl-s-ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="search" type="search" enterkeyhint="search" autocomplete="off" placeholder="ابحث عن خدمة أو تخصص أو مزوّد..." value="" aria-label="البحث عن الخدمات"></div>'+
+ banner+hero+
+ (cats?'<div class="cu-h"><h3>الأقسام</h3></div><div class="cu-cats">'+cats+'</div>':"")+
+ (svcs?'<div class="cu-h"><h3>خدمات مختارة</h3></div><div class="cu-card">'+svcs+'</div>':"")+
+ (provs?'<div class="cu-h"><h3>مزوّدون مميزون</h3></div><div class="cu-provs">'+provs+'</div>':"")+
+ '</div></main>'+customerBottomNav();
+}
 function customerIdCard(){
  const p=s.profile||{};
  const rq=s.requests||[];
@@ -3343,7 +3385,7 @@ function customerBottomNav(){
       
 function customer(){
 
- if(s.tab==="home")return landing(true);
+ if(s.tab==="home")return (nrm(s.filter||"")||s.selectedCategory)?landing(true):customerHome();
 
  let body="";
 
@@ -8786,6 +8828,7 @@ if(a==="knowledge-view"){
 }
 if(a==="category-open"){s.selectedCategory=id;render();return}
 if(a==="category-back"){s.selectedCategory=null;render();return}
+if(a==="cu-providers"){const n=document.querySelector(".cu-provs");if(n)n.scrollIntoView({behavior:"smooth",block:"center"});return}
 if(a==="search-clear"){s.filter="";render();const n=document.getElementById("search");if(n)n.focus();return}
   
   
