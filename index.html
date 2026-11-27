@@ -2954,7 +2954,7 @@ function accountSettingsView(){
   p.role==="customer"
  )+
  '<main class="wrap '+(p.role==="customer"?"wasla-customer-page":"")+'">'+msg()+
- '<section class="section"><div class="card"><div class="sectionhead"><div><h2>المظهر</h2><p class="small">اختار مجموعة الألوان اللي تعجبك، نهاري أو ليلي.</p></div></div><div class="actions"><button type="button" class="btn gold" data-th="open">الثيمات</button><button type="button" class="btn light" data-th="random">تبديل عشوائي</button></div></div></section>'+
+ '<section class="section"><div class="card"><div class="sectionhead"><div><h2>المظهر</h2><p class="small">اختار مجموعة الألوان اللي تعجبك، نهاري أو ليلي.</p></div></div><div class="actions"><button type="button" class="btn gold" data-th="open">الثيمات</button></div></div></section>'+
  '<section class="section">'+
  '<div class="card">'+
  '<div class="sectionhead"><div>'+
@@ -5469,7 +5469,7 @@ if(s.tab==="categories")body='<section class="section"><div class="sectionhead">
  if(s.tab==="messages")body=chatContent();
 if(s.tab==="assistant"&&s.profile?.role==="owner")body=assistantView();
       if(s.tab==="requests")body=requestsListView();
- if(s.tab==="appearance")body='<section class="section"><div class="card"><h2>مظهر منصة وصلة</h2><p>هوية Trust &amp; Poise بنظامين نهاري وليلي، والتبديل بينهم من زر الشمس والقمر أعلى الصفحة. وتقدر تختار مجموعة الألوان اللي تعجبك من هنا.</p><div class="actions"><button type="button" class="btn gold" data-th="open">الثيمات</button><button type="button" class="btn light" data-th="random">تبديل عشوائي</button></div></div></section>';
+ if(s.tab==="appearance")body='<section class="section"><div class="card"><h2>مظهر منصة وصلة</h2><p>هوية Trust &amp; Poise بنظامين نهاري وليلي، والتبديل بينهم من زر الشمس والقمر أعلى الصفحة. وتقدر تختار مجموعة الألوان اللي تعجبك من هنا.</p><div class="actions"><button type="button" class="btn gold" data-th="open">الثيمات</button></div></div></section>';
 if(s.tab==="knowledge"){
  body='<section class="section">'+
  '<div class="sectionhead"><div><h2>قاعدة معرفة PRIME</h2>'+
@@ -5718,7 +5718,7 @@ const waslaThemes=(function(){
   if(el)return;
   el=document.createElement("div");
   el.className="wth-back";
-  el.innerHTML='<div class="wth-panel" role="dialog" aria-label="الثيمات"><h3>الثيمات</h3><p>اضغط على أي مجموعة لمعاينتها فورًا. لن تُحفظ إلا بعد الضغط على حفظ.</p><div class="wth-grid"></div><div class="wth-actions"><button type="button" data-th="shuffle">تبديل عشوائي</button><button type="button" class="go" data-th="save">حفظ</button><button type="button" data-th="cancel">إلغاء</button></div></div>';
+  el.innerHTML='<div class="wth-panel" role="dialog" aria-label="الثيمات"><h3>الثيمات</h3><p>اضغط على أي مجموعة لمعاينتها فورًا. لن تُحفظ إلا بعد الضغط على حفظ.</p><div class="wth-grid"></div><div class="wth-actions"><button type="button" class="go" data-th="save">حفظ</button><button type="button" data-th="cancel">إلغاء</button></div></div>';
   document.body.appendChild(el);
   paint();
   if(randomPick)shuffle();
