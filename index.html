@@ -4845,7 +4845,7 @@ async function viewPrimeKnowledgeDocument(documentId){
       }
       function rqdAct(){
         const q=rqState();
-        if(!q.act)q.act={note:"",noteBusy:false,noteErr:"",noteOk:"",escOpen:false,esc:"",escBusy:false,escErr:"",escOk:"",asOpen:false,asSearch:"",asRows:[],asTotal:0,asOffset:0,asLimit:10,asLoading:false,asLoadErr:"",asSel:"",asReason:"",asBusy:false,asErr:"",asOk:""};
+        if(!q.act)q.act={note:"",noteBusy:false,noteErr:"",noteOk:"",escOpen:false,esc:"",escBusy:false,escErr:"",escOk:"",asOpen:false,asSearch:"",asRows:[],asTotal:0,asOffset:0,asLimit:10,asLoading:false,asLoadErr:"",asSel:"",asReason:"",asBusy:false,asErr:"",asOk:"",cnOpen:false,cnReason:"",cnComp:"0",cnBusy:false,cnErr:"",cnOk:""};
         return q.act;
       }
       function rqdCanAddNote(){
@@ -4859,6 +4859,40 @@ async function viewPrimeKnowledgeDocument(documentId){
       function rqdCanAssign(){
         const role=s.profile?.role;
         return role==="admin"||role==="owner"||(role==="staff"&&s.staffAccess?.is_active===true&&rqPermissions().includes("requests.assign"));
+      }
+      function rqdCanCancel(){
+        const role=s.profile?.role;
+        return role==="admin"||role==="owner"||(role==="staff"&&s.staffAccess?.is_active===true&&rqPermissions().includes("requests.cancel"));
+      }
+      function rqdCanSeePayments(){
+        const role=s.profile?.role;
+        return role==="admin"||role==="owner"||(role==="staff"&&s.staffAccess?.is_active===true&&rqPermissions().includes("payments.view"));
+      }
+      async function rqdCnSubmit(){
+        const q=rqState(),a=rqdAct(),id=q.detailId;
+        if(!id||a.cnBusy)return;
+        const reason=String(a.cnReason||"").trim();
+        const rawC=String(a.cnComp==null?"":a.cnComp).trim();
+        a.cnErr="";
+        if(reason.length<5||reason.length>500){a.cnErr="سبب الإلغاء إلزامي ويجب أن يكون من 5 إلى 500 حرف";render();return}
+        if(rawC!==""&&!/^\d+(\.\d{1,2})?$/.test(rawC)){a.cnErr="مبلغ التعويض غير صالح: أرقام موجبة فقط وبحد أقصى خانتين عشريتين";render();return}
+        const comp=rawC===""?0:Number(rawC);
+        a.cnBusy=true;render();
+        try{
+          const {error}=await db.rpc("admin_cancel_request",{p_request_id:id,p_reason:reason,p_compensation:comp});
+          if(error)throw error;
+          if(q.detailId!==id)return;
+          a.cnOk="تم إلغاء الطلب";
+          a.cnOpen=false;a.cnReason="";a.cnComp="0";a.cnBusy=false;
+          render();
+          await rqdRefresh(id);
+          try{await loadRequestsList()}catch(_){}
+          return;
+        }catch(err){
+          console.error("[admin_cancel_request]",err&&err.code);
+          a.cnErr=String(err?.message||"")||"تعذّر تنفيذ العملية.";
+        }
+        a.cnBusy=false;render();
       }
       function rqdAsError(err){
         const code=String(err?.code||"");
@@ -4981,7 +5015,8 @@ async function viewPrimeKnowledgeDocument(documentId){
           const ROLE={customer:"العميل",provider:"مقدم الخدمة",admin:"مدير",owner:"المالك",staff:"موظف",system:"النظام"};
           const EVT={request_created:"إنشاء الطلب",status_changed:"تغيير الحالة",quote_submitted:"تقديم عرض سعر",customer_revision_requested:"طلب العميل تعديل العرض",customer_accepted:"قبول العميل للعرض",customer_rejected:"رفض العميل للعرض",provider_approved:"موافقة مقدم الخدمة",agreement_created:"إنشاء الاتفاق",quote_withdrawn:"سحب العرض",quote_expired:"انتهاء صلاحية العرض",request_cancelled:"إلغاء الطلب",request_escalated:"تصعيد الطلب",request_provider_assigned:"تعيين مزوّد خدمة",request_provider_reassigned:"إعادة تعيين مزوّد خدمة"};
           const ACT={INSERT:"إنشاء",UPDATE:"تعديل",DELETE:"حذف",request_provider_assigned:"تعيين مزوّد خدمة",request_provider_reassigned:"إعادة تعيين مزوّد خدمة"};
-          const asmx=x=>(x&&(x.old_provider_name||x.new_provider_name||((x.type==="request_provider_assigned"||x.type==="request_provider_reassigned"||x.action==="request_provider_assigned"||x.action==="request_provider_reassigned")&&x.reason)))?((x.old_provider_name?'<div class="small">المزوّد السابق: '+esc(x.old_provider_name)+'</div>':"")+(x.new_provider_name?'<div class="small">المزوّد الجديد: '+esc(x.new_provider_name)+'</div>':"")+(x.reason?'<div class="small">السبب: '+esc(x.reason)+'</div>':"")):"";
+          const cnmx=x=>(x&&x.cancel_reason)?'<div class="small">سبب الإلغاء: '+esc(x.cancel_reason)+'</div>'+(x.cancelled_at?'<div class="small">تاريخ الإلغاء: '+esc(rqDate(x.cancelled_at))+'</div>':"")+(rqdCanSeePayments()&&x.cancel_compensation!==undefined&&x.cancel_compensation!==null?'<div class="small">التعويض: '+esc(fmt(x.cancel_compensation))+' جنيه</div>':"")+(rqdCanSeePayments()&&x.cancel_refund_needed===true?'<div class="small">يحتاج استردادًا</div>':""):"";
+          const asmx0=x=>(x&&(x.old_provider_name||x.new_provider_name||((x.type==="request_provider_assigned"||x.type==="request_provider_reassigned"||x.action==="request_provider_assigned"||x.action==="request_provider_reassigned")&&x.reason)))?((x.old_provider_name?'<div class="small">المزوّد السابق: '+esc(x.old_provider_name)+'</div>':"")+(x.new_provider_name?'<div class="small">المزوّد الجديد: '+esc(x.new_provider_name)+'</div>':"")+(x.reason?'<div class="small">السبب: '+esc(x.reason)+'</div>':"")):"";
           const DUE={on_agreement:"عند الاتفاق",on_start:"عند البدء",on_completion:"عند الإكمال",on_delivery:"عند التسليم"};
           const PM={cash:"نقدي",card:"بطاقة",bank_transfer:"تحويل بنكي",wallet:"محفظة"};
           const QST={draft:"مسودة",submitted:"مقدّم",revision_requested:"طلب تعديل",agreed:"متفق عليه",accepted:"مقبول",rejected:"مرفوض",expired:"منتهي",withdrawn:"مسحوب",cancelled:"ملغي"};
@@ -4999,9 +5034,9 @@ async function viewPrimeKnowledgeDocument(documentId){
           const sec={
             request:v=>{
               if(!v||typeof v!=="object")return noData;
-              return kv("الطلب",v.title)+kv("الوصف",v.description)+kv("الخدمة",v.service_name_ar)+kv("الحالة",st(v.status))+kv("الدولة",v.country)+kv("المدينة",v.city)+kv("مقدم الخدمة",v.provider_name)+kv("الميزانية",v.budget)+kv("سبب الإلغاء",v.cancel_reason)+kv("الموعد",v.scheduled_at?rqDate(v.scheduled_at):null)+kv("تاريخ التصعيد",v.escalated_at?rqDate(v.escalated_at):null)+kv("تاريخ الإنشاء",rqDate(v.created_at))+kv("آخر تحديث",rqDate(v.updated_at));
+              return kv("الطلب",v.title)+kv("الوصف",v.description)+kv("الخدمة",v.service_name_ar)+kv("الحالة",st(v.status))+kv("الدولة",v.country)+kv("المدينة",v.city)+kv("مقدم الخدمة",v.provider_name)+kv("الميزانية",v.budget)+kv("سبب الإلغاء",v.cancel_reason)+kv("تاريخ الإلغاء",v.cancelled_at?rqDate(v.cancelled_at):null)+(rqdCanSeePayments()&&(v.cancel_compensation!==undefined||v.cancel_refund_needed!==undefined)&&(v.cancelled_at||v.cancel_reason)?kv("تعويض الإلغاء",v.cancel_compensation===null||v.cancel_compensation===undefined?null:money(v.cancel_compensation,"جنيه"))+kv("يحتاج استردادًا",v.cancel_refund_needed===true?"نعم":v.cancel_refund_needed===false?"لا":null):"")+kv("الموعد",v.scheduled_at?rqDate(v.scheduled_at):null)+kv("تاريخ التصعيد",v.escalated_at?rqDate(v.escalated_at):null)+kv("تاريخ الإنشاء",rqDate(v.created_at))+kv("آخر تحديث",rqDate(v.updated_at));
             },
-            timeline:v=>v.map(x=>item('<div class="row"><b>'+esc(L(EVT,x.type))+'</b><span class="small">'+esc(rqDate(x.at))+'</span></div><div class="small">'+esc(role(x.actor_role)+(x.actor_code?" ("+x.actor_code+")":""))+'</div>'+((x.old_status||x.new_status)?'<div class="small">'+esc(st(x.old_status)+" ← "+st(x.new_status))+'</div>':"")+asmx(x))).join(""),
+            timeline:v=>v.map(x=>item('<div class="row"><b>'+esc(L(EVT,x.type))+'</b><span class="small">'+esc(rqDate(x.at))+'</span></div><div class="small">'+esc(role(x.actor_role)+(x.actor_code?" ("+x.actor_code+")":""))+'</div>'+((x.old_status||x.new_status)?'<div class="small">'+esc(st(x.old_status)+" ← "+st(x.new_status))+'</div>':"")+asmx0(x)+cnmx(x))).join(""),
             quotes:v=>v.map(q=>item(
               '<div class="row"><b>عرض سعر ('+esc(L(QST,q.status))+')</b><span class="small">النسخة الحالية: '+esc(q.current_version??"—")+'</span></div><div class="small">'+esc(rqDate(q.created_at))+'</div>'+
               ((q.versions||[]).length?'<div class="small"><b>الإصدارات</b></div>'+q.versions.map(x=>'<div class="card"><div class="row"><b>النسخة '+esc(x.version_number)+'</b><b>'+esc(money(x.amount,x.currency))+'</b></div>'+kv("النطاق",x.scope_description)+kv("المدة المقدرة",x.estimated_duration)+kv("بداية مقترحة",x.proposed_start_at?rqDate(x.proposed_start_at):null)+kv("صالح حتى",x.valid_until?rqDate(x.valid_until):null)+kv("شروط إضافية",x.additional_terms)+kv("فاتورة الخامات مطلوبة",x.materials_invoice_required===true?"نعم":x.materials_invoice_required===false?"لا":null)+sched(x.payment_schedule)+'</div>').join(""):"")+
@@ -5012,7 +5047,7 @@ async function viewPrimeKnowledgeDocument(documentId){
             chat:v=>wcAdminChat(v,role,L,MT),
             payments:v=>v.map(x=>item('<div class="row"><b>'+esc(money(x.amount,x.currency))+'</b><span class="small">'+esc(L(PS,x.payment_status))+'</span></div>'+kv("طريقة الدفع",x.payment_method?L(PM,x.payment_method):null)+kv("نسبة العمولة",x.commission_rate)+kv("مبلغ العمولة",money(x.commission_amount,x.currency))+kv("مستحق مقدم الخدمة",money(x.provider_amount,x.currency))+kv("تاريخ الدفع",x.paid_at?rqDate(x.paid_at):null)+kv("تاريخ الإنشاء",x.created_at?rqDate(x.created_at):null))).join(""),
             notes:v=>v.map(x=>item('<div class="row"><b>'+esc(x.author_name||"—")+'</b><span class="small">'+esc(x.created_at?rqDate(x.created_at):"—")+'</span></div><p>'+esc(x.note||"")+'</p>')).join(""),
-            audit:v=>v.map(x=>item('<div class="row"><b>'+esc(L(ACT,x.action))+'</b><span class="small">'+esc(rqDate(x.created_at))+'</span></div><div class="small">'+esc(role(x.actor_role)+(x.actor_code?" ("+x.actor_code+")":"")+" - "+(x.result?L(RES,x.result):""))+'</div>'+((x.old_status||x.new_status)?'<div class="small">'+esc(st(x.old_status)+" ← "+st(x.new_status))+'</div>':"")+asmx(x))).join(""),
+            audit:v=>v.map(x=>item('<div class="row"><b>'+esc(L(ACT,x.action))+'</b><span class="small">'+esc(rqDate(x.created_at))+'</span></div><div class="small">'+esc(role(x.actor_role)+(x.actor_code?" ("+x.actor_code+")":"")+" - "+(x.result?L(RES,x.result):""))+'</div>'+((x.old_status||x.new_status)?'<div class="small">'+esc(st(x.old_status)+" ← "+st(x.new_status))+'</div>':"")+asmx0(x)+cnmx(x))).join(""),
             customer_contact:v=>{
               if(!v||typeof v!=="object")return noData;
               return kv("اسم العميل",v.customer_name)+kv("هاتف العميل",v.customer_phone)+kv("عنوان تنفيذ الخدمة",v.service_address);
@@ -5040,6 +5075,13 @@ async function viewPrimeKnowledgeDocument(documentId){
           const canAs=rqdCanAssign()&&(rqo.status==="pending"||rqo.status==="accepted");
           const isRe=rqo.status==="accepted";
           const asBar=(canAs||act.asOk)?'<div class="actions">'+(canAs?'<button type="button" class="btn gold" data-a="rqd-as-open">'+(isRe?"إعادة تعيين مقدم الخدمة":"تعيين مقدم الخدمة")+'</button>':"")+'</div>'+(act.asOk?'<div class="notice success">'+esc(act.asOk)+'</div>':""):"";
+          const canCn=rqdCanCancel()&&(rqo.status==="pending"||rqo.status==="accepted"||rqo.status==="in_progress");
+          const cnBar=(canCn||act.cnOk)?'<div class="actions">'+(canCn?'<button type="button" class="btn light" data-a="rqd-cn-open" style="color:var(--danger);border-color:var(--danger)">إلغاء الطلب</button>':"")+'</div>'+(act.cnOk?'<div class="notice success">'+esc(act.cnOk)+'</div>':""):"";
+          const cnModal=(act.cnOpen&&canCn)?'<div class="modalback"><div class="modal"><h3>إلغاء الطلب</h3><p class="small">سيتم إلغاء الطلب نهائيًا ولا يمكن إعادة فتحه.</p>'+
+            '<label class="field">سبب الإلغاء (من 5 إلى 500 حرف)<textarea id="rqdCnReason" rows="3" maxlength="500">'+esc(act.cnReason)+'</textarea></label>'+
+            '<label class="field">مبلغ التعويض (اختياري)<input id="rqdCnComp" type="text" inputmode="decimal" dir="ltr" value="'+esc(act.cnComp)+'"></label>'+
+            (act.cnErr?'<div class="notice error">'+esc(act.cnErr)+'</div>':"")+
+            '<div class="actions"><button type="button" class="btn gold" data-a="rqd-cn-confirm"'+(act.cnBusy?" disabled":"")+'>'+(act.cnBusy?"جاري التنفيذ...":"تأكيد الإلغاء")+'</button><button type="button" class="btn light" data-a="rqd-cn-back"'+(act.cnBusy?" disabled":"")+'>رجوع</button></div></div></div>':"";
           const asPages=Math.max(1,Math.ceil(act.asTotal/act.asLimit)),asPage=Math.floor(act.asOffset/act.asLimit)+1;
           const asModal=(act.asOpen&&canAs)?'<div class="modalback"><div class="modal"><h3>'+(isRe?"إعادة تعيين مقدم الخدمة":"تعيين مقدم الخدمة")+'</h3>'+
             '<div class="actions"><input id="rqdAsSearch" type="search" maxlength="200" placeholder="بحث بالاسم" value="'+esc(act.asSearch)+'"><button type="button" class="btn light" data-a="rqd-as-search"'+(act.asLoading?" disabled":"")+'>بحث</button></div>'+
@@ -5049,7 +5091,7 @@ async function viewPrimeKnowledgeDocument(documentId){
             '<label class="field">سبب التعيين (من 5 إلى 500 حرف)<textarea id="rqdAsReason" rows="3" maxlength="500">'+esc(act.asReason)+'</textarea></label>'+(act.asErr?'<div class="notice error">'+esc(act.asErr)+'</div>':"")+
             '<div class="actions"><button type="button" class="btn gold" data-a="rqd-as-confirm"'+(act.asBusy?" disabled":"")+'>'+(act.asBusy?"جاري التنفيذ...":"تأكيد")+'</button><button type="button" class="btn light" data-a="rqd-as-cancel"'+(act.asBusy?" disabled":"")+'>إلغاء</button></div></div></div>':"";
           const escModal=(act.escOpen&&canEsc)?'<div class="modalback"><div class="modal"><h3>تصعيد الطلب للمالك</h3><p class="small">اكتب سبب التصعيد (من 5 إلى 500 حرف). لن يتغير حالة الطلب ولا مقدم الخدمة.</p><label class="field">سبب التصعيد<textarea id="rqdEsc" rows="4" maxlength="500">'+esc(act.esc)+'</textarea></label>'+(act.escErr?'<div class="notice error">'+esc(act.escErr)+'</div>':"")+'<div class="actions"><button type="button" class="btn gold" data-a="rqd-esc-confirm"'+(act.escBusy?" disabled":"")+'>'+(act.escBusy?"جاري التصعيد...":"تأكيد التصعيد")+'</button><button type="button" class="btn light" data-a="rqd-esc-cancel"'+(act.escBusy?" disabled":"")+'>إلغاء</button></div></div></div>':"";
-          content=(shells?escBar+asBar+shells:empty("لا توجد أقسام متاحة لك في هذا الطلب"))+escModal+asModal;
+          content=(shells?escBar+asBar+cnBar+shells:empty("لا توجد أقسام متاحة لك في هذا الطلب"))+escModal+asModal+cnModal;
         }
         return RQ_CSS+'<section class="section"><div class="sectionhead"><div><h2>تفاصيل الطلب</h2><p class="small">للقراءة فقط.</p></div></div>'+back+content+'</section>';
       }
@@ -5213,6 +5255,8 @@ async function viewPrimeKnowledgeDocument(documentId){
         else if(id==="rqdEsc")rqdAct().esc=e.target.value;
         else if(id==="rqdAsSearch")rqdAct().asSearch=e.target.value;
         else if(id==="rqdAsReason")rqdAct().asReason=e.target.value;
+        else if(id==="rqdCnReason")rqdAct().cnReason=e.target.value;
+        else if(id==="rqdCnComp")rqdAct().cnComp=e.target.value;
       });
       app.addEventListener("click",e=>{
         const b=e.target.closest?e.target.closest("[data-a]"):null;
@@ -5229,6 +5273,9 @@ async function viewPrimeKnowledgeDocument(documentId){
         if(a==="rqd-as-next"){if(!x.asLoading&&!x.asBusy){x.asOffset=x.asOffset+x.asLimit;rqdAsLoad()}return}
         if(a==="rqd-as-pick"){if(!x.asBusy){x.asSel=b.dataset.id||"";x.asErr="";render()}return}
         if(a==="rqd-as-confirm"){if(rqdCanAssign())rqdAsSubmit();return}
+        if(a==="rqd-cn-open"){if(rqdCanCancel()){x.cnOpen=true;x.cnErr="";x.cnOk="";x.cnReason="";x.cnComp="0";render()}return}
+        if(a==="rqd-cn-back"){if(!x.cnBusy){x.cnOpen=false;x.cnErr="";render()}return}
+        if(a==="rqd-cn-confirm"){if(rqdCanCancel())rqdCnSubmit();return}
       });
       app.addEventListener("click",e=>{
         const b=e.target.closest?e.target.closest("[data-a]"):null;
