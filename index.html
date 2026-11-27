@@ -3642,6 +3642,30 @@ function wcBusy(on){
  const b=document.getElementById("chatMicButton");
  if(b){b.disabled=!!on;b.classList.toggle("wc-busy",!!on)}
 }
+function wcVideoThumb(file){
+ return new Promise(resolve=>{
+  let done=false,url=null;
+  const v=document.createElement("video");
+  const finish=blob=>{if(done)return;done=true;clearTimeout(tm);try{if(url)URL.revokeObjectURL(url)}catch(_){}v.removeAttribute("src");resolve(blob||null)};
+  const tm=setTimeout(()=>finish(null),10000);
+  try{
+   url=URL.createObjectURL(file);
+   v.muted=true;v.playsInline=true;v.preload="auto";v.crossOrigin="anonymous";
+   v.onerror=()=>finish(null);
+   v.onloadedmetadata=()=>{try{v.currentTime=Math.min(1,(v.duration||2)/2)}catch(_){finish(null)}};
+   v.onseeked=()=>{
+    try{
+     if(!v.videoWidth||!v.videoHeight)return finish(null);
+     const w=Math.min(480,v.videoWidth),h=Math.round(v.videoHeight*w/v.videoWidth);
+     const c=document.createElement("canvas");c.width=w;c.height=h;
+     c.getContext("2d").drawImage(v,0,0,w,h);
+     c.toBlob(b=>finish(b&&b.size>0?b:null),"image/jpeg",0.8);
+    }catch(_){finish(null)}
+   };
+   v.src=url;
+  }catch(_){finish(null)}
+ });
+}
 function wcSize(n){n=Number(n)||0;if(n<1024)return n+" B";if(n<1048576)return (n/1024).toFixed(0)+" KB";return (n/1048576).toFixed(1)+" MB"}
 function wcDur(sec){sec=Math.max(0,Math.round(Number(sec)||0));return Math.floor(sec/60)+":"+String(sec%60).padStart(2,"0")}
 function wcBars(seed){
@@ -3685,6 +3709,12 @@ function wcFile(m,url){
    o.innerHTML='<button type="button" class="wc-lbx" aria-label="إغلاق">✕</button><img src="'+img.dataset.wcimg.replace(/"/g,"&quot;")+'" alt="">';
    o.addEventListener("click",ev=>{if(ev.target.tagName!=="IMG")o.remove()});
    document.body.appendChild(o);return;
+  }
+  const vp=e.target.closest("[data-wcvid]");
+  if(vp){
+   const vd=document.createElement("video");
+   vd.className="wc-vid";vd.controls=true;vd.autoplay=true;vd.playsInline=true;vd.src=vp.dataset.wcvid;
+   vp.replaceWith(vd);return;
   }
   const v=e.target.closest("[data-wcv]");if(!v)return;
   const a=v.querySelector("[data-wcaud]");
@@ -3768,6 +3798,12 @@ async function wcSignMissing(list){
   if(!r.error&&r.data?.signedUrl){s.chatMediaUrls=s.chatMediaUrls||{};s.chatMediaUrls[m.id]=r.data.signedUrl}
  }));
 }
+async function wcSignThumbs(list){
+ await Promise.all(list.filter(m=>m.thumbnail_path&&!(s.chatMediaUrls||{})["t:"+m.id]).map(async m=>{
+  const r=await db.storage.from("conversation-media").createSignedUrl(m.thumbnail_path,3600);
+  if(!r.error&&r.data?.signedUrl){s.chatMediaUrls=s.chatMediaUrls||{};s.chatMediaUrls["t:"+m.id]=r.data.signedUrl}
+ }));
+}
 async function wcApply(cid,fresh){
  const body=document.querySelector(".wc-body");
  if(!body||!s.activeChat||s.activeChat.id!==cid)return;
@@ -3777,6 +3813,7 @@ async function wcApply(cid,fresh){
  const oldIds=new Set(old.map(m=>m.id));
  const incoming=fresh.filter(m=>!oldIds.has(m.id)&&m.sender_id!==s.user.id);
  await wcSignMissing(fresh);
+ await wcSignThumbs(fresh);
  if(!s.activeChat||s.activeChat.id!==cid)return;
  let next=fresh;
  if(incoming.length&&!document.hidden&&["customer","provider"].includes(s.profile?.role)){
@@ -3947,7 +3984,12 @@ return '<section class="section wc-section">'+
    let media="";
    if(url){
     if(m.message_type==="image")media='<button type="button" class="wc-imgbtn" data-wcimg="'+esc(url)+'" aria-label="عرض الصورة"><img class="wc-img" loading="lazy" src="'+esc(url)+'" alt="صورة مرفقة"></button>';
-    else if(m.message_type==="video")media='<video class="wc-vid" controls playsinline preload="metadata" src="'+esc(url)+'"></video>';
+    else if(m.message_type==="video"){
+     const th=s.chatMediaUrls?.["t:"+m.id];
+     media=th
+      ?'<button type="button" class="wc-vidpost" data-wcvid="'+esc(url)+'" aria-label="تشغيل الفيديو"><img class="wc-img" loading="lazy" src="'+esc(th)+'" alt="معاينة الفيديو"><span class="wc-vplay2"><svg viewBox="0 0 24 24" width="30" height="30"><path d="M8 5v14l11-7z" fill="#fff"/></svg></span></button>'
+      :'<video class="wc-vid" controls playsinline preload="metadata" src="'+esc(url)+'"></video>';
+    }
     else if(m.message_type==="audio")media=wcVoice(m,url,side,peer,isAdmin);
     else media=wcFile(m,url);
    }
@@ -4053,6 +4095,17 @@ async function loadChatMediaUrls(messages){
  s.chatMediaUrls=Object.fromEntries(
   results.filter(x=>x.url).map(x=>[x.id,x.url])
  );
+
+ const thumbMessages=(messages||[]).filter(m=>m.thumbnail_path);
+ const thumbResults=await Promise.all(
+  thumbMessages.map(async m=>{
+   const result=await db.storage
+    .from("conversation-media")
+    .createSignedUrl(m.thumbnail_path,3600);
+   return {id:"t:"+m.id,url:result.error?null:result.data?.signedUrl||null};
+  })
+ );
+ thumbResults.filter(x=>x.url).forEach(x=>{s.chatMediaUrls[x.id]=x.url});
 }
       async function openChatForRequest(requestId){
  let c=s.chats.find(x=>x.request_id===requestId);
@@ -7191,6 +7244,7 @@ if(f.id==="sendMessage"){
  let messageType="text";
  let docName=null;
  let uploadType=null;
+ let thumbPath=null;
 
  if(file){
   const docMime=(!/^(image|video|audio)\//.test(file.type||""))?wcDocMime(file):null;
@@ -7241,6 +7295,17 @@ if(f.id==="sendMessage"){
   });
 
   if(uploaded.error)throw uploaded.error;
+
+  if(messageType==="video"){
+   try{
+    const tb=await wcVideoThumb(file);
+    if(tb){
+     const tp=attachmentPath.replace(/\.[^.\/]+$/,"")+"-thumb.jpg";
+     const tu=await bucket.upload(tp,tb,{contentType:"image/jpeg",upsert:false});
+     if(!tu.error)thumbPath=tp;
+    }
+   }catch(_){thumbPath=null}
+  }
  }
 
  
@@ -7258,13 +7323,14 @@ if(f.id==="sendMessage"){
     :null
  };
  if(docName)payload.attachment_name=docName;
+ if(thumbPath)payload.thumbnail_path=thumbPath;
  
  const inserted=await db.from("messages").insert(payload);
 
  if(inserted.error){
   if(attachmentPath){
    await db.storage.from("conversation-media")
-    .remove([attachmentPath]);
+    .remove(thumbPath?[attachmentPath,thumbPath]:[attachmentPath]);
   }
   throw inserted.error;
  }
@@ -9064,6 +9130,9 @@ const addButton = () => {
 .wc-img,.wc-vid{display:block;border-radius:8px}
 .wc-aud{display:block;max-width:100%}
 #wcEnd{height:1px}
+.wc-vidpost{position:relative;display:block;padding:0;border:0;background:none;cursor:pointer;border-radius:8px;overflow:hidden;max-width:100%}
+.wc-vplay2{position:absolute;inset:0;display:grid;place-items:center;background:linear-gradient(transparent,rgba(0,0,0,.25))}
+.wc-vplay2 svg{background:rgba(0,0,0,.55);border-radius:50%;padding:12px;width:54px;height:54px}
 .wc-act.wc-busy{opacity:.6;pointer-events:none;animation:wcshim 1s infinite}
 .wc-cap input{flex:1;min-width:0;min-height:44px;border:0!important;outline:0!important;background:transparent!important;box-shadow:none!important;padding:0 4px;font-size:16px;color:var(--text-primary);font-family:inherit}
 .wc-act:disabled{opacity:.55}
