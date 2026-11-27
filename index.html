@@ -3293,7 +3293,6 @@ btn("request-details","تفاصيل الطلب","light",q.id)+
   }).join("");
 
   body=
-   providerIdCard()+
    '<section class="section wasla-requests-section">'+
 
     '<div class="sectionhead wasla-requests-heading">'+
@@ -3573,7 +3572,7 @@ if(s.tab==="requests"){
   const profileTab=s.providerProfileTab||"profile";
 
   body=
-   '<section class="section"><div class="card"><div class="sectionhead"><div><h2>المظهر</h2><p class="small">اختار مجموعة الألوان اللي تعجبك، نهاري أو ليلي.</p></div></div><div class="actions"><button type="button" class="btn gold" data-th="open">الثيمات</button></div></div></section>'+
+   providerIdCard()+
    '<div class="wasla-provider-subnav">'+
 
     '<button type="button" data-a="provider-profile-tab" data-id="profile" class="'+
