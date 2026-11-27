@@ -3629,6 +3629,77 @@ function wcDayLabel(x){
  if(diff>0&&diff<7)return d.toLocaleDateString("ar-EG-u-nu-latn",{weekday:"long",timeZone:WC_TZ});
  return d.toLocaleDateString("ar-EG-u-nu-latn",{day:"numeric",month:"long",year:"numeric",timeZone:WC_TZ});
 }
+function wcSize(n){n=Number(n)||0;if(n<1024)return n+" B";if(n<1048576)return (n/1024).toFixed(0)+" KB";return (n/1048576).toFixed(1)+" MB"}
+function wcDur(sec){sec=Math.max(0,Math.round(Number(sec)||0));return Math.floor(sec/60)+":"+String(sec%60).padStart(2,"0")}
+function wcBars(seed){
+ let h=0,str=String(seed),out="";
+ for(let i=0;i<str.length;i++)h=(h*31+str.charCodeAt(i))>>>0;
+ for(let i=0;i<32;i++){h=(h*1664525+1013904223)>>>0;const v=22+(h>>>8)%78;out+='<i style="height:'+v+'%"></i>'}
+ return out;
+}
+function wcVoice(m,url,side,peer,isAdmin){
+ const nm=side?(s.profile?.full_name||"أنت"):(peer.full_name||"");
+ const av=(!side&&peer.avatar_url)?'<img src="'+esc(peer.avatar_url)+'" alt="">':esc((nm.trim().charAt(0)||"🎙"));
+ return '<div class="wc-voice" data-wcv>'+
+  '<div class="wc-vava">'+av+'</div>'+
+  '<button type="button" class="wc-vplay" data-wcplay aria-label="تشغيل"><svg class="i-play" viewBox="0 0 24 24" width="22" height="22"><path d="M8 5v14l11-7z" fill="currentColor"/></svg><svg class="i-pause" viewBox="0 0 24 24" width="22" height="22"><path d="M7 5h4v14H7zM13 5h4v14h-4z" fill="currentColor"/></svg></button>'+
+  '<div class="wc-vmid"><div class="wc-wave" data-wcwave>'+wcBars(m.id)+'</div><span class="wc-vt" data-wcvt>'+wcDur(m.media_duration_seconds)+'</span></div>'+
+  '<button type="button" class="wc-vspd" data-wcspd aria-label="سرعة التشغيل">1x</button>'+
+  '<audio preload="metadata" data-wcaud src="'+esc(url)+'"></audio></div>';
+}
+function wcLoc(lat,lng){
+ const q=encodeURIComponent(lat+","+lng);
+ return '<a class="wc-loc" target="_blank" rel="noopener" href="https://www.google.com/maps?q='+q+'"><span class="wc-locmap"><svg viewBox="0 0 24 24" width="34" height="34" aria-hidden="true"><path d="M12 22s7-6.5 7-12a7 7 0 1 0-14 0c0 5.5 7 12 7 12z" fill="#E0533D" stroke="#fff" stroke-width="1.5"/><circle cx="12" cy="10" r="2.6" fill="#fff"/></svg></span><span class="wc-loct"><b>موقع محدد</b><small>'+esc(Number(lat).toFixed(5)+", "+Number(lng).toFixed(5))+'</small><em>فتح في الخرائط</em></span></a>';
+}
+function wcFile(m,url){
+ const name=decodeURIComponent(String(m.attachment_path||"ملف").split("/").pop()||"ملف").replace(/^\d+[-_]/,"");
+ const ext=(name.split(".").pop()||"").slice(0,4).toUpperCase();
+ return '<a class="wc-file" href="'+esc(url)+'" target="_blank" rel="noopener" download><span class="wc-fi"><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path d="M6 2h8l5 5v15H6z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M14 2v5h5" fill="none" stroke="currentColor" stroke-width="1.8"/></svg><i>'+esc(ext)+'</i></span><span class="wc-fn"><b>'+esc(name)+'</b><small>'+esc(wcSize(m.attachment_size_bytes))+(ext?' · '+esc(ext):'')+'</small></span></a>';
+}
+(function(){
+ let cur=null;
+ const upd=(v,a)=>{
+  const w=v.querySelector("[data-wcwave]"),bars=w?w.children:[],t=v.querySelector("[data-wcvt]");
+  const d=isFinite(a.duration)&&a.duration>0?a.duration:0,r=d?a.currentTime/d:0;
+  const n=Math.round(r*bars.length);
+  for(let i=0;i<bars.length;i++)bars[i].classList.toggle("on",i<n);
+  if(t)t.textContent=wcDur(a.paused&&a.currentTime===0?(d||t.dataset.d||0):a.currentTime);
+ };
+ document.addEventListener("click",e=>{
+  const img=e.target.closest("[data-wcimg]");
+  if(img){
+   const o=document.createElement("div");o.className="wc-lb";
+   o.innerHTML='<button type="button" class="wc-lbx" aria-label="إغلاق">✕</button><img src="'+img.dataset.wcimg.replace(/"/g,"&quot;")+'" alt="">';
+   o.addEventListener("click",ev=>{if(ev.target.tagName!=="IMG")o.remove()});
+   document.body.appendChild(o);return;
+  }
+  const v=e.target.closest("[data-wcv]");if(!v)return;
+  const a=v.querySelector("[data-wcaud]");
+  if(e.target.closest("[data-wcplay]")){
+   if(cur&&cur!==a){cur.pause()}
+   if(a.paused){cur=a;a.play().catch(()=>{})}else a.pause();return;
+  }
+  if(e.target.closest("[data-wcspd]")){
+   const b=e.target.closest("[data-wcspd]"),rates=[1,1.5,2],i=(rates.indexOf(a.playbackRate)+1)%3;
+   a.playbackRate=rates[i];b.textContent=rates[i]+"x";return;
+  }
+  const w=e.target.closest("[data-wcwave]");
+  if(w&&a.duration){
+   const r=w.getBoundingClientRect();let x=(e.clientX-r.left)/r.width;
+   if(getComputedStyle(w).direction==="rtl")x=1-x;
+   a.currentTime=Math.min(1,Math.max(0,x))*a.duration;upd(v,a);
+  }
+ });
+ ["timeupdate","play","pause","ended","loadedmetadata"].forEach(ev=>document.addEventListener(ev,e=>{
+  const a=e.target;if(!a||!a.matches||!a.matches("[data-wcaud]"))return;
+  const v=a.closest("[data-wcv]");if(!v)return;
+  if(ev==="loadedmetadata"){const t=v.querySelector("[data-wcvt]");if(t)t.dataset.d=a.duration}
+  if(ev==="ended"){a.currentTime=0}
+  v.classList.toggle("playing",!a.paused&&!a.ended);
+  upd(v,a);
+ },true));
+ document.addEventListener("keydown",e=>{if(e.key==="Escape"){const o=document.querySelector(".wc-lb");if(o)o.remove()}});
+})();
 function wcTick(read){
  return '<svg viewBox="0 0 16 11" width="16" height="11" aria-hidden="true"><path d="M1.5 5.8 4.8 9 11.5 1.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>'+(read?'<path d="M6.5 8.2 7.4 9 14.5 1.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>':'')+'</svg>';
 }
@@ -3697,12 +3768,13 @@ return '<section class="section wc-section">'+
    const url=m.attachment_path?s.chatMediaUrls?.[m.id]:null;
    let media="";
    if(url){
-    if(m.message_type==="image")media='<img class="wc-img" src="'+esc(url)+'" alt="صورة مرفقة">';
-    else if(m.message_type==="video")media='<video class="wc-vid" controls playsinline src="'+esc(url)+'"></video>';
-    else if(m.message_type==="audio")media='<audio class="wc-aud" controls src="'+esc(url)+'"></audio>';
+    if(m.message_type==="image")media='<button type="button" class="wc-imgbtn" data-wcimg="'+esc(url)+'" aria-label="عرض الصورة"><img class="wc-img" loading="lazy" src="'+esc(url)+'" alt="صورة مرفقة"></button>';
+    else if(m.message_type==="video")media='<video class="wc-vid" controls playsinline preload="metadata" src="'+esc(url)+'"></video>';
+    else if(m.message_type==="audio")media=wcVoice(m,url,side,peer,isAdmin);
+    else media=wcFile(m,url);
    }
    const hasLoc=m.location_latitude!=null&&m.location_longitude!=null;
-   if(hasLoc&&!media)media='<a class="wc-loc" target="_blank" rel="noopener" href="https://www.google.com/maps?q='+encodeURIComponent(m.location_latitude+","+m.location_longitude)+'">📍 موقع (فتح في الخرائط)</a>';
+   if(hasLoc&&!media)media=wcLoc(m.location_latitude,m.location_longitude);
    const ticks=(own&&!isAdmin)?'<span class="wc-tick'+(m.is_read?' read':'')+'" title="'+(m.is_read?'مقروءة':'تم الإرسال')+'">'+wcTick(!!m.is_read)+'</span>':'';
    const meta='<span class="wc-m">'+esc(wcTime(m.created_at))+ticks+'</span>';
    const text=m.message_text?'<span class="wc-t">'+esc(m.message_text)+'</span>':'';
@@ -8783,10 +8855,40 @@ const addButton = () => {
 .wc-tick.read{color:var(--chat-read)}
 .wc-n{font-size:12.5px;font-weight:600;margin-bottom:2px;opacity:.9}
 .wc-has-media .wc-t{display:block;margin-top:5px}
-.wc-img,.wc-vid{display:block;max-width:100%;max-height:330px;border-radius:8px;object-fit:contain}
+.wc-img,.wc-vid{display:block;border-radius:8px}
 .wc-aud{display:block;max-width:100%}
-.wc-loc{color:inherit;text-decoration:underline}
 #wcEnd{height:1px}
+.wc-imgbtn{display:block;padding:0;border:0;background:none;cursor:zoom-in;border-radius:8px;overflow:hidden;max-width:100%}
+.wc-img{width:min(100%,300px);aspect-ratio:4/3;object-fit:cover;max-height:330px;transition:transform .25s}
+.wc-imgbtn:active .wc-img{transform:scale(.98)}
+.wc-has-media{padding:3px 3px 6px}
+.wc-has-media .wc-t{padding:0 7px;display:block;margin-top:5px}
+.wc-has-media .wc-m{margin-inline-end:7px}
+.wc-vid{width:min(100%,300px);background:#000}
+.wc-lb{position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,.92);display:grid;place-items:center;animation:wcfade .18s}
+.wc-lb img{max-width:96vw;max-height:90vh;object-fit:contain;border-radius:6px}
+.wc-lbx{position:absolute;top:14px;inset-inline-start:14px;width:42px;height:42px;border-radius:50%;border:0;background:rgba(255,255,255,.14);color:#fff;font-size:18px;cursor:pointer}
+@keyframes wcfade{from{opacity:0}to{opacity:1}}
+.wc-voice{display:flex;align-items:center;gap:8px;min-width:230px;padding:4px 6px 0 4px;direction:ltr}
+.wc-vava{width:40px;height:40px;flex:0 0 40px;border-radius:50%;overflow:hidden;display:grid;place-items:center;background:rgba(127,127,127,.25);font-weight:700;font-size:15px}
+.wc-vava img{width:100%;height:100%;object-fit:cover}
+.wc-vplay{width:36px;height:36px;flex:0 0 36px;border-radius:50%;border:0;display:grid;place-items:center;background:transparent;color:inherit;cursor:pointer}
+.wc-vplay .i-pause{display:none}.wc-voice.playing .i-play{display:none}.wc-voice.playing .i-pause{display:block}
+.wc-vmid{flex:1;min-width:0}
+.wc-wave{display:flex;align-items:center;gap:2px;height:30px;cursor:pointer;direction:ltr}
+.wc-wave i{flex:1;min-width:2px;border-radius:2px;background:currentColor;opacity:.35;transition:opacity .12s}
+.wc-wave i.on{opacity:1}
+.wc-out .wc-wave i.on{background:#fff}.wc-in .wc-wave i.on{background:var(--primary)}
+.wc-vt{display:block;font-size:11px;opacity:.75;margin-top:1px}
+.wc-vspd{border:0;border-radius:12px;padding:3px 7px;font-size:11px;font-weight:700;background:rgba(127,127,127,.22);color:inherit;cursor:pointer}
+.wc-loc{display:flex;gap:10px;align-items:center;min-width:220px;padding:8px;border-radius:10px;background:rgba(127,127,127,.14);color:inherit;text-decoration:none}
+.wc-locmap{width:64px;height:64px;flex:0 0 64px;border-radius:10px;display:grid;place-items:center;background:linear-gradient(135deg,#cfe8dc,#b9d7ee);background-image:linear-gradient(135deg,#cfe8dc,#b9d7ee),repeating-linear-gradient(45deg,transparent 0 10px,rgba(255,255,255,.5) 10px 12px)}
+.wc-loct{display:flex;flex-direction:column;gap:2px;min-width:0}
+.wc-loct b{font-size:14.5px}.wc-loct small{font-size:12px;opacity:.75;direction:ltr;text-align:start}.wc-loct em{font-style:normal;font-size:12.5px;font-weight:700;text-decoration:underline}
+.wc-file{display:flex;gap:10px;align-items:center;min-width:220px;padding:8px;border-radius:10px;background:rgba(127,127,127,.14);color:inherit;text-decoration:none}
+.wc-fi{position:relative;width:44px;height:48px;flex:0 0 44px;display:grid;place-items:center;color:inherit}
+.wc-fi i{position:absolute;bottom:9px;font-style:normal;font-size:8px;font-weight:800}
+.wc-fn{display:flex;flex-direction:column;min-width:0}.wc-fn b{font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px}.wc-fn small{font-size:12px;opacity:.75}
 .wc-full{position:fixed;z-index:990;top:0;bottom:calc(81px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);width:min(100%,1080px);display:flex;flex-direction:column;border-radius:0;border-width:0 1px}
 .wc-full .wc-body{flex:1 1 auto;overflow-y:auto}
 .wc-section{padding:0!important;margin:0!important}
