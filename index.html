@@ -5751,7 +5751,7 @@ const waslaNotif=(function(){
  function subscribe(uid){
   try{
    st.chan=db.channel("wasla-notifs-"+uid)
-    .on("postgres_changes",{event:"INSERT",schema:"public",table:"notifications",filter:"recipient_id=eq."+uid},function(p){
+    .on("postgres_changes",{event:"INSERT",schema:"public",table:"notifications",filter:"user_id=eq."+uid},function(p){
      var n=p&&p.new;if(!n||!n.id)return;
      if(st.list.some(function(x){return x.id===n.id}))return;
      st.list.unshift(n);st.unread+=n.is_read?0:1;badge();
@@ -5799,8 +5799,8 @@ const waslaNotif=(function(){
   closePanel();
   try{
    var role=s.profile&&s.profile.role;
-   if(n.type==="chat_message"){if(n.request_id)navFire("chat",n.request_id);else navFire("tab","messages")}
-   else if(n.type==="payment_paid"&&role==="customer")navFire("tab","payments");
+   if(n.notification_type==="chat_message"){if(n.request_id)navFire("chat",n.request_id);else navFire("tab","messages")}
+   else if(n.notification_type==="payment_paid"&&role==="customer")navFire("tab","payments");
    else navFire("tab","requests");
   }catch(_){}
  }
