@@ -2266,18 +2266,19 @@ async function loadCustomerProviderData(p,pp,u){
  const quoteQ=isC
   ?db.from("service_quotes").select("*").eq("customer_id",u.id).order("created_at",{ascending:false})
   :db.from("service_quotes").select("*").eq("provider_id",pp.id).order("created_at",{ascending:false});
- const [r,ch,o,rv,qr,provRow]=await Promise.all([
+ const [r,ch,o,rv,qr,provRow,,myr]=await Promise.all([
   reqQ,
   wcChatsQuery(),
-  isC?Promise.resolve(null):db.from("provider_services").select("*,services(name_ar)").eq("provider_id",pp.id),
+  isC?Promise.resolve(null):db.from("provider_services").select("*,services(name_ar,category_id)").eq("provider_id",pp.id),
   isC?db.from("reviews").select("request_id").eq("customer_id",u.id).then(x=>x,()=>null):Promise.resolve(null),
   quoteQ,
   isC?Promise.resolve(null):db.from("provider_profiles").select("*").eq("user_id",u.id).maybeSingle(),
-  loadPayments()
+  loadPayments(),
+  isC?Promise.resolve(null):db.from("provider_change_requests").select("*").eq("user_id",u.id).order("created_at",{ascending:false}).limit(60).then(x=>x,()=>null)
  ]);
  if(qr.error)throw qr.error;
  s.requests=r.data||[];s.chats=ch.data||[];
- if(!isC){s.offers=(o&&o.data)||[];if(provRow&&provRow.data){s.provider=provRow.data}}
+ if(!isC){s.myReqs=(myr&&myr.data)||[];s.offers=(o&&o.data)||[];if(provRow&&provRow.data){s.provider=provRow.data}}
  if(isC){s.reviewedIds=new Set(((rv&&rv.data)||[]).map(x=>x.request_id))}
  s.quotes=qr.data||[];
  if(s.quotes.length){
@@ -2972,6 +2973,73 @@ function customerIdCard(){
   (p.account_code?'<div class="wid-foot"><span>رقم الحساب</span><b dir="ltr">'+esc(p.account_code)+'</b></div>':'')+
   '</div></section>';
 }
+
+function providerServicesTab(){
+ const E=s.svcEdit,cats=s.cats||[],cat=(id)=>(cats.find(c=>c.id===id)||{}).name_ar||"أخرى";
+ const reqs=s.myReqs||[];
+ const pend=reqs.filter(r=>r.kind==="service_suggestion"&&r.status==="pending");
+ const week=Date.now()-7*864e5;
+ const rej=reqs.filter(r=>r.kind==="service_suggestion"&&r.status==="rejected"&&new Date(r.reviewed_at||r.created_at).getTime()>week);
+ const visible=(s.offers||[]).filter(o=>!o.provider_hidden);
+ if(!E){
+  const groups={};
+  visible.forEach(o=>{const k=o.services?.category_id||"";(groups[k]=groups[k]||[]).push(o)});
+  const html=Object.keys(groups).map(k=>
+   '<div class="sv-cat"><header>'+esc(cat(k))+'<small>'+fmt(groups[k].length)+' خدمة</small></header>'+
+   groups[k].map(o=>'<div class="sv-row'+(o.is_active?'':' off')+'"><b>'+esc(o.services?.name_ar||"خدمة")+'</b>'+
+    '<span class="sv-st'+(o.is_active?'':' off')+'">'+(o.is_active?"نشطة":"متوقفة")+'</span>'+
+    '<button type="button" class="sv-a" data-a="toggleoffer" data-id="'+esc(o.id)+'">'+(o.is_active?"إيقاف الخدمة":"تفعيل الخدمة")+'</button>'+
+    '<button type="button" class="sv-a del" data-a="svc-hide" data-id="'+esc(o.id)+'">حذف</button></div>').join("")+'</div>').join("");
+  const pendHtml=pend.length?'<div class="sv-cat"><header>بانتظار موافقة الإدارة<small>'+fmt(pend.length)+'</small></header>'+pend.map(r=>'<div class="sv-row"><b>'+esc(r.payload?.name||"")+'<br><small class="muted">'+esc(cat(r.payload?.category_id))+'</small></b><span class="sv-st">قيد المراجعة</span></div>').join("")+'</div>':"";
+  const rejHtml=rej.length?'<div class="sv-cat"><header>اقتراحات مرفوضة<small>آخر ٧ أيام</small></header>'+rej.map(r=>'<div class="sv-row off"><b>'+esc(r.payload?.name||"")+(r.admin_note?'<br><small class="muted">'+esc(r.admin_note)+'</small>':"")+'</b><span class="sv-st off">مرفوضة</span></div>').join("")+'</div>':"";
+  return '<section class="section"><div class="sv-head"><div><h2>خدماتي</h2><p class="small">الخدمات اللي بتظهر للعملاء</p></div><button type="button" class="sv-edit" data-a="svc-edit">✎ تعديل</button></div>'+
+   (html||'<div class="empty">لم تضف خدمات بعد. اضغط تعديل واختر قسمك وخدماتك.</div>')+pendHtml+rejHtml+'</section>';
+ }
+ const catId=E.cat||(cats[0]&&cats[0].id)||"";
+ const owned=new Set((s.offers||[]).filter(o=>!o.provider_hidden).map(o=>o.service_id));
+ const list=(s.services||[]).filter(x=>x.category_id===catId&&x.is_active!==false);
+ return '<section class="section"><div class="sv-head"><div><h2>تعديل خدماتي</h2><p class="small">اختار القسم وعلّم خدماتك</p></div></div>'+
+  '<div class="card"><b>١. القسم</b><div class="sv-chips">'+cats.map(c=>'<button type="button" class="sv-chip'+(c.id===catId?' on':'')+'" data-a="svc-cat" data-id="'+esc(c.id)+'">'+esc(c.name_ar)+'</button>').join("")+'</div>'+
+  '<b>٢. الخدمات</b><div style="margin-top:8px">'+
+  (list.map(x=>{const own=owned.has(x.id),on=own||(E.sel||[]).includes(x.id);return '<button type="button" class="sv-chk'+(on?' on':'')+'" data-a="'+(own?'noop':'svc-pick')+'" data-id="'+esc(x.id)+'"><i>'+(on?'✓':'')+'</i>'+esc(x.name_ar)+(own?' <small class="muted">مضافة</small>':'')+'</button>'}).join("")||'<div class="empty">لا توجد خدمات في هذا القسم بعد.</div>')+
+  '</div>'+
+  '<div class="sv-sug"><b>مش لاقي خدمتك؟</b><p class="small">اكتب اسم الخدمة في القسم المختار وهتظهر بعد موافقة الإدارة.</p><div class="sv-sugrow"><input id="svcSuggestName" placeholder="اسم الخدمة" maxlength="80" value="'+esc(E.name||"")+'"><button type="button" class="btn gold" data-a="svc-suggest">اقتراح</button></div></div>'+
+  '<div class="sv-save"><button type="button" class="l" data-a="svc-cancel">إلغاء</button><button type="button" class="g" data-a="svc-save">حفظ</button></div></div></section>';
+}
+function providerPendingEditBanner(){
+ const r=(s.myReqs||[]).find(x=>x.kind==="profile_edit"&&x.status==="pending");
+ if(!r)return "";
+ const L={display_name:"الاسم المهني",country:"الدولة",city:"المدينة",service_area:"منطقة الخدمة",experience_years:"سنوات الخبرة",bio:"النبذة",full_name:"الاسم",phone:"الموبايل"};
+ return '<section class="section"><div class="card sv-pend"><b>⏳ تعديلاتك بانتظار موافقة الإدارة</b><p class="small">'+Object.keys(r.payload||{}).map(k=>esc(L[k]||k)).join(" · ")+'</p></div></section>';
+}
+
+async function loadApprovals(){
+ s.approvalsLoading=true;
+ try{
+  const r=await db.rpc("list_pending_change_requests");
+  if(r.error){s.approvalsErr=/list_pending_change_requests|PGRST202|42883/.test(r.error.code+" "+r.error.message)?"setup":(r.error.message||"error");s.pendingReqs=[]}
+  else{s.approvalsErr="";s.pendingReqs=r.data||[]}
+ }catch(e){s.approvalsErr=e.message||"error";s.pendingReqs=[]}
+ s.approvalsLoading=false;render();
+}
+function approvalsBody(){
+ const L={display_name:"الاسم المهني",country:"الدولة",city:"المدينة",service_area:"منطقة الخدمة",experience_years:"سنوات الخبرة",bio:"النبذة",full_name:"الاسم",phone:"الموبايل"};
+ const list=s.pendingReqs||[];
+ let inner;
+ if(s.approvalsErr==="setup")inner='<div class="empty">ميزة الموافقات لسه مش مفعّلة على قاعدة البيانات.</div>';
+ else if(s.approvalsErr)inner='<div class="empty">'+esc(s.approvalsErr)+'</div>';
+ else if(s.approvalsLoading&&!list.length)inner='<div class="empty">جاري التحميل...</div>';
+ else inner=list.map(r=>{
+  const who=esc(r.requester_name||"مزوّد")+(r.requester_code?' <small class="muted" dir="ltr">'+esc(r.requester_code)+'</small>':"");
+  const det=r.kind==="service_suggestion"
+   ?'<p><b>اقتراح خدمة جديدة:</b> '+esc(r.payload?.name||"")+'</p><p class="small">القسم: '+esc(r.category_name||"—")+'</p>'
+   :'<p><b>تعديل بيانات</b></p>'+Object.keys(r.payload||{}).map(k=>'<p class="small">'+esc(L[k]||k)+': <b>'+esc(String(r.payload[k]??"—"))+'</b></p>').join("");
+  return '<article class="item"><div class="row"><b>'+who+'</b><span class="sv-st">'+(r.kind==="service_suggestion"?"خدمة":"بيانات")+'</span></div>'+det+
+   '<p class="muted small">'+(r.created_at?new Date(r.created_at).toLocaleString("ar-SA"):"")+'</p>'+
+   '<div class="actions"><button type="button" class="btn gold" data-a="approve-req" data-id="'+esc(r.id)+'">موافقة</button><button type="button" class="btn light" data-a="reject-req" data-id="'+esc(r.id)+'">رفض</button></div></article>';
+ }).join("")||'<div class="empty">لا توجد طلبات معلّقة.</div>';
+ return '<section class="section"><div class="sectionhead"><div><h2>طلبات الموافقة</h2><p class="small">اقتراحات الخدمات وتعديلات بيانات المزوّدين.</p></div></div><div class="list">'+inner+'</div></section>';
+}
 function providerIdCard(){
  const pr=s.provider||{},p=s.profile||{};
  const name=pr.display_name||p.full_name||"مزوّد وصلة";
@@ -3607,56 +3675,11 @@ if(s.tab==="requests"){
    body+=accountSettingsBody(s.profile||{});
   }else if(profileTab==="services"){
 
-   body+=
-    '<section class="section">'+
-     '<div class="sectionhead">'+
-      '<div>'+
-       '<h2>خدماتي وأسعاري</h2>'+
-       '<p class="small">أدر الخدمات التي تقدمها وأسعارها وحالة ظهورها للعملاء.</p>'+
-      '</div>'+
-      btn("addoffer","إضافة خدمة","gold")+
-     '</div>'+
-
-     '<div class="list">'+
-
-      (s.offers.map(o=>
-       '<article class="item">'+
-
-        '<div class="row">'+
-         '<b>'+esc(o.services?.name_ar||"خدمة")+'</b>'+
-         tag(o.is_active?"نشط":"متوقف")+
-        '</div>'+
-
-        '<div class="stat price">'+
-         fmt(o.price)+' '+esc(o.currency||"")+
-        '</div>'+
-
-        '<p class="small">'+
-         (o.price_type==="negotiable"
-          ?"السعر قابل للتفاوض"
-          :o.price_type==="starting_from"
-           ?"السعر يبدأ من"
-           :"سعر ثابت")+
-        '</p>'+
-
-        btn(
-         "toggleoffer",
-         o.is_active?"إيقاف العرض":"تفعيل العرض",
-         "light",
-         o.id
-        )+
-
-       '</article>'
-      ).join("")||
-       empty("لم تضف خدمات بعد. أضف خدمتك الأولى ليراها العملاء.")
-      )+
-
-     '</div>'+
-    '</section>';
+   body+=providerServicesTab();
 
   }else{
 
-   body+=
+   body+=providerPendingEditBanner()+
     '<section class="section">'+
      '<div class="card">'+
 
@@ -5548,6 +5571,7 @@ if(s.tab==="providers"){
  '</select></label></div>'+
  '<div class="list">'+applications()+'</div></section>';
 }
+       if(s.tab==="approvals")body=approvalsBody();
        if(s.tab==="services")body='<section class="section"><div class="sectionhead"><div><h2>إدارة الخدمات</h2><p class="small">أضف الخدمات المتاحة على وصلة وتابع وصفها وحالة ظهورها للعملاء.</p></div>'+btn("addservice","إضافة خدمة","gold")+'</div><div class="list">'+(s.services.map(x=>'<article class="item"><div class="row"><b>'+esc(x.name_ar)+'</b>'+tag(x.is_active?"نشطة":"متوقفة")+'</div><p>'+esc(x.description||"لا يوجد وصف مضاف لهذه الخدمة")+'</p><div class="actions">'+btn("toggleservice",x.is_active?"إيقاف الخدمة":"تفعيل الخدمة","light",x.id)+'</div></article>').join("")||empty("لا توجد خدمات مضافة حتى الآن. أضف أول خدمة للمنصة."))+'</div></section>';
 if(s.tab==="categories")body='<section class="section"><div class="sectionhead"><div><h2>إدارة التصنيفات</h2><p class="small">نظّم الخدمات داخل أقسام واضحة تسهّل على العملاء الوصول لما يحتاجونه.</p></div>'+btn("addcategory","إضافة تصنيف","gold")+'</div><div class="list">'+(s.cats.map(x=>'<article class="item"><div class="row"><b>'+esc(x.name_ar)+'</b>'+tag(x.is_active?"نشط":"متوقف")+'</div><div class="small">معرّف التصنيف</div><p class="muted">'+esc(x.slug||"غير محدد")+'</p><div class="actions">'+btn("togglecategory",x.is_active?"إيقاف التصنيف":"تفعيل التصنيف","light",x.id)+'</div></article>').join("")||empty("لا توجد تصنيفات حتى الآن. أضف أول تصنيف للمنصة."))+'</div></section>';
  if(s.tab==="staff")body='<section class="section"><div class="sectionhead"><div><h2>إدارة الموظفين</h2><p class="small">أدر فريق العمل وتابع صلاحيات كل موظف وحالة حسابه.</p></div>'+btn("addstaff","إضافة موظف","gold")+'</div><div class="list">'+(s.staff.map(x=>'<article class="item"><div class="row"><div><b>'+esc(x.full_name||"موظف بدون اسم")+'</b><p class="small">عضو في فريق إدارة وصلة</p></div>'+tag(x.staff_permissions?.is_active?"نشط":"موقوف")+'</div><div class="small">رقم التواصل</div><p>'+esc(x.phone||"لا يوجد رقم هاتف")+'</p><div class="small">الصلاحيات الممنوحة</div><p class="muted">'+fmt((x.staff_permissions?.permissions||[]).length)+' صلاحية</p><div class="actions">'+btn("editstaff","إدارة الصلاحيات","light",x.id)+(["admin","owner"].includes(s.profile?.role)&&x.staff_permissions?.is_active?btn("resetstaffpw","توليد كلمة مرور","light",x.id):"")+btn("removestaff","إزالة الموظف","danger",x.id)+'</div></article>').join("")||empty("لا يوجد موظفون حتى الآن. يمكنك إضافة أول موظف لفريق الإدارة."))+'</div></section>';
@@ -5595,7 +5619,7 @@ if(s.tab==="knowledge"){
  '</article>').join("")||empty("لا توجد سجلات تدقيق حتى الآن"))+
  '</div></section>';
 }
-       const nav=[["home","نظرة عامة"],["requests","الطلبات"],["messages","الرسائل"],["customers","العملاء"],["providers","المزوّدون"],["services","الخدمات"],["categories","التصنيفات"],["staff","الموظفون"],["knowledge","قاعدة معرفة PRIME"],...(s.profile?.role==="owner"?[["assistant","PRIME AI"]]:[]),["appearance","المظهر والثيمات"],...(s.profile?.role==="owner"?[["audit","سجل التدقيق"]]:[])].map(x=>'<button data-a="tab" data-id="'+x[0]+'" class="'+(s.tab===x[0]||(s.tab==="providerDossier"&&x[0]==="providers")?"active":"")+'">'+x[1]+'</button>').join("");
+       const nav=[["home","نظرة عامة"],["requests","الطلبات"],["messages","الرسائل"],["customers","العملاء"],["providers","المزوّدون"],["services","الخدمات"],["categories","التصنيفات"],["approvals","طلبات الموافقة"+((s.pendingReqs||[]).length?" ("+fmt((s.pendingReqs||[]).length)+")":"")],["staff","الموظفون"],["knowledge","قاعدة معرفة PRIME"],...(s.profile?.role==="owner"?[["assistant","PRIME AI"]]:[]),["appearance","المظهر والثيمات"],...(s.profile?.role==="owner"?[["audit","سجل التدقيق"]]:[])].map(x=>'<button data-a="tab" data-id="'+x[0]+'" class="'+(s.tab===x[0]||(s.tab==="providerDossier"&&x[0]==="providers")?"active":"")+'">'+x[1]+'</button>').join("");
  
 const isOwner=s.profile?.role==="owner";
 
@@ -6114,6 +6138,7 @@ const waslaUI=(function(){
  return {toast,confirm:confirmBox,reveal,input,flush,label};
 })();
 
+document.addEventListener("input",e=>{if(e.target&&e.target.id==="svcSuggestName"&&s.svcEdit)s.svcEdit.name=e.target.value});
 const waslaThemes=(function(){
  var root=document.documentElement,saved="wasla",current="wasla",el=null;
  try{var sv=localStorage.getItem("wasla_palette");if(sv&&WASLA_PALETTES.some(function(x){return x.id===sv}))saved=sv}catch(_){}
@@ -8500,6 +8525,19 @@ s.chatMediaDurationSeconds=null;
   return;
  }finally{wcBusy(false)}
 }
+ if(f.id==="accountProfileForm"&&s.profile?.role==="provider"){
+ const v=vals(f);
+ const patch={};
+ const fn=(v.full_name||"").trim(),ph=(v.phone||"").trim();
+ if(!fn)throw Error("اكتب الاسم الكامل");
+ if(fn!==(s.profile.full_name||""))patch.full_name=fn;
+ if(ph!==(s.profile.phone||""))patch.phone=ph;
+ if(!Object.keys(patch).length){note("مفيش تغييرات.","");return}
+ const r=await db.rpc("submit_profile_edit",{p_patch:patch});
+ if(r.error){
+  if(!/submit_profile_edit|PGRST202|42883/.test(r.error.code+" "+r.error.message))throw r.error;
+ }else{await refreshRoleData();note("اتبعتت تعديلاتك للإدارة، وهتتطبق بعد الموافقة.","success");return}
+}
  if(f.id==="accountProfileForm"){
  const v=vals(f);
 
@@ -8660,18 +8698,23 @@ if(f.id==="accountPasswordForm"){
  return;
 }
   if(f.id==="providerProfile"){
- let v=vals(f),
- r=await db.rpc("update_own_provider_profile",{
-  p_display_name:v.display_name,
-  p_country:v.country,
-  p_city:v.city,
-  p_service_area:v.service_area||null,
-  p_experience_years:Number(v.experience_years||0),
-  p_bio:v.bio||null
- });
- if(r.error)throw r.error;
- await loadUser(s.user);
- note("تم حفظ ملفك.","success");
+ let v=vals(f);
+ const cur=s.provider||{};
+ const next={display_name:v.display_name,country:v.country,city:v.city,service_area:v.service_area||null,experience_years:Number(v.experience_years||0),bio:v.bio||null};
+ const patch={};
+ Object.keys(next).forEach(k=>{if(String(next[k]??"")!==String(cur[k]??""))patch[k]=next[k]});
+ if(!Object.keys(patch).length){note("مفيش تغييرات.","");return}
+ let r=await db.rpc("submit_profile_edit",{p_patch:patch});
+ if(r.error){
+  if(/submit_profile_edit|PGRST202|42883/.test(r.error.code+" "+r.error.message)){
+   r=await db.rpc("update_own_provider_profile",{p_display_name:next.display_name,p_country:next.country,p_city:next.city,p_service_area:next.service_area,p_experience_years:next.experience_years,p_bio:next.bio});
+   if(r.error)throw r.error;
+   await loadUser(s.user);note("تم حفظ ملفك.","success");return
+  }
+  throw r.error
+ }
+ await refreshRoleData();
+ note("اتبعتت تعديلاتك للإدارة، وهتتطبق بعد الموافقة.","success");
  return
   }
  }catch(x){console.error(x);note(x.message||"حدث خطأ.","error")}
@@ -8688,6 +8731,7 @@ if(a==="tab"){
  s.tab=id;
  render();
  if(id==="knowledge")loadPrimeKnowledge();
+ if(id==="approvals")loadApprovals();
  if(id==="requests"&&rqCanView()){const _q=rqState();_q.detailId=null;_q.detail=null;loadRequestsList();}
  return;
 }
@@ -9211,6 +9255,51 @@ if(a==="cancelrequest"){
   }
   if(a==="advance"){const q0=s.requests.find(x=>x.id===id),old0=q0?q0.status:null;if(q0&&b.dataset.next){q0.status=b.dataset.next;render()}let r=await db.rpc("advance_service_request",{p_request_id:id,p_next_status:b.dataset.next});if(r.error){if(q0){q0.status=old0;render()}throw r.error}await refreshRoleData();note("تم تحديث حالة الطلب.","success");return}
   if(a==="availability"){const old0=s.provider?s.provider.is_available:null;if(s.provider){s.provider.is_available=!old0;render()}let r=await db.rpc("toggle_own_provider_availability");if(r.error){if(s.provider){s.provider.is_available=old0;render()}throw r.error}await refreshRoleData();note("تم تحديث التوفر.","success");return}
+  if(a==="svc-edit"){s.svcEdit={cat:(s.cats&&s.cats[0]&&s.cats[0].id)||"",sel:[],name:""};render();return}
+  if(a==="svc-cancel"){s.svcEdit=null;render();return}
+  if(a==="svc-cat"){if(s.svcEdit){s.svcEdit.cat=id;render()}return}
+  if(a==="svc-pick"){const E=s.svcEdit;if(E){E.sel=E.sel||[];const i=E.sel.indexOf(id);if(i>=0)E.sel.splice(i,1);else E.sel.push(id);render()}return}
+  if(a==="noop")return;
+  if(a==="svc-save"){
+   const E=s.svcEdit;if(!E)return;const ids=E.sel||[];
+   if(!ids.length){s.svcEdit=null;render();return}
+   for(const sid of ids){
+    const old=(s.offers||[]).find(o=>o.service_id===sid);
+    const r=old?await db.rpc("set_own_service_state",{p_id:old.id,p_active:true,p_hidden:false}):await db.rpc("add_own_provider_service",{p_service_id:sid,p_price:0,p_currency:"EGP",p_price_type:"negotiable"});
+    if(r.error)throw r.error;
+   }
+   s.svcEdit=null;await refreshRoleData();note("تم حفظ خدماتك.","success");return
+  }
+  if(a==="svc-suggest"){
+   const E=s.svcEdit;if(!E)return;const nm=(E.name||"").trim();
+   if(nm.length<2)throw Error("اكتب اسم الخدمة");
+   const r=await db.rpc("submit_service_suggestion",{p_category_id:E.cat,p_name:nm});
+   if(r.error){if(/submit_service_suggestion|PGRST202|42883/.test(r.error.code+" "+r.error.message))throw Error("ميزة اقتراح الخدمات لسه مش مفعّلة على قاعدة البيانات.");throw r.error}
+   E.name="";await refreshRoleData();note("اتبعت للإدارة، هتظهر بعد الموافقة.","success");return
+  }
+  if(a==="svc-hide"){
+   if(!await waslaUI.confirm("هتتشال الخدمة دي من صفحتك وتتوقف عن الظهور للعملاء. تكمل؟",{danger:true,yes:"حذف",title:"حذف الخدمة"}))return;
+   let r=await db.rpc("set_own_service_state",{p_id:id,p_active:false,p_hidden:true});
+   if(r.error){
+    if(/set_own_service_state|PGRST202|42883/.test(r.error.code+" "+r.error.message)){
+     const o0=(s.offers||[]).find(x=>x.id===id);
+     if(o0&&o0.is_active){r=await db.rpc("toggle_own_provider_service",{p_provider_service_id:id});if(r.error)throw r.error;await refreshRoleData();note("اتوقفت الخدمة. الإخفاء الكامل يحتاج تحديث قاعدة البيانات.","success");return}
+     throw Error("الإخفاء الكامل يحتاج تحديث قاعدة البيانات.")
+    }
+    throw r.error
+   }
+   await refreshRoleData();note("تم حذف الخدمة.","success");return
+  }
+  if(a==="approvals-load"){await loadApprovals();return}
+  if(a==="approve-req"||a==="reject-req"){
+   const ok=a==="approve-req";
+   if(!await waslaUI.confirm(ok?"تأكيد الموافقة على الطلب؟ هيتنفذ فورًا.":"تأكيد رفض الطلب؟",{danger:!ok,yes:ok?"موافقة":"رفض",title:ok?"موافقة على الطلب":"رفض الطلب"}))return;
+   const r=await db.rpc("review_change_request",{p_id:id,p_approve:ok,p_note:null});
+   if(r.error)throw r.error;
+   await loadApprovals();
+   if(ok){try{await publicData(true).then(()=>{})}catch(_){}}
+   note(ok?(r.data==="service_created_link_failed"?"تمت الموافقة. الخدمة اتعملت لكن ربطها بالمزوّد فشل.":"تمت الموافقة."):"تم رفض الطلب.","success");return
+  }
   if(a==="toggleoffer"){const o0=(s.offers||[]).find(x=>x.id===id),old0=o0?o0.is_active:null;if(o0){o0.is_active=!old0;render()}let r=await db.rpc("toggle_own_provider_service",{p_provider_service_id:id});if(r.error){if(o0){o0.is_active=old0;render()}throw r.error}await refreshRoleData();return}
 if(a==="lift-provider-suspension-open"){
 
@@ -10687,6 +10776,21 @@ h1,h2,h3,h4{font-family:var(--wasla-font);font-weight:700;letter-spacing:0}
 @keyframes wuiIn{from{opacity:0;transform:translateY(-14px) scale(.96)}to{opacity:1;transform:none}}
 @keyframes wuiFade{from{opacity:0}to{opacity:1}}@keyframes wuiPop{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:none}}@keyframes wuiUp{from{transform:translateY(100%)}to{transform:none}}
 @media (prefers-reduced-motion:reduce){.wui-toast,.wui-ov,.wui-box,.wui-pk{animation:none}.wui-toast.out,.wui-ov.out{transition:none}}
+
+.sv-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}.sv-head h2{margin:0}
+.sv-edit{border:1px solid var(--accent);background:transparent;color:var(--text-primary);border-radius:12px;padding:8px 16px;font:800 13px inherit;font-family:inherit;cursor:pointer}
+.sv-cat{border-radius:18px;background:var(--bg-surface);border:1px solid var(--border-color);margin-bottom:12px;overflow:hidden}
+.sv-cat>header{display:flex;align-items:center;gap:8px;padding:11px 14px;background:linear-gradient(135deg,var(--primary),var(--primary-hover));color:#fff;font-weight:800;border-bottom:2px solid var(--accent)}
+.sv-cat>header small{margin-inline-start:auto;opacity:.75;font-weight:600}
+.sv-row{display:flex;align-items:center;gap:8px;padding:11px 14px;border-top:1px solid var(--border-color)}.sv-cat>header+.sv-row{border-top:0}
+.sv-row b{flex:1;font-size:14px;min-width:0}.sv-row .sv-a{white-space:nowrap;padding:7px 9px;font-size:11.5px}.sv-row .sv-st{white-space:nowrap}.sv-row.off b{opacity:.5}
+.sv-st{font-size:11px;font-weight:800;padding:2px 10px;border-radius:99px;background:color-mix(in srgb,var(--accent) 16%,transparent);color:var(--text-primary);border:1px solid var(--accent)}.sv-st.off{background:var(--bg-subtle);opacity:.7;border-color:var(--border-color)}
+.sv-a{border:0;border-radius:10px;padding:7px 11px;font:800 12px inherit;font-family:inherit;background:var(--bg-subtle);color:var(--text-primary);cursor:pointer}.sv-a.del{color:var(--danger,#d64b3a)}
+.sv-chips{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 12px}.sv-chip{border:1px solid var(--border-color);background:transparent;color:var(--text-primary);border-radius:99px;padding:7px 14px;font:700 13px inherit;font-family:inherit;cursor:pointer}.sv-chip.on{background:var(--accent);color:var(--text-primary);border-color:var(--accent)}
+.sv-chk{width:100%;display:flex;align-items:center;gap:10px;padding:11px 12px;border:1px solid var(--border-color);background:transparent;color:var(--text-primary);border-radius:14px;margin-bottom:8px;font:700 14px inherit;font-family:inherit;text-align:start;cursor:pointer}.sv-chk i{width:22px;height:22px;border-radius:7px;border:2px solid var(--border-color);display:grid;place-items:center;font-style:normal;font-size:14px}.sv-chk.on{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,transparent)}.sv-chk.on i{background:var(--accent);border-color:var(--accent)}
+.sv-sug{margin-top:14px;padding:12px;border:1.5px dashed var(--accent);border-radius:14px}.sv-sugrow{display:flex;gap:8px;margin-top:8px}.sv-sugrow input{flex:1;min-width:0}
+.sv-save{display:flex;gap:8px;margin-top:14px}.sv-save button{flex:1;border:0;border-radius:12px;padding:13px;font:800 14px inherit;font-family:inherit;cursor:pointer}.sv-save .g{background:var(--accent);color:var(--text-primary)}.sv-save .l{background:var(--bg-subtle);color:var(--text-primary)}
+.sv-pend{border:1px solid var(--accent)}
 </style>
 </body></html>
 
