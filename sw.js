@@ -21,3 +21,4 @@ self.addEventListener("notificationclick",function(e){
   if(self.clients.openWindow)return self.clients.openWindow("/?wnf="+encodeURIComponent((d.type||"")+"|"+(d.request_id||"")));
  }));
 });
+self.addEventListener("fetch",function(){});

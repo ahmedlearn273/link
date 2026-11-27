@@ -6,6 +6,13 @@
 <title>وصلة | WASLA</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M7 17 L19 46 L31 25 L43 46 L57 17' fill='none' stroke='%23102a3a' stroke-width='6' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M5 39 C17 57 46 9 59 27' fill='none' stroke='%23D6A642' stroke-width='4' stroke-linecap='round'/%3E%3Ccircle cx='55' cy='15' r='5' fill='%23D6A642'/%3E%3C/svg%3E">
  <meta name="theme-color" content="#121417">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="وصلة">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<script>try{if("serviceWorker" in navigator)window.addEventListener("load",function(){navigator.serviceWorker.register("/sw.js").catch(function(){})})}catch(e){}</script>
  
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
 
@@ -5863,6 +5870,47 @@ const waslaNotif=(function(){
  });
  return {onRender:onRender};
 })();
+const waslaInstall=(function(){
+ var deferred=null,el=null,KEY="wasla_install_dismissed_at",DAYS=14;
+ var ua=navigator.userAgent||"";
+ var isIOS=/iphone|ipad|ipod/i.test(ua)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+ function standalone(){try{return (window.matchMedia&&matchMedia("(display-mode: standalone)").matches)||navigator.standalone===true}catch(_){return false}}
+ function dismissed(){try{var t=Number(localStorage.getItem(KEY)||0);return t&&(Date.now()-t)<DAYS*86400000}catch(_){return false}}
+ function remember(){try{localStorage.setItem(KEY,String(Date.now()))}catch(_){}}
+ function hide(){if(el){el.remove();el=null}}
+ function eligible(){return !standalone()&&!dismissed()&&(!!deferred||isIOS)}
+ window.addEventListener("beforeinstallprompt",function(e){e.preventDefault();deferred=e;try{onRender()}catch(_){}});
+ window.addEventListener("appinstalled",function(){deferred=null;remember();hide()});
+ function sheet(){
+  var b=document.createElement("div");b.className="wth-back";b.setAttribute("data-inst-sheet","1");
+  b.innerHTML='<div class="wth-panel" role="dialog" aria-label="تثبيت وصلة"><h3>ثبّت وصلة على الآيفون</h3><p>٣ خطوات بس:</p><ol class="inst-steps"><li>اضغط زر <b>المشاركة</b> <span class="inst-share">⬆︎</span> في شريط سفاري.</li><li>اختار <b>Add to Home Screen</b> (إضافة إلى الشاشة الرئيسية).</li><li>اضغط <b>Add</b>، وهتلاقي وصلة على شاشتك كأنها تطبيق.</li></ol><div class="wth-actions"><button type="button" class="go" data-inst="sheetclose">تمام</button></div></div>';
+  document.body.appendChild(b);
+ }
+ function onRender(){
+  try{
+   if(!s.user||!s.profile||!eligible()){hide();return}
+   if(el&&document.body.contains(el))return;
+   el=document.createElement("div");el.className="inst-banner";el.setAttribute("role","region");
+   el.innerHTML='<img src="/icons/icon-192.png" alt="" width="40" height="40"><div class="inst-txt"><b>ثبّت وصلة كتطبيق</b><span>وصول أسرع وتنبيهات بصوت الموبايل</span></div><button type="button" class="inst-go" data-inst="go">تثبيت</button><button type="button" class="inst-x" data-inst="x" aria-label="إغلاق">✕</button>';
+   document.body.appendChild(el);
+  }catch(_){}
+ }
+ document.addEventListener("click",function(e){
+  var t=e.target;if(!t||!t.closest)return;
+  var b=t.closest("[data-inst]");
+  if(!b){var sh=t.closest("[data-inst-sheet]");if(sh&&t===sh)sh.remove();return}
+  var a=b.getAttribute("data-inst");
+  if(a==="x"){remember();hide()}
+  else if(a==="sheetclose"){var q=document.querySelector("[data-inst-sheet]");if(q)q.remove();remember();hide()}
+  else if(a==="go"){
+   if(deferred){
+    var d=deferred;deferred=null;
+    try{d.prompt();d.userChoice.then(function(r){if(r&&r.outcome!=="accepted")remember();hide()}).catch(function(){hide()})}catch(_){hide()}
+   }else if(isIOS)sheet();
+  }
+ });
+ return {onRender:onRender};
+})();
 const WASLA_PALETTES=[{"id": "wasla", "name": "وصلة (الحالي)", "l": ["#FAF9F6", "#FFFFFF", "#F3F2EE", "#0F4C5C", "#0B3945", "#EA580C", "#111827", "#6B7280", "#E5E7EB"], "d": ["#121417", "#1C1F24", "#252930", "#2A9D8F", "#21867A", "#F59E0B", "#F9FAFB", "#9CA3AF", "#2D3139"]}, {"id": "ocean", "name": "محيط", "l": ["#F5F8FC", "#FFFFFF", "#EAF0F8", "#1D4ED8", "#1E40AF", "#0891B2", "#0F172A", "#64748B", "#DCE4EF"], "d": ["#0D1320", "#141C2E", "#1B2540", "#60A5FA", "#3B82F6", "#38BDF8", "#F1F5F9", "#94A3B8", "#26324D"]}, {"id": "olive", "name": "زيتون", "l": ["#F6F8F3", "#FFFFFF", "#ECF0E6", "#2F6B3F", "#24542F", "#CA8A04", "#14210F", "#667060", "#DFE5D8"], "d": ["#0F1511", "#172019", "#1F2B22", "#5BBE7A", "#43A262", "#FACC15", "#F1F7F2", "#9CAFA0", "#2A3A2E"]}, {"id": "royal", "name": "ملكي", "l": ["#FAF8FD", "#FFFFFF", "#F1EDF8", "#6D28D9", "#5B21B6", "#DB2777", "#1E1033", "#6B6480", "#E6E0F0"], "d": ["#130F1C", "#1C1629", "#261E37", "#A78BFA", "#8B5CF6", "#F472B6", "#F5F0FF", "#A79EBB", "#33284A"]}, {"id": "sila", "name": "سيلا", "l": ["#FFF7F9", "#FFFFFF", "#FDEAF0", "#D6336C", "#B82A5C", "#F59E7B", "#3A1220", "#8A6472", "#F6D5E0"], "d": ["#1B1015", "#26171D", "#341F28", "#F472A8", "#EC4D8F", "#FDBA9B", "#FFF1F5", "#C9A0B1", "#46293A"]}, {"id": "desert", "name": "صحراوي", "l": ["#FBF6EF", "#FFFFFF", "#F3EADD", "#B5532A", "#923F1D", "#C99A2E", "#2B1A10", "#7A6655", "#EADBC8"], "d": ["#18120D", "#231A13", "#2F241B", "#E08A5B", "#CF7442", "#E6B94F", "#FBF1E6", "#B8A28D", "#3E3025"]}, {"id": "nile", "name": "نيلي", "l": ["#F3F8F8", "#FFFFFF", "#E5F0F0", "#0B5D73", "#084A5C", "#2F9E8F", "#0C1F26", "#5C7078", "#D3E4E5"], "d": ["#0A1519", "#102128", "#173039", "#4FB5C9", "#2FA0B6", "#5FD0B8", "#EAF6F8", "#8FB0B8", "#1F3A44"]}, {"id": "coffee", "name": "قهوة", "l": ["#FAF6F1", "#FFFFFF", "#F0E7DD", "#6F4E37", "#583C29", "#C08552", "#25170E", "#7B6A5D", "#E6D9CB"], "d": ["#171110", "#211917", "#2D2320", "#C9A27E", "#B88B63", "#E0A96D", "#F7EEE6", "#B5A294", "#3B2F2A"]}, {"id": "lemon", "name": "ليموني", "l": ["#F7FAF2", "#FFFFFF", "#EAF2DD", "#3F7D3A", "#2F6230", "#9AAE1B", "#16240F", "#667A5A", "#DCE8CA"], "d": ["#0F150E", "#161F14", "#1F2C1C", "#8FCB6E", "#76B556", "#C6DB4A", "#F0F7E8", "#9DB38E", "#2A3A25"]}, {"id": "sunset", "name": "غروب", "l": ["#FFF8F4", "#FFFFFF", "#FDEBE1", "#D9534A", "#B8403A", "#F2994A", "#33150F", "#85655C", "#F4D8CB"], "d": ["#1A110F", "#251817", "#332120", "#F2766C", "#E85D52", "#F6AE6B", "#FFF0EA", "#C9A397", "#46302C"]}];
 const waslaThemes=(function(){
  var root=document.documentElement,saved="wasla",current="wasla",el=null;
@@ -5947,6 +5995,7 @@ function render(){
   try{navHistSync()}catch(_){}
   try{waslaThemes.onRender()}catch(_){}
   try{waslaNotif.onRender()}catch(_){}
+  try{waslaInstall.onRender()}catch(_){}
  }
 }
 var navHist={init:false,idx:0,stack:[],key:null,target:null,until:0};
@@ -10326,6 +10375,13 @@ h1,h2,h3,h4{font-family:var(--wasla-font);font-weight:700;letter-spacing:0}
 .notif-dot{width:9px;height:9px;border-radius:50%;margin-top:6px;flex:0 0 auto;background:transparent}
 .notif-item.unread .notif-dot{background:#DC2626}
 .notif-txt{display:flex;flex-direction:column;gap:2px;min-width:0}.notif-txt b{font-size:14px}.notif-txt span{font-size:13px;color:var(--text-secondary);overflow-wrap:anywhere}.notif-txt small{font-size:11px;color:var(--text-secondary)}
+
+.inst-banner{position:fixed;inset-inline:12px;bottom:calc(84px + env(safe-area-inset-bottom));z-index:1500;display:flex;align-items:center;gap:10px;max-width:520px;margin-inline:auto;background:var(--bg-surface);color:var(--text-primary);border:1px solid var(--border-color);border-radius:16px;padding:10px 12px;box-shadow:0 8px 28px rgba(0,0,0,.28)}
+.inst-banner img{border-radius:10px;flex:0 0 auto}
+.inst-txt{display:flex;flex-direction:column;min-width:0;flex:1}.inst-txt b{font-size:14px}.inst-txt span{font-size:12px;color:var(--text-secondary)}
+.inst-go{border:0;background:#D6A642;color:#1b1405;font:800 14px Tajawal,sans-serif;border-radius:10px;padding:9px 16px;cursor:pointer;flex:0 0 auto}
+.inst-x{border:0;background:none;color:var(--text-secondary);font-size:16px;cursor:pointer;padding:6px;flex:0 0 auto}
+.inst-steps{margin:0 0 14px;padding-inline-start:20px;line-height:2;font-size:14px}.inst-share{display:inline-block;border:1px solid var(--border-color);border-radius:6px;padding:0 6px}
 </style>
 </body></html>
 
