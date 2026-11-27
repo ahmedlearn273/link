@@ -2318,7 +2318,7 @@ if(p.status!=="active"){
   
 s.staffAccess=null;s.rq=null;s.rl=null;s.staffSuspended=false;
 await publicData(p.role==="admin"||p.role==="owner"||p.role==="staff");
-s.requests=[];s.quotes=[];s.offers=[];s.apps=[];s.allRequests=[];s.adminProfiles=[];s.chats=[];s.messages=[];try{wcUnsubscribe();wcListUnsubscribe()}catch(_){}s.activeChat=null;s.auditLogs=[];
+s.requests=[];s.payments={};s.wallet=null;s.quotes=[];s.offers=[];s.apps=[];s.allRequests=[];s.adminProfiles=[];s.chats=[];s.messages=[];try{wcUnsubscribe();wcListUnsubscribe()}catch(_){}s.activeChat=null;s.auditLogs=[];
 
 if(p.role==="staff"){
  const {data:effPerms,error:staffError}=await db.rpc("my_effective_permissions");
@@ -2342,7 +2342,7 @@ if(p.role==="staff"){
 }
  if(p.role==="customer"){
   const [r,ch]=await Promise.all([db.from("service_requests").select("*,services(name_ar),provider_profiles(display_name,city)").eq("customer_id",u.id).order("created_at",{ascending:false}),wcChatsQuery()]);
-  s.requests=r.data||[];s.chats=ch.data||[];
+  s.requests=r.data||[];s.chats=ch.data||[];await loadPayments();
   try{const rv=await db.from("reviews").select("request_id").eq("customer_id",u.id);s.reviewedIds=new Set((rv.data||[]).map(x=>x.request_id))}catch(_){s.reviewedIds=new Set()}
 const {data:q,error:qError}=await db
  .from("service_quotes")
@@ -2370,7 +2370,7 @@ if(s.quotes.length){
 }
  }else if(p.role==="provider"&&pp){
   const [r,o,ch]=await Promise.all([db.from("service_requests").select("*,services(name_ar)").or("provider_id.eq."+pp.id+",provider_id.is.null").order("created_at",{ascending:false}),db.from("provider_services").select("*,services(name_ar)").eq("provider_id",pp.id),wcChatsQuery()]);
-  s.requests=r.data||[];s.offers=o.data||[];s.chats=ch.data||[];
+  s.requests=r.data||[];s.offers=o.data||[];s.chats=ch.data||[];await loadPayments();
 const {data:q,error:qError}=await db
  .from("service_quotes")
  .select("*")
@@ -2770,6 +2770,85 @@ const query=(s.filter||"").trim().toLowerCase();
  '</div>'+
  '</main>';
  }
+
+function moneyAr(n){n=Number(n||0);return '<span dir="ltr">'+(n<0?"-":"")+fmt(Math.abs(n))+'</span>'}
+function paymentStatusAr(p){
+ if(p.payment_status==="paid")return "تم الدفع";
+ if(p.payment_status==="failed")return "فشل الدفع";
+ if(p.payment_status==="refunded")return "تم الاسترداد";
+ return p.payment_method==="cash"?"بانتظار تأكيد استلام الكاش":"بانتظار الدفع";
+}
+async function loadPayments(){
+ try{
+  const r=await db.from("payments").select("id,request_id,amount,currency,commission_rate,commission_amount,provider_amount,payment_method,payment_status,paid_at");
+  const m={};
+  (r.data||[]).forEach(x=>{m[x.request_id]=x});
+  s.payments=m;
+ }catch(_){s.payments=s.payments||{}}
+}
+function paymentBlock(q,provider,own){
+ const p=s.payments&&s.payments[q.id];
+ if(!p||q.status!=="completed")return "";
+ const cur=esc(String(p.currency||"EGP").trim());
+ const method=p.payment_method==="cash"?"كاش":"عبر المنصة";
+ let h='<div class="wasla-pay-block"><div class="row"><b>الدفع</b>'+tag(paymentStatusAr(p))+'</div>'+
+  '<p>المبلغ: '+moneyAr(p.amount)+' '+cur+' · طريقة الدفع: '+method+'</p>';
+ if(provider&&own){
+  h+='<p>عمولة المنصة ('+fmt(p.commission_rate)+'%): '+moneyAr(p.commission_amount)+' '+cur+' · صافي نصيبك: '+moneyAr(p.provider_amount)+' '+cur+'</p>';
+  if(p.payment_method==="cash"&&p.payment_status==="pending")h+='<div class="actions">'+btn("cash-received","استلمت الفلوس","green",q.id)+'</div>';
+ }else if(!provider&&p.payment_method==="cash"&&p.payment_status==="pending"){
+  h+='<p>ادفع المبلغ كاش للفني مباشرة.</p>';
+ }
+ return h+'</div>';
+}
+const WALLET_LABELS={earning:"نصيبك من طلب (بعد العمولة)",cash_collected:"كاش مستلم من العميل",settlement:"تسوية",payout:"سحب",advance_repayment:"سداد سلفة",adjustment:"تعديل"};
+async function loadWallet(more){
+ const w=s.wallet=s.wallet||{entries:[],data:null,loading:false,error:"",more:false};
+ if(w.loading)return;
+ w.loading=true;w.error="";
+ if(!more){w.entries=[]}
+ render();
+ try{
+  const off=more?w.entries.length:0;
+  const r=await db.rpc("get_my_wallet",{p_limit:30,p_offset:off});
+  if(r.error)throw r.error;
+  const d=r.data||{};
+  w.data=d;
+  const ent=Array.isArray(d.entries)?d.entries:[];
+  w.entries=more?w.entries.concat(ent):ent;
+  w.more=ent.length>=30;
+ }catch(err){
+  w.error="تعذّر تحميل المحفظة: "+(err&&err.message?err.message:"خطأ غير معروف");
+ }
+ w.loading=false;
+ render();
+}
+function walletView(){
+ const w=s.wallet||{entries:[],data:null,loading:false,error:""};
+ const d=w.data;
+ let h='<section class="section"><div class="sectionhead"><div><h2>محفظتي</h2><p class="small">رصيدك بعد خصم عمولة المنصة. الكاش اللي بتستلمه من العميل بيتسجل عليك وبيتقاص من نصيبك.</p></div></div>';
+ if(w.error)h+='<div class="notice error">'+esc(w.error)+'</div>';
+ if(!d){return h+(w.loading?'<div class="empty">جاري التحميل...</div>':'')+'</section>'}
+ const bal=Number(d.balance||0);
+ if(d.blocked)h+='<div class="notice error">حسابك موقوف عن الطلبات الجديدة لأن رصيدك نزل تحت -'+fmt(d.negative_cap||200)+'. سدّد الرصيد عشان يرجع الاستقبال.</div>';
+ h+='<div class="grid small">'+
+  '<div class="card"><p>الرصيد الحالي</p><div class="stat" style="'+(bal<0?'color:var(--danger)':'')+'">'+moneyAr(bal)+'</div></div>'+
+  '<div class="card"><p>القابل للسحب</p><div class="stat">'+moneyAr(d.withdrawable)+'</div></div>'+
+  '<div class="card"><p>السلفة المفتوحة</p><div class="stat">'+moneyAr(0)+'</div></div>'+
+  '</div>'+
+  '<div class="actions"><button class="btn light" disabled title="قريبا">طلب سلفة (قريبا)</button><button class="btn light" disabled title="قريبا">طلب سحب (قريبا)</button><button class="btn light" disabled title="قريبا">طلب سداد (قريبا)</button></div>'+
+  '<h3 style="margin:18px 0 8px">الحركات</h3><div class="list">'+
+  (w.entries.map(e=>{
+   const a=Number(e.amount||0);
+   return '<article class="item"><div class="row"><b>'+esc(WALLET_LABELS[e.entry_type]||e.entry_type)+'</b><b style="color:'+(a<0?'var(--danger)':'var(--success)')+'">'+moneyAr(a)+'</b></div>'+
+    '<p class="small">'+esc(new Date(e.created_at).toLocaleString("ar-EG"))+' · الرصيد بعدها: '+moneyAr(e.running_balance)+'</p>'+
+    (e.note?'<p class="small">'+esc(e.note)+'</p>':'')+'</article>';
+  }).join("")||empty("لا توجد حركات حتى الآن"))+
+  '</div>'+
+  (w.more?'<div class="actions"><button class="btn light" data-a="wallet-more"'+(w.loading?' disabled':'')+'>عرض المزيد</button></div>':'')+
+  '</section>';
+ return h;
+}
       function requestList(provider,requests=s.requests){
   return requests.map(q=>{
   const own=q.provider_id===s.provider?.id;
@@ -2806,7 +2885,7 @@ const query=(s.filter||"").trim().toLowerCase();
 
   if(provider&&q.provider_id&&!own)return "";
 
-  return '<article class="item"><div class="row"><b>'+esc(q.title||q.services?.name_ar||"طلب خدمة")+'</b>'+tag(q.status)+'</div><p>'+esc([q.city,q.country].filter(Boolean).join("، "))+'</p><p>'+esc(q.description||"")+'</p><p>الميزانية: '+(q.budget?fmt(q.budget):"غير محددة")+'</p><div class="actions">'+a+(provider&&own?btn("provider-request-details","تفاصيل الطلب","light",q.id):"")+(!provider&&["pending","accepted"].includes(q.status)?btn("cancelrequest","إلغاء الطلب","danger",q.id):"")+(q.status==="completed"&&q.provider_id&&!provider&&!s.reviewedIds?.has(q.id)?btn("review","تقييم الخدمة","light",q.id):"")+(q.provider_id&&["accepted","in_progress"].includes(q.status)&&(!provider||s.chats.some(c=>c.request_id===q.id))?btn("chat","محادثة","light",q.id):"")+'</div></article>';
+  return '<article class="item"><div class="row"><b>'+esc(q.title||q.services?.name_ar||"طلب خدمة")+'</b>'+tag(q.status)+'</div><p>'+esc([q.city,q.country].filter(Boolean).join("، "))+'</p><p>'+esc(q.description||"")+'</p><p>الميزانية: '+(q.budget?fmt(q.budget):"غير محددة")+'</p>'+paymentBlock(q,provider,own)+'<div class="actions">'+a+(provider&&own?btn("provider-request-details","تفاصيل الطلب","light",q.id):"")+(!provider&&["pending","accepted"].includes(q.status)?btn("cancelrequest","إلغاء الطلب","danger",q.id):"")+(q.status==="completed"&&q.provider_id&&!provider&&!s.reviewedIds?.has(q.id)?btn("review","تقييم الخدمة","light",q.id):"")+(q.provider_id&&["accepted","in_progress"].includes(q.status)&&(!provider||s.chats.some(c=>c.request_id===q.id))?btn("chat","محادثة","light",q.id):"")+'</div></article>';
  }).join("")||empty("لا توجد طلبات حتى الآن");
       }
 
@@ -3387,9 +3466,15 @@ if(s.tab==="requests"){
      (profileTab==="services"?"active":"")+
     '">خدماتي</button>'+
 
+    '<button type="button" data-a="provider-profile-tab" data-id="wallet" class="'+
+     (profileTab==="wallet"?"active":"")+
+    '">المحفظة</button>'+
+
    '</div>';
 
-  if(profileTab==="services"){
+  if(profileTab==="wallet"){
+   body+=walletView();
+  }else if(profileTab==="services"){
 
    body+=
     '<section class="section">'+
@@ -5588,12 +5673,13 @@ function navViewKey(){
  if(!s.user||!s.profile||s.mode==="recovery"||typeof s.tab!=="string")return null;
  var chat=(s.tab==="messages"&&s.activeChat)?String(s.activeChat.id):"";
  var det=(s.tab==="requests"&&s.rq&&s.rq.detailId)?String(s.rq.detailId):"";
- return s.tab+"|"+chat+"|"+det;
+ return s.tab+"|"+chat+"|"+det+"|"+(s.tab==="profile"?(s.providerProfileTab||"profile"):"");
 }
 function navViewState(idx){
  return {wv:1,idx:idx,tab:s.tab,rf:s.requestFilter,
   chat:(s.tab==="messages"&&s.activeChat)?String(s.activeChat.id):null,
-  detail:(s.tab==="requests"&&s.rq&&s.rq.detailId)?String(s.rq.detailId):null};
+  detail:(s.tab==="requests"&&s.rq&&s.rq.detailId)?String(s.rq.detailId):null,
+  sub:s.tab==="profile"?(s.providerProfileTab||"profile"):""};
 }
 function navHistSync(){
  var k=navViewKey();
@@ -5634,7 +5720,7 @@ window.addEventListener("popstate",function(e){
  var st=e.state,h=navHist;
  if(!st||st.wv!==1||!s.user||!s.profile)return;
  h.idx=typeof st.idx==="number"?st.idx:0;
- var want=st.tab+"|"+(st.chat||"")+"|"+(st.detail||"");
+ var want=st.tab+"|"+(st.chat||"")+"|"+(st.detail||"")+"|"+(st.sub||"");
  if(navViewKey()===want){h.key=want;h.target=null;h.stack[h.idx]=want;return}
  h.target=want;h.until=Date.now()+3000;h.stack[h.idx]=want;
  try{
@@ -5642,6 +5728,7 @@ window.addEventListener("popstate",function(e){
   if(!st.chat&&s.activeChat){try{wcUnsubscribe()}catch(_){}s.activeChat=null;s.messages=[];s.chatLoading=0;s.wcSig=""}
   if(!st.detail&&s.rq){s.rq.detailId=null;s.rq.detail=null;s.rq.act=null}
   s.tab=st.tab;
+  if(st.tab==="profile"&&st.sub)s.providerProfileTab=st.sub;
   if(typeof st.rf==="string")s.requestFilter=st.rf;
   render();
   if(st.tab==="knowledge"&&typeof loadPrimeKnowledge==="function")loadPrimeKnowledge();
@@ -5649,6 +5736,7 @@ window.addEventListener("popstate",function(e){
   if(st.detail&&!(s.rq&&s.rq.detailId===st.detail))navFire("rq-open",st.detail);
   if(st.tab==="requests"&&!st.detail&&typeof rqCanView==="function"&&rqCanView())loadRequestsList();
   if(st.tab==="messages"&&!st.chat){try{wcListKick()}catch(_){}}
+  if(st.tab==="profile"&&st.sub==="wallet")loadWallet(false);
  }catch(err){console.warn("history restore failed",err);h.target=null}
 });
 function renderCore(){
@@ -8050,11 +8138,12 @@ if(a==="provider-profile-tab"){
 
  if(s.profile?.role!=="provider")return;
 
- if(!["profile","services"].includes(id))return;
+ if(!["profile","services","wallet"].includes(id))return;
 
  s.providerProfileTab=id;
 
  render();
+ if(id==="wallet")loadWallet(false);
 
  return;
 }
@@ -8552,6 +8641,15 @@ if(a==="cancelrequest"){
  return;
  } 
   if(a==="claim"){let r=await db.rpc("claim_service_request",{p_request_id:id});if(r.error)throw r.error;await loadUser(s.user);note("تم قبول الطلب وإسناده إليك.","success");return}
+  if(a==="wallet-more"){await loadWallet(true);return}
+  if(a==="cash-received"){
+   if(!confirm("تأكيد إنك استلمت المبلغ كاش من العميل؟ الإجراء ده مينفعش يتراجع عنه."))return;
+   const r=await db.rpc("confirm_cash_received",{p_request_id:id});
+   if(r.error)throw r.error;
+   await loadPayments();s.wallet=null;render();
+   note("تم تأكيد استلام الكاش وتسجيله في محفظتك.","success");
+   return;
+  }
   if(a==="advance"){let r=await db.rpc("advance_service_request",{p_request_id:id,p_next_status:b.dataset.next});if(r.error)throw r.error;await loadUser(s.user);note("تم تحديث حالة الطلب.","success");return}
   if(a==="availability"){let r=await db.rpc("toggle_own_provider_availability");if(r.error)throw r.error;await loadUser(s.user);note("تم تحديث التوفر.","success");return}
   if(a==="toggleoffer"){let r=await db.rpc("toggle_own_provider_service",{p_provider_service_id:id});if(r.error)throw r.error;await loadUser(s.user);return}
@@ -9709,6 +9807,7 @@ const addButton = () => {
  .wasla-admin-side .wasla-side-account{margin:0;border-top:0;border-radius:11px;padding-top:9px}
  .wasla-admin-main{padding:16px}
 }
+.wasla-pay-block{margin:8px 0;padding:10px 12px;border:1px solid var(--border-color);border-radius:12px;background:var(--bg-subtle)}.wasla-pay-block p{margin:4px 0}
 .wasla-staff-bottom-main{padding-bottom:calc(96px + env(safe-area-inset-bottom))}
 .wasla-staff-bottom-nav{position:fixed;z-index:999;bottom:0;left:0;right:0;display:flex;gap:4px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding:9px 8px calc(9px + env(safe-area-inset-bottom));background:color-mix(in srgb,var(--bg-surface) 94%,transparent);border-top:1px solid var(--border-color);backdrop-filter:blur(14px)}
 .wasla-staff-bottom-nav button{flex:1 0 auto;min-width:76px;min-height:48px;padding:6px 10px;border:0;border-radius:13px;background:transparent;color:var(--text-secondary);font:600 12px Tajawal,sans-serif;white-space:nowrap;cursor:pointer}
