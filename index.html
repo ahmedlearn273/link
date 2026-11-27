@@ -2776,18 +2776,16 @@ function paymentsView(){
  list.filter(x=>x.payment_status==="paid").forEach(x=>{const c=String(x.currency||"EGP").trim();paidSum[c]=(paidSum[c]||0)+Number(x.amount||0)});
  const pend=list.filter(x=>x.payment_status==="pending").length;
  const sums=Object.keys(paidSum).map(c=>moneyAr(paidSum[c])+" "+esc(c)).join(" · ")||moneyAr(0);
- return '<section class="section"><div class="sectionhead"><div><h2>مدفوعاتي</h2><p class="small">كل دفعاتك في مكان واحد.</p></div></div>'+
-  '<div class="grid small"><div class="card"><p>إجمالي المدفوع</p><div class="stat">'+sums+'</div></div><div class="card"><p>بانتظار الدفع</p><div class="stat">'+fmt(pend)+'</div></div></div>'+
-  '<div class="list" style="margin-top:12px">'+
-  (list.map(x=>{
+ return '<section class="section cu"><div class="cu-top"><div><h2>مدفوعاتي</h2><p>كل دفعاتك في مكان واحد</p></div></div>'+
+  '<div class="cu-hero"><small>إجمالي المدفوع</small><b class="big" style="font-size:26px">'+sums+'</b><div class="cu-mini"><div>بانتظار الدفع<strong>'+fmt(pend)+'</strong></div><div>عدد الدفعات<strong>'+fmt(list.length)+'</strong></div></div></div>'+
+  (list.length?'<div class="cu-card">'+list.map(x=>{
    const q=(s.requests||[]).find(r=>r.id===x.request_id)||{};
    const cur=esc(String(x.currency||"EGP").trim());
-   return '<article class="item"><div class="row"><b>'+esc(q.title||q.services?.name_ar||"طلب خدمة")+'</b>'+tag(paymentStatusAr(x))+'</div>'+
-    '<p><b>'+moneyAr(x.amount)+' '+cur+'</b> · '+(x.payment_method==="cash"?"كاش":"عبر المنصة")+'</p>'+
-    '<p class="small">'+esc(fmtDateAr(x.paid_at||x.created_at))+'</p>'+
-    (x.payment_status==="paid"?'<div class="actions">'+btn("receipt","عرض الإيصال","light",x.id)+'</div>':'')+'</article>';
-  }).join("")||empty("لا توجد مدفوعات حتى الآن"))+
-  '</div></section>';
+   const paid=x.payment_status==="paid";
+   return '<div class="cu-pay"><span class="d'+(paid?"":" w")+'">'+cui(paid?"ok":"hour")+'</span><div class="t"><b>'+esc(q.title||q.services?.name_ar||"طلب خدمة")+'</b><small>'+esc(fmtDateAr(x.paid_at||x.created_at))+' · '+(x.payment_method==="cash"?"كاش":"عبر المنصة")+'</small></div>'+
+    '<div class="e"><strong>'+moneyAr(x.amount)+' '+cur+'</strong>'+(paid?'<button type="button" data-a="receipt" data-id="'+esc(x.id)+'">الإيصال</button>':tag(paymentStatusAr(x)))+'</div></div>';
+  }).join("")+'</div>':empty("لا توجد مدفوعات حتى الآن"))+
+  '</section>';
 }
 function receiptModal(m){
  const x=Object.values(s.payments||{}).find(r=>r.id===m.paymentId);
@@ -2966,6 +2964,32 @@ function walletView(){
  }).join("")||empty("لا توجد طلبات حتى الآن");
       }
 
+const CUI={"search": "<svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"11\" cy=\"11\" r=\"7\"/><path d=\"M20 20l-3.5-3.5\"/></svg>", "plus": "<svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M12 8v8M8 12h8\"/></svg>", "list": "<svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><rect x=\"4\" y=\"4\" width=\"16\" height=\"16\" rx=\"3\"/><path d=\"M8 9h8M8 13h8M8 17h5\"/></svg>", "tool": "<svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M14.7 6.3a4 4 0 0 0-5 5L3 18l3 3 6.7-6.7a4 4 0 0 0 5-5l-2.4 2.4-2.6-.6-.6-2.6z\"/></svg>", "ok": "<svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M8 12l3 3 5-6\"/></svg>", "drop": "<svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 3c-3 4-5 6-5 9a5 5 0 0 0 10 0c0-3-2-5-5-9z\"/></svg>", "bolt": "<svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M13 3L5 14h6l-1 7 8-11h-6z\"/></svg>", "snow": "<svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 3v18M4.5 7.5l15 9M19.5 7.5l-15 9\"/></svg>", "brush": "<svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 20c4 0 6-2 6-5l8-9-3-3-9 8c-3 0-5 2-5 5z\"/></svg>", "pin": "<svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 21s7-6 7-11a7 7 0 0 0-14 0c0 5 7 11 7 11z\"/><circle cx=\"12\" cy=\"10\" r=\"2.5\"/></svg>", "wallet": "<svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><rect x=\"3\" y=\"6\" width=\"18\" height=\"14\" rx=\"3\"/><path d=\"M16 13h3M3 10h18\"/></svg>", "hour": "<svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M6 3h12M6 21h12M7 3c0 5 5 6 5 9s-5 4-5 9M17 3c0 5-5 6-5 9s5 4 5 9\"/></svg>", "user": "<svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"8\" r=\"4\"/><path d=\"M4 21c0-4 4-6 8-6s8 2 8 6\"/></svg>", "lock": "<svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><rect x=\"5\" y=\"11\" width=\"14\" height=\"10\" rx=\"3\"/><path d=\"M8 11V8a4 4 0 0 1 8 0v3\"/></svg>", "cam": "<svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 8h3l2-3h6l2 3h3v11H4z\"/><circle cx=\"12\" cy=\"13\" r=\"3.5\"/></svg>", "sun": "<svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"4\"/><path d=\"M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2\"/></svg>", "chev": "<svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M6 9l6 6 6-6\"/></svg>", "chk": "<svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M5 12l5 5 9-10\"/></svg>", "mail": "<svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><rect x=\"3\" y=\"5\" width=\"18\" height=\"14\" rx=\"3\"/><path d=\"M3 7l9 6 9-6\"/></svg>"};
+function cui(n,sz){const x=CUI[n]||"";return sz?x.replace(/width="20" height="20"/,'width="'+sz+'" height="'+sz+'"'):x}
+function customerAccountBody(p){
+ const roles={customer:"عميل"};
+ const sec=(ic,t,sub,body,open)=>'<details class="cu-sec"'+(open?" open":"")+'><summary><i>'+cui(ic)+'</i><div>'+t+'<small>'+sub+'</small></div></summary><div class="bd">'+body+'</div></details>';
+ return '<section class="section cu"><div class="cu-prof cu-prof2"><h2>'+esc(p.full_name||"مستخدم وصلة")+'</h2><div class="em">'+esc(s.user?.email||"")+'</div>'+
+  '<div class="chips"><span>'+esc(roles[p.role]||"حساب")+'</span><code dir="ltr">'+esc(p.account_code||"—")+'</code></div></div>'+
+  sec("sun","المظهر","نهاري أو ليلي وألوان وصلة",'<div class="actions"><button type="button" class="btn gold" data-th="open">الثيمات</button></div>')+
+  sec("user","بياناتي الشخصية","الاسم ورقم الجوال",
+   '<form id="accountProfileForm"><h3>تعديل البيانات الشخصية</h3>'+
+   '<label class="field">الاسم الكامل<input name="full_name" type="text" value="'+esc(p.full_name||"")+'" maxlength="120" required></label>'+
+   '<label class="field">رقم الجوال<input name="phone" type="tel" value="'+esc(p.phone||"")+'" maxlength="30"></label>'+
+   '<div class="actions"><button class="btn gold">حفظ البيانات</button></div></form>')+
+  sec("cam","الصورة الشخصية","JPG أو PNG أو WEBP حتى ٥ ميجا",
+   '<form id="accountPhotoForm"><h3>تغيير الصورة الشخصية</h3>'+
+   '<label class="field">اختر صورة جديدة<input type="file" name="avatar_file" accept="image/jpeg,image/png,image/webp" required></label>'+
+   '<p class="muted">شعار وصلة هو الصورة الافتراضية. لا يستطيع تغيير صورتك الشخصية إلا صاحب الحساب نفسه.</p>'+
+   '<div class="actions"><button class="btn gold">حفظ الصورة الشخصية</button></div></form>')+
+  sec("lock","كلمة المرور","غيّرها في أي وقت",
+   '<form id="accountPasswordForm"><h3>تغيير كلمة المرور</h3>'+
+   '<label class="field">كلمة المرور الحالية<input name="current_password" type="password" autocomplete="current-password" required></label>'+
+   '<label class="field">كلمة المرور الجديدة<input name="new_password" type="password" autocomplete="new-password" minlength="8" required></label>'+
+   '<label class="field">تأكيد كلمة المرور الجديدة<input name="confirm_password" type="password" autocomplete="new-password" minlength="8" required></label>'+
+   '<div class="actions"><button class="btn gold">تحديث كلمة المرور</button></div></form>')+
+  '<button type="button" class="cu-out" data-a="logout" data-id="">تسجيل الخروج</button></section>';
+}
 function customerIdCard(){
  const p=s.profile||{};
  const rq=s.requests||[];
@@ -3220,8 +3244,7 @@ function accountSettingsView(){
   p.role==="customer"
  )+
  '<main class="wrap '+(p.role==="customer"?"wasla-customer-page":"")+'">'+msg()+
- (p.role==="customer"?customerIdCard():"")+
- accountSettingsBody(p)+
+ (p.role==="customer"?customerIdCard()+customerAccountBody(p):accountSettingsBody(p))+
  '</main>'+
  (p.role==="customer"?customerBottomNav():"");
 }
@@ -3356,147 +3379,34 @@ function customer(){
   ).length;
 
   const requestCards=filteredRequests.map(q=>{
-
-   const requestTitle=
-    q.title||q.services?.name_ar||"طلب خدمة";
-
-   const parsedDate=q.created_at
-    ?new Date(q.created_at)
-    :null;
-
-   const requestDate=parsedDate&&!isNaN(parsedDate.getTime())
-    ?parsedDate.toLocaleDateString("ar-EG",{
-      year:"numeric",
-      month:"short",
-      day:"numeric"
-     })
-    :"—";
-
-   const location=[q.city,q.country]
-    .filter(Boolean)
-    .join("، ");
-
-   const providerName=
-    q.provider_profiles?.display_name||
-    "بانتظار تعيين مقدم خدمة";
-
-   return '<article class="item wasla-request-card">'+
-
-    '<div class="wasla-request-card-head">'+
-
-     '<div class="wasla-request-title">'+
-      '<b>'+esc(requestTitle)+'</b>'+
-      '<span class="small">تاريخ الطلب: '+
-       esc(requestDate)+
-      '</span>'+
-     '</div>'+
-
-     tag(q.status)+
-
-    '</div>'+
-
-    '<div class="wasla-request-meta">'+
-
-     (location
-      ?'<span><b>الموقع:</b> '+esc(location)+'</span>'
-      :"")+
-
-     '<span><b>مقدم الخدمة:</b> '+
-      esc(providerName)+
-     '</span>'+
-
-    '</div>'+
-
-    (q.description
-     ?'<p class="wasla-request-description">'+
-       esc(q.description)+
-      '</p>'
-     :"")+
-
-    '<div class="actions">'+
-btn("request-details","تفاصيل الطلب","light",q.id)+
-     (["pending","accepted"].includes(q.status)
-      ?btn("cancelrequest","إلغاء الطلب","danger",q.id)
-      :"")+
-
-     (q.status==="completed"&&q.provider_id&&!s.reviewedIds?.has(q.id)
-      ?btn("review","تقييم الخدمة","light",q.id)
-      :"")+
-
-     (q.provider_id&&["accepted","in_progress"].includes(q.status)
-      ?btn("chat","المحادثة","light",q.id)
-      :"")+
-
-    '</div>'+
-
-   '</article>';
-
+   const requestTitle=q.title||q.services?.name_ar||"طلب خدمة";
+   const parsedDate=q.created_at?new Date(q.created_at):null;
+   const requestDate=parsedDate&&!isNaN(parsedDate.getTime())?parsedDate.toLocaleDateString("ar-EG",{year:"numeric",month:"short",day:"numeric"}):"—";
+   const location=[q.city,q.country].filter(Boolean).join("، ");
+   const pn=q.provider_profiles?.display_name;
+   const act=(a,t,c)=>'<button type="button" class="'+(c||"")+'" data-a="'+a+'" data-id="'+esc(q.id)+'">'+t+'</button>';
+   return '<article class="cu-req"><div class="hd"><div><b>'+esc(requestTitle)+'</b><small>'+esc(requestDate)+'</small></div>'+tag(q.status)+'</div>'+
+    (location?'<div class="loc">'+cui("pin",14)+esc(location)+'</div>':"")+
+    '<div class="pv">'+(pn?'<span class="a">'+esc(pn.trim().slice(0,1))+'</span><b>'+esc(pn)+'</b>':'<span class="a" style="background:var(--border-color);color:var(--text-secondary)">؟</span><span class="w">بانتظار تعيين مقدم خدمة</span>')+'</div>'+
+    (q.description?'<p>'+esc(q.description)+'</p>':"")+
+    '<div class="cu-act">'+act("request-details","تفاصيل الطلب")+
+     (["pending","accepted"].includes(q.status)?act("cancelrequest","إلغاء الطلب","dg"):"")+
+     (q.status==="completed"&&q.provider_id&&!s.reviewedIds?.has(q.id)?act("review","تقييم الخدمة","gd"):"")+
+     (q.provider_id&&["accepted","in_progress"].includes(q.status)?act("chat","المحادثة","gd"):"")+
+    '</div></article>';
   }).join("");
 
+  const cnt=f=>f==="all"?s.requests.length:s.requests.filter(q=>q.status===f).length;
   body=
-   '<section class="section wasla-requests-section">'+
-
-    '<div class="sectionhead wasla-requests-heading">'+
-
-     '<div>'+
-      '<h2>كل طلباتك في مكان واحد</h2>'+
-      '<p class="small">تابع حالة كل طلب وتفاصيله بسهولة.</p>'+
-     '</div>'+
-
-     btn("request","طلب خدمة جديدة","gold")+
-
+   '<section class="section cu">'+
+    '<div class="cu-top"><div><h2>طلباتي</h2><p>تابع حالة كل طلب بسهولة</p></div><button type="button" class="cu-new" data-a="request" data-id="">'+cui("plus")+' طلب جديد</button></div>'+
+    '<div class="cu-stats"><div class="cu-st"><i>'+cui("list")+'</i><b>'+fmt(s.requests.length)+'</b><span>إجمالي الطلبات</span></div>'+
+    '<div class="cu-st a"><i>'+cui("tool")+'</i><b>'+fmt(activeCount)+'</b><span>طلبات نشطة</span></div>'+
+    '<div class="cu-st g"><i>'+cui("ok")+'</i><b>'+fmt(completedCount)+'</b><span>طلبات مكتملة</span></div></div>'+
+    '<div class="cu-chips" role="group" aria-label="تصفية الطلبات">'+
+     filters.map(f=>'<button type="button" class="'+(selected===f[0]?"on":"")+'" data-a="request-filter" data-id="'+f[0]+'">'+f[1]+'<em>'+fmt(cnt(f[0]))+'</em></button>').join("")+
     '</div>'+
-
-    '<div class="wasla-request-summary">'+
-
-     '<div class="wasla-request-stat">'+
-      '<span>إجمالي الطلبات</span>'+
-      '<b>'+fmt(s.requests.length)+'</b>'+
-     '</div>'+
-
-     '<div class="wasla-request-stat">'+
-      '<span>طلبات نشطة</span>'+
-      '<b>'+fmt(activeCount)+'</b>'+
-     '</div>'+
-
-     '<div class="wasla-request-stat">'+
-      '<span>طلبات مكتملة</span>'+
-      '<b>'+fmt(completedCount)+'</b>'+
-     '</div>'+
-
-    '</div>'+
-
-    '<div class="wasla-request-filters" role="group" aria-label="تصفية الطلبات">'+
-
-     filters.map(f=>
-      '<button type="button" class="wasla-request-filter '+
-       (selected===f[0]?"active":"")+
-       '" data-a="request-filter" data-id="'+f[0]+'">'+
-       f[1]+
-       ' <span>'+
-        fmt(
-         f[0]==="all"
-          ?s.requests.length
-          :s.requests.filter(q=>q.status===f[0]).length
-        )+
-       '</span>'+
-      '</button>'
-     ).join("")+
-
-    '</div>'+
-
-    '<div class="list wasla-request-list">'+
-
-     (requestCards||
-      empty(
-       selected==="all"
-        ?"لا توجد طلبات حتى الآن"
-        :"لا توجد طلبات في هذه الحالة."
-      )
-     )+
-
-    '</div>'+
-
+    (requestCards||empty(selected==="all"?"لا توجد طلبات حتى الآن":"لا توجد طلبات في هذه الحالة."))+
    '</section>';
  }
 
@@ -3506,14 +3416,7 @@ btn("request-details","تفاصيل الطلب","light",q.id)+
 
    msg()+
 
-   '<div class="sectionhead"><h2>'+
-    (s.tab==="requests"
-     ?"طلباتي"
-     :s.tab==="messages"
-      ?"الرسائل"
-      :"PRIME"
-    )+
-   '</h2><span class="tag">عميل</span></div>'+
+   (s.tab==="requests"||s.tab==="payments"?"":'<div class="sectionhead"><h2>'+(s.tab==="messages"?"الرسائل":"PRIME")+'</h2><span class="tag">عميل</span></div>')+
 
    body+
 
@@ -10885,6 +10788,90 @@ h1,h2,h3,h4{font-family:var(--wasla-font);font-weight:700;letter-spacing:0}
 .wasla-landing .wl-search input#search{padding-inline-start:46px;padding-inline-end:46px}
 .wl-search .wl-s-x{position:absolute;inset-inline-end:10px;top:50%;transform:translateY(-50%);width:30px;height:30px;border:0;border-radius:50%;background:var(--bg-subtle);color:var(--text-secondary);font-size:19px;line-height:1;cursor:pointer;display:grid;place-items:center}
 .wl-results .wl-heading{margin-bottom:10px}
+.cu{display:flex;flex-direction:column;gap:14px;padding:4px 0 24px}
+.cu svg{flex:0 0 auto}
+.cu-hello{display:flex;align-items:center;gap:12px}
+.cu-av{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;font:800 19px Tajawal,sans-serif;color:#efe9db;background:#15130f;border:2px solid #d9b25a;flex:0 0 48px;overflow:hidden}
+.cu-hello h2{margin:0;font:800 19px Tajawal,sans-serif}.cu-hello p{margin:2px 0 0;font-size:12.5px;color:var(--text-secondary)}
+.cu-search{position:relative}.cu-search svg{position:absolute;inset-inline-start:15px;top:50%;transform:translateY(-50%);color:var(--text-secondary)}
+.cu-search input{width:100%;min-height:48px;border-radius:16px;border:1px solid var(--border-color);background:var(--bg-surface);color:var(--text-primary);padding:10px 46px;font:600 14px Tajawal,sans-serif}
+.cu-hero{position:relative;overflow:hidden;border-radius:22px;padding:16px;color:#fff;background:linear-gradient(135deg,var(--primary),var(--primary-hover));box-shadow:0 12px 26px color-mix(in srgb,var(--primary) 32%,transparent)}
+.cu-hero:after{content:"";position:absolute;inset-inline-end:-30px;top:-30px;width:130px;height:130px;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--accent) 45%,transparent),transparent 70%)}
+.cu-hero small{opacity:.8;font-size:12px;position:relative;z-index:1}.cu-hero b.big{display:block;font-size:21px;margin:3px 0 8px;position:relative;z-index:1}
+.cu-hero .row{display:flex;align-items:center;gap:8px;position:relative;z-index:1;font-size:12.5px}
+.cu-pill{font-size:11px;font-weight:800;padding:4px 11px;border-radius:99px;background:var(--accent);color:var(--text-primary);white-space:nowrap}
+.cu-hero .go{margin-inline-start:auto;border:0;border-radius:12px;padding:8px 14px;background:#fff;color:#111;font:800 12.5px Tajawal,sans-serif}
+.cu-h{display:flex;justify-content:space-between;align-items:center;margin:4px 0 -4px}.cu-h h3{margin:0;font-size:16px}.cu-h button{border:0;background:transparent;color:var(--accent);font-size:12px;font-weight:800}
+.cu-cats{display:flex;gap:9px;overflow-x:auto;scrollbar-width:none;padding:2px 0}.cu-cats::-webkit-scrollbar{display:none}
+.cu-cat{flex:0 0 76px;display:flex;flex-direction:column;align-items:center;gap:6px;padding:11px 4px;border-radius:18px;background:var(--bg-surface);border:1px solid var(--border-color);font-size:12px;font-weight:800;color:var(--text-primary)}
+.cu-cat i{width:38px;height:38px;border-radius:13px;display:grid;place-items:center;color:var(--accent);background:color-mix(in srgb,var(--accent) 16%,transparent)}
+.cu-card{background:var(--bg-surface);border:1px solid var(--border-color);border-radius:18px;padding:4px 14px}
+.cu-svc{display:flex;align-items:center;gap:11px;padding:11px 0;border-top:1px solid var(--border-color)}.cu-svc:first-child{border-top:0}
+.cu-svc .d{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;background:var(--bg-subtle);color:var(--accent);flex:0 0 42px}
+.cu-svc .t{flex:1;min-width:0}.cu-svc b{display:block;font-size:14px}.cu-svc small{display:block;font-size:11.5px;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cu-go{border:0;border-radius:11px;padding:8px 14px;background:var(--accent);color:var(--text-primary);font:800 12px Tajawal,sans-serif;white-space:nowrap}
+.cu-provs{display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;padding:2px 0}.cu-provs::-webkit-scrollbar{display:none}
+.cu-prov{flex:0 0 170px;background:var(--bg-surface);border:1px solid var(--border-color);border-radius:18px;padding:13px;display:flex;flex-direction:column;gap:6px}
+.cu-prov .a{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font:800 18px Tajawal,sans-serif;background:linear-gradient(135deg,var(--primary),var(--primary-hover));color:#fff}
+.cu-prov b{font-size:14px}.cu-prov small{font-size:11.5px;color:var(--text-secondary)}.cu-prov .m{display:flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--success,#16a34a);display:inline-block}.dot.off{background:var(--border-color)}
+.cu-ad{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:18px;border:1px dashed var(--accent);background:color-mix(in srgb,var(--accent) 8%,transparent);font-size:12.5px}.cu-ad b{display:block;font-size:13.5px}
+.cu-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.cu-st{background:var(--bg-surface);border:1px solid var(--border-color);border-radius:16px;padding:11px 10px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.cu-st i{width:30px;height:30px;border-radius:10px;display:grid;place-items:center;color:var(--accent);background:color-mix(in srgb,var(--accent) 16%,transparent);margin-bottom:4px}
+.cu-st.a i{color:var(--primary);background:color-mix(in srgb,var(--primary) 14%,transparent)}.cu-st.g i{color:var(--success,#16a34a);background:color-mix(in srgb,var(--success,#16a34a) 14%,transparent)}
+.cu-st b{font:800 24px/1.15 Tajawal,sans-serif}.cu-st span{font-size:11.5px;color:var(--text-secondary);white-space:nowrap}
+.cu-top{display:flex;justify-content:space-between;align-items:center;gap:10px}.cu-top h2{margin:0;font:800 19px Tajawal,sans-serif}.cu-top p{margin:2px 0 0;font-size:12.5px;color:var(--text-secondary)}
+.cu-new{border:0;border-radius:13px;padding:10px 14px;background:var(--accent);color:var(--text-primary);font:800 13px Tajawal,sans-serif;display:flex;gap:6px;align-items:center;white-space:nowrap}
+.cu-chips{display:flex;gap:7px;overflow-x:auto;scrollbar-width:none;padding:2px 0}.cu-chips::-webkit-scrollbar{display:none}
+.cu-chips button{flex:0 0 auto;display:flex;align-items:center;gap:7px;border:1px solid var(--border-color);border-radius:99px;padding:7px 8px 7px 13px;background:var(--bg-surface);color:var(--text-secondary);font:700 13px Tajawal,sans-serif}
+.cu-chips em{font-style:normal;font-size:11.5px;min-width:22px;text-align:center;padding:2px 6px;border-radius:99px;background:var(--bg-subtle)}
+.cu-chips .on{background:var(--primary);border-color:var(--primary);color:#fff}.cu-chips .on em{background:rgba(255,255,255,.22);color:#fff}
+.cu-req{background:var(--bg-surface);border:1px solid var(--border-color);border-radius:18px;padding:14px;box-shadow:0 4px 14px color-mix(in srgb,var(--text-primary) 7%,transparent)}
+.cu-req .hd{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}.cu-req .hd b{font-size:15.5px;line-height:1.4}.cu-req .hd small{display:block;font-size:11.5px;color:var(--text-secondary);margin-top:2px}
+.cu-req .pv{display:flex;align-items:center;gap:9px;margin-top:10px;padding:8px 10px;border-radius:13px;background:var(--bg-subtle);font-size:12.5px}
+.cu-req .pv .a{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font:800 13px Tajawal;background:var(--primary);color:#fff}
+.cu-req .pv .w{color:var(--text-secondary)}
+.cu-req p{margin:8px 0 0;font-size:12.5px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.cu-req .loc{font-size:12px;color:var(--text-secondary);margin-top:6px;display:flex;gap:5px;align-items:center}
+.cu-act{display:flex;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border-color)}
+.cu-act button{flex:1 1 0;border:1px solid var(--border-color);border-radius:12px;padding:10px;background:var(--bg-subtle);color:var(--text-primary);font:700 13px Tajawal,sans-serif}
+.cu-act .dg{color:var(--danger);background:var(--bg-surface)}.cu-act .gd{background:var(--accent);border-color:var(--accent)}
+.cu-pay{display:flex;align-items:center;gap:11px;padding:12px 0;border-top:1px solid var(--border-color)}.cu-pay:first-child{border-top:0}
+.cu-pay .d{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;flex:0 0 42px;color:var(--success,#16a34a);background:color-mix(in srgb,var(--success,#16a34a) 13%,transparent)}
+.cu-pay .d.w{color:var(--accent);background:color-mix(in srgb,var(--accent) 16%,transparent)}
+.cu-pay .t{flex:1;min-width:0}.cu-pay b{display:block;font-size:14px}.cu-pay small{font-size:11.5px;color:var(--text-secondary)}
+.cu-pay .e{text-align:end}.cu-pay .e strong{display:block;font-size:14.5px}.cu-pay .e a{font-size:11.5px;font-weight:800;color:var(--accent)}
+.cu-mini{display:flex;gap:10px;position:relative;z-index:1}.cu-mini div{flex:1;background:rgba(255,255,255,.12);border-radius:14px;padding:9px 11px;font-size:11.5px}.cu-mini strong{display:block;font-size:15px;margin-top:2px}
+.cu-prof{border-radius:22px;padding:18px;display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;background:var(--bg-surface);border:1px solid var(--border-color)}
+.cu-prof .big{width:84px;height:84px;border-radius:50%;display:grid;place-items:center;font:800 32px Tajawal;color:#efe9db;background:#15130f;border:3px solid #d9b25a;box-shadow:0 6px 18px rgba(0,0,0,.18)}
+.cu-prof h2{margin:8px 0 0;font-size:19px}.cu-prof .em{font-size:12.5px;color:var(--text-secondary)}
+.cu-prof .chips{display:flex;gap:8px;margin-top:8px}.cu-prof .chips span{font-size:11.5px;font-weight:800;padding:4px 11px;border-radius:99px;background:var(--bg-subtle)}
+.cu-prof .chips code{font-size:12px;letter-spacing:1.5px;padding:4px 11px;border-radius:99px;border:1px solid var(--accent);color:var(--accent)}
+.cu-sec{background:var(--bg-surface);border:1px solid var(--border-color);border-radius:18px;overflow:hidden}
+.cu-sec summary{list-style:none;display:flex;align-items:center;gap:11px;padding:14px;cursor:pointer;font-weight:800;font-size:14px}.cu-sec summary::-webkit-details-marker{display:none}
+.cu-sec summary i{width:36px;height:36px;border-radius:12px;display:grid;place-items:center;color:var(--accent);background:color-mix(in srgb,var(--accent) 16%,transparent)}
+.cu-sec summary small{display:block;font-weight:600;font-size:11.5px;color:var(--text-secondary)}
+.cu-sec summary:after{content:"‹";margin-inline-start:auto;font-size:20px;color:var(--text-secondary);transform:rotate(-90deg)}
+.cu-sec[open] summary:after{transform:rotate(90deg)}
+.cu-sec .bd{padding:0 14px 14px;border-top:1px solid var(--border-color)}
+.cu-themes{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding-top:12px}.cu-themes span{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 4px;border-radius:14px;border:1px solid var(--border-color);font-size:12px;font-weight:700}.cu-themes span.on{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,transparent)}.cu-themes i{width:26px;height:26px;border-radius:50%;border:1px solid var(--border-color)}
+.cu-out{border:1px solid var(--border-color);border-radius:14px;padding:12px;background:var(--bg-surface);color:var(--danger);font:800 14px Tajawal;width:100%}
+
+.cu-pay .e button{border:0;background:transparent;padding:0;font-size:11.5px;font-weight:800;color:var(--accent);font-family:inherit;cursor:pointer}
+.cu-sec form{padding-top:12px}.cu-sec form h3{display:none}
+.cu-sec .bd .actions{margin-top:12px}
+.cu-prof.cu-prof2{padding:14px 18px}.cu-prof2 h2{margin:0}
+.cu-hello .cu-av img{width:100%;height:100%;object-fit:cover}
+.cu-search input{padding-inline-start:46px;padding-inline-end:46px}
+.cu-search .wl-s-ic{position:absolute;inset-inline-start:15px;top:50%;transform:translateY(-50%);color:var(--text-secondary);pointer-events:none}
+.cu-bn{margin:0 0 4px}.cu-bn-s{border-radius:20px;overflow:hidden;box-shadow:0 8px 20px color-mix(in srgb,var(--accent) 30%,transparent);touch-action:pan-y}
+.cu-bn-t{display:flex;direction:ltr;transition:transform .45s ease}.cu-bn-c{direction:rtl;flex:0 0 100%;position:relative;padding:18px 18px 16px;min-height:150px;display:flex;flex-direction:column;align-items:flex-start;gap:4px;color:#fff;overflow:hidden}
+.cu-bn-c .tg{background:#ffffff30;border-radius:20px;padding:2px 10px;font-size:11.5px;font-weight:700}.cu-bn-c b{font:800 19px/1.35 Tajawal,sans-serif;max-width:68%;margin-top:4px}.cu-bn-c small{font-size:12.5px;opacity:.92;max-width:68%}
+.cu-bn-b{margin-top:8px;border:0;border-radius:11px;background:#fff;color:#111;font:800 13px Tajawal,sans-serif;padding:8px 16px}
+.cu-bn-c .deco{position:absolute;inset-inline-end:12px;bottom:10px;opacity:.28}
+.cu-bn-d{display:flex;justify-content:center;gap:5px;margin-top:8px}.cu-bn-d i{width:6px;height:6px;border-radius:50%;background:var(--border-color);transition:all .25s}.cu-bn-d i.on{width:18px;border-radius:6px;background:var(--accent)}
+
 </style>
 </body></html>
 
