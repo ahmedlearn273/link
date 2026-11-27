@@ -3032,6 +3032,79 @@ function customerHome(){
  (provs?'<div class="cu-h"><h3>مزوّدون مميزون</h3></div><div class="cu-provs">'+provs+'</div>':"")+
  '</div></main>'+customerBottomNav();
 }
+
+var RQ_DAYS=["الأحد","الإثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"];
+function rqPad(n){return String(n).padStart(2,"0")}
+function rqHourLabel(h){const n=h%12||12;return fmt(n)+":٠٠ "+(h<12?"ص":"م")}
+function rqTimeBlock(){
+ const now=new Date();let days="";
+ for(let i=0;i<14;i++){
+  const d=new Date(now.getFullYear(),now.getMonth(),now.getDate()+i);
+  const key=d.getFullYear()+"-"+rqPad(d.getMonth()+1)+"-"+rqPad(d.getDate());
+  days+='<button type="button" class="rq-day" data-a="rq-day" data-id="'+key+'"><small>'+(i===0?"اليوم":i===1?"غدًا":RQ_DAYS[d.getDay()])+'</small><b>'+fmt(d.getDate())+'</b></button>';
+ }
+ let hrs="";
+ for(let h=0;h<24;h++)hrs+='<button type="button" class="rq-hr" data-a="rq-hr" data-id="'+h+'">'+rqHourLabel(h)+'</button>';
+ return '<section class="section"><h4>موعد التنفيذ</h4>'+
+  '<input type="hidden" name="sched_day" value=""><input type="hidden" name="sched_hour" value=""><input type="hidden" name="urgent" value="0">'+
+  '<div class="rq-days">'+days+'</div><p class="muted" style="margin:10px 0 6px">الساعة (متاح على مدار ٢٤ ساعة)</p><div class="rq-hrs">'+hrs+'</div></section>';
+}
+function rqAttachBlock(){
+ return '<div class="rq-att"><p class="muted" style="margin:10px 0 6px">أرفق صورة أو فيديو أو تسجيل صوتي يوضّح المشكلة (اختياري، ويساعد المزوّد في تسعير دقيق)</p>'+
+  '<div class="rq-att-btns"><button type="button" data-a="rq-pick" data-id="img">'+cui("cam",18)+' صورة</button><button type="button" data-a="rq-pick" data-id="vid">'+cui("bolt",18)+' فيديو</button><button type="button" data-a="rq-pick" data-id="aud">'+cui("user",18)+' صوت</button></div>'+
+  '<input type="file" id="rqFileImg" accept="image/jpeg,image/png,image/webp" multiple hidden>'+
+  '<input type="file" id="rqFileVid" accept="video/mp4,video/webm,video/quicktime" hidden>'+
+  '<input type="file" id="rqFileAud" accept="audio/*" hidden>'+
+  '<div id="rqFileList" class="rq-files"></div></div>';
+}
+function rqFilesRender(){
+ const el=document.getElementById("rqFileList");if(!el)return;
+ el.innerHTML=(s.reqFiles||[]).map((f,i)=>'<div class="rq-file"><span>'+(f.type.startsWith("image/")?"صورة":f.type.startsWith("video/")?"فيديو":"صوت")+'</span><b>'+esc(f.name)+'</b><small>'+(f.size/1048576).toFixed(1)+' MB</small><button type="button" data-a="rq-file-rm" data-id="'+i+'" aria-label="حذف">×</button></div>').join("");
+}
+function rqFilesAdd(list){
+ const lim={image:[10,5],video:[50,1],audio:[15,2]};
+ s.reqFiles=s.reqFiles||[];
+ for(const f of Array.from(list||[])){
+  const k=f.type.startsWith("image/")?"image":f.type.startsWith("video/")?"video":f.type.startsWith("audio/")?"audio":null;
+  if(!k){note("نوع الملف غير مدعوم: "+f.name,"error");continue}
+  if(f.size>lim[k][0]*1048576){note("الملف "+f.name+" أكبر من "+lim[k][0]+" ميجابايت","error");continue}
+  if(s.reqFiles.filter(x=>x.type.startsWith(k+"/")).length>=lim[k][1]){note("الحد الأقصى لهذا النوع "+lim[k][1]+" ملف","error");continue}
+  s.reqFiles.push(f);
+ }
+ rqFilesRender();
+}
+document.addEventListener("change",e=>{
+ const t=e.target;
+ if(t&&(t.id==="rqFileImg"||t.id==="rqFileVid"||t.id==="rqFileAud")){rqFilesAdd(t.files);t.value=""}
+});
+function rqHoursRefresh(){
+ const day=document.querySelector('#requestForm [name="sched_day"]')?.value||"";
+ const now=new Date();
+ const today=now.getFullYear()+"-"+rqPad(now.getMonth()+1)+"-"+rqPad(now.getDate());
+ document.querySelectorAll("#requestForm .rq-hr").forEach(b=>{
+  const h=Number(b.dataset.id);
+  const past=day===today&&h<=now.getHours();
+  b.disabled=past;b.classList.toggle("off",past);
+  if(past&&b.classList.contains("on")){b.classList.remove("on");const hh=document.querySelector('#requestForm [name="sched_hour"]');if(hh)hh.value=""}
+ });
+}
+async function rqUploadFiles(requestId,files){
+ const bucket=db.storage.from("request-media");
+ let ok=0,fail=0;
+ for(const f of files){
+  try{
+   const ext=(f.name.split(".").pop()||"bin").toLowerCase().replace(/[^a-z0-9]/g,"")||"bin";
+   const path=s.user.id+"/"+requestId+"/"+Date.now()+"-"+Math.random().toString(36).slice(2)+"."+ext;
+   const up=await bucket.upload(path,f,{contentType:f.type,upsert:false});
+   if(up.error)throw up.error;
+   const kind=f.type.startsWith("image/")?"image":f.type.startsWith("video/")?"video":"audio";
+   const ins=await db.from("service_request_media").insert({request_id:requestId,uploaded_by:s.user.id,storage_path:path,mime_type:f.type,size_bytes:f.size,media_kind:kind});
+   if(ins.error)throw ins.error;
+   ok++;
+  }catch(err){console.warn("[request-media]",err);fail++}
+ }
+ return {ok,fail};
+}
 function customerIdCard(){
  const p=s.profile||{};
  const rq=s.requests||[];
@@ -6353,17 +6426,18 @@ else
   const m=s.modal;let c="";
 
 if(m.type==="request"){
- let ps=s.providers.filter(p=>!m.providerId||p.id===m.providerId);
  c='<div class="modal-title"><h3>إنشاء طلب خدمة</h3><p class="muted">أدخل تفاصيل الخدمة المطلوبة حتى يتمكن المزوّد من فهم احتياجك والتواصل معك.</p></div>'+
  '<form id="requestForm">'+
- '<section class="section"><h4>الخدمة والمزوّد</h4>'+
+ '<section class="section"><h4>الخدمة</h4>'+
  select("الخدمة","service_id",s.services.map(x=>({value:x.id,label:x.name_ar})),m.serviceId||"")+
- select("مزوّد الخدمة (اختياري)","provider_id",[{value:"",label:"اترك الطلب متاحًا للمزوّدين"}].concat(ps.map(x=>({value:x.id,label:(x.display_name||"مزوّد")+" - "+(x.city||"")}))),m.providerId||"")+
+ (m.providerId?'<input type="hidden" name="provider_id" value="'+esc(m.providerId)+'">':"")+
  '</section>'+
  '<section class="section"><h4>تفاصيل الطلب</h4>'+
  field("عنوان الطلب","title","text","مثال: صيانة مكيف المنزل","",true)+
  '<label class="field">وصف المشكلة أو الخدمة المطلوبة<textarea name="description" placeholder="اشرح ما تحتاج إليه بالتفصيل..."></textarea></label>'+
+ rqAttachBlock()+
  '</section>'+
+ rqTimeBlock()+
  '<section class="section"><h4>موقع تنفيذ الخدمة</h4>'+
  (()=>{
   const eg=(s.geo.countries||[]).find(x=>x.country_code==="EG");
@@ -6378,8 +6452,10 @@ if(m.type==="request"){
  '<section class="section"><h4>الميزانية</h4>'+
  field("الميزانية (اختياري)","budget","number","المبلغ المتوقع","",false)+
  '</section>'+
- '<div class="actions"><button class="btn gold">إرسال طلب الخدمة</button></div>'+
+ '<div class="rq-bar"><button class="btn gold" type="submit" onclick="this.form.querySelector(\'[name=urgent]\').value=\'0\'">'+cui("ok")+' إرسال الطلب</button><button class="btn rq-urgent" type="button" data-a="rq-urgent" data-id="">'+cui("bolt")+' طلب طارئ</button></div>'+
+ '<p class="rq-urgent-note">الطلب الطارئ يُرسل فورًا بدون اختيار موعد.</p>'+
  '</form>';
+ s.reqFiles=[];
 }
   
 if(m.type==="offer")c='<div class="modal-title"><h3>إضافة خدمة إلى ملفك</h3><p class="muted">أضف الخدمة وحدد سعرها حتى يتمكن العملاء من معرفة عروضك.</p></div><form id="offerForm"><section class="section"><h4>بيانات الخدمة</h4>'+select("اختر الخدمة","service_id",s.services.map(x=>({value:x.id,label:x.name_ar})),"")+'</section><section class="section"><h4>تفاصيل السعر</h4>'+field("السعر","price","number","أدخل السعر","",true)+select("العملة","currency",[{value:"SAR",label:"ريال سعودي"},{value:"EGP",label:"جنيه مصري"},{value:"AED",label:"درهم إماراتي"}],"SAR")+select("نوع السعر","price_type",[{value:"fixed",label:"سعر ثابت"},{value:"starting_from",label:"السعر يبدأ من"},{value:"negotiable",label:"قابل للتفاوض"}],"fixed")+'</section><div class="actions"><button class="btn gold">إضافة الخدمة</button></div></form>';
@@ -8210,7 +8286,29 @@ console.info("[WASLA signup] اكتمل رفع المستند:", d.document_type
    const gC=(s.geo.countries||[]).find(x=>x.id===v.country_id&&x.country_code==="EG"),gT=(s.geo.cities||[]).find(x=>x.id===v.city_id&&x.country_id===v.country_id),gA=(s.geo.areas||[]).find(x=>x.id===v.area_id&&x.city_id===v.city_id);
    if(!gC||!gT||!gA)throw Error("اختر المحافظة والقسم / المركز بشكل صحيح.");
    if(!String(v.address||"").trim())throw Error("اكتب العنوان التفصيلي.");
-   let r=await db.rpc("create_service_request",{p_service_id:v.service_id,p_title:v.title,p_description:v.description||null,p_country:gC.name_ar,p_city:gT.name_ar,p_address:String(v.address).trim(),p_budget:v.budget?Number(v.budget):null,p_provider_id:v.provider_id||null,p_country_id:gC.id,p_city_id:gT.id,p_area_id:gA.id});if(r.error)throw r.error;s.modal=null;await refreshRoleData();note("تم إرسال طلب الخدمة.","success");return}
+   const urgent=v.urgent==="1";
+   let when=null,whenText="";
+   if(urgent){whenText="طلب طارئ: يحتاج تنفيذ فوري"}
+   else{
+    if(!v.sched_day||v.sched_hour==="")throw Error("اختر اليوم والساعة المناسبين لك، أو اضغط طلب طارئ.");
+    const hh=Number(v.sched_hour),dp=v.sched_day.split("-").map(Number);
+    when=new Date(dp[0],dp[1]-1,dp[2],hh,0,0);
+    if(isNaN(when.getTime())||when.getTime()<Date.now())throw Error("اختر موعدًا قادمًا.");
+    whenText="الموعد المطلوب: "+when.toLocaleString("ar-EG",{weekday:"long",day:"numeric",month:"long",hour:"numeric",minute:"2-digit"});
+   }
+   const files=(s.reqFiles||[]).slice();
+   const desc=((v.description||"").trim()+"\n\n["+whenText+"]").trim();
+   let r=await db.rpc("create_service_request",{p_service_id:v.service_id,p_title:v.title,p_description:desc,p_country:gC.name_ar,p_city:gT.name_ar,p_address:String(v.address).trim(),p_budget:v.budget?Number(v.budget):null,p_provider_id:v.provider_id||null,p_country_id:gC.id,p_city_id:gT.id,p_area_id:gA.id});if(r.error)throw r.error;
+   let newId=typeof r.data==="string"?r.data:(r.data&&r.data.id)||null;
+   s.modal=null;await refreshRoleData();
+   if(!newId){const c=(s.requests||[]).filter(q=>q.title===v.title).sort((x,y)=>String(y.created_at||"").localeCompare(String(x.created_at||"")))[0];newId=c?.id||null}
+   if(newId&&when){try{await db.from("service_requests").update({scheduled_at:when.toISOString()}).eq("id",newId)}catch(_){}}
+   note("تم إرسال طلب الخدمة.","success");
+   if(files.length){
+    if(!newId)note("تم إنشاء الطلب لكن تعذر رفع المرفقات (لم يتم تحديد رقم الطلب).","error");
+    else{const u=await rqUploadFiles(newId,files);if(u.fail)note(u.ok?"تم رفع "+u.ok+" مرفق وتعذر رفع "+u.fail+".":"تم إنشاء الطلب لكن تعذر رفع المرفقات حاليًا.","error")}
+   }
+   s.reqFiles=[];return}
  
 if(f.id==="cancelRequestForm"){
 
@@ -8828,6 +8926,11 @@ if(a==="knowledge-view"){
 }
 if(a==="category-open"){s.selectedCategory=id;render();return}
 if(a==="category-back"){s.selectedCategory=null;render();return}
+if(a==="rq-day"){document.querySelectorAll("#requestForm .rq-day").forEach(b=>b.classList.toggle("on",b.dataset.id===id));const i=document.querySelector('#requestForm [name="sched_day"]');if(i)i.value=id;rqHoursRefresh();return}
+if(a==="rq-hr"){const b=document.querySelector('#requestForm .rq-hr[data-id="'+id+'"]');if(b&&b.disabled)return;document.querySelectorAll("#requestForm .rq-hr").forEach(x=>x.classList.toggle("on",x.dataset.id===id));const i=document.querySelector('#requestForm [name="sched_hour"]');if(i)i.value=id;return}
+if(a==="rq-pick"){const n=document.getElementById(id==="img"?"rqFileImg":id==="vid"?"rqFileVid":"rqFileAud");if(n)n.click();return}
+if(a==="rq-file-rm"){(s.reqFiles||[]).splice(Number(id),1);rqFilesRender();return}
+if(a==="rq-urgent"){const f=document.getElementById("requestForm");if(f){f.querySelector('[name="urgent"]').value="1";if(f.requestSubmit)f.requestSubmit();else f.dispatchEvent(new Event("submit",{cancelable:true,bubbles:true}))}return}
 if(a==="cu-providers"){const n=document.querySelector(".cu-provs");if(n)n.scrollIntoView({behavior:"smooth",block:"center"});return}
 if(a==="search-clear"){s.filter="";render();const n=document.getElementById("search");if(n)n.focus();return}
   
@@ -10914,6 +11017,25 @@ h1,h2,h3,h4{font-family:var(--wasla-font);font-weight:700;letter-spacing:0}
 .cu-bn-b{margin-top:8px;border:0;border-radius:11px;background:#fff;color:#111;font:800 13px Tajawal,sans-serif;padding:8px 16px}
 .cu-bn-c .deco{position:absolute;inset-inline-end:12px;bottom:10px;opacity:.28}
 .cu-bn-d{display:flex;justify-content:center;gap:5px;margin-top:8px}.cu-bn-d i{width:6px;height:6px;border-radius:50%;background:var(--border-color);transition:all .25s}.cu-bn-d i.on{width:18px;border-radius:6px;background:var(--accent)}
+
+
+.rq-bar{position:sticky;bottom:-17px;margin:16px -17px -17px;padding:12px 17px calc(12px + env(safe-area-inset-bottom));background:var(--bg-surface);border-top:1px solid var(--border-color);display:grid;grid-template-columns:1fr 1fr;gap:10px;z-index:2}
+.rq-bar .btn{display:flex;align-items:center;justify-content:center;gap:6px;border-radius:14px;padding:13px 6px;font-weight:800;font-size:14px;margin:0}
+.rq-urgent{background:var(--danger-bg);color:var(--danger);border:1.5px solid var(--danger)}
+.rq-urgent-note{text-align:center;font-size:11.5px;color:var(--text-secondary);margin:6px 0 0}
+.rq-days{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:2px 0}.rq-days::-webkit-scrollbar{display:none}
+.rq-day{flex:0 0 62px;border:1px solid var(--border-color);background:var(--bg-surface);color:var(--text-primary);border-radius:14px;padding:8px 0;text-align:center;font-family:inherit}
+.rq-day small{display:block;font-size:11px;color:var(--text-secondary)}.rq-day b{font:800 18px Tajawal,sans-serif}
+.rq-day.on,.rq-hr.on{background:var(--primary);border-color:var(--primary);color:#fff}.rq-day.on small{color:#ffffffcc}
+.rq-hrs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.rq-hr{border:1px solid var(--border-color);background:var(--bg-surface);color:var(--text-primary);border-radius:12px;padding:9px 0;text-align:center;font:700 12.5px Tajawal,sans-serif}
+.rq-hr.off,.rq-hr:disabled{opacity:.4;text-decoration:line-through}
+.rq-att-btns{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.rq-att-btns button{display:flex;align-items:center;justify-content:center;gap:6px;border:1px dashed var(--primary);background:color-mix(in srgb,var(--primary) 6%,transparent);color:var(--primary);border-radius:12px;padding:10px 4px;font:800 13px Tajawal,sans-serif}
+.rq-files{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.rq-file{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:12px;background:var(--bg-subtle);font-size:12.5px}
+.rq-file span{font-weight:800;color:var(--accent)}.rq-file b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}.rq-file small{color:var(--text-secondary)}
+.rq-file button{border:0;background:transparent;color:var(--danger);font-size:20px;line-height:1}
 
 </style>
 </body></html>
