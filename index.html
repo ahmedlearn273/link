@@ -5580,8 +5580,77 @@ function render(){
     }
    }
   }catch(_){}
+  try{navHistSync()}catch(_){}
  }
 }
+var navHist={init:false,idx:0,stack:[],key:null,target:null,until:0};
+function navViewKey(){
+ if(!s.user||!s.profile||s.mode==="recovery"||typeof s.tab!=="string")return null;
+ var chat=(s.tab==="messages"&&s.activeChat)?String(s.activeChat.id):"";
+ var det=(s.tab==="requests"&&s.rq&&s.rq.detailId)?String(s.rq.detailId):"";
+ return s.tab+"|"+chat+"|"+det;
+}
+function navViewState(idx){
+ return {wv:1,idx:idx,tab:s.tab,rf:s.requestFilter,
+  chat:(s.tab==="messages"&&s.activeChat)?String(s.activeChat.id):null,
+  detail:(s.tab==="requests"&&s.rq&&s.rq.detailId)?String(s.rq.detailId):null};
+}
+function navHistSync(){
+ var k=navViewKey();
+ if(!k)return;
+ var h=navHist;
+ if(h.target!==null){
+  if(k===h.target||Date.now()>h.until){h.key=k;h.target=null;h.stack[h.idx]=k}
+  return;
+ }
+ if(!h.init){
+  h.init=true;
+  var hs=history.state;
+  h.idx=(hs&&hs.wv===1&&typeof hs.idx==="number")?hs.idx:0;
+  h.stack[h.idx]=k;h.key=k;
+  history.replaceState(navViewState(h.idx),document.title);
+  return;
+ }
+ if(k===h.key)return;
+ if(h.idx>0&&h.stack[h.idx-1]===k){
+  // in-app "back" button: go back in history instead of stacking a duplicate
+  h.target=k;h.until=Date.now()+3000;
+  history.back();
+  return;
+ }
+ h.idx+=1;
+ h.stack.length=h.idx;
+ h.stack[h.idx]=k;
+ h.key=k;
+ history.pushState(navViewState(h.idx),document.title);
+}
+function navFire(a,id){
+ var b=document.createElement("button");
+ b.setAttribute("data-a",a);b.setAttribute("data-id",id);b.style.display="none";
+ app.appendChild(b);
+ try{b.click()}finally{b.remove()}
+}
+window.addEventListener("popstate",function(e){
+ var st=e.state,h=navHist;
+ if(!st||st.wv!==1||!s.user||!s.profile)return;
+ h.idx=typeof st.idx==="number"?st.idx:0;
+ var want=st.tab+"|"+(st.chat||"")+"|"+(st.detail||"");
+ if(navViewKey()===want){h.key=want;h.target=null;h.stack[h.idx]=want;return}
+ h.target=want;h.until=Date.now()+3000;h.stack[h.idx]=want;
+ try{
+  s.modal=null;
+  if(!st.chat&&s.activeChat){try{wcUnsubscribe()}catch(_){}s.activeChat=null;s.messages=[];s.chatLoading=0;s.wcSig=""}
+  if(!st.detail&&s.rq){s.rq.detailId=null;s.rq.detail=null;s.rq.act=null}
+  s.tab=st.tab;
+  if(typeof st.rf==="string")s.requestFilter=st.rf;
+  render();
+  if(st.tab==="knowledge"&&typeof loadPrimeKnowledge==="function")loadPrimeKnowledge();
+  if(st.chat&&!(s.activeChat&&String(s.activeChat.id)===st.chat))navFire("chatopen",st.chat);
+  if(st.detail&&!(s.rq&&s.rq.detailId===st.detail))navFire("rq-open",st.detail);
+  if(st.tab==="requests"&&!st.detail&&typeof rqCanView==="function"&&rqCanView())loadRequestsList();
+  if(st.tab==="messages"&&!st.chat){try{wcListKick()}catch(_){}}
+ }catch(err){console.warn("history restore failed",err);h.target=null}
+});
 function renderCore(){
    if(s.mode==="recovery"){app.innerHTML=recoveryView();return}
    try{
