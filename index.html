@@ -4729,10 +4729,15 @@ async function viewPrimeKnowledgeDocument(documentId){
       function rqPermissions(){
         return Array.isArray(s.staffAccess?.permissions)?s.staffAccess.permissions:[];
       }
+      // ASV: مفتاح requests.view محجوب عمدًا في has_staff_permission، فظهور تبويب الطلبات يعتمد على الرول.
+      // الحماية الفعلية للبيانات تبقى في الـ RPCs (asv_has_scoped_permission) وليس هنا.
+      function rqIsAsv(){
+        return s.profile?.role==="staff"&&s.profile?.status==="active"&&s.profile?.staff_role_code==="ASV"&&s.staffAccess?.is_active===true;
+      }
       function rqCanView(){
         const role=s.profile?.role;
         if(role==="admin"||role==="owner")return true;
-        if(role==="staff")return rqPermissions().includes("requests.view");
+        if(role==="staff")return rqPermissions().includes("requests.view")||rqIsAsv();
         return false;
       }
       function rqError(err){
@@ -5481,7 +5486,7 @@ function checkedStaffPermissions(form){
 function staff(){
  const permissions=rqPermissions();
  const can=p=>permissions.includes(p);
- const navItems=STAFF_NAV_ITEMS.filter(n=>n[2].some(can)).map(n=>[n[0],n[1]]);
+ const navItems=STAFF_NAV_ITEMS.filter(n=>n[2].some(can)||(n[0]==="requests"&&rqIsAsv())).map(n=>[n[0],n[1]]);
 
  if(!navItems.some(x=>x[0]===s.tab))s.tab=navItems.length?navItems[0][0]:"none";
 
