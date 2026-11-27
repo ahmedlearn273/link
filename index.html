@@ -1295,39 +1295,46 @@ a:focus-visible{
   --w-bg:var(--primary);--w-fg:var(--bg-main);--w-ac:var(--accent);
   --w-onacw:var(--bg-main);--w-onacs:var(--primary-hover);--w-onbtn:var(--bg-surface);
   position:relative;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;
-  padding:calc(60px + env(safe-area-inset-top)) max(26px,calc((100% - 440px)/2)) 0;
-  overflow:hidden;background:var(--w-bg);color:var(--w-fg);text-align:start;
+  padding:calc(56px + env(safe-area-inset-top)) max(24px,calc((100% - 440px)/2)) 0;
+  overflow:hidden;background:var(--w-bg);color:var(--w-fg);text-align:start;isolation:isolate;
 }
+.wasla-welcome:before{content:"";position:absolute;inset:-20%;z-index:0;pointer-events:none;
+  background:radial-gradient(60% 38% at 88% 6%,color-mix(in srgb,var(--w-ac) 46%,transparent),transparent 70%),
+             radial-gradient(70% 42% at 6% 62%,color-mix(in srgb,var(--w-fg) 15%,transparent),transparent 70%),
+             radial-gradient(80% 40% at 80% 100%,color-mix(in srgb,var(--w-ac) 30%,transparent),transparent 70%);
+  animation:wl3-aurora 11s ease-in-out infinite alternate}
+@keyframes wl3-aurora{from{transform:translate3d(-3%,-2%,0) scale(1)}to{transform:translate3d(3%,2%,0) scale(1.08)}}
+.wasla-welcome + .foot{display:none}
 :root[data-theme="dark"] .wasla-welcome{--w-bg:var(--bg-main);--w-fg:var(--text-primary);--w-onacw:var(--bg-main);--w-onacs:var(--bg-main);--w-onbtn:var(--bg-main)}
 .wasla-welcome > .theme-toggle{position:absolute;top:20px;inset-inline-end:20px;z-index:6}
-.wasla-welcome .wl3-giant{position:absolute;top:90px;left:-20px;right:-20px;text-align:center;font:800 210px/.8 Tajawal,sans-serif;color:color-mix(in srgb,var(--w-fg) 6%,transparent);white-space:nowrap;pointer-events:none;z-index:1;animation:wl3-drift 14s ease-in-out infinite alternate}
+.wasla-welcome .wl3-giant{position:absolute;top:calc(84px + env(safe-area-inset-top));left:0;right:0;text-align:center;font:800 min(40vw,170px)/1 Tajawal,sans-serif;color:color-mix(in srgb,var(--w-fg) 8%,transparent);white-space:nowrap;pointer-events:none;z-index:1;animation:wl3-drift 14s ease-in-out infinite alternate}
 .wasla-welcome .wl3-orange{position:absolute;inset:0;background:var(--w-ac);z-index:2;pointer-events:none;animation:wl3-oc .6s cubic-bezier(.65,0,.35,1) 2.4s both,wl3-ow .7s cubic-bezier(.65,0,.35,1) 3.2s forwards}
 .wasla-welcome .wl3-slot{position:relative;z-index:3;display:block;width:46px;height:46px;flex:none}
 .wasla-welcome .wl3-final-mark{display:none;width:46px;height:46px}
-.wasla-welcome .wl3-title{position:relative;z-index:3;margin:40px 0 0;font:800 clamp(84px,30vw,118px)/1 Tajawal,sans-serif;color:var(--w-fg);animation:wl3-in .7s cubic-bezier(.2,.8,.2,1) 3.7s both}
-.wasla-welcome .wl3-tag{position:relative;z-index:3;margin:8px 0 0;font:800 26px/1.4 Tajawal,sans-serif;color:var(--w-ac);animation:wl3-up .6s cubic-bezier(.2,.8,.2,1) 3.9s both}
-.wasla-welcome .wl3-row{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);z-index:4;display:flex;direction:ltr;align-items:flex-end;justify-content:center;font-size:clamp(46px,16vw,64px);pointer-events:none}
-.wasla-welcome .wl3-mark{position:relative;display:block;flex:none;width:1.28em;height:1.28em;margin-bottom:.06em;margin-inline-end:-.03em;transform-origin:center;filter:drop-shadow(0 0 8px color-mix(in srgb,var(--w-ac) 55%,transparent));animation:wl3-mark 1.55s 2.4s both}
+.wasla-welcome .wl3-title{position:relative;z-index:3;margin:28px 0 0;font:800 clamp(72px,min(28vw,13dvh),116px)/1.05 Tajawal,sans-serif;color:var(--w-fg);animation:wl3-in .7s cubic-bezier(.2,.8,.2,1) 3.7s both}
+.wasla-welcome .wl3-tag{position:relative;z-index:3;margin:10px 0 0;font:700 clamp(20px,6vw,25px)/1.5 Tajawal,sans-serif;color:var(--w-fg);opacity:.94;text-shadow:0 1px 14px color-mix(in srgb,var(--w-bg) 70%,transparent);animation:wl3-up .6s cubic-bezier(.2,.8,.2,1) 3.9s both}
+.wasla-welcome .wl3-row{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);z-index:4;display:flex;direction:ltr;align-items:center;justify-content:center;gap:.14em;font-size:clamp(46px,16vw,64px);pointer-events:none}
+.wasla-welcome .wl3-mark{position:relative;display:block;flex:none;width:1.28em;height:1.28em;transform-origin:center;filter:drop-shadow(0 0 8px color-mix(in srgb,var(--w-ac) 55%,transparent));animation:wl3-mark 1.55s 2.4s both}
 .wasla-welcome .wl3-mark .w{fill:none;stroke:var(--w-fg);stroke-width:8;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1;animation:wl3-draw .75s cubic-bezier(.4,0,.2,1) .25s both,wl3-wc 1.55s 2.4s both}
 .wasla-welcome .wl3-mark .s{fill:none;stroke:var(--w-ac);stroke-width:4;stroke-linecap:round;stroke-dasharray:1;animation:wl3-draw .7s cubic-bezier(.4,0,.2,1) .6s both,wl3-sc 1.55s 2.4s both}
 .wasla-welcome .wl3-mark .d{fill:var(--w-ac);transform-box:fill-box;transform-origin:center;animation:wl3-pop .45s cubic-bezier(.34,1.56,.64,1) 1s both,wl3-dc 1.55s 2.4s both}
-.wasla-welcome .wl3-letters{display:flex;align-items:flex-end;animation:wl3-lout .45s ease-in 2.2s both}
-.wasla-welcome .wl3-letters span{display:block;height:1em;line-height:1;font:800 1em/1 Tajawal,sans-serif;letter-spacing:.015em;color:var(--w-fg);animation:wl3-let .45s cubic-bezier(.2,.8,.2,1) calc(1.05s + var(--i)*.16s) both}
-.wasla-welcome .wl3-actions{position:relative;z-index:3;display:grid;gap:10px;margin-top:auto;padding-bottom:calc(42px + env(safe-area-inset-bottom))}
-.wasla-welcome .wl3-actions .btn{display:flex;justify-content:space-between;align-items:center;width:100%;min-height:56px;padding:18px 22px;border-radius:14px;font:800 17px Tajawal,sans-serif;border:1.5px solid transparent;animation:wl3-spring .7s cubic-bezier(.34,1.56,.64,1) calc(4s + var(--i)*.2s) both}
+.wasla-welcome .wl3-letters{display:block;direction:rtl;animation:wl3-lout .45s ease-in 2.2s both}
+.wasla-welcome .wl3-letters span{display:block;font:800 1em/1.15 Tajawal,sans-serif;padding:.04em .06em .12em;color:var(--w-fg);animation:wl3-wd .95s cubic-bezier(.2,.8,.2,1) 1.05s both}
+.wasla-welcome .wl3-actions{position:relative;z-index:3;display:grid;gap:10px;margin-top:auto;padding-bottom:calc(26px + env(safe-area-inset-bottom));padding-top:18px}
+.wasla-welcome .wl3-actions .btn{display:flex;justify-content:space-between;align-items:center;width:100%;min-height:54px;padding:15px 22px;border-radius:14px;font:800 17px Tajawal,sans-serif;border:1.5px solid transparent;animation:wl3-spring .7s cubic-bezier(.34,1.56,.64,1) calc(4s + var(--i)*.2s) both}
 .wasla-welcome .wl3-actions .btn:after{content:"←";font-weight:800}
 .wasla-welcome .wl3-actions .btn.wl3-b1{background:var(--w-ac)!important;color:var(--w-onbtn)!important;border-color:transparent!important}
 .wasla-welcome .wl3-actions .btn.wl3-b2{background:var(--w-fg)!important;color:var(--w-bg)!important;border-color:transparent!important}
 .wasla-welcome .wl3-actions .btn.wl3-b3{background:transparent!important;color:var(--w-fg)!important;border-color:color-mix(in srgb,var(--w-fg) 38%,transparent)!important}
-@keyframes wl3-drift{from{transform:translateX(-30px)}to{transform:translateX(30px)}}
+@keyframes wl3-drift{from{transform:translateX(-10px)}to{transform:translateX(10px)}}
 @keyframes wl3-oc{from{clip-path:circle(0 at 50% 50%)}to{clip-path:circle(150vmax at 50% 50%)}}
 @keyframes wl3-ow{to{transform:translateY(-101%)}}
 @keyframes wl3-draw{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}
 @keyframes wl3-pop{from{transform:scale(0)}to{transform:scale(1)}}
-@keyframes wl3-let{
-  0%{opacity:0;transform:translateY(16px) scale(.85);filter:blur(8px);text-shadow:0 0 0 transparent}
-  60%{text-shadow:0 0 22px var(--w-ac)}
-  100%{opacity:1;transform:none;filter:none;text-shadow:0 0 6px color-mix(in srgb,var(--w-fg) 35%,transparent)}
+@keyframes wl3-wd{
+  0%{opacity:0;clip-path:inset(-30% -20% -30% 100%);transform:translateX(18px);filter:blur(8px)}
+  60%{filter:blur(0)}
+  100%{opacity:1;clip-path:inset(-30% -20% -30% -20%);transform:none;filter:none;text-shadow:0 0 10px color-mix(in srgb,var(--w-fg) 30%,transparent)}
 }
 @keyframes wl3-lout{to{opacity:0;filter:blur(4px)}}
 @keyframes wl3-mark{
@@ -2813,8 +2820,8 @@ roles+'<div class="wl-search"><svg class="wl-s-ic" viewBox="0 0 24 24" width="20
  '<span class="wl3-slot"><svg class="wl3-final-mark" viewBox="0 0 64 64" aria-hidden="true"><path d="M7 17 L19 46 L31 25 L43 46 L57 17" fill="none" stroke="var(--w-fg)" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 39 C17 57 46 9 59 27" fill="none" stroke="var(--w-ac)" stroke-width="4" stroke-linecap="round"/><circle cx="55" cy="15" r="5" fill="var(--w-ac)"/></svg></span>'+
  '<h1 class="wl3-title">وصلة</h1>'+
  '<p class="wl3-tag">كل خدمة<br>تبدأ باتصال.</p>'+
- '<div class="wl3-row" aria-label="Welcome"><span class="wl3-mark"><svg class="wl3-svg" viewBox="0 0 64 64" aria-hidden="true" style="width:100%;height:100%;overflow:visible;display:block"><path class="w" pathLength="1" d="M7 17 L19 46 L31 25 L43 46 L57 17"/><path class="s" pathLength="1" d="M5 39 C17 57 46 9 59 27"/><circle class="d" cx="55" cy="15" r="5"/></svg></span>'+
- '<span class="wl3-letters" aria-hidden="true">'+["e","l","c","o","m","e"].map((c,i)=>'<span style="--i:'+i+'">'+c+'</span>').join("")+'</span></div>'+
+ '<div class="wl3-row" aria-label="وصلة"><span class="wl3-mark"><svg class="wl3-svg" viewBox="0 0 64 64" aria-hidden="true" style="width:100%;height:100%;overflow:visible;display:block"><path class="w" pathLength="1" d="M7 17 L19 46 L31 25 L43 46 L57 17"/><path class="s" pathLength="1" d="M5 39 C17 57 46 9 59 27"/><circle class="d" cx="55" cy="15" r="5"/></svg></span>'+
+ '<span class="wl3-letters" aria-hidden="true"><span>وصلة</span></span></div>'+
  '<div class="wl3-actions">'+
  btn("mode","تسجيل الدخول","wl3-b1","login",'style="--i:0"')+
  btn("mode","إنشاء حساب","wl3-b2","signup",'style="--i:1"')+
@@ -6482,7 +6489,8 @@ app.innerHTML=((s.profile?.role==="admin"||s.profile?.role==="owner")?'<main cla
  return;
 }
  
- if(/[?&]splash(=|&|$)/.test(location.search)){app.innerHTML=welcomeView();return}
+ if(/[?&]splash(=|&|$)/.test(location.search)){if(!app.querySelector(".wasla-welcome.wl3"))app.innerHTML=welcomeView();return}
+ if(!s.user&&s.mode==="welcome"&&app.querySelector(".wasla-welcome.wl3")&&app.children.length<=2)return;
  if(!s.user){app.innerHTML=(s.mode==="welcome"?welcomeView():s.mode==="explore"?landing():authView())+'<div class="foot">منصة وصله · جميع الحقوق محفوظة</div>';return}
 if(s.tab==="account"){
  app.innerHTML=accountSettingsView();
