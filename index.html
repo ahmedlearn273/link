@@ -3900,34 +3900,44 @@ async function sfLoad(id){
  try{const r=await db.rpc("admin_get_staff_file",{p_user_id:id});if(r.error)throw r.error;SF.data=r.data||{}}catch(e){SF.err=String(e&&e.message||e)}
  SF.loading=false;render();
 }
+const SF_CSS='<style>.sf-sec .btn{border-radius:999px}.sf-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}.sf-card{position:relative;background:var(--bg-surface);border:1px solid var(--border-color);border-radius:18px;padding:14px;box-shadow:var(--surface-shadow);overflow:hidden}.sf-card:before{content:"";position:absolute;inset-inline:0;top:0;height:4px;background:linear-gradient(90deg,var(--primary),var(--primary-hover))}.sf-card.adm:before{background:linear-gradient(90deg,var(--accent,#d4a24c),#f0cf8a)}.sf-top{display:flex;align-items:center;gap:12px}.sf-av{flex:0 0 auto;width:48px;height:48px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:1.2rem;color:#fff;background:linear-gradient(135deg,var(--primary),var(--primary-hover));box-shadow:var(--surface-shadow)}.sf-av.adm{background:linear-gradient(135deg,var(--accent,#d4a24c),#b8862f)}.sf-av.lg{width:68px;height:68px;font-size:1.7rem}.sf-nm{min-width:0;flex:1}.sf-nm b{display:block;font-size:1rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.sf-pills{display:flex;gap:6px;flex-wrap:wrap;margin-top:5px}.sf-pill{display:inline-flex;align-items:center;gap:4px;border-radius:999px;padding:3px 10px;font-size:.74rem;font-weight:700;background:var(--bg-subtle);color:var(--text-secondary);border:1px solid var(--border-color)}.sf-pill.ok{background:var(--success-bg,#e6f6ee);color:var(--success,#1a7f4b);border-color:transparent}.sf-pill.off{background:var(--error-bg,#fdeaea);color:var(--error,#c0392b);border-color:transparent}.sf-pill.gold{background:var(--warning-bg);color:#8a5d0a;border-color:transparent}.sf-ph{margin:10px 0 2px;font-size:.88rem;color:var(--text-secondary);font-variant-numeric:tabular-nums}.sf-act{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.sf-act .btn{flex:1 1 auto;padding:8px 12px;font-size:.82rem;white-space:nowrap}.sf-h{display:flex;align-items:center;gap:10px;margin:22px 0 10px}.sf-h i{width:5px;height:22px;border-radius:5px;background:linear-gradient(180deg,var(--accent,#d4a24c),var(--primary))}.sf-h h3{margin:0;font-size:1.02rem}.sf-h span{margin-inline-start:auto}.sf-hero{display:flex;gap:14px;align-items:center;background:linear-gradient(135deg,var(--bg-surface),var(--bg-subtle));border:1px solid var(--border-color);border-radius:20px;padding:16px;box-shadow:var(--surface-shadow);margin:10px 0 4px;position:relative;overflow:hidden}.sf-hero:before{content:"";position:absolute;inset-inline-start:0;top:0;bottom:0;width:5px;background:linear-gradient(180deg,var(--accent,#d4a24c),var(--primary))}.sf-hero h2{margin:0 0 4px}.sf-kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0 0}.sf-kpi div{background:var(--bg-surface);border:1px solid var(--border-color);border-radius:14px;padding:8px 6px;text-align:center}.sf-kpi small{display:block;color:var(--text-secondary);font-size:.72rem}.sf-kpi b{font-size:.95rem;font-variant-numeric:tabular-nums}</style>';
+function sfInit(n){return esc(String(n||"?").trim().charAt(0)||"?")}
+function sfActive(x,isAdmin){return isAdmin?x.status==="active":!!x.staff_permissions?.is_active}
 function sfCard(x,isAdmin){
- const role=isAdmin?"أدمن":(x.staff_title||x.staff_role_code||"موظف");
- return '<article class="item"><div class="row"><div><b>'+esc(x.full_name||"بدون اسم")+'</b><p class="small">'+codeTag(idCode("EMP",x.id))+' · '+esc(role)+'</p></div>'+tag(isAdmin?(x.status==="active"?"نشط":"موقوف"):(x.staff_permissions?.is_active?"نشط":"موقوف"))+'</div><p class="small">'+esc(x.phone||"لا يوجد رقم هاتف")+'</p><div class="actions">'+btn("sf-open","الملف المهني","gold",x.id)+
-  (!isAdmin?btn("editstaff","إدارة الصلاحيات","light",x.id):"")+
+ const role=isAdmin?"أدمن":(x.staff_title||x.staff_role_code||"موظف"),on=sfActive(x,isAdmin);
+ return '<article class="sf-card'+(isAdmin?' adm':'')+'"><div class="sf-top"><div class="sf-av'+(isAdmin?' adm':'')+'">'+sfInit(x.full_name)+'</div><div class="sf-nm"><b>'+esc(x.full_name||"بدون اسم")+'</b><div class="sf-pills"><span class="sf-pill gold">'+esc(role)+'</span><span class="sf-pill '+(on?'ok':'off')+'">'+(on?"نشط":"موقوف")+'</span></div></div></div><div class="sf-ph">'+codeTag(idCode("EMP",x.id))+' &nbsp; '+esc(x.phone||"لا يوجد رقم هاتف")+'</div><div class="sf-act">'+btn("sf-open","الملف المهني","gold",x.id)+
+  (!isAdmin?btn("editstaff","الصلاحيات","light",x.id):"")+
   (!isAdmin&&sfIsOwner()?btn("sf-promote","ترقية إلى أدمن","light",x.id):"")+'</div></article>';
 }
+function sfHd(t,extra){return '<div class="sf-h"><i></i><h3>'+t+'</h3>'+(extra?'<span>'+extra+'</span>':'')+'</div>'}
 function staffTabView(){
  const isO=sfIsOwner();
  if(SF.id)return sfFileView();
- return '<section class="section"><div class="sectionhead"><div><h2>إدارة الموظفين</h2><p class="small">أدر فريق العمل وافتح الملف المهني لكل شخص.</p></div>'+btn("addstaff","إضافة موظف","gold")+'</div>'+
-  (isO?'<h3 style="margin:10px 0 6px">الأدمن (للمالك فقط)</h3><p class="small">تعيين أدمن جديد للمالك بس. الأدمن مينفعش يعيّن أدمن.</p><div class="list">'+((s.admins||[]).map(x=>sfCard(x,true)).join("")||empty("لا يوجد أدمن ظاهر. لو فيه أدمن ومش ظاهر، محتاج صلاحية قراءة للمالك من شوشو."))+'</div><h3 style="margin:14px 0 6px">الموظفون</h3>':"")+
-  '<div class="list">'+((s.staff||[]).map(x=>sfCard(x,false)).join("")||empty("لا يوجد موظفون حتى الآن."))+'</div></section>';
+ const st=s.staff||[],ad=s.admins||[],act=st.filter(x=>x.staff_permissions?.is_active).length;
+ return SF_CSS+REP_CSS+'<section class="section sf-sec"><div class="rep-hd"><i></i><div style="flex:1"><h2>إدارة الموظفين</h2><p class="small">أدر فريق العمل وافتح الملف المهني لكل شخص.</p></div>'+btn("addstaff","+ إضافة موظف","gold")+'</div>'+
+  '<div class="rep-stats"><div class="rep-stat"><small>الموظفون</small><b>'+fmt(st.length)+'</b></div><div class="rep-stat"><small>نشطون</small><b>'+fmt(act)+'</b></div>'+(isO?'<div class="rep-stat"><small>الأدمن</small><b>'+fmt(ad.length)+'</b></div>':'')+'</div>'+
+  (isO?sfHd('الأدمن','<span class="sf-pill gold">للمالك فقط</span>')+'<p class="small" style="margin:-4px 0 10px">تعيين أدمن جديد للمالك بس. الأدمن مينفعش يعيّن أدمن.</p><div class="sf-grid">'+(ad.map(x=>sfCard(x,true)).join("")||empty("لا يوجد أدمن ظاهر. لو فيه أدمن ومش ظاهر، محتاج صلاحية قراءة للمالك من شوشو."))+'</div>'+sfHd('الموظفون'):'')+
+  '<div class="sf-grid">'+(st.map(x=>sfCard(x,false)).join("")||empty("لا يوجد موظفون حتى الآن."))+'</div></section>';
 }
 function sfFileView(){
  const x=sfPerson(SF.id)||{},d=SF.data||{},job=d.job||{},sal=d.salary||{};
- const isAdm=x.role==="admin";
+ const isAdm=x.role==="admin",on=sfActive(x,isAdm);
  const kv=(l,v)=>'<div class="rep-stat"><small>'+esc(l)+'</small><b style="font-size:.95rem">'+(v===null||v===undefined||v===""?'<span class="muted">—</span>':v)+'</b></div>';
- let h=REP_CSS+'<section class="section rep-sec"><div class="actions">'+btn("sf-back","← كل الموظفين","light")+'</div><div class="rep-hd" style="margin-top:10px"><i></i><div><h2>'+esc(x.full_name||"ملف موظف")+'</h2><p class="small">'+codeTag(idCode("EMP",SF.id))+' · الملف المهني</p></div></div>';
+ const role=isAdm?"أدمن":(x.staff_title||x.staff_role_code||"موظف");
+ const sum=k=>(Array.isArray(d[k])?d[k]:[]).reduce((t,r)=>t+(Number(r.amount)||0),0);
+ let h=SF_CSS+REP_CSS+'<section class="section rep-sec sf-sec"><div class="actions">'+btn("sf-back","← كل الموظفين","light")+'</div>'+
+  '<div class="sf-hero"><div class="sf-av lg'+(isAdm?' adm':'')+'">'+sfInit(x.full_name)+'</div><div><h2>'+esc(x.full_name||"ملف موظف")+'</h2><div class="sf-pills"><span class="sf-pill gold">'+esc(role)+'</span><span class="sf-pill '+(on?'ok':'off')+'">'+(on?"نشط":"موقوف")+'</span></div><p class="small" style="margin:6px 0 0">'+codeTag(idCode("EMP",SF.id))+'</p></div></div>';
  if(SF.msg)h+='<div class="notice">'+esc(SF.msg)+'</div>';
- h+='<div class="rep-stats">'+kv("الكود الوظيفي",codeTag(idCode("EMP",SF.id)))+kv("المنصب",esc(isAdm?"أدمن":(x.staff_title||x.staff_role_code||"")))+kv("كود الرتبة",esc(x.staff_role_code||(isAdm?"ADM":"")))+kv("الحالة",esc(x.status==="active"||x.staff_permissions?.is_active?"نشط":"موقوف"))+kv("الهاتف",esc(x.phone||""))+kv("المدينة",esc(x.city||""))+kv("تاريخ التعيين",job.hire_date?esc(fmtDateAr(job.hire_date)):"")+kv("الراتب الأساسي",sal.amount!=null?moneyAr(sal.amount)+" "+esc(sal.currency||"EGP"):"")+'</div>';
+ h+='<div class="sf-kpi"><div><small>الراتب الأساسي</small><b>'+(sal.amount!=null?moneyAr(sal.amount):"—")+'</b></div><div><small>الجزاءات</small><b>'+moneyAr(sum("penalties"))+'</b></div><div><small>السلف</small><b>'+moneyAr(sum("advances"))+'</b></div></div>';
+ h+=sfHd('البيانات الأساسية')+'<div class="rep-stats">'+kv("الكود الوظيفي",codeTag(idCode("EMP",SF.id)))+kv("المنصب",esc(role))+kv("كود الرتبة",esc(x.staff_role_code||(isAdm?"ADM":"")))+kv("الهاتف",esc(x.phone||""))+kv("المدينة",esc(x.city||""))+kv("تاريخ التعيين",job.hire_date?esc(fmtDateAr(job.hire_date)):"")+'</div>';
  if(SF.loading)return h+'<div class="empty">جاري تحميل الملف...</div></section>';
  if(SF.err)h+='<div class="notice error">بيانات الملف المهني (الراتب والجزاءات والإجازات والسلف) لسه مش مفعّلة في قاعدة البيانات: '+esc(SF.err)+'<div class="small">محتاجة دالة admin_get_staff_file وجداولها من شوشو. الشاشة جاهزة وهتشتغل أول ما تتنفذ.</div></div>';
- h+='<div class="rep-bar" style="margin-top:10px"><label>الراتب الأساسي<input id="sf_sal_amount" type="number" min="0" step="0.01" value="'+esc(sal.amount!=null?sal.amount:"")+'"></label><label>ساري من<input id="sf_sal_from" type="date"></label><label class="q">ملاحظة<input id="sf_sal_note" type="text"></label>'+btn("sf-salary","حفظ الراتب","gold")+'</div>';
+ h+=sfHd('الراتب')+'<div class="rep-bar"><label>الراتب الأساسي<input id="sf_sal_amount" type="number" min="0" step="0.01" value="'+esc(sal.amount!=null?sal.amount:"")+'"></label><label>ساري من<input id="sf_sal_from" type="date"></label><label class="q">ملاحظة<input id="sf_sal_note" type="text"></label>'+btn("sf-salary","حفظ الراتب","gold")+'</div>';
  SF_SECS.forEach(sec=>{
   const rows=Array.isArray(d[sec.k])?d[sec.k]:[];
-  h+='<h3 style="margin:16px 0 6px">'+esc(sec.t)+' ('+fmt(rows.length)+')</h3>'+
+  h+=sfHd(esc(sec.t),'<span class="sf-pill">'+fmt(rows.length)+'</span>')+
    '<div class="rep-bar">'+sec.form.map(f=>'<label'+(f[2]==="text"?' class="q"':'')+'>'+esc(f[1])+'<input id="sf_'+sec.k+'_'+f[0]+'" type="'+f[2]+'"'+(f[2]==="number"?' min="0" step="0.01"':'')+'></label>').join("")+btn("sf-add","إضافة","gold",sec.k)+'</div>'+
-   '<div class="rep-wrap"><table class="rep-t"><thead><tr>'+sec.cols.map(c=>'<th>'+esc(c[1])+'</th>').join("")+'</tr></thead><tbody>'+
+   '<div class="rep-wrap" style="max-height:none"><table class="rep-t"><thead><tr>'+sec.cols.map(c=>'<th>'+esc(c[1])+'</th>').join("")+'</tr></thead><tbody>'+
    (rows.length?rows.map(r=>'<tr>'+sec.cols.map(c=>'<td'+(c[2]==="money"||c[2]==="num"?' class="n"':'')+'>'+repCell({t:c[2]==="date"?"date":c[2]},r[c[0]])+'</td>').join("")+'</tr>').join(""):'<tr><td colspan="'+sec.cols.length+'" class="muted">لا يوجد</td></tr>')+'</tbody></table></div>';
  });
  return h+'</section>';
