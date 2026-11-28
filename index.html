@@ -3088,6 +3088,8 @@ if(p.role==="staff"){
   return;
  }
  s.staffAccess={permissions:effPerms.permissions.filter(x=>typeof x==="string"),is_active:true};
+ s.staffRank=null;
+ try{const jr=await db.from("staff_job_profiles").select("rank_id").eq("user_id",p.id).maybeSingle();if(jr&&jr.data&&jr.data.rank_id){const rk=await db.rpc("staff_ranks_list");const row=((rk&&rk.data)||[]).find(x=>x.id===jr.data.rank_id);if(row)s.staffRank={id:row.id,is_manager:!!row.is_manager}}}catch(_){}
 }
  if(p.role==="customer"||(p.role==="provider"&&pp)){
   await loadCustomerProviderData(p,pp,u);
@@ -7623,7 +7625,18 @@ async function viewPrimeKnowledgeDocument(documentId){
         providers:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.2-5.5 6.5-5.5s5.9 1.9 6.5 5.5"/><circle cx="17.5" cy="9" r="2.5"/>',
         complaints:'<path d="M21 12a8 8 0 0 1-11.6 7.1L3 21l1.9-5.4A8 8 0 1 1 21 12z"/>',
         account:'<circle cx="12" cy="8" r="4"/><path d="M4 21c.8-4.2 4-6 8-6s7.2 1.8 8 6"/>',
-        lock:'<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>'
+        lock:'<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
+        customers:'<circle cx="12" cy="8" r="3.5"/><path d="M4.5 20c.8-4 3.7-6 7.5-6s6.7 2 7.5 6"/>',
+        services:'<path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/>',
+        categories:'<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
+        messages:'<path d="M4 5h16v11H9l-5 4z"/>',
+        tawasol:'<path d="M21 11.5a8.5 8.5 0 0 1-12.3 7.6L3 21l1.9-5.6A8.5 8.5 0 1 1 21 11.5z"/><path d="M8.5 11h7M8.5 14h4"/>',
+        payments:'<rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M2.5 10h19M6.5 15h4"/>',
+        reports:'<path d="M4 20V4M4 20h16M8 16v-5M13 16V8M18 16v-3"/>',
+        support:'<path d="M4 13v-1a8 8 0 0 1 16 0v1"/><rect x="3" y="13" width="4" height="6" rx="1.5"/><rect x="17" y="13" width="4" height="6" rx="1.5"/>',
+        wallet:'<path d="M3 7a2 2 0 0 1 2-2h13v4"/><path d="M3 7v11a2 2 0 0 0 2 2h15V9H5a2 2 0 0 1-2-2z"/><circle cx="16.5" cy="14.5" r="1"/>',
+        ads:'<path d="M3 11v3l12 5V6L3 11z"/><path d="M18 9a4 4 0 0 1 0 6"/>',
+        settings:'<circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.3.9a7 7 0 0 0-2-1.2L14 3h-4l-.6 2.6a7 7 0 0 0-2 1.2l-2.3-.9-2 3.4 2 1.5A7 7 0 0 0 5 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.3-.9a7 7 0 0 0 2 1.2L10 21h4l.6-2.6a7 7 0 0 0 2-1.2l2.3.9 2-3.4-2-1.5c.1-.4.1-.8.1-1.2z"/>'
       };
       function asvIcon(k){
         return '<svg class="asv-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(ASV_ICONS[k]||(k==="tawasol"?'<path d="M21 12a8 8 0 0 1-11.6 7.1L3 21l1.9-5.4A8 8 0 1 1 21 12z"/>':""))+'</svg>';
@@ -8105,7 +8118,7 @@ return header(
  isOwner?"مركز تحكم مالك المنصة":"لوحة إدارة المنصة",
  "",
  true
-)+'<div class="wasla-admin-shell"><aside class="wasla-admin-side"><nav aria-label="قائمة الإدارة">'+nav+
+)+'<div class="wasla-menubar"><button type="button" data-a="menu-toggle" aria-label="القائمة"><svg class="asv-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg><span>القائمة</span></button></div><div class="wasla-menu-shade" data-a="menu-toggle"></div><div class="wasla-admin-shell"><aside class="wasla-admin-side"><nav aria-label="قائمة الإدارة">'+nav+
  '<button data-a="tab" data-id="account" class="wasla-side-account">إعدادات الحساب</button></nav></aside>'+
  '<main class="wrap wasla-admin-main">'+msg()+
  '<div class="sectionhead">'+
@@ -8163,7 +8176,8 @@ const STAFF_NAV_ITEMS=[
  ["settings","الإعدادات",["settings.view","settings.manage"]]
 ];
 // الأقسام المنفذة فعليًا في لوحة الموظف. الباقي صفحة مؤقتة بلا تحميل بيانات.
-const STAFF_IMPLEMENTED_TABS=["home","services","categories","requests","providers","complaints","tawasol"];
+const STAFF_SEC_TAB={support:"cs",ads:"adsmgr",payments:"fin"};
+const STAFF_IMPLEMENTED_TABS=["home","services","categories","requests","providers","complaints","tawasol","support","ads","payments"];
 const STAFF_PLACEHOLDER_TEXT="القسم ده ضمن مراحل التنفيذ التالية. مش بيتم تحميل بيانات أو تنفيذ عمليات من الصفحة دي حاليًا.";
 // المفاتيح المالية: تُمنح لموظفي رتبة FIN فقط (الحماية الأساسية في قاعدة البيانات، وهنا منع مبكر في الواجهة)
 const FINANCIAL_PERMISSION_KEYS=["payments.view","payments.manage","wallet.view","wallet.manage","payouts.prepare"];
@@ -8208,11 +8222,18 @@ function isFinancialRestrictedError(msg){
 function checkedStaffPermissions(form){
  return Array.from(form.querySelectorAll('input[name="permissions"]:checked:not(:disabled)')).map(x=>x.value);
 }
+const STAFF_TOP_CODES=["GM"];
+function staffIsTop(){
+ const p=s.profile||{};
+ if(p.role!=="staff")return false;
+ return STAFF_TOP_CODES.includes(p.staff_role_code)||!!(s.staffRank&&s.staffRank.is_manager&&p.staff_role_code!=="ASV");
+}
 function staff(){
  const permissions=rqPermissions();
  const can=p=>permissions.includes(p);
  const asv=rqIsAsv();
- const navItems=(asv?asvNavItems():STAFF_NAV_ITEMS.filter(n=>n[2].some(can)||(n[0]==="requests"&&rqIsAsv())).map(n=>[n[0],n[1]])).concat([["tawasol","تواصل"]]);
+ const bottomLayout=asv||!staffIsTop();
+ const navItems=(asv?asvNavItems():STAFF_NAV_ITEMS.filter(n=>(n[2].some(can)||(n[0]==="requests"&&rqIsAsv()))&&(!bottomLayout||STAFF_IMPLEMENTED_TABS.includes(n[0]))).map(n=>[n[0],n[1]])).concat([["tawasol","تواصل"]]);
 
  if(!navItems.some(x=>x[0]===s.tab))s.tab=navItems.length?navItems[0][0]:"none";
 
@@ -8263,23 +8284,24 @@ if(s.tab==="home"&&navItems.some(x=>x[0]==="home")){
  }
 
 if(s.tab==="tawasol")body=twView();
+if(STAFF_SEC_TAB[s.tab]&&navItems.some(x=>x[0]===s.tab))body=secView(STAFF_SEC_TAB[s.tab]);
 if(s.tab==="none"){
   body='<section class="section"><div class="card"><p class="muted">لا توجد أقسام متاحة بصلاحياتك الحالية.</p></div></section>';
  }else if(!STAFF_IMPLEMENTED_TABS.includes(s.tab)&&navItems.some(x=>x[0]===s.tab)){
   body='<section class="section"><div class="card"><p class="muted">'+esc(STAFF_PLACEHOLDER_TEXT)+'</p></div></section>';
  }
 
-const nav=navItems.map(x=>'<button data-a="tab" data-id="'+x[0]+'" class="'+(s.tab===x[0]?"active":"")+'">'+(asv?asvIcon(x[0])+'<span>'+x[1]+'</span>':x[1])+'</button>').join("");
+const nav=navItems.map(x=>'<button data-a="tab" data-id="'+x[0]+'" class="'+(s.tab===x[0]?"active":"")+'">'+(bottomLayout?asvIcon(x[0])+'<span>'+x[1]+'</span>':x[1])+'</button>').join("");
  
  const staffHead='<div class="sectionhead"><h2>لوحة الموظف</h2>'+tag("موظف")+'</div>';
- if(s.profile?.staff_role_code==="ASV"){
+ if(bottomLayout){
   return header(asv?"مشرف المنطقة":"لوحة الموظف","",true)+
   '<main class="wrap wasla-staff-bottom-main">'+msg()+(asv?"":staffHead)+body+'</main>'+
-  '<nav class="wasla-staff-bottom-nav'+(asv?" asv-nav":"")+'" aria-label="التنقل الرئيسي">'+nav+
-  '<button data-a="tab" data-id="account" class="'+(s.tab==="account"?"active":"")+'">'+(asv?asvIcon("account")+'<span>حسابي</span>':"إعدادات الحساب")+'</button></nav>';
+  '<nav class="wasla-staff-bottom-nav asv-nav'+(navItems.length>4?" many":"")+'" aria-label="التنقل الرئيسي">'+nav+
+  '<button data-a="tab" data-id="account" class="'+(s.tab==="account"?"active":"")+'">'+asvIcon("account")+'<span>حسابي</span></button></nav>';
  }
  return header("لوحة الموظف","",true)+
- '<div class="wasla-admin-shell"><aside class="wasla-admin-side"><nav aria-label="قائمة الموظف">'+nav+
+ '<div class="wasla-menubar"><button type="button" data-a="menu-toggle" aria-label="القائمة"><svg class="asv-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg><span>القائمة</span></button></div><div class="wasla-menu-shade" data-a="menu-toggle"></div><div class="wasla-admin-shell"><aside class="wasla-admin-side"><nav aria-label="قائمة الموظف">'+nav+
  '<button data-a="tab" data-id="account" class="wasla-side-account">إعدادات الحساب</button></nav></aside>'+
  '<main class="wrap wasla-admin-main">'+msg()+staffHead+body+'</main></div>';
 }
@@ -11310,7 +11332,8 @@ if(a==="loyadm-tab"){if(["lookup","settings","overview","skip"].indexOf(id)>=0){
 if(a==="loyadm-pick"){s.loyAdm={tab:"lookup",uid:id,q:(s.loyAdm&&s.loyAdm.q)||""};loadAdminLoyalty(false);return}
 if(a==="loyadm-more"){loadAdminLoyalty(true);return}
 if(a==="loyadm-back"){s.loyAdm={tab:"lookup",q:(s.loyAdm&&s.loyAdm.q)||""};render();return}
-if(a==="tab"){
+if(a==="menu-toggle"){document.body.classList.toggle("menu-open");return}
+if(a==="tab"){document.body.classList.remove("menu-open");
  if(id==="audit"&&s.profile?.role!=="owner")return;
  if(id==="home"&&rqIsAsv()){rqState().loaded=false;rlState().loaded=false;}
  s.tab=id;
@@ -13171,12 +13194,16 @@ if(document.body)start();else document.addEventListener("DOMContentLoaded",start
 .wasla-admin-side button.active{background:color-mix(in srgb,var(--accent) 13%,var(--bg-surface));color:var(--accent);font-weight:800}
 .wasla-admin-side .wasla-side-account{margin-top:8px;border-top:1px solid var(--border-color);border-radius:0 0 11px 11px;padding-top:14px;color:var(--text-secondary)}
 .wasla-admin-main{flex:1;min-width:0;max-width:none;margin:0;padding:16px 0}
+.wasla-menubar{display:none}
+@media(max-width:820px){.wasla-menubar{display:block;padding:10px 12px 0}.wasla-menubar button{display:flex;align-items:center;gap:8px;min-height:44px;padding:8px 14px;border:1px solid var(--border-color);border-radius:13px;background:var(--bg-surface);color:var(--text-primary);font:700 14px IBM Plex Sans Arabic,sans-serif;cursor:pointer}}
 @media(max-width:820px){
  .wasla-admin-shell{display:block;padding:0}
- .wasla-admin-side{position:static;max-height:none;margin:10px 12px 0;padding:6px;overflow:visible}
- .wasla-admin-side nav{flex-direction:row;overflow-x:auto;gap:6px;-webkit-overflow-scrolling:touch}
- .wasla-admin-side button{width:auto;flex:0 0 auto;white-space:nowrap;padding:9px 12px}
- .wasla-admin-side .wasla-side-account{margin:0;border-top:0;border-radius:11px;padding-top:9px}
+ .wasla-admin-side{position:fixed;z-index:1001;top:0;bottom:0;right:0;left:auto;width:min(290px,84vw);max-height:none;margin:0;padding:14px 10px;overflow-y:auto;border-radius:20px 0 0 20px;transform:translateX(105%);transition:transform .22s ease;box-shadow:-10px 0 28px color-mix(in srgb,var(--text-primary) 18%,transparent)}
+ .wasla-admin-side nav{flex-direction:column;gap:4px}
+ .wasla-admin-side button{width:100%;white-space:normal;padding:12px 14px}
+ body.menu-open .wasla-admin-side{transform:none}
+ .wasla-menu-shade{display:none;position:fixed;inset:0;z-index:1000;background:color-mix(in srgb,var(--text-primary) 40%,transparent)}
+ body.menu-open .wasla-menu-shade{display:block}
  .wasla-admin-main{padding:16px}
 }
 .wasla-pay-block{margin:8px 0;padding:10px 12px;border:1px solid var(--border-color);border-radius:12px;background:var(--bg-subtle)}.wasla-pay-block p{margin:4px 0}
@@ -13239,6 +13266,7 @@ div.asv-card-main{cursor:default}
 .asv-prov-s{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
 .asv-rate{font-weight:800;font-size:.82rem;color:var(--warning)}
 .wasla-staff-bottom-nav.asv-nav{justify-content:space-around;overflow-x:visible}
+.wasla-staff-bottom-nav.asv-nav.many{justify-content:flex-start;overflow-x:auto}.wasla-staff-bottom-nav.asv-nav.many button{flex:1 0 64px}
 .wasla-staff-bottom-nav.asv-nav button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-width:0;flex:1;padding:6px 4px;font-size:11px}
 .wasla-rate-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:12px 0;padding:10px 12px;border:1px solid var(--border-color);border-radius:12px}
 .wasla-stars{display:inline-flex;flex-direction:row-reverse;gap:2px;direction:ltr}
