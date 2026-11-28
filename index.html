@@ -3952,7 +3952,7 @@ function walletView(){
 
   if(provider&&q.provider_id&&!own)return "";
 
-  return '<article class="item"><div class="row"><b>'+esc(q.title||q.services?.name_ar||"طلب خدمة")+'</b>'+tag(q.status)+'</div><p>'+esc([q.city,q.country].filter(Boolean).join("، "))+'</p><p>'+esc(q.description||"")+'</p><p>الميزانية: '+(q.budget?fmt(q.budget):"غير محددة")+'</p>'+paymentBlock(q,provider,own)+'<div class="actions">'+a+(provider&&own?btn("provider-request-details","تفاصيل الطلب","light",q.id):"")+(!provider&&["pending","accepted"].includes(q.status)?btn("cancelrequest","إلغاء الطلب","danger",q.id):"")+(q.status==="completed"&&q.provider_id&&!provider&&!s.reviewedIds?.has(q.id)?btn("review","تقييم الخدمة","light",q.id):"")+(q.provider_id&&["accepted","in_progress"].includes(q.status)&&(!provider||s.chats.some(c=>c.request_id===q.id))?btn("chat","محادثة","light",q.id):"")+'</div></article>';
+  return '<article class="item"><div class="row"><b>'+esc(q.title||q.services?.name_ar||"طلب خدمة")+'</b>'+tag(q.status)+'</div><p>'+esc([q.city,q.country].filter(Boolean).join("، "))+'</p><p>'+esc(q.description||"")+'</p><p>الميزانية: '+(q.budget?fmt(q.budget):"غير محددة")+'</p>'+paymentBlock(q,provider,own)+'<div class="actions">'+a+(provider&&own?btn("provider-request-details","تفاصيل الطلب","light",q.id):"")+(provider?btn("reqmedia","المرفقات","light",q.id):"")+(!provider&&["pending","accepted"].includes(q.status)?btn("cancelrequest","إلغاء الطلب","danger",q.id):"")+(q.status==="completed"&&q.provider_id&&!provider&&!s.reviewedIds?.has(q.id)?btn("review","تقييم الخدمة","light",q.id):"")+(q.provider_id&&["accepted","in_progress"].includes(q.status)&&(!provider||s.chats.some(c=>c.request_id===q.id))?btn("chat","محادثة","light",q.id):"")+'</div></article>';
  }).join("")||empty("لا توجد طلبات حتى الآن");
       }
 
@@ -8560,6 +8560,17 @@ if(m.type==="cancelRequest"){
  '</article>').join("")||empty("لا توجد طلبات لهذا العميل"))+
  '</div></section>';
 }
+if(m.type==="reqMedia"){
+ const mv=s.reqMediaView||{};
+ const items=(mv.items||[]).map(x=>{
+  if(!x.url)return '<div class="item"><p class="small">تعذر تحميل ملف</p></div>';
+  if(x.kind==="image")return '<a href="'+esc(x.url)+'" target="_blank" rel="noopener"><img src="'+esc(x.url)+'" alt="" style="width:100%;border-radius:12px;margin-bottom:10px"></a>';
+  if(x.kind==="video")return '<video src="'+esc(x.url)+'" controls playsinline style="width:100%;border-radius:12px;margin-bottom:10px"></video>';
+  return '<audio src="'+esc(x.url)+'" controls style="width:100%;margin-bottom:10px"></audio>';
+ }).join("");
+ c='<div class="modal-title"><h3>مرفقات الطلب</h3></div>'+
+  (mv.err?'<div class="notice error">تعذر تحميل المرفقات. جرّب مرة تانية.</div>':(items||'<div class="empty">العميل لم يرفق ملفات مع الطلب</div>'));
+}
 if(m.type==="quoteComposer"){
  const q=s.requests.find(x=>x.id===m.requestId);
  const existing=s.quotes.find(x=>x.request_id===m.requestId);
@@ -10606,6 +10617,23 @@ if(a==="cancelrequest"){
  render();
  return;
 }
+ if(a==="reqmedia"){
+  const view={id,items:[],err:false};
+  try{
+   const r=await db.from("service_request_media").select("storage_path,mime_type,media_kind,created_at").eq("request_id",id).order("created_at",{ascending:true});
+   if(r.error)throw r.error;
+   const bucket=db.storage.from("request-media");
+   for(const row of (r.data||[])){
+    let url=null;
+    try{const u=await bucket.createSignedUrl(row.storage_path,3600);if(!u.error&&u.data?.signedUrl)url=u.data.signedUrl}catch(_){}
+    view.items.push({url,kind:row.media_kind||(String(row.mime_type||"").startsWith("image/")?"image":"audio")});
+   }
+  }catch(e){console.warn("[reqmedia]",e);view.err=true}
+  s.reqMediaView=view;
+  s.modal={type:"reqMedia",requestId:id};
+  render();
+  return;
+ }
  if(a==="createquote"){
  if(s.profile?.role!=="provider")
   throw Error("غير مصرح لك بإنشاء عرض سعر");
