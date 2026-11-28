@@ -3224,6 +3224,109 @@ document.addEventListener("click",e=>{
  if(b.dataset.a==="legal"){if(s.mode!=="legal")s.legalBack=s.mode;s.legal=b.dataset.id;s.mode="legal";render();window.scrollTo(0,0)}
  else{s.mode=s.legalBack||"welcome";render();window.scrollTo(0,0)}
 },true);
+const TW={rooms:[],people:[],cur:null,msgs:[],err:{},loaded:false,loading:false,tab:"depts",timer:null,sending:false};
+const TW_DEPTS=[["ASV","مشرفو المناطق"],["OPS","العمليات"],["FIN","المالية"],["SUP","الدعم"],["MKT","التسويق"],["TEC","التقنية"]];
+const TW_CSS='<style>.tw-sec .btn{border-radius:999px}.tw-tabs{display:flex;gap:8px;margin:10px 0}.tw-tabs button{flex:1;border:1px solid var(--border-color);background:var(--bg-surface);color:var(--text-primary);border-radius:999px;padding:9px;font:inherit;font-weight:700;cursor:pointer}.tw-tabs button.on{background:linear-gradient(135deg,var(--primary),var(--primary-hover));color:#fff;border-color:transparent}.tw-li{display:flex;align-items:center;gap:12px;background:var(--bg-surface);border:1px solid var(--border-color);border-radius:16px;padding:10px 12px;margin-top:8px;cursor:pointer;box-shadow:var(--surface-shadow);width:100%;text-align:right;font:inherit;color:inherit}.tw-li .sf-av{width:42px;height:42px;font-size:1rem}.tw-li .nm{flex:1;min-width:0}.tw-li .nm b{display:block}.tw-li .nm small{color:var(--text-secondary);display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.tw-chat{display:flex;flex-direction:column;height:calc(100vh - 250px);min-height:380px}.tw-msgs{flex:1;overflow:auto;padding:8px 2px;display:flex;flex-direction:column;gap:8px}.tw-b{max-width:80%;padding:8px 12px;border-radius:16px;line-height:1.7;font-size:.92rem;word-break:break-word;white-space:pre-wrap}.tw-b small{display:block;font-size:.7rem;opacity:.7;margin-bottom:2px}.tw-b.me{align-self:flex-start;background:linear-gradient(135deg,var(--primary),var(--primary-hover));color:#fff}.tw-b.ot{align-self:flex-end;background:var(--bg-subtle);border:1px solid var(--border-color)}.tw-in{display:flex;gap:8px;padding-top:8px}.tw-in input{flex:1;border-radius:999px;margin:0}</style>';
+function twTime(x){try{return new Date(x).toLocaleTimeString("ar-EG",{hour:"2-digit",minute:"2-digit"})}catch(_){return ""}}
+async function twLoad(){
+ TW.loading=true;TW.err={};render();
+ const run=async(k,p)=>{try{const r=await p;if(r.error)throw r.error;return r.data||[]}catch(e){TW.err[k]=String(e&&e.message||e);return []}};
+ const [rooms,people]=await Promise.all([run("rooms",db.rpc("staff_chat_list_rooms")),run("people",db.rpc("staff_chat_people",{p_q:""}))]);
+ TW.rooms=Array.isArray(rooms)?rooms:[];TW.people=Array.isArray(people)?people:[];TW.loading=false;TW.loaded=true;render();
+}
+function twMsgHtml(m){const me=m.sender_id===(s.user&&s.user.id);return '<div class="tw-b '+(me?"me":"ot")+'">'+(me?"":'<small>'+esc(m.sender_name||"")+'</small>')+esc(m.body||"")+'<small style="margin:3px 0 0;text-align:end">'+esc(twTime(m.created_at))+'</small></div>'}
+async function twFetch(scroll){
+ if(!TW.cur)return;
+ try{const r=await db.rpc("staff_chat_messages",{p_room_id:TW.cur.id,p_limit:200});if(r.error)throw r.error;
+  const arr=Array.isArray(r.data)?r.data.slice():[];arr.sort((a,b)=>String(a.created_at).localeCompare(String(b.created_at)));
+  const same=arr.length===TW.msgs.length&&(!arr.length||arr[arr.length-1].id===TW.msgs[TW.msgs.length-1].id);
+  TW.msgs=arr;
+  const box=document.getElementById("twMsgs");
+  if(box&&(!same||box.dataset.init!=="1")){box.dataset.init="1";box.innerHTML=arr.length?arr.map(twMsgHtml).join(""):'<div class="empty">ابدأ المحادثة.</div>';if(scroll!==false)box.scrollTop=box.scrollHeight}
+ }catch(e){const box=document.getElementById("twMsgs");if(box&&!TW.msgs.length)box.innerHTML='<div class="notice error">المحادثات لسه مش مفعّلة في قاعدة البيانات ('+esc(String(e&&e.message||e))+'). محتاجة دوال staff_chat_* من شوشو.</div>'}
+}
+function twPoll(){
+ clearInterval(TW.timer);
+ TW.timer=setInterval(()=>{if(s.tab!=="tawasol"||!TW.cur){clearInterval(TW.timer);TW.timer=null;return}if(!document.hidden)twFetch(false)},8000);
+}
+async function twOpenRoom(fn,args,title){
+ try{const r=await db.rpc(fn,args);if(r.error)throw r.error;
+  const id=typeof r.data==="string"?r.data:(r.data&&(r.data.id||r.data.room_id));if(!id)throw new Error("لم يتم إنشاء المحادثة");
+  TW.cur={id,title};TW.msgs=[];render();await twFetch();twPoll();
+ }catch(e){TW.err.open=String(e&&e.message||e);render()}
+}
+function twAv(n,cls){return '<div class="sf-av'+(cls||"")+'">'+esc(String(n||"?").trim().charAt(0)||"?")+'</div>'}
+function twView(){
+ if(!TW.loaded&&!TW.loading)setTimeout(twLoad,0);
+ let h=SF_CSS+REP_CSS+TW_CSS+'<section class="section rep-sec tw-sec">';
+ if(TW.cur){
+  return h+'<div class="actions">'+btn("tw-back","← كل المحادثات","light")+'</div><div class="rep-hd" style="margin-top:10px"><i></i><div><h2>'+esc(TW.cur.title||"محادثة")+'</h2></div></div><div class="tw-chat"><div class="tw-msgs" id="twMsgs"><div class="empty">جاري التحميل...</div></div><div class="tw-in"><input id="twIn" type="text" placeholder="اكتب رسالة..." maxlength="2000" autocomplete="off"><button type="button" class="btn gold" data-a="tw-send">إرسال</button></div></div></section>';
+ }
+ h+='<div class="rep-hd"><i></i><div><h2>تواصل</h2><p class="small">رسائل الموظفين: مجموعات الأقسام ومحادثات فردية.</p></div></div>';
+ h+='<div class="tw-tabs"><button type="button" data-a="tw-tab" data-id="depts" class="'+(TW.tab==="depts"?"on":"")+'">الأقسام</button><button type="button" data-a="tw-tab" data-id="people" class="'+(TW.tab==="people"?"on":"")+'">الأشخاص</button></div>';
+ if(TW.err.open)h+='<div class="notice error">'+esc(TW.err.open)+'</div>';
+ if(TW.loading&&!TW.loaded)return h+'<div class="empty">جاري التحميل...</div></section>';
+ if(TW.err.rooms&&TW.err.people)h+='<div class="notice error">التواصل لسه مش مفعّل في قاعدة البيانات ('+esc(TW.err.rooms)+'). محتاج دوال وجداول staff_chat_* من شوشو. الشاشة جاهزة.</div>';
+ if(TW.tab==="depts"){
+  const mine=new Set((TW.rooms||[]).filter(r=>r.kind==="dept").map(r=>r.dept_code));
+  const isAdm=s.profile&&(s.profile.role==="admin"||s.profile.role==="owner");
+  h+=TW_DEPTS.filter(d=>isAdm||mine.has(d[0])).map(d=>{const r=(TW.rooms||[]).find(x=>x.kind==="dept"&&x.dept_code===d[0])||{};return '<button type="button" class="tw-li" data-a="tw-dept" data-id="'+d[0]+'" data-t="'+esc(d[1])+'">'+twAv(d[1],"")+'<div class="nm"><b>'+esc(d[1])+' ('+d[0]+')</b><small>'+esc(r.last_body||"مجموعة القسم")+'</small></div></button>'}).join("")||'<div class="empty">لسه مفيش مجموعات متاحة ليك.</div>';
+ }else{
+  h+='<input id="twQ" type="search" placeholder="ابحث بالاسم..." style="border-radius:999px">';
+  const ppl=(TW.people||[]).filter(p=>p.id!==(s.user&&s.user.id));
+  h+='<div id="twPpl">'+(ppl.map(p=>'<button type="button" class="tw-li" data-q="'+esc(nrm(p.full_name||""))+'" data-a="tw-dm" data-id="'+esc(p.id)+'" data-t="'+esc(p.full_name||"")+'">'+twAv(p.full_name,p.role==="admin"||p.role==="owner"?" adm":"")+'<div class="nm"><b>'+esc(p.full_name||"بدون اسم")+'</b><small>'+esc(p.role==="owner"?"المالك":p.role==="admin"?"أدمن":(p.staff_title||p.staff_role_code||"موظف"))+'</small></div></button>').join("")||'<div class="empty">لا يوجد أشخاص.</div>')+'</div>';
+ }
+ return h+'</section>';
+}
+document.addEventListener("input",e=>{
+ if(!e.target||e.target.id!=="twQ")return;
+ const q=nrm(e.target.value);document.querySelectorAll("#twPpl [data-q]").forEach(b=>{b.style.display=!q||b.dataset.q.includes(q)?"":"none"});
+});
+document.addEventListener("keydown",e=>{if(e.target&&e.target.id==="twIn"&&e.key==="Enter"){e.preventDefault();const b=document.querySelector('[data-a="tw-send"]');b&&b.click()}});
+document.addEventListener("click",async e=>{
+ const b=e.target.closest&&e.target.closest('[data-a^="tw-"]');if(!b)return;
+ const a=b.dataset.a,id=b.dataset.id;
+ if(a==="tw-tab"){TW.tab=id;render();return}
+ if(a==="tw-back"){TW.cur=null;TW.msgs=[];clearInterval(TW.timer);TW.loaded=false;render();return}
+ if(a==="tw-dept"){TW.err.open="";twOpenRoom("staff_chat_open_dept",{p_dept_code:id},b.dataset.t);return}
+ if(a==="tw-dm"){TW.err.open="";twOpenRoom("staff_chat_open_dm",{p_user_id:id},b.dataset.t);return}
+ if(a==="tw-send"){
+  if(TW.sending||!TW.cur)return;const inp=document.getElementById("twIn"),body=(inp&&inp.value||"").trim();if(!body)return;
+  TW.sending=true;b.disabled=true;
+  try{const r=await db.rpc("staff_chat_send",{p_room_id:TW.cur.id,p_body:body});if(r.error)throw r.error;inp.value="";await twFetch()}
+  catch(err){const box=document.getElementById("twMsgs");if(box)box.insertAdjacentHTML("beforeend",'<div class="notice error">تعذّر الإرسال: '+esc(String(err&&err.message||err))+'</div>')}
+  TW.sending=false;b.disabled=false;
+ }
+});
+function provContractNeeded(){
+ try{
+  if(!s.user||s.profile?.role!=="provider")return false;
+  const m=s.user.user_metadata||{};
+  if(m.contract_accepted_at&&m.contract_version===PROV_CONTRACT_VER)return false;
+  if(localStorage.getItem("wasla_pc_"+s.user.id)===PROV_CONTRACT_VER)return false;
+  return true;
+ }catch(_){return false}
+}
+function provGateView(){
+ return header("عقد وتعهد مزود الخدمة","",true)+'<main class="wrap"><section class="section"><div class="card"><h2 style="margin:0 0 4px">أهلًا '+esc(s.profile?.full_name||"")+'</h2><p class="small" style="margin:0 0 8px">قبل ما تكمل لازم تقرأ عقد وتعهد مزود الخدمة وتوافق عليه. موافقتك بتتسجل باسمك وبتاريخ النهارده.</p>'+msg()+'<div id="signup">'+provContractBlock()+'</div><div class="actions" style="margin-top:12px"><button type="button" class="btn gold" data-a="pc-accept">أوافق وأكمل</button>'+btn("logout","تسجيل الخروج","light")+'</div></div></section></main>';
+}
+document.addEventListener("click",async e=>{
+ const b=e.target.closest&&e.target.closest('[data-a="pc-accept"]');if(!b)return;
+ const cb=document.querySelector('#provContract input[name="contract_ok"]');
+ if(!cb||cb.disabled||!cb.checked){note("افتح العقد واقرأه ووافق عليه الأول.","error");render();return}
+ b.disabled=true;
+ const data={contract_accepted:true,contract_accepted_at:new Date().toISOString(),contract_signed_name:String(s.profile?.full_name||"").trim(),contract_version:PROV_CONTRACT_VER};
+ try{
+  const r=await db.auth.updateUser({data});if(r.error)throw r.error;
+  if(r.data&&r.data.user)s.user=r.data.user;else s.user.user_metadata=Object.assign({},s.user.user_metadata,data);
+  note("تم تسجيل موافقتك على العقد.","success");
+ }catch(err){
+  try{localStorage.setItem("wasla_pc_"+s.user.id,PROV_CONTRACT_VER)}catch(_){}
+  s.user.user_metadata=Object.assign({},s.user.user_metadata,data);
+  note("تم قبولك للعقد على الجهاز، وهيتسجّل رسميًا في حسابك أول ما يتاح.","success");
+ }
+ render();
+});
 function authView(){
  const signup=s.mode==="signup";
  const egypt=s.geo.countries.find(x=>x.country_code==="EG");
@@ -7071,7 +7174,7 @@ async function viewPrimeKnowledgeDocument(documentId){
         lock:'<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>'
       };
       function asvIcon(k){
-        return '<svg class="asv-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(ASV_ICONS[k]||"")+'</svg>';
+        return '<svg class="asv-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(ASV_ICONS[k]||(k==="tawasol"?'<path d="M21 12a8 8 0 0 1-11.6 7.1L3 21l1.9-5.4A8 8 0 1 1 21 12z"/>':""))+'</svg>';
       }
       function asvChipDefs(){
         return [["all","الكل"],["late","متأخرة"],["pending","قيد الانتظار"],["accepted","مقبول"],["in_progress","قيد التنفيذ"],["completed","مكتمل"]];
@@ -7496,6 +7599,7 @@ if(s.tab==="categories")body='<section class="section"><div class="sectionhead">
  if(s.tab==="staff")body=staffTabView();
  if(s.tab==="customers")body='<section class="section"><div class="sectionhead"><div><h2>إدارة العملاء</h2><p class="small">استعرض حسابات العملاء وبياناتهم وحالة كل حساب.</p></div><span class="tag">'+fmt(s.customers.length)+' عميل</span></div><div class="list">'+(s.customers.map(x=>'<article class="item"><div class="row"><div><b>'+esc(x.full_name||"عميل بدون اسم")+'</b><p class="small">حساب عميل على منصة وصلة</p></div>'+tag(x.status==="active"?"نشط":"موقوف")+'</div><div class="small">رقم التواصل</div><p>'+esc(x.phone||"لا يوجد رقم هاتف")+'</p><div class="small">الموقع</div><p class="muted">'+esc([x.city,x.country].filter(Boolean).join("، ")||"الموقع غير محدد")+'</p><div class="actions">'+btn("viewcustomer","عرض الملف","light",x.id)+'</div></article>').join("")||empty("لا يوجد عملاء حتى الآن"))+'</div></section>';
  if(s.tab==="messages")body=chatContent();
+ if(s.tab==="tawasol")body=twView();
 if(s.tab==="assistant"&&s.profile?.role==="owner")body=assistantView();
       if(s.tab==="requests")body=requestsListView();
  if(s.tab==="appearance")body='<section class="section"><div class="card"><h2>مظهر منصة وصلة</h2><p>هوية Trust &amp; Poise بنظامين نهاري وليلي، والتبديل بينهم من زر الشمس والقمر أعلى الصفحة. وتقدر تختار مجموعة الألوان اللي تعجبك من هنا.</p><div class="actions"><button type="button" class="btn gold" data-th="open">الثيمات</button></div></div></section>';
@@ -7538,7 +7642,7 @@ if(s.tab==="knowledge"){
  '</article>').join("")||empty("لا توجد سجلات تدقيق حتى الآن"))+
  '</div></section>';
 }
-       const nav=[["home","نظرة عامة"],["requests","الطلبات"],["messages","الرسائل"],["customers","العملاء"],["reports","التقارير"],["uploads","مركز الرفع"],["loyalty","تحكم الولاء"],["providers","مزودو الخدمات"],["services","الخدمات"],["categories","الأقسام"],["approvals","طلبات الموافقة"+((s.pendingReqs||[]).length?" ("+fmt((s.pendingReqs||[]).length)+")":"")],["staff","الموظفون"],["knowledge","قاعدة معرفة PRIME"],...(s.profile?.role==="owner"?[["assistant","PRIME AI"]]:[]),["appearance","المظهر والثيمات"],...(s.profile?.role==="owner"?[["audit","سجل التدقيق"]]:[])].map(x=>'<button data-a="tab" data-id="'+x[0]+'" class="'+(s.tab===x[0]||(s.tab==="providerDossier"&&x[0]==="providers")?"active":"")+'">'+x[1]+'</button>').join("");
+       const nav=[["home","نظرة عامة"],["requests","الطلبات"],["messages","الرسائل"],["tawasol","تواصل"],["customers","العملاء"],["reports","التقارير"],["uploads","مركز الرفع"],["loyalty","تحكم الولاء"],["providers","مزودو الخدمات"],["services","الخدمات"],["categories","الأقسام"],["approvals","طلبات الموافقة"+((s.pendingReqs||[]).length?" ("+fmt((s.pendingReqs||[]).length)+")":"")],["staff","الموظفون"],["knowledge","قاعدة معرفة PRIME"],...(s.profile?.role==="owner"?[["assistant","PRIME AI"]]:[]),["appearance","المظهر والثيمات"],...(s.profile?.role==="owner"?[["audit","سجل التدقيق"]]:[])].map(x=>'<button data-a="tab" data-id="'+x[0]+'" class="'+(s.tab===x[0]||(s.tab==="providerDossier"&&x[0]==="providers")?"active":"")+'">'+x[1]+'</button>').join("");
  
 const isOwner=s.profile?.role==="owner";
 
@@ -7604,7 +7708,7 @@ const STAFF_NAV_ITEMS=[
  ["settings","الإعدادات",["settings.view","settings.manage"]]
 ];
 // الأقسام المنفذة فعليًا في لوحة الموظف. الباقي صفحة مؤقتة بلا تحميل بيانات.
-const STAFF_IMPLEMENTED_TABS=["home","services","categories","requests","providers","complaints"];
+const STAFF_IMPLEMENTED_TABS=["home","services","categories","requests","providers","complaints","tawasol"];
 const STAFF_PLACEHOLDER_TEXT="القسم ده ضمن مراحل التنفيذ التالية. مش بيتم تحميل بيانات أو تنفيذ عمليات من الصفحة دي حاليًا.";
 // المفاتيح المالية: تُمنح لموظفي رتبة FIN فقط (الحماية الأساسية في قاعدة البيانات، وهنا منع مبكر في الواجهة)
 const FINANCIAL_PERMISSION_KEYS=["payments.view","payments.manage","wallet.view","wallet.manage","payouts.prepare"];
@@ -7653,7 +7757,7 @@ function staff(){
  const permissions=rqPermissions();
  const can=p=>permissions.includes(p);
  const asv=rqIsAsv();
- const navItems=asv?asvNavItems():STAFF_NAV_ITEMS.filter(n=>n[2].some(can)||(n[0]==="requests"&&rqIsAsv())).map(n=>[n[0],n[1]]);
+ const navItems=(asv?asvNavItems():STAFF_NAV_ITEMS.filter(n=>n[2].some(can)||(n[0]==="requests"&&rqIsAsv())).map(n=>[n[0],n[1]])).concat([["tawasol","تواصل"]]);
 
  if(!navItems.some(x=>x[0]===s.tab))s.tab=navItems.length?navItems[0][0]:"none";
 
@@ -7703,6 +7807,7 @@ if(s.tab==="home"&&navItems.some(x=>x[0]==="home")){
   '</div></section>';
  }
 
+if(s.tab==="tawasol")body=twView();
 if(s.tab==="none"){
   body='<section class="section"><div class="card"><p class="muted">لا توجد أقسام متاحة بصلاحياتك الحالية.</p></div></section>';
  }else if(!STAFF_IMPLEMENTED_TABS.includes(s.tab)&&navItems.some(x=>x[0]===s.tab)){
@@ -8266,6 +8371,7 @@ function renderCore(){
      sessionStorage.setItem("wasla_view_v1",JSON.stringify({uid:s.user.id,tab:s.tab,rf:s.requestFilter}));
     }
    }catch(_){}
+if(provContractNeeded()){app.innerHTML=provGateView();return}
 if(
  s.user &&
  s.profile?.role==="provider" &&
