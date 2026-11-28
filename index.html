@@ -3067,6 +3067,8 @@ s.staffAccess=null;s.rq=null;s.rl=null;s.staffSuspended=false;
 await publicData(p.role==="admin"||p.role==="owner"||p.role==="staff");
 try{payRtUnsub()}catch(_){}try{reqRtUnsub()}catch(_){}s.requests=[];s.payments={};s.wallet=null;s.homePts=null;s.quotes=[];s.offers=[];s.apps=[];s.allRequests=[];s.adminProfiles=[];s.chats=[];s.messages=[];try{wcUnsubscribe();wcListUnsubscribe()}catch(_){}s.activeChat=null;s.auditLogs=[];
 
+s.adminPerms=[];
+if(p.role==="admin"){try{const {data:ap}=await db.rpc("my_effective_permissions");if(ap&&Array.isArray(ap.permissions))s.adminPerms=ap.permissions.filter(x=>typeof x==="string")}catch(_){}}
 if(p.role==="staff"){
  const {data:effPerms,error:staffError}=await db.rpc("my_effective_permissions");
  if(staffError){console.error("[my_effective_permissions]",staffError);throw staffError;}
@@ -3353,7 +3355,7 @@ async function orgSave(userId,f){
 }
 const SEC_ST={};
 const SEC_PERM={org:["settings.view","settings.manage"],fin:["payments.view","payments.manage"],cs:["support.view","support.manage"],offers:["ads.view","ads.manage"],adsmgr:["ads.view","ads.manage"],mkt:["ads.view","ads.manage"]};
-function secCan(id,manage){const r=s.profile&&s.profile.role;if(r==="owner"||r==="admin")return true;if(r!=="staff")return false;const ps=(s.staffAccess&&s.staffAccess.permissions)||[];const k=SEC_PERM[id];return !!k&&ps.includes(k[manage?1:0])}
+function secCan(id,manage){const r=s.profile&&s.profile.role;if(r==="owner")return true;if(r!=="staff"&&r!=="admin")return false;const ps=r==="admin"?(s.adminPerms||[]):((s.staffAccess&&s.staffAccess.permissions)||[]);const k=SEC_PERM[id];return !!k&&ps.includes(k[manage?1:0])}
 const SEC_LBL={id:"المعرّف",code:"الكود",title:"العنوان",name:"الاسم",description:"الوصف",body:"النص",status:"الحالة",created_at:"أُنشئ في",updated_at:"آخر تعديل",starts_at:"يبدأ",ends_at:"ينتهي",discount_type:"نوع الخصم",discount_value:"قيمة الخصم",max_discount:"أقصى خصم",min_order:"أقل قيمة طلب",usage_limit:"حد الاستخدام",used_count:"مرات الاستخدام",per_user_limit:"حد لكل مستخدم",kind:"النوع",audiences:"الجمهور",placement:"المكان",impressions:"مرات الظهور",clicks:"النقرات",link_type:"نوع الرابط",link_value:"الرابط",image_url:"الصورة",is_active:"فعّال",goal:"الهدف",budget:"الميزانية",scheduled_at:"الموعد",sent_at:"أُرسل في",subject:"الموضوع",requester_name:"صاحب التذكرة",requester_role:"دوره",category:"النوع",priority:"الأولوية",assigned_to_name:"المسؤول",first_reply_due:"موعد أول رد",first_replied_at:"أول رد",overdue:"متأخرة",provider_name:"مزود الخدمة",gross:"الإجمالي",commission:"العمولة",net:"الصافي",negative_offset:"خصم الرصيد السالب",adjustments:"تعديلات",period_start:"بداية الفترة",period_end:"نهاية الفترة",method:"الطريقة",reference:"المرجع",amount:"المبلغ",expense_date:"التاريخ",reason:"السبب",note:"ملاحظة",balance:"الرصيد",paid_at:"تاريخ الدفع",rejection_reason:"سبب الرفض"};
 const nz=(v)=>v==null||v===""?null:v;
 const fEGP=v=>v==null?"—":fmt(Math.round(Number(v)*100)/100)+" ج.م";
