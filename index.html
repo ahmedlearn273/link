@@ -2999,8 +2999,9 @@ function svcCommissionLine(x){
  if(!canEditCommission()||!s.svcRates||!s.svcRates.ok)return"";
  const own=s.svcRates.map[x.id],d=s.svcRates.def;
  const txt=own!=null?'عمولة الخدمة: <b>'+fmt(own)+'%</b>':'عمولة الخدمة: الافتراضي'+(d!=null?' '+fmt(d)+'%':'');
- return '<div class="row"><span class="small">'+txt+'</span>'+btn("svcrate","تعديل العمولة","light",x.id)+'</div>';
+ return '<p class="small" style="margin:6px 0 0">'+txt+'</p>';
 }
+function svcRateBtn(x){return(canEditCommission()&&s.svcRates&&s.svcRates.ok)?btn("svcrate","تعديل العمولة","light",x.id):""}
 async function loadUser(u){
  s.user=u;s.profile=null;s.provider=null;s.notice="";
  if(!u){render();return}
@@ -6887,7 +6888,7 @@ if(s.tab==="providers"){
 }
        if(s.tab==="approvals")body=approvalsBody();
        if(s.tab==="loyalty")body=loyAdminView();
-       if(s.tab==="services")body='<section class="section"><div class="sectionhead"><div><h2>إدارة الخدمات</h2><p class="small">أضف الخدمات المتاحة على وصلة وتابع وصفها وحالة ظهورها للعملاء.</p></div>'+btn("addservice","إضافة خدمة","gold")+'</div><div class="list">'+(s.services.map(x=>'<article class="item"><div class="row"><b>'+esc(x.name_ar)+'</b>'+tag(x.is_active?"نشطة":"متوقفة")+'</div><p>'+esc(x.description||"لا يوجد وصف مضاف لهذه الخدمة")+'</p>'+svcCommissionLine(x)+'<div class="actions">'+btn("toggleservice",x.is_active?"إيقاف الخدمة":"تفعيل الخدمة","light",x.id)+'</div></article>').join("")||empty("لا توجد خدمات مضافة حتى الآن. أضف أول خدمة للمنصة."))+'</div></section>';
+       if(s.tab==="services")body='<section class="section"><div class="sectionhead"><div><h2>إدارة الخدمات</h2><p class="small">أضف الخدمات المتاحة على وصلة وتابع وصفها وحالة ظهورها للعملاء.</p></div>'+btn("addservice","إضافة خدمة","gold")+'</div><div class="list">'+(s.services.map(x=>'<article class="item"><div class="row"><b>'+esc(x.name_ar)+'</b>'+tag(x.is_active?"نشطة":"متوقفة")+'</div><p>'+esc(x.description||"لا يوجد وصف مضاف لهذه الخدمة")+'</p>'+svcCommissionLine(x)+'<div class="actions">'+svcRateBtn(x)+btn("toggleservice",x.is_active?"إيقاف الخدمة":"تفعيل الخدمة","light",x.id)+'</div></article>').join("")||empty("لا توجد خدمات مضافة حتى الآن. أضف أول خدمة للمنصة."))+'</div></section>';
 if(s.tab==="categories")body='<section class="section"><div class="sectionhead"><div><h2>إدارة التصنيفات</h2><p class="small">نظّم الخدمات داخل أقسام واضحة تسهّل على العملاء الوصول لما يحتاجونه.</p></div>'+btn("addcategory","إضافة تصنيف","gold")+'</div><div class="list">'+(s.cats.map(x=>'<article class="item"><div class="row"><b>'+esc(x.name_ar)+'</b>'+tag(x.is_active?"نشط":"متوقف")+'</div><div class="small">معرّف التصنيف</div><p class="muted">'+esc(x.slug||"غير محدد")+'</p><div class="actions">'+btn("togglecategory",x.is_active?"إيقاف التصنيف":"تفعيل التصنيف","light",x.id)+'</div></article>').join("")||empty("لا توجد تصنيفات حتى الآن. أضف أول تصنيف للمنصة."))+'</div></section>';
  if(s.tab==="staff")body='<section class="section"><div class="sectionhead"><div><h2>إدارة الموظفين</h2><p class="small">أدر فريق العمل وتابع صلاحيات كل موظف وحالة حسابه.</p></div>'+btn("addstaff","إضافة موظف","gold")+'</div><div class="list">'+(s.staff.map(x=>'<article class="item"><div class="row"><div><b>'+esc(x.full_name||"موظف بدون اسم")+'</b><p class="small">عضو في فريق إدارة وصلة</p></div>'+tag(x.staff_permissions?.is_active?"نشط":"موقوف")+'</div><div class="small">رقم التواصل</div><p>'+esc(x.phone||"لا يوجد رقم هاتف")+'</p><div class="small">الصلاحيات الممنوحة</div><p class="muted">'+fmt((x.staff_permissions?.permissions||[]).length)+' صلاحية</p><div class="actions">'+btn("editstaff","إدارة الصلاحيات","light",x.id)+(["admin","owner"].includes(s.profile?.role)&&x.staff_permissions?.is_active?btn("resetstaffpw","توليد كلمة مرور","light",x.id):"")+btn("removestaff","إزالة الموظف","danger",x.id)+'</div></article>').join("")||empty("لا يوجد موظفون حتى الآن. يمكنك إضافة أول موظف لفريق الإدارة."))+'</div></section>';
  if(s.tab==="customers")body='<section class="section"><div class="sectionhead"><div><h2>إدارة العملاء</h2><p class="small">استعرض حسابات العملاء وبياناتهم وحالة كل حساب.</p></div><span class="tag">'+fmt(s.customers.length)+' عميل</span></div><div class="list">'+(s.customers.map(x=>'<article class="item"><div class="row"><div><b>'+esc(x.full_name||"عميل بدون اسم")+'</b><p class="small">حساب عميل على منصة وصلة</p></div>'+tag(x.status==="active"?"نشط":"موقوف")+'</div><div class="small">رقم التواصل</div><p>'+esc(x.phone||"لا يوجد رقم هاتف")+'</p><div class="small">الموقع</div><p class="muted">'+esc([x.city,x.country].filter(Boolean).join("، ")||"الموقع غير محدد")+'</p><div class="actions">'+btn("viewcustomer","عرض الملف","light",x.id)+'</div></article>').join("")||empty("لا يوجد عملاء حتى الآن"))+'</div></section>';
@@ -7077,7 +7078,7 @@ if(s.tab==="home"&&navItems.some(x=>x[0]==="home")){
   (s.services.map(x=>'<article class="item">'+
   '<div class="row"><b>'+esc(x.name_ar)+'</b>'+tag(x.is_active?"نشطة":"متوقفة")+'</div>'+
   '<p>'+esc(x.description||"لا يوجد وصف")+'</p>'+svcCommissionLine(x)+
-  (can("services.manage")?btn("toggleservice",x.is_active?"إيقاف الخدمة":"تفعيل الخدمة","light",x.id):"")+
+  '<div class="actions">'+svcRateBtn(x)+(can("services.manage")?btn("toggleservice",x.is_active?"إيقاف الخدمة":"تفعيل الخدمة","light",x.id):"")+'</div>'+
   '</article>').join("")||empty("لا توجد خدمات"))+
   '</div></section>';
  }
