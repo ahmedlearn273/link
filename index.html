@@ -3442,6 +3442,15 @@ async function stcOpen(id){
  try{const r=await db.rpc("staff_get_customer",{p_id:id});STC.det=r.error?{error:r.error.message}:(r.data||{})}catch(e){STC.det={error:String(e&&e.message||e)}}
  render();
 }
+function canContact(perm){const r=s.profile&&s.profile.role;if(r==="owner"||r==="admin")return true;if(r!=="staff")return false;return !!(s.staffAccess&&(s.staffAccess.permissions||[]).includes(perm))}
+function contactRows(c,perm){
+ const rw=(l,v,btns)=>'<div class="row" style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 4px;border-bottom:1px solid var(--border-color)"><span class="muted">'+l+'</span><span style="display:flex;align-items:center;gap:8px"><b>'+v+'</b>'+btns+'</span></div>';
+ if(!canContact(perm))return "";
+ const ph=String(c.phone||"").replace(/[^0-9+]/g,""),wa=String(c.whatsapp_number||"").replace(/[^0-9]/g,"");
+ const bs='display:inline-flex;align-items:center;justify-content:center;min-height:36px;padding:0 14px;border-radius:12px;font-weight:700;text-decoration:none;font-size:13px;';
+ return rw("رقم التواصل",c.phone?LTR(esc(c.phone)):"لا يوجد",ph?'<a href="tel:'+esc(ph)+'" style="'+bs+'background:var(--surface-2,#eef0f2);color:var(--text,#111)">اتصال</a>':"")+
+  rw("رقم الواتساب",c.whatsapp_number?LTR(esc(c.whatsapp_number)):"لا يوجد",wa?'<a href="https://wa.me/'+esc(wa)+'" target="_blank" rel="noopener" style="'+bs+'background:var(--primary,#0f766e);color:#fff">واتساب</a>':"");
+}
 function stcView(){
  if(!STC.loaded&&!STC.busy)setTimeout(stcLoad,0);
  if(STC.detail){
@@ -3452,7 +3461,7 @@ function stcView(){
   const c=d.customer||d,reqs=d.requests||[];
   return '<section class="asv-sec">'+b+'<div class="asv-hero"><h2>'+esc(c.full_name||"عميل بدون اسم")+'</h2><p>'+esc(c.account_code||"")+' · '+(c.status==="active"?"نشط":"موقوف")+'</p></div>'+
    '<div class="row" style="display:flex;justify-content:space-between;gap:12px;padding:10px 4px;border-bottom:1px solid var(--border-color)"><span class="muted">المدينة</span><b>'+esc([c.city,c.area].filter(Boolean).join("، ")||"غير محددة")+'</b></div>'+
-   '<div class="row" style="display:flex;justify-content:space-between;gap:12px;padding:10px 4px;border-bottom:1px solid var(--border-color)"><span class="muted">رقم التواصل</span><b>'+(c.phone?LTR(esc(c.phone)):"مخفي")+'</b></div>'+
+   contactRows(c,"customers.contact")+
    '<div class="asv-h"><h3>آخر الطلبات</h3></div><div class="asv-list">'+
    (reqs.map(r=>'<div class="item"><div class="row"><b>'+esc(r.service_name||r.title||"طلب")+'</b>'+tag(r.status||"")+'</div><p class="small">'+esc(String(r.created_at||"").slice(0,10))+'</p></div>').join("")||empty("لا توجد طلبات"))+'</div></section>';
  }
@@ -5116,7 +5125,8 @@ function customerAccountBody(p){
   sec("user","بياناتي الشخصية","الاسم ورقم الجوال",
    '<form id="accountProfileForm"><h3>تعديل البيانات الشخصية</h3>'+
    '<label class="field">الاسم الكامل<input name="full_name" type="text" value="'+esc(p.full_name||"")+'" maxlength="120" required></label>'+
-   '<label class="field">رقم الجوال<input name="phone" type="tel" value="'+esc(p.phone||"")+'" maxlength="30"></label>'+
+   '<label class="field">رقم التواصل<input name="phone" type="tel" value="'+esc(p.phone||"")+'" maxlength="30" placeholder="مثال: 01012345678"></label>'+
+   '<label class="field">رقم الواتساب (للتواصل والعروض والإشعارات)<input name="whatsapp_number" type="tel" value="'+esc(p.whatsapp_number||"")+'" maxlength="30" placeholder="مثال: 01012345678">'+(p.whatsapp_number?"":'<small class="muted">لسه ما سجلتش رقم واتساب. أضفه عشان توصلك الإشعارات.</small>')+'</label>'+
    '<div class="actions"><button class="btn gold">حفظ البيانات</button></div></form>')+
   sec("cam","الصورة الشخصية","JPG أو PNG أو WEBP حتى 5 ميجا",
    '<form id="accountPhotoForm"><h3>تغيير الصورة الشخصية</h3>'+
@@ -5446,8 +5456,11 @@ function accountSettingsBody(p){
 '<label class="field">الاسم الكامل'+
 '<input name="full_name" type="text" value="'+esc(p.full_name||"")+'" maxlength="120" required>'+
 '</label>'+
-'<label class="field">رقم الجوال'+
-'<input name="phone" type="tel" value="'+esc(p.phone||"")+'" maxlength="30">'+
+'<label class="field">رقم التواصل'+
+'<input name="phone" type="tel" value="'+esc(p.phone||"")+'" maxlength="30" placeholder="مثال: 01012345678">'+
+'</label>'+
+'<label class="field">رقم الواتساب (لإشعارات الطلبات الجديدة)'+
+'<input name="whatsapp_number" type="tel" value="'+esc(p.whatsapp_number||"")+'" maxlength="30" placeholder="مثال: 01012345678">'+(p.whatsapp_number?"":'<small class="muted">لسه ما سجلتش رقم واتساب. أضفه عشان توصلك الطلبات الجديدة.</small>')+
 '</label>'+
 '<div class="actions"><button class="btn gold">حفظ البيانات</button></div>'+
 '</form>'+
@@ -7681,6 +7694,7 @@ async function viewPrimeKnowledgeDocument(documentId){
         support:'<path d="M4 13v-1a8 8 0 0 1 16 0v1"/><rect x="3" y="13" width="4" height="6" rx="1.5"/><rect x="17" y="13" width="4" height="6" rx="1.5"/>',
         wallet:'<path d="M3 7a2 2 0 0 1 2-2h13v4"/><path d="M3 7v11a2 2 0 0 0 2 2h15V9H5a2 2 0 0 1-2-2z"/><circle cx="16.5" cy="14.5" r="1"/>',
         ads:'<path d="M3 11v3l12 5V6L3 11z"/><path d="M18 9a4 4 0 0 1 0 6"/>',
+        offers:'<path d="M20 12l-8 8-9-9V4h7z"/><circle cx="7.5" cy="7.5" r="1.2"/>',
         settings:'<circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.3.9a7 7 0 0 0-2-1.2L14 3h-4l-.6 2.6a7 7 0 0 0-2 1.2l-2.3-.9-2 3.4 2 1.5A7 7 0 0 0 5 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.3-.9a7 7 0 0 0 2 1.2L10 21h4l.6-2.6a7 7 0 0 0 2-1.2l2.3.9 2-3.4-2-1.5c.1-.4.1-.8.1-1.2z"/>'
       };
       function asvIcon(k){
@@ -8218,11 +8232,12 @@ const STAFF_NAV_ITEMS=[
  ["support","الدعم",["support.view","support.manage"]],
  ["wallet","المحفظة",["wallet.view","wallet.manage"]],
  ["ads","الإعلانات",["ads.view","ads.manage"]],
+ ["offers","العروض",["ads.view","ads.manage"]],
  ["settings","الإعدادات",["settings.view","settings.manage"]]
 ];
 // الأقسام المنفذة فعليًا في لوحة الموظف. الباقي صفحة مؤقتة بلا تحميل بيانات.
-const STAFF_SEC_TAB={support:"cs",ads:"adsmgr",payments:"fin"};
-const STAFF_IMPLEMENTED_TABS=["home","services","categories","requests","providers","complaints","tawasol","support","ads","payments","customers"];
+const STAFF_SEC_TAB={support:"cs",ads:"adsmgr",offers:"offers",payments:"fin"};
+const STAFF_IMPLEMENTED_TABS=["home","services","categories","requests","providers","complaints","tawasol","support","ads","offers","payments","customers"];
 const STAFF_PLACEHOLDER_TEXT="القسم ده ضمن مراحل التنفيذ التالية. مش بيتم تحميل بيانات أو تنفيذ عمليات من الصفحة دي حاليًا.";
 // المفاتيح المالية: تُمنح لموظفي رتبة FIN فقط (الحماية الأساسية في قاعدة البيانات، وهنا منع مبكر في الواجهة)
 const FINANCIAL_PERMISSION_KEYS=["payments.view","payments.manage","wallet.view","wallet.manage","payouts.prepare"];
@@ -11174,6 +11189,23 @@ s.chatMediaDurationSeconds=null;
   return;
  }finally{wcBusy(false)}
 }
+ if(f.id==="accountProfileForm"){
+ const _v=vals(f),_waRaw=String(_v.whatsapp_number||"").trim(),_phRaw=String(_v.phone||"").trim();
+ const _ph=_phRaw?waslaNormEG(_phRaw):"";
+ if(_phRaw&&!_ph)throw Error("رقم التواصل غير صحيح. اكتب رقم مصري مثل 01012345678");
+ const _wa=_waRaw?waslaNormEG(_waRaw):"";
+ if(_waRaw&&!_wa)throw Error("رقم الواتساب غير صحيح. اكتب رقم مصري مثل 01012345678");
+ if(_ph){const pi=f.querySelector('[name="phone"]');if(pi)pi.value=_ph}
+ if(_wa&&_wa!==(s.profile.whatsapp_number||"")){
+  const wr=await db.rpc("update_my_whatsapp",{p_whatsapp:_wa});
+  if(wr.error){
+   if(/update_my_whatsapp|PGRST202|42883/.test(String(wr.error.code)+" "+String(wr.error.message)))throw Error("حفظ رقم الواتساب لسه مش مفعّل. هيتفعل قريب.");
+   throw wr.error;
+  }
+  s.profile.whatsapp_number=_wa;
+  if(!_waRaw||(_ph||"")===(s.profile.phone||"")&&String(_v.full_name||"").trim()===(s.profile.full_name||"")){await refreshRoleData();note("تم حفظ رقم الواتساب.","success");return}
+ }
+ }
  if(f.id==="accountProfileForm"&&s.profile?.role==="provider"){
  const v=vals(f);
  const patch={};
