@@ -3382,9 +3382,10 @@ cs:{title:"خدمة العملاء",sub:"تذاكر الدعم من العملا
   acts:[{l:"رد",rpc:"support_reply",args:(r,x)=>({p_ticket_id:r.id,p_body:x,p_internal:false}),ask:"اكتب الرد",when:r=>r.status!=="closed"},{l:"تم الحل",rpc:"cs_set_ticket_status",args:r=>({p_id:r.id,p_status:"resolved",p_note:null}),when:r=>r.status==="open"||r.status==="pending"},{l:"إغلاق",rpc:"cs_set_ticket_status",args:r=>({p_id:r.id,p_status:"closed",p_note:null}),when:r=>r.status!=="closed"}]}
 ]},
 offers:{title:"العروض والخصومات",sub:"عروض معلنة وأكواد خصم. الخصم تتحمله المنصة والعميل لا يرى العمولة.",tabs:[
- {k:"pr",l:"العروض",rpc:"admin_list_promotions",args:()=>({p_status:null,p_limit:50}),title:r=>r.title||"—",cols:[["code","الكود",v=>v||"—"],["discount_value","الخصم",(v,r)=>r.discount_type==="percent"?fmt(v)+"%":fEGP(v)],["starts_at","من",fD],["ends_at","إلى",fD],["used_count","الاستخدام",(v,r)=>fmt(v||0)+(r.usage_limit?" / "+fmt(r.usage_limit):"")],["status","الحالة",sT]],
+ {k:"pr",l:"العروض",rpc:"admin_list_promotions",args:()=>({p_status:null,p_limit:50}),title:r=>r.title||"—",cols:[["code","الكود",v=>v||"—"],["discount_value","الخصم",(v,r)=>r.discount_type==="percent"?fmt(v)+"%":fEGP(v)],["starts_at","من",fD],["ends_at","إلى",fD],["funded_by","يتحمله",v=>v==="provider"?"المزود":v==="platform"?"المنصة":"—"],["used_count","الاستخدام",(v,r)=>fmt(v||0)+(r.usage_limit?" / "+fmt(r.usage_limit):"")],["status","الحالة",sT]],
   acts:[{l:"إيقاف",rpc:"admin_toggle_promotion",args:r=>({p_id:r.id,p_active:false}),when:r=>r.status==="active"||r.status==="scheduled"},{l:"تفعيل",rpc:"admin_toggle_promotion",args:r=>({p_id:r.id,p_active:true}),when:r=>r.status==="paused"}],
-  form:{l:"عرض جديد",rpc:"admin_upsert_promotion",f:[["p_title","اسم العرض","text"],["p_kind","النوع","select",[["offer","عرض معلن"],["code","كود خصم"]]],["p_code","الكود (لأكواد الخصم، حروف إنجليزية)","text",1],["p_discount_type","نوع الخصم","select",[["percent","نسبة %"],["fixed","مبلغ ثابت"]]],["p_discount_value","قيمة الخصم","number"],["p_max_discount","أقصى خصم (اختياري)","number",1],["p_min_order","أقل قيمة طلب (اختياري)","number",1],["p_starts_at","يبدأ","date"],["p_ends_at","ينتهي (اختياري)","date",1],["p_usage_limit","حد الاستخدام (اختياري)","number",1]],tpl:{p_id:null,p_description:null,p_service_ids:[],p_category_ids:[],p_audiences:["customers"],p_city_ids:[],p_per_user_limit:1,p_is_active:true},up:["p_code"]}}
+  form:{l:"عرض جديد",rpc:"admin_upsert_promotion",f:[["p_title","اسم العرض","text"],["p_kind","النوع","select",[["offer","عرض معلن"],["code","كود خصم"]]],["p_code","الكود (لأكواد الخصم، حروف إنجليزية)","text",1],["p_discount_type","نوع الخصم","select",[["percent","نسبة %"],["fixed","مبلغ ثابت"]]],["p_discount_value","قيمة الخصم","number"],["p_funded_by","مين يتحمل الخصم","select",[["platform","المنصة (الافتراضي)"],["provider","المزود"]]],["p_max_discount","أقصى خصم (اختياري)","number",1],["p_min_order","أقل قيمة طلب (اختياري)","number",1],["p_starts_at","يبدأ","date"],["p_ends_at","ينتهي (اختياري)","date",1],["p_usage_limit","حد الاستخدام (اختياري)","number",1]],tpl:{p_id:null,p_description:null,p_service_ids:[],p_category_ids:[],p_audiences:["customers"],p_city_ids:[],p_per_user_limit:1,p_is_active:true},up:["p_code"]}},
+ {k:"rd",l:"الاستخدامات",rpc:"admin_list_promotion_redemptions",args:()=>({p_promotion_id:null,p_status:null,p_limit:100,p_offset:0}),title:r=>(r.code||r.title||"—")+(r.customer_name?" · "+r.customer_name:""),cols:[["discount_amount","الخصم",fEGP],["original_amount","قيمة الطلب",fEGP],["funded_by","يتحمله",v=>v==="provider"?"المزود":"المنصة"],["status","الحالة",v=>({reserved:"محجوز",applied:"اتطبق",cancelled:"ملغي"}[v]||v)],["created_at","التاريخ",fD]]}
 ]},
 adsmgr:{title:"الإعلانات",sub:"إعلانات داخل التطبيق حسب المكان والجمهور.",tabs:[
  {k:"ad",l:"الإعلانات",rpc:"admin_list_ads",args:()=>({p_placement:null}),title:r=>r.title||"—",cols:[["placement","المكان",v=>({home_banner:"الرئيسية",dashboard:"لوحة التحكم",search:"البحث"}[v]||v)],["impressions","مرات الظهور",v=>fmt(v||0)],["clicks","النقرات",v=>fmt(v||0)],["is_active","الحالة",v=>v?"شغال":"موقوف"]],
@@ -3406,7 +3407,7 @@ mkt:{title:"التسويق",sub:"حملات تجمع عرض وإشعار وإع�
 function secSt(id){return SEC_ST[id]||(SEC_ST[id]={tab:0,data:{},err:{},busy:false,form:false})}
 async function secLoad(id){
  const st=secSt(id),t=SEC[id].tabs[st.tab];st.busy=true;st.err[t.k]="";
- try{const r=await db.rpc(t.rpc,t.args());if(r.error)throw r.error;st.data[t.k]=r.data}
+ try{const r=await db.rpc(t.rpc,t.args());if(r.error)throw r.error;st.data[t.k]=(r.data&&!Array.isArray(r.data)&&Array.isArray(r.data.rows))?r.data.rows:r.data}
  catch(e){st.err[t.k]=String(e&&e.message||e);st.data[t.k]=null}
  st.busy=false;st.loaded=st.loaded||{};st.loaded[t.k]=true;render();
 }
@@ -3466,9 +3467,69 @@ document.addEventListener("submit",async e=>{
  if(fm.derive)args=fm.derive(args);
  if(id==="offers"){args.p_starts_at=args.p_starts_at?args.p_starts_at+"T00:00:00+03:00":new Date().toISOString();if(args.p_ends_at)args.p_ends_at=args.p_ends_at+"T23:59:59+03:00"}
  if(id==="adsmgr"){args.p_starts_at=args.p_starts_at?args.p_starts_at+"T00:00:00+03:00":new Date().toISOString();if(args.p_ends_at)args.p_ends_at=args.p_ends_at+"T23:59:59+03:00"}
- try{const r=await db.rpc(fm.rpc,args);if(r.error)throw r.error;note("تم الحفظ.","success");st.form=false;if(f.dataset.edit!=="1")st.detail=null;await secLoad(id)}
+ try{let r=await db.rpc(fm.rpc,args);if(r.error&&id==="offers"&&args.p_funded_by==="platform"&&/funded_by|PGRST202|schema cache/i.test(String(r.error.message||r.error.code||""))){const a2=Object.assign({},args);delete a2.p_funded_by;r=await db.rpc(fm.rpc,a2)}if(r.error)throw r.error;note("تم الحفظ.","success");st.form=false;if(f.dataset.edit!=="1")st.detail=null;await secLoad(id)}
  catch(err){note("تعذّر الحفظ: "+String(err&&err.message||err),"error");render()}
 },true);
+
+/* ===== Promo code at quote acceptance (fail-soft: needs validate_promotion / redeem_promotion / get_request_discount) ===== */
+function promoSectionHtml(version){
+ const pr=s.promo||{},amt=Number(version&&version.amount)||0,cur=(version&&version.currency)||"EGP";
+ let h='<section class="section"><h4>كود الخصم</h4><div style="display:flex;gap:8px;align-items:center"><input class="input" name="promo_code" dir="ltr" autocomplete="off" placeholder="اكتب الكود (اختياري)" value="'+esc(pr.code||"")+'" style="flex:1;min-width:0;width:auto"><button type="button" class="btn light" data-a="promo-check" style="flex:none;width:auto">تحقق</button></div>';
+ h+='<div class="item" style="margin-top:8px"><div style="display:flex;justify-content:space-between;gap:8px;padding:3px 0"><span>الإجمالي</span><b>'+LTR(esc(fmt(amt))+" "+esc(cur))+'</b></div>';
+ if(pr.valid){h+='<div style="display:flex;justify-content:space-between;gap:8px;padding:3px 0"><span>كود الخصم ('+esc(pr.code)+')</span><b style="color:#0a7a3b">'+LTR("-"+esc(fmt(pr.discount))+" "+esc(cur))+'</b></div><div style="display:flex;justify-content:space-between;gap:8px;padding:3px 0"><span><b>المستحق للدفع</b></span><b class="price">'+LTR(esc(fmt(pr.final))+" "+esc(cur))+'</b></div>'}
+ else{h+='<div style="display:flex;justify-content:space-between;gap:8px;padding:3px 0"><span><b>المستحق للدفع</b></span><b class="price">'+LTR(esc(fmt(amt))+" "+esc(cur))+'</b></div>'}
+ h+='</div>';
+ if(pr.msg)h+='<div class="notice '+(pr.valid?"success":"error")+'" style="margin-top:8px">'+esc(pr.msg)+'</div>';
+ return h+'</section>';
+}
+async function promoCheck(){
+ const f=document.getElementById("quoteAcceptForm");if(!f)return;
+ const code=String((f.elements.promo_code&&f.elements.promo_code.value)||"").trim().toUpperCase();
+ if(f.elements.payment_method)s.promoPm=f.elements.payment_method.value;
+ const quote=(s.quotes||[]).find(x=>x.id===f.dataset.quoteId),version=quote&&quote.currentVersion;
+ if(!code){s.promo=null;render();return}
+ const rq=(s.requests||[]).find(x=>x.id===(quote&&quote.request_id));
+ s.promo={code,valid:false,msg:"جاري التحقق..."};render();
+ try{
+  const r=await db.rpc("validate_promotion",{p_code:code,p_service_id:(rq&&rq.service_id)||null,p_amount:Number(version&&version.amount)||0});
+  if(r.error)throw r.error;
+  const d=r.data||{};
+  if(d.valid)s.promo={code,valid:true,discount:Number(d.discount_amount)||0,final:Number(d.final_amount),msg:"تم تطبيق الكود."};
+  else s.promo={code,valid:false,msg:d.message||"الكود غير صحيح"};
+ }catch(err){s.promo={code,valid:false,msg:"تعذّر التحقق من الكود دلوقتي. جرب بعد شوية."}}
+ render();
+}
+async function promoRedeemAfterAccept(code,requestId){
+ try{
+  const r=await db.rpc("redeem_promotion",{p_code:code,p_request_id:requestId});
+  if(r.error)throw r.error;
+  delete (s.reqDisc||{})[requestId];
+  return true;
+ }catch(err){
+  note("اتقبل العرض، لكن كود الخصم ما اتطبقش: "+String((err&&err.message)||"حاول تاني"),"error");
+  return false;
+ }
+}
+async function loadReqDisc(requestId){
+ s.reqDisc=s.reqDisc||{};
+ if(s.reqDisc[requestId]!==undefined)return;
+ s.reqDisc[requestId]=null;
+ try{
+  const r=await db.rpc("get_request_discount",{p_request_id:requestId});
+  if(r.error)throw r.error;
+  s.reqDisc[requestId]=(r.data&&r.data.has_discount)?r.data:false;
+ }catch(err){s.reqDisc[requestId]=false}
+ render();
+}
+function reqDiscHtml(requestId){
+ s.reqDisc=s.reqDisc||{};
+ if(s.reqDisc[requestId]===undefined)setTimeout(()=>loadReqDisc(requestId),0);
+ const d=s.reqDisc[requestId];if(!d)return "";
+ let h='<p class="small">كود الخصم'+(d.code?" ("+esc(d.code)+")":"")+'</p><b style="color:#0a7a3b">'+LTR("-"+esc(fmt(d.discount_amount))+" EGP")+'</b>'+
+  '<p class="small">المستحق للدفع</p><b>'+LTR(esc(fmt(d.due_amount))+" EGP")+'</b>';
+ if(s.profile&&s.profile.role==="provider"&&d.funded_by)h+='<p class="small">الخصم يتحمله: '+(d.funded_by==="provider"?"أنت":"المنصة")+'</p>';
+ return h;
+}
 /* ===== Support center, offers, ads (fail-soft: each needs its Supabase RPC) ===== */
 function rpcMissing(e){const m=String(e&&e.message||e||"");return /could not find the function|does not exist|schema cache|not found/i.test(m)||(e&&(e.code==="PGRST202"||e.code==="42883"))}
 function supDate(v){return v?LTR(String(v).slice(0,16).replace("T"," ")):""}
@@ -9134,9 +9195,10 @@ if(m.type==="quoteRespond"){
    select("اختر طريقة الدفع","payment_method",[
     {value:"cash",label:"الدفع نقدًا"},
     {value:"platform",label:"الدفع عبر المنصة"}
-   ],"cash")+
+   ],(s.promoPm||"cash"))+
    '<p class="muted">تحديد طريقة الدفع لا يعني تحصيل أي مبلغ الآن.</p>'+
   '</section>'+
+  promoSectionHtml(version)+
   '<div class="actions">'+
    '<button type="button" class="btn light" data-a="close">رجوع</button>'+
    '<button type="submit" class="btn gold">تأكيد قبول العرض</button>'+
@@ -9411,6 +9473,7 @@ const quoteSection=quote&&version
     '<p class="small">رمز العرض: '+codeTag(idCode("REQ",quote.id))+'</p><p class="small">رمز الطلب: '+reqCodeTag(quote.request_id)+'</p><div class="row"><b>حالة العرض</b>'+tag(({awaiting_customer:"بانتظار ردك",awaiting_provider_approval:"عند مقدم الخدمة للاعتماد",agreed:"تم الاتفاق",revision_requested:"طلبت تعديل",rejected:"مرفوض",expired:"منتهي",withdrawn:"مسحوب"})[quote.status]||quote.status)+'</div>'+
     '<p class="small">القيمة المقترحة</p>'+
     '<b>'+LTR(esc(fmt(version.amount))+' '+esc(version.currency||"EGP"))+'</b>'+
+    reqDiscHtml(quote.request_id)+
     '<p class="small">نطاق العمل</p>'+
     '<p>'+esc(version.scope_description||"—")+'</p>'+
     '<p class="small">المدة التقديرية</p>'+
@@ -10095,6 +10158,9 @@ if(f.id==="suspendProviderForm"){
  if(!["cash","platform"].includes(v.payment_method))
   throw Error("اختر طريقة دفع صحيحة");
 
+ const typedCode=String(v.promo_code||"").trim().toUpperCase();
+ if(typedCode&&!(s.promo&&s.promo.valid&&s.promo.code===typedCode)){await promoCheck();return}
+
  const {data,error}=await db.rpc("respond_to_service_quote",{
   p_quote_id:quote.id,
   p_quote_version_id:version.id,
@@ -10104,6 +10170,9 @@ if(f.id==="suspendProviderForm"){
  });
 
  if(error)throw error;
+
+ if(typedCode&&data!=="expired"){await promoRedeemAfterAccept(typedCode,f.dataset.requestId)}
+ s.promo=null;
 
  await refreshRoleData();
 
@@ -11549,7 +11618,8 @@ if(a==="quote-revision"||a==="quote-reject"){
  render();
  return;
 }
-  if(a==="quote-accept"){
+  if(a==="promo-check"){await promoCheck();return}
+  if(a==="quote-accept"){s.promo=null;s.promoPm=null;
 
  if(s.profile?.role!=="customer")
   throw Error("غير مصرح بقبول عرض السعر");
