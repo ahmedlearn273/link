@@ -3458,7 +3458,7 @@ function stcContactC(c){
  const row=(l,v,btn)=>'<div class="kv"><span>'+l+'</span><b style="display:flex;align-items:center">'+(v?LTR(esc(v)):"لا يوجد")+btn+'</b></div>';
  return '<h3>التواصل (داخلي)</h3><div class="grp">'+
   row("الهاتف",c.phone,ph?'<a href="tel:'+esc(ph)+'" style="'+bs+'background:var(--bg-subtle);color:var(--text-primary)">اتصال</a>':"")+
-  row("الواتساب",c.whatsapp_number,wa?'<a href="https://wa.me/'+esc(wa)+'" target="_blank" rel="noopener" style="'+bs+'background:var(--primary);color:var(--bg-surface)">واتساب</a>':"")+
+  row("الواتساب",c.whatsapp_number,wa?'<a href="https://wa.me/'+esc(wa)+'" target="_blank" rel="noopener" style="'+bs+'background:var(--primary);color:var(--bg-surface) !important">واتساب</a>':"")+
   (c.address!=null&&c.address!==""?'<div class="kv"><span>العنوان</span><b>'+esc(c.address)+'</b></div>':"")+'</div>';
 }
 function stcView(){
