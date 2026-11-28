@@ -7611,7 +7611,7 @@ async function viewPrimeKnowledgeDocument(documentId){
       /* ===== مشرف المنطقة (ASV): شاشات الموبايل =====
          الشاشات المبنية على RPCs موجودة شغالة. الشكاوى والمزودين واقتراح الإيقاف مبنية لكن مقفولة بالأعلام
          دي لحد ما الـDB يتنفذ (راجع مستند طلبات الـDB). مفيش بيانات عميل ولا أسعار ولا مدفوعات تظهر للمشرف. */
-      const ASV_FEATURES={complaints:false,providers:false,suspend:false};
+      const ASV_FEATURES={complaints:true,providers:false,suspend:false};
       function asvState(){
         if(!s.asv)s.asv={cmp:{rows:[],total:0,loading:false,loaded:false,error:""},prv:{rows:[],total:0,loading:false,loaded:false,error:""},sheet:null,msg:""};
         return s.asv;
