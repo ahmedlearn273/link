@@ -3327,6 +3327,96 @@ document.addEventListener("click",async e=>{
   AN.title="";AN.body="";note("تم إرسال الإشعار.","success");AN.sending=false;await anLoad();
  }catch(err){AN.sending=false;note("تعذّر الإرسال: "+String(err&&err.message||err),"error");render()}
 });
+/* ===== محرك أقسام الإدارة (مالية، خدمة عملاء، عروض، إعلانات، تسويق) — fail-soft ===== */
+const SEC_ST={};
+const nz=(v)=>v==null||v===""?null:v;
+const fEGP=v=>v==null?"—":fmt(Math.round(Number(v)*100)/100)+" ج.م";
+const fD=v=>v?String(v).slice(0,10):"—";
+const fDT=v=>v?String(v).slice(0,16).replace("T"," "):"—";
+const SEC_STAT={draft:"مسودة",pending_approval:"بانتظار الموافقة",approved:"موافق عليها",paid:"مدفوعة",rejected:"مرفوضة",failed:"فشلت",pending:"بانتظار الموافقة",requested:"مطلوب",processed:"تم التنفيذ",open:"مفتوحة",resolved:"تم الحل",closed:"مغلقة",scheduled:"مجدولة",active:"سارية",expired:"منتهية",paused:"موقوفة",sent:"تم الإرسال",cancelled:"ملغاة"};
+const sT=v=>SEC_STAT[v]||v||"—";
+const SEC={
+fin:{title:"المالية",sub:"العمولات والمستحقات والتسويات والمصروفات والمبالغ المستردة.",tabs:[
+ {k:"sum",l:"الملخص",rpc:"finance_summary",args:()=>({p_from:new Date(Date.now()-30*864e5).toISOString().slice(0,10),p_to:new Date().toISOString().slice(0,10)}),kpi:[["gross","إجمالي المدفوعات",fEGP],["commission","عمولة المنصة",fEGP],["refunds","المستردات",fEGP],["expenses","المصروفات",fEGP],["payouts_paid","تسويات مدفوعة",fEGP],["payouts_pending","تسويات معلقة",fEGP],["outstanding_negative_total","مستحقات على مزودي الخدمات",fEGP],["orders_paid_count","طلبات مدفوعة",v=>fmt(v)]],note:"آخر 30 يوم"},
+ {k:"com",l:"العمولات",rpc:"finance_list_commissions",args:()=>({p_from:new Date(Date.now()-30*864e5).toISOString().slice(0,10),p_to:new Date().toISOString().slice(0,10),p_provider:null,p_limit:100,p_offset:0}),title:r=>r.provider_name||"—",cols:[["gross","المبلغ",fEGP],["commission","العمولة",fEGP],["paid_at","التاريخ",fD],["code","الدفعة",v=>v]]},
+ {k:"due",l:"المستحقات",rpc:"finance_list_dues",args:()=>({p_limit:100}),title:r=>r.provider_name||"—",cols:[["balance","الرصيد",fEGP],["last_cash_at","آخر كاش",fD],["over_cap","فوق الحد",v=>v?"نعم":"لا"]]},
+ {k:"set",l:"التسويات",rpc:"finance_list_settlements",args:()=>({p_status:null,p_limit:100}),title:r=>r.provider_name||r.code||"—",cols:[["net","الصافي",fEGP],["gross","الإجمالي",fEGP],["commission","العمولة",fEGP],["period_end","نهاية الفترة",fD],["status","الحالة",sT]],
+  acts:[{l:"إرسال للموافقة",rpc:"finance_submit_settlement",when:r=>r.status==="draft",args:r=>({p_id:r.id})},{l:"موافقة",rpc:"finance_approve_settlement",when:r=>r.status==="pending_approval",args:r=>({p_id:r.id}),ok:1},{l:"رفض",rpc:"finance_reject_settlement",when:r=>r.status==="pending_approval",args:(r,x)=>({p_id:r.id,p_reason:x}),ask:"سبب الرفض"},{l:"تم الدفع",rpc:"finance_mark_settlement_paid",when:r=>r.status==="approved",args:(r,x)=>({p_id:r.id,p_method:"bank",p_reference:x}),ask:"رقم العملية/المرجع"}],
+  top:{l:"تجهيز تسويات الأسبوع",rpc:"finance_prepare_settlements",ask:"تاريخ نهاية الأسبوع (الخميس) بصيغة 2026-12-03",args:x=>({p_week_end:x})}},
+ {k:"exp",l:"المصروفات",rpc:"finance_list_expenses",args:()=>({p_from:new Date(Date.now()-90*864e5).toISOString().slice(0,10),p_to:new Date().toISOString().slice(0,10),p_status:null}),title:r=>r.description||"—",cols:[["amount","المبلغ",fEGP],["category","النوع",v=>({gateway_fees:"رسوم البوابة",marketing:"تسويق",salaries:"رواتب",refund_absorbed:"استرداد تحملته المنصة",compensation:"تعويضات",operations:"تشغيل",other:"أخرى"}[v]||v)],["expense_date","التاريخ",fD],["status","الحالة",sT]],
+  acts:[{l:"موافقة",rpc:"finance_decide_expense",when:r=>r.status==="pending",args:r=>({p_id:r.id,p_approve:true}),ok:1},{l:"رفض",rpc:"finance_decide_expense",when:r=>r.status==="pending",args:r=>({p_id:r.id,p_approve:false})}],
+  form:{l:"إضافة مصروف",rpc:"finance_create_expense",f:[["p_category","النوع","select",[["operations","تشغيل"],["gateway_fees","رسوم البوابة"],["marketing","تسويق"],["salaries","رواتب"],["compensation","تعويضات"],["refund_absorbed","استرداد تحملته المنصة"],["other","أخرى"]]],["p_amount","المبلغ","number"],["p_description","الوصف","text"],["p_expense_date","التاريخ","date"]],tpl:{p_receipt_url:null}}},
+ {k:"ref",l:"المستردات",rpc:"finance_list_refunds",args:()=>({p_status:null}),title:r=>r.reason||"—",cols:[["amount","المبلغ",fEGP],["created_at","التاريخ",fD],["status","الحالة",sT]],acts:[{l:"موافقة",rpc:"finance_decide_refund",when:r=>r.status==="requested",args:r=>({p_id:r.id,p_approve:true,p_note:null}),ok:1},{l:"رفض",rpc:"finance_decide_refund",when:r=>r.status==="requested",args:(r,x)=>({p_id:r.id,p_approve:false,p_note:x}),ask:"سبب الرفض"}]}
+]},
+cs:{title:"خدمة العملاء",sub:"تذاكر الدعم من العملاء ومزودي الخدمات. أول رد خلال 4 ساعات.",tabs:[
+ {k:"st",l:"الملخص",rpc:"cs_stats",args:()=>({}),kpi:[["open","مفتوحة",v=>fmt(v)],["pending","معلقة",v=>fmt(v)],["overdue","متأخرة",v=>fmt(v)],["resolved_7d","اتحلت آخر 7 أيام",v=>fmt(v)],["avg_first_reply_minutes","متوسط أول رد (دقيقة)",v=>fmt(Math.round(v||0))]]},
+ {k:"tk",l:"التذاكر",rpc:"cs_list_tickets",args:()=>({p_status:null,p_assignee:null,p_q:null,p_limit:50,p_offset:0}),title:r=>r.subject||"—",cols:[["code","الكود",v=>v],["requester_name","من",v=>v],["category","النوع",v=>v],["priority","الأولوية",v=>({low:"منخفضة",normal:"عادية",high:"عالية",urgent:"عاجلة"}[v]||v)],["status","الحالة",sT],["overdue","متأخرة",v=>v?"نعم":"لا"]],
+  acts:[{l:"رد",rpc:"support_reply",args:(r,x)=>({p_ticket_id:r.id,p_body:x,p_internal:false}),ask:"اكتب الرد",when:r=>r.status!=="closed"},{l:"تم الحل",rpc:"cs_set_ticket_status",args:r=>({p_id:r.id,p_status:"resolved",p_note:null}),when:r=>r.status==="open"||r.status==="pending"},{l:"إغلاق",rpc:"cs_set_ticket_status",args:r=>({p_id:r.id,p_status:"closed",p_note:null}),when:r=>r.status!=="closed"}]}
+]},
+offers:{title:"العروض والخصومات",sub:"عروض معلنة وأكواد خصم. الخصم تتحمله المنصة والعميل لا يرى العمولة.",tabs:[
+ {k:"pr",l:"العروض",rpc:"admin_list_promotions",args:()=>({p_status:null,p_limit:50}),title:r=>r.title||"—",cols:[["code","الكود",v=>v||"—"],["discount_value","الخصم",(v,r)=>r.discount_type==="percent"?fmt(v)+"%":fEGP(v)],["starts_at","من",fD],["ends_at","إلى",fD],["used_count","الاستخدام",(v,r)=>fmt(v||0)+(r.usage_limit?" / "+fmt(r.usage_limit):"")],["status","الحالة",sT]],
+  acts:[{l:"إيقاف",rpc:"admin_toggle_promotion",args:r=>({p_id:r.id,p_active:false}),when:r=>r.status==="active"||r.status==="scheduled"},{l:"تفعيل",rpc:"admin_toggle_promotion",args:r=>({p_id:r.id,p_active:true}),when:r=>r.status==="paused"}],
+  form:{l:"عرض جديد",rpc:"admin_upsert_promotion",f:[["p_title","اسم العرض","text"],["p_kind","النوع","select",[["offer","عرض معلن"],["code","كود خصم"]]],["p_code","الكود (لأكواد الخصم، حروف إنجليزية)","text",1],["p_discount_type","نوع الخصم","select",[["percent","نسبة %"],["fixed","مبلغ ثابت"]]],["p_discount_value","قيمة الخصم","number"],["p_max_discount","أقصى خصم (اختياري)","number",1],["p_min_order","أقل قيمة طلب (اختياري)","number",1],["p_starts_at","يبدأ","date"],["p_ends_at","ينتهي (اختياري)","date",1],["p_usage_limit","حد الاستخدام (اختياري)","number",1]],tpl:{p_id:null,p_description:null,p_service_ids:[],p_category_ids:[],p_audiences:["customers"],p_city_ids:[],p_per_user_limit:1,p_is_active:true},up:["p_code"]}}
+]},
+adsmgr:{title:"الإعلانات",sub:"إعلانات داخل التطبيق حسب المكان والجمهور.",tabs:[
+ {k:"ad",l:"الإعلانات",rpc:"admin_list_ads",args:()=>({p_placement:null}),title:r=>r.title||"—",cols:[["placement","المكان",v=>({home_banner:"الرئيسية",dashboard:"لوحة التحكم",search:"البحث"}[v]||v)],["impressions","مرات الظهور",v=>fmt(v||0)],["clicks","النقرات",v=>fmt(v||0)],["is_active","الحالة",v=>v?"شغال":"موقوف"]],
+  acts:[{l:"إيقاف",rpc:"admin_toggle_ad",args:r=>({p_id:r.id,p_active:false}),when:r=>r.is_active},{l:"تشغيل",rpc:"admin_toggle_ad",args:r=>({p_id:r.id,p_active:true}),when:r=>!r.is_active}],
+  form:{l:"إعلان جديد",rpc:"admin_upsert_ad",f:[["p_title","العنوان","text"],["p_body","النص","text",1],["p_image_url","رابط الصورة (اختياري)","text",1],["p_placement","المكان","select",[["home_banner","الرئيسية"],["dashboard","لوحة التحكم"],["search","البحث"]]],["p_link_value","رابط عند الضغط (https، اختياري)","text",1],["p_starts_at","يبدأ","date"],["p_ends_at","ينتهي (اختياري)","date",1]],tpl:{p_id:null,p_audiences:["customers"],p_city_ids:[],p_is_active:true,p_sort_order:0},derive:a=>{a.p_link_type=a.p_link_value?"url":"none";return a}}}
+]},
+mkt:{title:"التسويق",sub:"حملات تجمع عرض وإشعار وإعلان وتتابع نتايجها.",tabs:[
+ {k:"cp",l:"الحملات",rpc:"admin_list_campaigns",args:()=>({p_status:null}),title:r=>r.name||"—",cols:[["goal","الهدف",v=>({awareness:"تعريف",promotion:"ترويج",retention:"احتفاظ",activation:"تنشيط"}[v]||v||"—")],["scheduled_at","الموعد",fDT],["status","الحالة",sT]],
+  acts:[{l:"إطلاق الآن",rpc:"admin_launch_campaign",args:r=>({p_id:r.id}),when:r=>r.status==="draft"||r.status==="scheduled",confirm:1}],
+  form:{l:"حملة جديدة",rpc:"admin_upsert_campaign",f:[["p_name","اسم الحملة","text"],["p_goal","الهدف","select",[["promotion","ترويج"],["awareness","تعريف"],["retention","احتفاظ"],["activation","تنشيط"]]],["p_title","عنوان الإشعار","text"],["p_body","نص الإشعار","text"],["p_budget","الميزانية (اختياري)","number",1]],tpl:{p_id:null,p_channel:"in_app",p_audiences:["all"],p_new_days:null,p_scheduled_at:null,p_promotion_id:null,p_ad_id:null,p_notes:null}}}
+]}
+};
+function secSt(id){return SEC_ST[id]||(SEC_ST[id]={tab:0,data:{},err:{},busy:false,form:false})}
+async function secLoad(id){
+ const st=secSt(id),t=SEC[id].tabs[st.tab];st.busy=true;st.err[t.k]="";
+ try{const r=await db.rpc(t.rpc,t.args());if(r.error)throw r.error;st.data[t.k]=r.data}
+ catch(e){st.err[t.k]=String(e&&e.message||e);st.data[t.k]=null}
+ st.busy=false;st.loaded=st.loaded||{};st.loaded[t.k]=true;render();
+}
+function secView(id){
+ const S=SEC[id],st=secSt(id),t=S.tabs[st.tab];st.loaded=st.loaded||{};
+ if(!st.loaded[t.k]&&!st.busy)setTimeout(()=>secLoad(id),0);
+ const tabs=S.tabs.length>1?'<div class="an-chips">'+S.tabs.map((x,i)=>'<button type="button" class="an-chip'+(i===st.tab?" on":"")+'" data-a="sec-tab" data-id="'+id+'" data-i="'+i+'">'+esc(x.l)+'</button>').join("")+'</div>':"";
+ let b="";const d=st.data[t.k];
+ if(st.err[t.k])b+='<div class="notice error">القسم لسه مش مفعّل في قاعدة البيانات ('+esc(st.err[t.k])+'). الشاشة جاهزة ومستنية شوشو.</div>';
+ else if(!st.loaded[t.k]||st.busy)b+='<div class="empty">جاري التحميل...</div>';
+ else if(t.kpi){const o=d||{};b+=(t.note?'<p class="small">'+esc(t.note)+'</p>':"")+'<div class="sec-kpi">'+t.kpi.map(k=>'<div><small>'+esc(k[1])+'</small><b>'+k[2](o[k[0]])+'</b></div>').join("")+'</div>'}
+ else{
+  const rows=Array.isArray(d)?d:[];
+  if(t.top)b+='<div class="actions" style="margin:6px 0">'+btn("sec-top","\u200f"+t.top.l,"gold",id)+'</div>';
+  b+=rows.length?'<div class="card" style="padding:4px 14px">'+rows.map((r,ri)=>'<div class="sec-row"><b>'+esc(t.title(r))+'</b><div class="sec-meta">'+t.cols.map(c=>'<span><i>'+esc(c[1])+'</i> '+esc(String(c[2](r[c[0]],r)))+'</span>').join("")+'</div>'+((t.acts||[]).filter(a=>!a.when||a.when(r)).map(a=>'<button type="button" class="btn light" data-a="sec-act" data-id="'+id+'" data-r="'+ri+'" data-ai="'+t.acts.indexOf(a)+'">'+esc(a.l)+'</button>').join(" "))+'</div>').join("")+'</div>':'<div class="card"><p class="small" style="margin:0">لسه مفيش بيانات.</p></div>';
+  if(rows.length)b+='<div class="actions" style="margin-top:8px">'+btn("sec-csv","تصدير CSV","light",id)+'</div>';
+  if(t.form){b+='<div class="actions" style="margin-top:10px">'+btn("sec-form","+ "+t.form.l,"gold",id)+'</div>';
+   if(st.form)b+='<form class="card sec-form" id="secForm" data-id="'+id+'" style="margin-top:10px"><h3 style="margin:0 0 8px">'+esc(t.form.l)+'</h3>'+t.form.f.map(f=>'<label class="field"><span>'+esc(f[1])+'</span>'+(f[2]==="select"?'<select name="'+f[0]+'">'+f[3].map(o=>'<option value="'+o[0]+'">'+esc(o[1])+'</option>').join("")+'</select>':'<input name="'+f[0]+'" type="'+(f[2]==="number"?"number\" step=\"any":f[2]==="date"?"date":"text")+'"'+(f[4]||f[3]===1?"":" required")+'>')+'</label>').join("")+'<button class="btn gold" type="submit">حفظ</button></form>'}
+ }
+ return '<style>.sec-kpi{display:grid;grid-template-columns:1fr 1fr;gap:10px}.sec-kpi div{background:var(--surface,#fff);border:1px solid var(--border,#e5e7eb);border-radius:16px;padding:14px}.sec-kpi small{display:block;color:#64748b;font-size:12px}.sec-kpi b{font-size:18px}.sec-row{padding:12px 0;border-bottom:1px solid var(--border,#eef0f2)}.sec-meta{display:flex;flex-wrap:wrap;gap:4px 14px;margin:4px 0 8px;font-size:13px;color:#475569}.sec-meta i{font-style:normal;color:#94a3b8}</style><style>.an-chips{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 12px}.an-chip{border:1px solid var(--border,#e5e7eb);background:var(--surface,#fff);border-radius:999px;padding:9px 14px;font:inherit;font-weight:700}.an-chip.on{background:linear-gradient(135deg,#0f766e,#0f3d3e);color:#fff;border-color:transparent}</style><section class="section"><div class="sectionhead"><div><h2>'+esc(S.title)+'</h2><p class="small">'+esc(S.sub)+'</p></div></div>'+tabs+b+'</section>';
+}
+document.addEventListener("click",async e=>{
+ const b=e.target.closest&&e.target.closest('[data-a="sec-tab"],[data-a="sec-act"],[data-a="sec-top"],[data-a="sec-form"],[data-a="sec-csv"]');if(!b)return;
+ const id=b.dataset.id,st=secSt(id),t=SEC[id].tabs[st.tab],a=b.dataset.a;
+ if(a==="sec-tab"){st.tab=Number(b.dataset.i);st.form=false;render();return}
+ if(a==="sec-form"){st.form=!st.form;render();return}
+ if(a==="sec-csv"){const rows=st.data[t.k]||[];if(!rows.length)return;const ks=Object.keys(rows[0]);const q=v=>'"'+String(v==null?"":v).replace(/"/g,'""')+'"';const csv="\ufeff"+ks.join(",")+"\n"+rows.map(r=>ks.map(k=>q(typeof r[k]==="object"?JSON.stringify(r[k]):r[k])).join(",")).join("\n");const u=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));const l=document.createElement("a");l.href=u;l.download=id+"-"+t.k+".csv";l.click();return}
+ let act,args;
+ if(a==="sec-top"){act=t.top;const x=prompt(act.ask);if(!x)return;args=act.args(x)}
+ else{const r=(st.data[t.k]||[])[Number(b.dataset.r)];act=t.acts[Number(b.dataset.ai)];let x=null;if(act.ask){x=prompt(act.ask);if(x==null||!String(x).trim())return}else if(!confirm(act.l+"؟"))return;args=act.args(r,x)}
+ try{const r=await db.rpc(act.rpc,args);if(r.error)throw r.error;note("تم.","success");await secLoad(id)}
+ catch(err){note("تعذّر التنفيذ: "+String(err&&err.message||err),"error");render()}
+});
+document.addEventListener("submit",async e=>{
+ const f=e.target;if(!f||f.id!=="secForm")return;e.preventDefault();
+ const id=f.dataset.id,st=secSt(id),t=SEC[id].tabs[st.tab],fm=t.form,fd=new FormData(f);
+ let args=Object.assign({},fm.tpl||{});
+ fm.f.forEach(x=>{let v=fd.get(x[0]);v=v===""?null:v;if(x[2]==="number"&&v!=null)v=Number(v);if(x[0]==="p_code"&&v)v=String(v).toUpperCase();args[x[0]]=v});
+ if(fm.derive)args=fm.derive(args);
+ if(id==="offers"){args.p_starts_at=args.p_starts_at?args.p_starts_at+"T00:00:00+03:00":new Date().toISOString();if(args.p_ends_at)args.p_ends_at=args.p_ends_at+"T23:59:59+03:00"}
+ if(id==="adsmgr"){args.p_starts_at=args.p_starts_at?args.p_starts_at+"T00:00:00+03:00":new Date().toISOString();if(args.p_ends_at)args.p_ends_at=args.p_ends_at+"T23:59:59+03:00"}
+ try{const r=await db.rpc(fm.rpc,args);if(r.error)throw r.error;note("تم الحفظ.","success");st.form=false;await secLoad(id)}
+ catch(err){note("تعذّر الحفظ: "+String(err&&err.message||err),"error");render()}
+},true);
 function legalView(){
  if(s.legal==="contact")return contactView();
  const d=LEGAL_DOCS[s.legal];if(!d){s.mode=s.legalBack||"welcome";return ""}
@@ -7745,6 +7835,7 @@ if(s.tab==="categories")body='<section class="section"><div class="sectionhead">
  if(s.tab==="tawasol")body=twView();
  if(s.tab==="channels")body=chAdminView();
  if(s.tab==="announce")body=anView();
+ if(SEC[s.tab])body=secView(s.tab);
 if(s.tab==="assistant"&&s.profile?.role==="owner")body=assistantView();
       if(s.tab==="requests")body=requestsListView();
  if(s.tab==="appearance")body='<section class="section"><div class="card"><h2>مظهر منصة وصلة</h2><p>هوية Trust &amp; Poise بنظامين نهاري وليلي، والتبديل بينهم من زر الشمس والقمر أعلى الصفحة. وتقدر تختار مجموعة الألوان اللي تعجبك من هنا.</p><div class="actions"><button type="button" class="btn gold" data-th="open">الثيمات</button></div></div></section>';
@@ -7787,7 +7878,7 @@ if(s.tab==="knowledge"){
  '</article>').join("")||empty("لا توجد سجلات تدقيق حتى الآن"))+
  '</div></section>';
 }
-       const nav=[["home","نظرة عامة"],["requests","الطلبات"],["messages","الرسائل"],["tawasol","تواصل"],["channels","التواصل والسوشيال"],["announce","الإشعارات والعروض"],["customers","العملاء"],["reports","التقارير"],["uploads","مركز الرفع"],["loyalty","تحكم الولاء"],["providers","مزودو الخدمات"],["services","الخدمات"],["categories","الأقسام"],["approvals","طلبات الموافقة"+((s.pendingReqs||[]).length?" ("+fmt((s.pendingReqs||[]).length)+")":"")],["staff","الموظفون"],["knowledge","قاعدة معرفة PRIME"],...(s.profile?.role==="owner"?[["assistant","PRIME AI"]]:[]),["appearance","المظهر والثيمات"],...(s.profile?.role==="owner"?[["audit","سجل التدقيق"]]:[])].map(x=>'<button data-a="tab" data-id="'+x[0]+'" class="'+(s.tab===x[0]||(s.tab==="providerDossier"&&x[0]==="providers")?"active":"")+'">'+x[1]+'</button>').join("");
+       const nav=[["home","نظرة عامة"],["requests","الطلبات"],["messages","الرسائل"],["tawasol","تواصل"],["channels","التواصل والسوشيال"],["announce","الإشعارات والعروض"],["fin","المالية"],["cs","خدمة العملاء"],["offers","العروض والخصومات"],["adsmgr","الإعلانات"],["mkt","التسويق"],["customers","العملاء"],["reports","التقارير"],["uploads","مركز الرفع"],["loyalty","تحكم الولاء"],["providers","مزودو الخدمات"],["services","الخدمات"],["categories","الأقسام"],["approvals","طلبات الموافقة"+((s.pendingReqs||[]).length?" ("+fmt((s.pendingReqs||[]).length)+")":"")],["staff","الموظفون"],["knowledge","قاعدة معرفة PRIME"],...(s.profile?.role==="owner"?[["assistant","PRIME AI"]]:[]),["appearance","المظهر والثيمات"],...(s.profile?.role==="owner"?[["audit","سجل التدقيق"]]:[])].map(x=>'<button data-a="tab" data-id="'+x[0]+'" class="'+(s.tab===x[0]||(s.tab==="providerDossier"&&x[0]==="providers")?"active":"")+'">'+x[1]+'</button>').join("");
  
 const isOwner=s.profile?.role==="owner";
 
