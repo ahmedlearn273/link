@@ -3472,43 +3472,24 @@ document.addEventListener("submit",async e=>{
 },true);
 
 /* ===== Promo code at quote acceptance (fail-soft: needs validate_promotion / redeem_promotion / get_request_discount) ===== */
-function promoSectionHtml(version){
- const pr=s.promo||{},amt=Number(version&&version.amount)||0,cur=(version&&version.currency)||"EGP";
- let h='<section class="section"><h4>كود الخصم</h4><div style="display:flex;gap:8px;align-items:center"><input class="input" name="promo_code" dir="ltr" autocomplete="off" placeholder="اكتب الكود (اختياري)" value="'+esc(pr.code||"")+'" style="flex:1;min-width:0;width:auto"><button type="button" class="btn light" data-a="promo-check" style="flex:none;width:auto">تحقق</button></div>';
- h+='<div class="item" style="margin-top:8px"><div style="display:flex;justify-content:space-between;gap:8px;padding:3px 0"><span>الإجمالي</span><b>'+LTR(esc(fmt(amt))+" "+esc(cur))+'</b></div>';
- if(pr.valid){h+='<div style="display:flex;justify-content:space-between;gap:8px;padding:3px 0"><span>كود الخصم ('+esc(pr.code)+')</span><b style="color:#0a7a3b">'+LTR("-"+esc(fmt(pr.discount))+" "+esc(cur))+'</b></div><div style="display:flex;justify-content:space-between;gap:8px;padding:3px 0"><span><b>المستحق للدفع</b></span><b class="price">'+LTR(esc(fmt(pr.final))+" "+esc(cur))+'</b></div>'}
- else{h+='<div style="display:flex;justify-content:space-between;gap:8px;padding:3px 0"><span><b>المستحق للدفع</b></span><b class="price">'+LTR(esc(fmt(amt))+" "+esc(cur))+'</b></div>'}
- h+='</div>';
- if(pr.msg)h+='<div class="notice '+(pr.valid?"success":"error")+'" style="margin-top:8px">'+esc(pr.msg)+'</div>';
- return h+'</section>';
-}
-async function promoCheck(){
- const f=document.getElementById("quoteAcceptForm");if(!f)return;
- const code=String((f.elements.promo_code&&f.elements.promo_code.value)||"").trim().toUpperCase();
- if(f.elements.payment_method)s.promoPm=f.elements.payment_method.value;
- const quote=(s.quotes||[]).find(x=>x.id===f.dataset.quoteId),version=quote&&quote.currentVersion;
- if(!code){s.promo=null;render();return}
- const rq=(s.requests||[]).find(x=>x.id===(quote&&quote.request_id));
- s.promo={code,valid:false,msg:"جاري التحقق..."};render();
+async function payPromoApply(requestId){
+ s.payCode=s.payCode||{};
+ const inp=document.querySelector('[data-pc="'+requestId+'"]');
+ const code=String((inp&&inp.value)||"").trim().toUpperCase();
+ const p=s.payments&&s.payments[requestId],rq=(s.requests||[]).find(x=>x.id===requestId);
+ if(!code){s.payCode[requestId]={code:"",msg:"اكتب كود الخصم الأول.",valid:false};render();return}
+ s.payCode[requestId]={code,msg:"جاري التحقق...",valid:false,busy:true};render();
  try{
-  const r=await db.rpc("validate_promotion",{p_code:code,p_service_id:(rq&&rq.service_id)||null,p_amount:Number(version&&version.amount)||0});
-  if(r.error)throw r.error;
-  const d=r.data||{};
-  if(d.valid)s.promo={code,valid:true,discount:Number(d.discount_amount)||0,final:Number(d.final_amount),msg:"تم تطبيق الكود."};
-  else s.promo={code,valid:false,msg:d.message||"الكود غير صحيح"};
- }catch(err){s.promo={code,valid:false,msg:"تعذّر التحقق من الكود دلوقتي. جرب بعد شوية."}}
- render();
-}
-async function promoRedeemAfterAccept(code,requestId){
- try{
+  const v=await db.rpc("validate_promotion",{p_code:code,p_service_id:(rq&&rq.service_id)||null,p_amount:Number(p&&p.amount)||0});
+  if(v.error)throw v.error;
+  const d=v.data||{};
+  if(!d.valid){s.payCode[requestId]={code,msg:d.message||"الكود غير صحيح",valid:false};render();return}
   const r=await db.rpc("redeem_promotion",{p_code:code,p_request_id:requestId});
-  if(r.error)throw r.error;
-  delete (s.reqDisc||{})[requestId];
-  return true;
- }catch(err){
-  note("اتقبل العرض، لكن كود الخصم ما اتطبقش: "+String((err&&err.message)||"حاول تاني"),"error");
-  return false;
- }
+  if(r.error){s.payCode[requestId]={code,msg:"الكود ما اتطبقش: "+String(r.error.message||"حاول تاني"),valid:false};render();return}
+  s.payCode[requestId]={code,msg:"تم تطبيق الكود.",valid:true};
+  if(s.reqDisc)delete s.reqDisc[requestId];
+  await loadReqDisc(requestId);
+ }catch(err){s.payCode[requestId]={code,msg:"تعذّر التحقق من الكود دلوقتي. جرب بعد شوية.",valid:false};render()}
 }
 async function loadReqDisc(requestId){
  s.reqDisc=s.reqDisc||{};
@@ -3520,15 +3501,6 @@ async function loadReqDisc(requestId){
   s.reqDisc[requestId]=(r.data&&r.data.has_discount)?r.data:false;
  }catch(err){s.reqDisc[requestId]=false}
  render();
-}
-function reqDiscHtml(requestId){
- s.reqDisc=s.reqDisc||{};
- if(s.reqDisc[requestId]===undefined)setTimeout(()=>loadReqDisc(requestId),0);
- const d=s.reqDisc[requestId];if(!d)return "";
- let h='<p class="small">كود الخصم'+(d.code?" ("+esc(d.code)+")":"")+'</p><b style="color:#0a7a3b">'+LTR("-"+esc(fmt(d.discount_amount))+" EGP")+'</b>'+
-  '<p class="small">المستحق للدفع</p><b>'+LTR(esc(fmt(d.due_amount))+" EGP")+'</b>';
- if(s.profile&&s.profile.role==="provider"&&d.funded_by)h+='<p class="small">الخصم يتحمله: '+(d.funded_by==="provider"?"أنت":"المنصة")+'</p>';
- return h;
 }
 /* ===== Support center, offers, ads (fail-soft: each needs its Supabase RPC) ===== */
 function rpcMissing(e){const m=String(e&&e.message||e||"");return /could not find the function|does not exist|schema cache|not found/i.test(m)||(e&&(e.code==="PGRST202"||e.code==="42883"))}
@@ -4968,6 +4940,11 @@ function payDueHtml(q,p,cur){
  let h='<div class="item" style="margin-top:8px">'+row("الإجمالي",moneyAr(gross,cur));
  if(disc>0)h+=row("كود الخصم"+(d.code?" ("+esc(d.code)+")":""),'<span style="color:#0a7a3b">'+moneyAr(-disc,cur)+'</span>');
  h+=row("المستحق للدفع",moneyAr(due,cur))+'</div>';
+ if(!(d&&d.has_discount)&&p.payment_status==="pending"){
+  const pc=(s.payCode&&s.payCode[q.id])||{};
+  h+='<div style="display:flex;gap:8px;align-items:center;margin:8px 0 0"><input class="input" data-pc="'+esc(q.id)+'" dir="ltr" autocomplete="off" placeholder="عندك كود خصم؟" value="'+esc(pc.code||"")+'" style="flex:1;min-width:0;width:auto"><button type="button" class="btn light" data-a="pay-promo" data-id="'+esc(q.id)+'" style="flex:none;width:auto"'+(pc.busy?" disabled":"")+'>تحقق</button></div>';
+  if(pc.msg)h+='<div class="notice '+(pc.valid?"success":"error")+'" style="margin-top:8px">'+esc(pc.msg)+'</div>';
+ }
  if(PAYMENTS.online&&p.payment_method==="platform"&&s.payIntents&&s.payIntents[q.id])h+='<div class="actions">'+tag("في انتظار التحصيل")+'</div>';
  else h+='<div class="actions">'+btn("pay-now","ادفع "+moneyAr(due,false)+" "+cur,"gold",q.id)+'</div>';
  return h;
@@ -9209,10 +9186,10 @@ if(m.type==="quoteRespond"){
    '<h4>طريقة الدفع</h4>'+
    select("اختر طريقة الدفع","payment_method",[
     {value:"cash",label:"الدفع نقدًا"}
-   ].concat(PAYMENTS.online?[{value:"platform",label:"الدفع عبر المنصة"}]:[]),(s.promoPm||"cash"))+
+   ].concat(PAYMENTS.online?[{value:"platform",label:"الدفع عبر المنصة"}]:[]),"cash")+
    '<p class="muted">تحديد طريقة الدفع لا يعني تحصيل أي مبلغ الآن.</p>'+
   '</section>'+
-  promoSectionHtml(version)+
+
   '<div class="actions">'+
    '<button type="button" class="btn light" data-a="close">رجوع</button>'+
    '<button type="submit" class="btn gold">تأكيد قبول العرض</button>'+
@@ -9487,7 +9464,6 @@ const quoteSection=quote&&version
     '<p class="small">رمز العرض: '+codeTag(idCode("REQ",quote.id))+'</p><p class="small">رمز الطلب: '+reqCodeTag(quote.request_id)+'</p><div class="row"><b>حالة العرض</b>'+tag(({awaiting_customer:"بانتظار ردك",awaiting_provider_approval:"عند مقدم الخدمة للاعتماد",agreed:"تم الاتفاق",revision_requested:"طلبت تعديل",rejected:"مرفوض",expired:"منتهي",withdrawn:"مسحوب"})[quote.status]||quote.status)+'</div>'+
     '<p class="small">القيمة المقترحة</p>'+
     '<b>'+LTR(esc(fmt(version.amount))+' '+esc(version.currency||"EGP"))+'</b>'+
-    reqDiscHtml(quote.request_id)+
     '<p class="small">نطاق العمل</p>'+
     '<p>'+esc(version.scope_description||"—")+'</p>'+
     '<p class="small">المدة التقديرية</p>'+
@@ -10172,9 +10148,6 @@ if(f.id==="suspendProviderForm"){
  if(!["cash","platform"].includes(v.payment_method))
   throw Error("اختر طريقة دفع صحيحة");
 
- const typedCode=String(v.promo_code||"").trim().toUpperCase();
- if(typedCode&&!(s.promo&&s.promo.valid&&s.promo.code===typedCode)){await promoCheck();return}
-
  const {data,error}=await db.rpc("respond_to_service_quote",{
   p_quote_id:quote.id,
   p_quote_version_id:version.id,
@@ -10185,8 +10158,6 @@ if(f.id==="suspendProviderForm"){
 
  if(error)throw error;
 
- if(typedCode&&data!=="expired"){await promoRedeemAfterAccept(typedCode,f.dataset.requestId)}
- s.promo=null;
 
  await refreshRoleData();
 
@@ -11632,8 +11603,8 @@ if(a==="quote-revision"||a==="quote-reject"){
  render();
  return;
 }
-  if(a==="promo-check"){await promoCheck();return}
-  if(a==="quote-accept"){s.promo=null;s.promoPm=null;
+  if(a==="pay-promo"){await payPromoApply(id);return}
+  if(a==="quote-accept"){
 
  if(s.profile?.role!=="customer")
   throw Error("غير مصرح بقبول عرض السعر");
