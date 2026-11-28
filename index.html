@@ -3138,54 +3138,60 @@ if(p.role==="owner"){
 }
 const PROV_CONTRACT_VER="provider-v1-2026-11";
 const PROV_CONTRACT=[
-["مقدمة وأطراف العقد","يُبرم هذا العقد إلكترونيًا بين منصة وصلة (ويُشار إليها \"المنصة\") وبين مقدّم الخدمة المسجّل بياناته في نموذج التسجيل (ويُشار إليه \"الفني\"). تقتصر المنصة على كونها وسيطًا إلكترونيًا يربط العملاء بالفنيين، ولا تُعد صاحبة عمل للفني ولا يترتب على هذا العقد أي علاقة عمل أو تأمينات اجتماعية بينهما. الفني مقدّم خدمة مستقل يعمل لحسابه وعلى مسؤوليته."],
-["صحة البيانات والمستندات","يقر الفني بأن كل ما أدخله من بيانات وصور الهوية والصورة الشخصية صحيح وخاص به، ويلتزم بتحديثها عند تغييرها. يحق للمنصة مراجعة المستندات ورفض الطلب أو إيقاف الحساب عند ثبوت عدم صحة أي بيان، دون إخلال بحقها في اتخاذ الإجراءات القانونية."],
-["الاعتماد وبدء العمل","لا يظهر حساب الفني للعملاء ولا يستقبل طلبات إلا بعد مراجعة المنصة واعتمادها. للمنصة قبول الطلب أو رفضه أو تعليقه وفق تقديرها وسياسات الجودة والأمان."],
-["تنفيذ العمل والالتزام بالجودة","يلتزم الفني بتنفيذ الخدمة بإتقان وفي الموعد المتفق عليه مع العميل، وبالسعر المعتمد داخل المنصة، وبالتعامل باحترام وأمانة، وبالحفاظ على نظافة مكان العمل وممتلكات العميل. يلتزم بحمل أدواته ومستلزماته، وبعدم التنازل عن الطلب لشخص آخر دون موافقة المنصة، وبعدم تكليف أي شخص غير مسجّل بتنفيذ الطلب."],
+["مقدمة وأطراف العقد","يُبرم هذا العقد إلكترونيًا بين منصة وصلة (ويُشار إليها \"المنصة\") وبين مزود الخدمة المسجّل بياناته في نموذج التسجيل (ويُشار إليه \"مزود الخدمة\"). تقتصر المنصة على كونها وسيطًا إلكترونيًا يربط العملاء بمزودي الخدمة، ولا تُعد صاحبة عمل لمزود الخدمة ولا يترتب على هذا العقد أي علاقة عمل أو تأمينات اجتماعية بينهما. مزود الخدمة مستقل يعمل لحسابه وعلى مسؤوليته."],
+["صحة البيانات والمستندات","يقر مزود الخدمة بأن كل ما أدخله من بيانات وصور الهوية والصورة الشخصية صحيح وخاص به، ويلتزم بتحديثها عند تغييرها. يحق للمنصة مراجعة المستندات ورفض الطلب أو إيقاف الحساب عند ثبوت عدم صحة أي بيان، دون إخلال بحقها في اتخاذ الإجراءات القانونية."],
+["الاعتماد وبدء العمل","لا يظهر حساب مزود الخدمة للعملاء ولا يستقبل طلبات إلا بعد مراجعة المنصة واعتمادها. للمنصة قبول الطلب أو رفضه أو تعليقه وفق تقديرها وسياسات الجودة والأمان."],
+["تنفيذ العمل والالتزام بالجودة","يلتزم مزود الخدمة بتنفيذ الخدمة بإتقان وفي الموعد المتفق عليه مع العميل، وبالسعر المعتمد داخل المنصة، وبالتعامل باحترام وأمانة، وبالحفاظ على نظافة مكان العمل وممتلكات العميل. يلتزم بحمل أدواته ومستلزماته، وبعدم التنازل عن الطلب لشخص آخر دون موافقة المنصة، وبعدم تكليف أي شخص غير مسجّل بتنفيذ الطلب."],
 ["الأسعار والاتفاق عبر المنصة","تتم التسعيرة والتفاوض والاتفاق على نطاق العمل وسعره داخل المنصة. يمنع تغيير السعر المتفق عليه دون موافقة العميل عبر المنصة، ويمنع تحصيل أي مبالغ إضافية خارج المنصة غير مُعلنة وموثقة."],
-["عمولة المنصة وطرق الدفع والسداد","تستحق المنصة عمولة على كل طلب مكتمل بنسبة تحددها المنصة وتُعلن للفني داخل حسابه (النسبة الافتراضية 15% وللمنصة تعديلها للطلبات الجديدة فقط بعد إخطاره). يمكن سداد قيمة الخدمة عبر المنصة أو كاشًا للفني بحسب ما يتاح. في الدفع عبر المنصة يُحوَّل للفني صافي مستحقاته بعد خصم العمولة وفق دورة التحويل المعلنة. في الدفع الكاش يلتزم الفني بسداد عمولة المنصة عن كل طلب خلال المدة التي تحددها المنصة، وللمنصة خصمها من أي مستحقات للفني أو تعليق الحساب حتى السداد. لا يحق للفني الاحتفاظ بأي مبلغ مستحق للمنصة."],
-["منع التحايل","يمنع الفني منعًا باتًا الاتفاق مع العملاء الذين تعرّف عليهم عبر المنصة على إتمام العمل خارجها لتفادي العمولة. مخالفة ذلك تُعد إخلالًا جسيمًا يجيز للمنصة إيقاف الحساب نهائيًا وخصم المستحقات وتحميل الفني قيمة العمولة المستحقة وما ترتب من ضرر."],
-["التقييمات والشكاوى والجزاءات","للعملاء تقييم الفني بعد الخدمة. تتلقى المنصة الشكاوى وتحقق فيها، ولها اتخاذ ما تراه مناسبًا من تنبيه أو إيقاف مؤقت أو إنهاء، بحسب جسامة المخالفة وتكرارها، مع إتاحة الفرصة للفني لإبداء رده متى أمكن."],
-["المسؤولية والضمان","الفني مسؤول مسؤولية كاملة عن جودة عمله وعما يلحق بالعميل أو ممتلكاته أو الغير من أضرار نتيجة خطئه أو إهماله، ويلتزم بإصلاح العيب في عمله خلال المدة المتعارف عليها لنوع الخدمة. المنصة غير مسؤولة عن تنفيذ الخدمة نفسها، ولها حق الرجوع على الفني بما تتحمله بسبب مخالفته."],
-["السرية وحماية البيانات","يلتزم الفني بالمحافظة على سرية بيانات العملاء (الاسم والهاتف والعنوان) وعدم استخدامها لغير تنفيذ الطلب أو الإفصاح عنها لأي طرف، وذلك وفق قانون حماية البيانات الشخصية رقم 151 لسنة 2020 وسياسة الخصوصية للمنصة."],
-["السلوك والأمان","يمنع أي إساءة أو تحرش أو تمييز أو عمل تحت تأثير مواد محظورة، ويمنع تنفيذ أي عمل مخالف للقانون أو يعرض الأرواح للخطر. يلتزم الفني بأي اشتراطات سلامة تخص نوع الخدمة."],
-["الضرائب والالتزامات النظامية","الفني وحده مسؤول عن التزاماته الضريبية والتأمينية والتراخيص المهنية المطلوبة لنشاطه، ويقر بأن المنصة غير مسؤولة عنها."],
-["مدة العقد وإنهاؤه","العقد ساري من تاريخ الموافقة ولمدة غير محددة. يجوز للفني إنهاؤه بإخطار المنصة بعد إتمام الطلبات الجارية وسداد ما عليه. وللمنصة إنهاؤه أو إيقاف الحساب فورًا عند المخالفة الجسيمة لأي من بنوده."],
-["تعديل الشروط","للمنصة تعديل هذا العقد وإخطار الفني بالتعديل داخل التطبيق، ويُعد استمراره في استخدام المنصة بعد الإخطار موافقة على التعديل، وللفني رفضه بإنهاء العقد."],
+["عمولة المنصة وطرق الدفع والسداد","تستحق المنصة عمولة على كل طلب مكتمل بنسبة تحددها المنصة وتُعلن لمزود الخدمة داخل حسابه (النسبة الافتراضية 15% وللمنصة تعديلها للطلبات الجديدة فقط بعد إخطاره). يمكن سداد قيمة الخدمة عبر المنصة أو كاشًا لمزود الخدمة بحسب ما يتاح. في الدفع عبر المنصة يُحوَّل لمزود الخدمة صافي مستحقاته بعد خصم العمولة وفق دورة التحويل المعلنة. في الدفع الكاش يلتزم مزود الخدمة بسداد عمولة المنصة عن كل طلب خلال المدة التي تحددها المنصة، وللمنصة خصمها من أي مستحقات لمزود الخدمة أو تعليق الحساب حتى السداد. لا يحق لمزود الخدمة الاحتفاظ بأي مبلغ مستحق للمنصة."],
+["منع التحايل","يمنع مزود الخدمة منعًا باتًا الاتفاق مع العملاء الذين تعرّف عليهم عبر المنصة على إتمام العمل خارجها لتفادي العمولة. مخالفة ذلك تُعد إخلالًا جسيمًا يجيز للمنصة إيقاف الحساب نهائيًا وخصم المستحقات وتحميل مزود الخدمة قيمة العمولة المستحقة وما ترتب من ضرر."],
+["التقييمات والشكاوى والجزاءات","للعملاء تقييم مزود الخدمة بعد الخدمة. تتلقى المنصة الشكاوى وتحقق فيها، ولها اتخاذ ما تراه مناسبًا من تنبيه أو إيقاف مؤقت أو إنهاء، بحسب جسامة المخالفة وتكرارها، مع إتاحة الفرصة لمزود الخدمة لإبداء رده متى أمكن."],
+["المسؤولية والضمان","مزود الخدمة مسؤول مسؤولية كاملة عن جودة عمله وعما يلحق بالعميل أو ممتلكاته أو الغير من أضرار نتيجة خطئه أو إهماله، ويلتزم بإصلاح العيب في عمله خلال المدة المتعارف عليها لنوع الخدمة. المنصة غير مسؤولة عن تنفيذ الخدمة نفسها، ولها حق الرجوع على مزود الخدمة بما تتحمله بسبب مخالفته."],
+["السرية وحماية البيانات","يلتزم مزود الخدمة بالمحافظة على سرية بيانات العملاء (الاسم والهاتف والعنوان) وعدم استخدامها لغير تنفيذ الطلب أو الإفصاح عنها لأي طرف، وذلك وفق قانون حماية البيانات الشخصية رقم 151 لسنة 2020 وسياسة الخصوصية للمنصة."],
+["السلوك والأمان","يمنع أي إساءة أو تحرش أو تمييز أو عمل تحت تأثير مواد محظورة، ويمنع تنفيذ أي عمل مخالف للقانون أو يعرض الأرواح للخطر. يلتزم مزود الخدمة بأي اشتراطات سلامة تخص نوع الخدمة."],
+["الضرائب والالتزامات النظامية","مزود الخدمة وحده مسؤول عن التزاماته الضريبية والتأمينية والتراخيص المهنية المطلوبة لنشاطه، ويقر بأن المنصة غير مسؤولة عنها."],
+["مدة العقد وإنهاؤه","العقد ساري من تاريخ الموافقة ولمدة غير محددة. يجوز لمزود الخدمة إنهاؤه بإخطار المنصة بعد إتمام الطلبات الجارية وسداد ما عليه. وللمنصة إنهاؤه أو إيقاف الحساب فورًا عند المخالفة الجسيمة لأي من بنوده."],
+["تعديل الشروط","للمنصة تعديل هذا العقد وإخطار مزود الخدمة بالتعديل داخل التطبيق، ويُعد استمراره في استخدام المنصة بعد الإخطار موافقة على التعديل، ولمزود الخدمة رفضه بإنهاء العقد."],
 ["القانون واختصاص القضاء","يخضع هذا العقد لقوانين جمهورية مصر العربية، ويكون الاختصاص بنظر أي نزاع ينشأ عنه للمحاكم المصرية المختصة بعد محاولة حل النزاع ودّيًا خلال 15 يومًا من الإخطار."],
-["الإقرار والتعهد","يقر الفني بأنه قرأ العقد كاملًا وفهمه وقبل جميع بنوده وشروطه وأحكامه، وتعهد بالالتزام بها، وأن موافقته الإلكترونية باسمه المسجل في التاريخ المدوّن تُعد توقيعًا إلكترونيًا له حجته القانونية وفق قانون التوقيع الإلكتروني رقم 15 لسنة 2004."]
+["الإقرار والتعهد","يقر مزود الخدمة بأنه قرأ العقد كاملًا وفهمه وقبل جميع بنوده وشروطه وأحكامه، وتعهد بالالتزام بها، وأن موافقته الإلكترونية باسمه المسجل في التاريخ المدوّن تُعد توقيعًا إلكترونيًا له حجته القانونية وفق قانون التوقيع الإلكتروني رقم 15 لسنة 2004."]
 ];
-function provContractHtml(){return PROV_CONTRACT.map((x,i)=>'<h4 style="margin:12px 0 4px">'+(i+1)+". "+esc(x[0])+'</h4><p style="margin:0;line-height:1.9;font-size:.9rem;color:var(--text-primary)">'+esc(x[1])+'</p>').join("")}
+const PC_CSS='<style>.pc-card{position:relative;border:1px solid var(--border-color);border-radius:20px;padding:16px 14px 14px;background:linear-gradient(180deg,var(--bg-surface),var(--bg-subtle));box-shadow:0 8px 22px rgba(7,31,41,.08);overflow:hidden;margin:6px 0}.pc-card:before{content:"";position:absolute;inset-inline:0;top:0;height:5px;background:linear-gradient(90deg,var(--accent,#d4a24c),var(--primary))}.pc-hd{display:flex;gap:12px;align-items:center}.pc-ic{flex:0 0 auto;width:44px;height:44px;border-radius:14px;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,var(--primary),var(--primary-hover))}.pc-hd b{display:block;font-size:1.02rem}.pc-hd small{color:var(--text-secondary)}.pc-doc{margin-top:12px;border:1px solid var(--border-color);border-radius:16px;background:var(--bg-surface);overflow:hidden}.pc-sheet{max-height:52vh;overflow:auto;padding:16px 14px}.pc-title{text-align:center;margin-bottom:6px}.pc-title b{display:block;font-size:1.1rem}.pc-title i{display:block;width:70px;height:3px;border-radius:3px;margin:8px auto 4px;background:linear-gradient(90deg,var(--accent,#d4a24c),var(--primary))}.pc-title small{color:var(--text-secondary)}.pc-cl{display:flex;gap:10px;margin-top:14px}.pc-n{flex:0 0 auto;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:.8rem;font-weight:800;color:#fff;background:linear-gradient(135deg,var(--accent,#d4a24c),#b8862f);margin-top:1px}.pc-cl h4{margin:0 0 3px;font-size:.95rem}.pc-cl p{margin:0;line-height:2;font-size:.9rem;color:var(--text-primary);text-align:justify}.pc-sign{margin-top:18px;padding-top:12px;border-top:1px dashed var(--border-color);font-size:.82rem;color:var(--text-secondary);text-align:center}.pc-open{display:inline-flex;align-items:center;gap:8px;cursor:pointer;border-radius:999px!important;margin-top:12px;list-style:none}.pc-open::-webkit-details-marker{display:none}.pc-ok{display:flex;gap:10px;align-items:flex-start;margin-top:12px;padding:12px;border-radius:14px;border:1.5px dashed var(--border-color);transition:.2s}.pc-ok.on{border:1.5px solid var(--accent,#d4a24c);background:var(--warning-bg)}.pc-ok input{width:20px;height:20px;margin:2px 0 0;accent-color:var(--primary)}.pc-who{margin-top:8px;font-size:.8rem;color:var(--text-secondary)}</style>';
+function provContractHtml(){
+ return '<div class="pc-doc"><div class="pc-sheet"><div class="pc-title"><b>عقد وتعهد مزود الخدمة</b><i></i><small>منصة وصلة · الإصدار '+esc(PROV_CONTRACT_VER)+'</small></div>'+
+ PROV_CONTRACT.map((x,i)=>'<div class="pc-cl"><div class="pc-n">'+fmt(i+1)+'</div><div><h4>'+esc(x[0])+'</h4><p>'+esc(x[1])+'</p></div></div>').join("")+
+ '<div class="pc-sign">يُعد قبولك الإلكتروني باسمك وتاريخ الموافقة توقيعًا على هذا العقد.</div></div></div>';
+}
 function provContractBlock(){
- return '<div class="field" id="provContract" style="border:1px solid var(--border-color);border-radius:16px;padding:12px;background:var(--bg-subtle)"><span><b>عقد وتعهد مقدّم الخدمة (إلزامي)</b></span><small>لازم تفتح العقد وتقراه قبل ما تقدر توافق وتكمل التسجيل.</small>'+
-  '<details data-contract-open style="margin-top:8px"><summary class="btn light" style="display:inline-block;cursor:pointer;border-radius:999px">فتح العقد وقراءته</summary><div style="max-height:46vh;overflow:auto;margin-top:10px;padding:6px 4px">'+provContractHtml()+'</div></details>'+
-  '<label id="contractOkRow" style="display:flex;gap:8px;align-items:flex-start;margin-top:10px;opacity:.5"><input type="checkbox" name="contract_ok" disabled style="width:auto;margin-top:4px"><span>أوافق على العقد بشروطه وأحكامه وأتعهد بالالتزام بها.</span></label>'+
-  '<div class="small" id="contractWho" style="margin-top:6px"></div></div>';
+ const ic='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg>';
+ return PC_CSS+'<div class="pc-card" id="provContract"><div class="pc-hd"><div class="pc-ic">'+ic+'</div><div><b>عقد وتعهد مزود الخدمة</b><small>إلزامي · '+fmt(PROV_CONTRACT.length)+' بند · لازم تقراه قبل الموافقة</small></div></div>'+
+  '<details data-contract-open><summary class="btn gold pc-open">فتح العقد وقراءته</summary>'+provContractHtml()+'</details>'+
+  '<label id="contractOkRow" class="pc-ok" style="opacity:.55"><input type="checkbox" name="contract_ok" disabled><span>أوافق على العقد بشروطه وأحكامه وأتعهد بالالتزام بها.</span></label>'+
+  '<div class="pc-who" id="contractWho">افتح العقد واقرأه عشان تتفعّل الموافقة.</div></div>';
 }
 document.addEventListener("toggle",e=>{
  const d=e.target;if(!d||!d.hasAttribute||!d.hasAttribute("data-contract-open")||!d.open)return;
  const row=document.getElementById("contractOkRow");if(!row)return;
- const cb=row.querySelector("input");cb.disabled=false;row.style.opacity=1;
+ const cb=row.querySelector("input");cb.disabled=false;row.style.opacity=1;row.classList.add('on');
  const nm=(document.querySelector('#signup [name="full_name"]')||{}).value||"";
- const w=document.getElementById("contractWho");if(w)w.textContent="سيتم تسجيل موافقتك باسمك"+(nm?" ("+nm+")":"")+" وتاريخ اليوم.";
+ const w=document.getElementById("contractWho");if(w)w.textContent="سيتم تسجيل موافقتك باسمك"+(nm?" ("+nm+")":"")+" وبتاريخ اليوم.";
 },true);
 function provContractCard(m){
  m=m||{};if(!m.contract_accepted_at)return "";
- return '<section class="section"><div class="card"><h3 style="margin:0 0 6px">عقد وتعهد مقدّم الخدمة</h3><div class="row"><span>الحالة</span><span class="tag ok">تمت الموافقة</span></div><p class="small" style="margin:6px 0 0">وافق على العقد بشروطه وأحكامه باسم: <b>'+esc(m.contract_signed_name||"")+'</b></p><p class="small" style="margin:2px 0 0">بتاريخ: '+esc(fmtDateAr(m.contract_accepted_at))+' · الإصدار: '+esc(m.contract_version||"")+'</p><details style="margin-top:8px"><summary class="btn light" style="display:inline-block;cursor:pointer;border-radius:999px">عرض العقد</summary><div style="margin-top:8px">'+provContractHtml()+'</div></details></div></section>';
+ return '<section class="section"><div class="card"><h3 style="margin:0 0 6px">عقد وتعهد مزود الخدمة</h3><div class="row"><span>الحالة</span><span class="tag ok">تمت الموافقة</span></div><p class="small" style="margin:6px 0 0">وافق على العقد بشروطه وأحكامه باسم: <b>'+esc(m.contract_signed_name||"")+'</b></p><p class="small" style="margin:2px 0 0">بتاريخ: '+esc(fmtDateAr(m.contract_accepted_at))+' · الإصدار: '+esc(m.contract_version||"")+'</p>'+PC_CSS+'<details style="margin-top:8px"><summary class="btn light pc-open">عرض العقد</summary>'+provContractHtml()+'</details></div></section>';
 }
 const LEGAL_DATE="نوفمبر 2026";
 const LEGAL_DOCS={
 terms:{t:"شروط وأحكام الاستخدام",sub:"آخر تحديث: "+LEGAL_DATE,secs:[
-["1. التعريفات","\"المنصة\": منصة وصلة، تطبيق ومنصة إلكترونية تربط العملاء بمقدّمي الخدمات (الفنيين). \"العميل\": كل شخص يطلب خدمة عبر المنصة. \"مقدّم الخدمة\": الفني المسجّل والمعتمد على المنصة. \"الخدمة\": العمل الذي يؤديه مقدّم الخدمة للعميل."],
-["2. قبول الشروط","باستخدامك المنصة أو إنشاء حساب عليها فإنك تقر بأنك قرأت هذه الشروط وفهمتها ووافقت عليها. إن لم توافق فلا تستخدم المنصة. يخضع مقدّمو الخدمة كذلك لعقد مقدّم الخدمة الذي يوافقون عليه عند التسجيل."],
-["3. طبيعة دور المنصة","المنصة وسيط إلكتروني لتسهيل التواصل والاتفاق والدفع. مقدّم الخدمة مستقل وليس موظفًا لدى المنصة، وهو المسؤول عن تنفيذ الخدمة وجودتها. تبذل المنصة جهدها في فحص الفنيين واعتمادهم، دون ضمان نتيجة أي خدمة بعينها."],
+["1. التعريفات","\"المنصة\": منصة وصلة، تطبيق ومنصة إلكترونية تربط العملاء بمزودي الخدمات. \"العميل\": كل شخص يطلب خدمة عبر المنصة. \"مزود الخدمة\": مزود الخدمة المسجّل والمعتمد على المنصة. \"الخدمة\": العمل الذي يؤديه مزود الخدمة للعميل."],
+["2. قبول الشروط","باستخدامك المنصة أو إنشاء حساب عليها فإنك تقر بأنك قرأت هذه الشروط وفهمتها ووافقت عليها. إن لم توافق فلا تستخدم المنصة. يخضع مزودو الخدمة كذلك لعقد مزود الخدمة الذي يوافقون عليه عند التسجيل."],
+["3. طبيعة دور المنصة","المنصة وسيط إلكتروني لتسهيل التواصل والاتفاق والدفع. مزود الخدمة مستقل وليس موظفًا لدى المنصة، وهو المسؤول عن تنفيذ الخدمة وجودتها. تبذل المنصة جهدها في فحص مزودي الخدمة واعتمادهم، دون ضمان نتيجة أي خدمة بعينها."],
 ["4. الحساب والأهلية","يشترط أن يكون عمرك 18 سنة فأكثر وأن تقدم بيانات صحيحة وكاملة. أنت مسؤول عن سرية بيانات دخولك وعن كل نشاط يتم من حسابك. تحتفظ المنصة بحق رفض أو تعليق أي حساب يخالف الشروط أو تثبت عدم صحة بياناته."],
-["5. طلب الخدمة والاتفاق","ينشئ العميل طلبًا يحدد فيه الخدمة والموقع والموعد. يمكن لمقدّمي الخدمة تقديم عروض أسعار. لا يلزم أي طرف إلا بعد قبول العرض عبر المنصة. يلتزم الطرفان بالموعد المتفق عليه، وعند التأخر أو الإلغاء يجب إخطار الطرف الآخر مبكرًا."],
+["5. طلب الخدمة والاتفاق","ينشئ العميل طلبًا يحدد فيه الخدمة والموقع والموعد. يمكن لمزودي الخدمة تقديم عروض أسعار. لا يلزم أي طرف إلا بعد قبول العرض عبر المنصة. يلتزم الطرفان بالموعد المتفق عليه، وعند التأخر أو الإلغاء يجب إخطار الطرف الآخر مبكرًا."],
 ["6. الأسعار والدفع","السعر هو المتفق عليه داخل المنصة وقد يشمل أو لا يشمل مستلزمات يُنص عليها في العرض. يمكن الدفع عبر المنصة أو كاشًا بحسب ما يتاح. يظهر للعميل إجمالي السعر النهائي دون أي رسوم خفية. لا يُطلب من العميل أي مبالغ إضافية خارج المنصة دون اتفاق موثق."],
 ["7. الإلغاء والاسترداد","يمكن للعميل إلغاء الطلب قبل بدء التنفيذ دون رسوم ما لم ينص العرض على غير ذلك. في حالة الدفع المسبق عبر المنصة يُرد المبلغ في الحالات التي يثبت فيها عدم تنفيذ الخدمة أو تنفيذها بشكل مخالف جوهريًا للاتفاق، وفق مراجعة المنصة وفي مدة معقولة. تُراجع كل شكوى بشكل منفصل."],
 ["8. التقييمات والمحتوى","يحق للعميل تقييم الخدمة وكتابة تعليق صادق ومحترم. يُحظر نشر محتوى مسيء أو كاذب أو مخالف للقانون، وللمنصة حذفه وتقييد الحساب عند التكرار."],
 ["9. السلوك المحظور","يُحظر: انتحال الشخصية، إساءة استخدام المنصة أو محاولة اختراقها، التحرش أو التهديد أو التمييز، إساءة استخدام بيانات الآخرين، أو أي نشاط يخالف القانون المصري."],
-["10. المسؤولية","لا تتحمل المنصة المسؤولية عن أي ضرر ينتج مباشرة عن تنفيذ الخدمة بمعرفة مقدّم الخدمة، وتتعاون المنصة مع العميل في تلقي الشكوى ومتابعتها مع الفني واتخاذ الإجراء المناسب. لا يُخل ذلك بحقوق المستهلك المقررة بقانون حماية المستهلك رقم 181 لسنة 2018."],
+["10. المسؤولية","لا تتحمل المنصة المسؤولية عن أي ضرر ينتج مباشرة عن تنفيذ الخدمة بمعرفة مزود الخدمة، وتتعاون المنصة مع العميل في تلقي الشكوى ومتابعتها مع مزود الخدمة واتخاذ الإجراء المناسب. لا يُخل ذلك بحقوق المستهلك المقررة بقانون حماية المستهلك رقم 181 لسنة 2018."],
 ["11. الملكية الفكرية","اسم وصلة وشعارها وتصميم المنصة ومحتواها مملوكة للمنصة ومحمية قانونًا، ولا يجوز نسخها أو استخدامها تجاريًا دون إذن كتابي."],
 ["12. الخصوصية","يخضع جمع بياناتك واستخدامها لسياسة الخصوصية المنشورة على المنصة وتُعد جزءًا من هذه الشروط."],
 ["13. تعديل الشروط","يجوز للمنصة تعديل هذه الشروط، ويُخطر المستخدم بالتعديل الجوهري عبر التطبيق. استمرار استخدام المنصة بعد الإخطار يُعد قبولًا للتعديل."],
@@ -3194,9 +3200,9 @@ terms:{t:"شروط وأحكام الاستخدام",sub:"آخر تحديث: "+LE
 ]},
 privacy:{t:"سياسة الخصوصية",sub:"آخر تحديث: "+LEGAL_DATE,secs:[
 ["1. مقدمة","نحترم خصوصيتك. توضح هذه السياسة أي بيانات نجمعها وكيف نستخدمها ونحميها وما هي حقوقك، وفقًا لقانون حماية البيانات الشخصية المصري رقم 151 لسنة 2020 ولائحته التنفيذية."],
-["2. البيانات التي نجمعها","بيانات التسجيل: الاسم والبريد الإلكتروني ورقم الهاتف وكلمة المرور (مشفّرة) والمحافظة والمنطقة والعنوان التفصيلي. لمقدّمي الخدمة: الصورة الشخصية وصورتا بطاقة الهوية وسنوات الخبرة ونطاق الخدمة. بيانات الاستخدام: الطلبات والرسائل والتقييمات وحالة المدفوعات. بيانات تقنية: نوع الجهاز والتطبيق وسجلات الأخطاء. الموقع: عند إذنك فقط لتحسين الوصول والتوصيل."],
-["3. كيف نستخدم بياناتك","لإنشاء الحساب وإدارته، ولتنفيذ الطلبات وربط العميل بالفني، وللدفع وحساب العمولات، وللتحقق من هوية مقدّمي الخدمة ولمنع الاحتيال، ولدعم العملاء والرد على الشكاوى، ولتحسين المنصة وإرسال الإشعارات الخاصة بطلباتك، ولالتزامنا بالقوانين المصرية."],
-["4. مشاركة البيانات","لا نبيع بياناتك. نشارك الحد الأدنى اللازم لتنفيذ الخدمة: يرى الفني اسم العميل وعنوانه ورقم تواصله بعد قبول الطلب فقط، ويرى العميل اسم الفني وتقييمه. نشارك البيانات مع مزودي خدمات تقنية موثوقين (استضافة وقاعدة بيانات ودفع وإشعارات) بموجب التزامات سرية، ومع الجهات الرسمية عند طلب قانوني ملزم."],
+["2. البيانات التي نجمعها","بيانات التسجيل: الاسم والبريد الإلكتروني ورقم الهاتف وكلمة المرور (مشفّرة) والمحافظة والمنطقة والعنوان التفصيلي. لمزودي الخدمة: الصورة الشخصية وصورتا بطاقة الهوية وسنوات الخبرة ونطاق الخدمة. بيانات الاستخدام: الطلبات والرسائل والتقييمات وحالة المدفوعات. بيانات تقنية: نوع الجهاز والتطبيق وسجلات الأخطاء. الموقع: عند إذنك فقط لتحسين الوصول والتوصيل."],
+["3. كيف نستخدم بياناتك","لإنشاء الحساب وإدارته، ولتنفيذ الطلبات وربط العميل بمزود الخدمة، وللدفع وحساب العمولات، وللتحقق من هوية مزودي الخدمة ولمنع الاحتيال، ولدعم العملاء والرد على الشكاوى، ولتحسين المنصة وإرسال الإشعارات الخاصة بطلباتك، ولالتزامنا بالقوانين المصرية."],
+["4. مشاركة البيانات","لا نبيع بياناتك. نشارك الحد الأدنى اللازم لتنفيذ الخدمة: يرى مزود الخدمة اسم العميل وعنوانه ورقم تواصله بعد قبول الطلب فقط، ويرى العميل اسم مزود الخدمة وتقييمه. نشارك البيانات مع مزودي خدمات تقنية موثوقين (استضافة وقاعدة بيانات ودفع وإشعارات) بموجب التزامات سرية، ومع الجهات الرسمية عند طلب قانوني ملزم."],
 ["5. صور الهوية والمستندات","تُستخدم صور الهوية لأغراض التحقق فقط، وتُحفظ بشكل آمن، ولا يطلع عليها إلا المسؤولون المخوّلون بالمراجعة، ولا تُعرض للعملاء."],
 ["6. حماية البيانات","نطبق إجراءات تقنية وتنظيمية مناسبة: تشفير الاتصال، التحكم في الوصول بحسب الدور، وسجل تدقيق للعمليات الحساسة. ومع ذلك لا يوجد نظام آمن بنسبة 100%، ونطلب منك حماية بيانات دخولك."],
 ["7. مدة الاحتفاظ","نحتفظ بالبيانات طوال مدة حسابك وللمدة اللازمة للالتزامات القانونية والمحاسبية وحل النزاعات، ثم نحذفها أو نحجب هويتها."],
@@ -3393,7 +3399,7 @@ const query=nrm(s.filter||"");
  const providers=(query?provShown:provShown.slice(0,4)).map(providerCard).join("")||empty(query?"لا يوجد مزوّدون مطابقون لبحثك":"لا يوجد مزوّدون معتمدون حاليًا");
  const catHits=query&&!selected?s.cats.filter(c=>nrm(c.name_ar).includes(query)):[];
  const roles=(!query&&!selected&&!s.user)?'<section class="wl-roles" aria-label="ابدأ كـ">'+
-  '<button type="button" class="wl-role first" data-a="rolestart" data-id="provider"><span class="wl-role-ic">🛠️</span><span class="wl-role-tx"><b>أنا فني</b><small>قدّم خدماتك واستقبل طلبات العملاء</small></span><span class="wl-role-ar">←</span></button>'+
+  '<button type="button" class="wl-role first" data-a="rolestart" data-id="provider"><span class="wl-role-ic">🛠️</span><span class="wl-role-tx"><b>أنا مزود خدمة</b><small>قدّم خدماتك واستقبل طلبات العملاء</small></span><span class="wl-role-ar">←</span></button>'+
   '<button type="button" class="wl-role" data-a="rolestart" data-id="customer"><span class="wl-role-ic">🙋</span><span class="wl-role-tx"><b>أنا عميل</b><small>اطلب خدمة من مزوّدين معتمدين</small></span><span class="wl-role-ar">←</span></button>'+
   '</section>':"";
  const availRows=provShown.filter(p=>p.is_available).slice(0,4).map(availRow).join("");
@@ -3673,7 +3679,7 @@ function reqCodeTag(id){return codeTag(reqCode(id))}
 const REP_CSS='<style>.rep-sec{min-width:0;max-width:100%}.rep-hd{display:flex;align-items:center;gap:12px;margin-bottom:12px}.rep-hd i{width:6px;align-self:stretch;border-radius:6px;background:linear-gradient(180deg,var(--accent,#d4a24c),var(--primary))}.rep-hd h2{margin:0}.rep-hd p{margin:2px 0 0}.rep-tabs{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 10px;scrollbar-width:none}.rep-tabs::-webkit-scrollbar{display:none}.rep-tab{flex:0 0 auto;border:1px solid var(--border-color);background:var(--bg-surface);color:var(--text-primary);border-radius:999px;padding:9px 16px;font:inherit;font-weight:700;font-size:.9rem;cursor:pointer;white-space:nowrap}.rep-tab.on{background:linear-gradient(135deg,var(--primary),var(--primary-hover));color:#fff;border-color:transparent;box-shadow:var(--surface-shadow)}.rep-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(104px,1fr));gap:10px;margin:6px 0 12px}.rep-stat{position:relative;background:var(--bg-surface);border:1px solid var(--border-color);border-radius:14px;padding:9px 12px 9px;overflow:hidden;box-shadow:var(--surface-shadow)}.rep-stat:before{content:"";position:absolute;inset-inline-start:0;top:0;bottom:0;width:4px;background:var(--accent,#d4a24c)}.rep-stat small{display:block;color:var(--text-secondary);font-size:.78rem;margin-bottom:4px}.rep-stat b{font-size:1.05rem;font-variant-numeric:tabular-nums}.rep-bar{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;background:var(--bg-surface);border:1px solid var(--border-color);border-radius:16px;padding:10px 12px}.rep-bar label{display:flex;flex-direction:column;gap:3px;font-size:.72rem;color:var(--text-secondary);margin:0;flex:1 1 120px;min-width:110px}.rep-bar label.q{flex:2 1 170px}.rep-bar input,.rep-bar select{height:38px;padding:0 10px;font-size:.88rem;border-radius:10px;margin:0;width:100%}.rep-bar .btn{height:38px;padding:0 14px;font-size:.85rem;white-space:nowrap}.rep-cols{background:var(--bg-subtle);border:1px dashed var(--border-color);border-radius:14px;padding:8px;margin-top:8px}.rep-wrap{margin-top:12px;max-width:100%;max-height:62vh;overflow:auto;border:1px solid var(--border-color);border-radius:16px;background:var(--bg-surface);box-shadow:var(--surface-shadow)}.rep-t{border-collapse:separate;border-spacing:0;text-align:right;width:max-content;min-width:100%}.rep-t th{position:sticky;top:0;z-index:2;background:var(--primary);color:#fff;padding:11px 12px;font-size:.82rem;font-weight:700;white-space:nowrap}.rep-t th button{border:0;background:none;color:#fff;opacity:.6;cursor:pointer;padding:0 4px;font-size:1rem}.rep-t td{padding:10px 12px;font-size:.88rem;white-space:nowrap;border-bottom:1px solid var(--border-color)}.rep-t tbody tr:nth-child(even) td{background:var(--bg-subtle)}.rep-t tbody tr:hover td{background:var(--warning-bg)}.rep-t td.n{font-variant-numeric:tabular-nums;font-weight:600}.rep-t tfoot td{position:sticky;bottom:0;background:var(--bg-surface);font-weight:800;border-top:2px solid var(--accent,#d4a24c)}.rep-foot{display:flex;justify-content:space-between;margin-top:8px}</style>';
 const REP={tab:"requests",loading:false,loaded:false,err:{},data:{},f:{},menu:false,busy:""};
 const REP_KEY="wasla_rep_cols_v1";
-const REP_TABS=[["requests","الطلبات"],["payments","المدفوعات"],["commissions","العمولات"],["providers","المزوّدون"],["customers","العملاء"],["ratings","التقييمات"],["services","الخدمات"],["sections","الأقسام"],["staff","الموظفون"],["monthly","ملخص مالي شهري"],["loyalty","النقاط"],["wallet","محفظة المزوّدين"]];
+const REP_TABS=[["requests","الطلبات"],["payments","المدفوعات"],["commissions","العمولات"],["providers","مزودو الخدمات"],["customers","العملاء"],["ratings","التقييمات"],["services","الخدمات"],["sections","الأقسام"],["staff","الموظفون"],["monthly","ملخص مالي شهري"],["loyalty","النقاط"],["wallet","محفظة المزوّدين"]];
 function repN(v){const n=Number(v);return Number.isFinite(n)?n:null}
 function repCode(p,id){return id?idCode(p,id):null}
 function repSt(x){try{return (typeof RQ_STATUS_LABELS!=="undefined"&&RQ_STATUS_LABELS[x])||x||null}catch(_){return x||null}}
@@ -3712,18 +3718,18 @@ function repBuild(){
  REP.rows=R;
 }
 const REP_DEFS={
- requests:{date:"created",status:"status",cols:[["ord","رقم الطلب (ORD)","code",1],["title","عنوان الطلب","text",1],["service","الخدمة","text",0],["status","الحالة","text",1],["customer","العميل","text",1],["ccode","كود العميل","code",1],["cphone","هاتف العميل","text",0],["provider","الفني","text",1],["pcode","كود الفني","code",1],["conv","المحادثة (MSG)","code",1],["quote","عرض السعر (REQ)","code",1],["price","سعر الخدمة","money",1],["pay","الدفعة (PAY)","code",0],["commission","عمولة المنصة","money",1],["rating","التقييم","num",1],["created","تاريخ الإنشاء","date",1],["sched","الموعد","date",0]]},
- payments:{date:"created",status:"status",cols:[["pay","الدفعة (PAY)","code",1],["rcp","الإيصال (RCP)","code",0],["ord","الطلب (ORD)","code",1],["customer","العميل","text",1],["provider","الفني","text",1],["amount","المبلغ","money",1],["cur","العملة","text",0],["method","طريقة الدفع","text",1],["status","حالة الدفع","text",1],["rate","نسبة العمولة %","num",0],["commission","عمولة المنصة","money",1],["net","صافي الفني","money",1],["paid","تاريخ الدفع","date",1],["created","تاريخ الإنشاء","date",0]]},
- commissions:{date:"paid",cols:[["ord","الطلب (ORD)","code",1],["pay","الدفعة (PAY)","code",1],["provider","الفني","text",1],["pcode","كود الفني","code",1],["service","الخدمة","text",0],["amount","قيمة الخدمة","money",1],["rate","النسبة %","num",1],["commission","عمولة المنصة","money",1],["net","صافي الفني","money",1],["paid","التاريخ","date",1]]},
- providers:{date:"created",status:"verify",cols:[["code","كود الفني","code",1],["name","الاسم","text",1],["full","الاسم الكامل","text",0],["phone","الهاتف","text",1],["email","البريد","text",0],["gov","المحافظة","text",1],["city","المدينة","text",1],["area","المنطقة","text",0],["address","العنوان","text",1],["verify","التوثيق","text",1],["acct","حالة الحساب","text",1],["reqs","عدد الطلبات","num",1],["done","المكتملة","num",1],["earn","صافي أرباحه","money",1],["comm","عمولة المنصة منه","money",1],["rating","متوسط التقييم","num",1],["rcount","عدد التقييمات","num",0],["created","تاريخ الانضمام","date",1]]},
+ requests:{date:"created",status:"status",cols:[["ord","رقم الطلب (ORD)","code",1],["title","عنوان الطلب","text",1],["service","الخدمة","text",0],["status","الحالة","text",1],["customer","العميل","text",1],["ccode","كود العميل","code",1],["cphone","هاتف العميل","text",0],["provider","مزود الخدمة","text",1],["pcode","كود مزود الخدمة","code",1],["conv","المحادثة (MSG)","code",1],["quote","عرض السعر (REQ)","code",1],["price","سعر الخدمة","money",1],["pay","الدفعة (PAY)","code",0],["commission","عمولة المنصة","money",1],["rating","التقييم","num",1],["created","تاريخ الإنشاء","date",1],["sched","الموعد","date",0]]},
+ payments:{date:"created",status:"status",cols:[["pay","الدفعة (PAY)","code",1],["rcp","الإيصال (RCP)","code",0],["ord","الطلب (ORD)","code",1],["customer","العميل","text",1],["provider","مزود الخدمة","text",1],["amount","المبلغ","money",1],["cur","العملة","text",0],["method","طريقة الدفع","text",1],["status","حالة الدفع","text",1],["rate","نسبة العمولة %","num",0],["commission","عمولة المنصة","money",1],["net","صافي مزود الخدمة","money",1],["paid","تاريخ الدفع","date",1],["created","تاريخ الإنشاء","date",0]]},
+ commissions:{date:"paid",cols:[["ord","الطلب (ORD)","code",1],["pay","الدفعة (PAY)","code",1],["provider","مزود الخدمة","text",1],["pcode","كود مزود الخدمة","code",1],["service","الخدمة","text",0],["amount","قيمة الخدمة","money",1],["rate","النسبة %","num",1],["commission","عمولة المنصة","money",1],["net","صافي مزود الخدمة","money",1],["paid","التاريخ","date",1]]},
+ providers:{date:"created",status:"verify",cols:[["code","كود مزود الخدمة","code",1],["name","الاسم","text",1],["full","الاسم الكامل","text",0],["phone","الهاتف","text",1],["email","البريد","text",0],["gov","المحافظة","text",1],["city","المدينة","text",1],["area","المنطقة","text",0],["address","العنوان","text",1],["verify","التوثيق","text",1],["acct","حالة الحساب","text",1],["reqs","عدد الطلبات","num",1],["done","المكتملة","num",1],["earn","صافي أرباحه","money",1],["comm","عمولة المنصة منه","money",1],["rating","متوسط التقييم","num",1],["rcount","عدد التقييمات","num",0],["created","تاريخ الانضمام","date",1]]},
  customers:{date:"created",status:"status",cols:[["code","كود العميل","code",1],["name","الاسم","text",1],["phone","الهاتف","text",1],["email","البريد","text",0],["created","تاريخ الانضمام","date",1],["status","الحالة","text",1],["gov","المحافظة","text",1],["city","المدينة","text",1],["area","المنطقة","text",0],["address","العنوان","text",1],["country","الدولة","text",0],["reqs","عدد الطلبات","num",1],["done","المكتملة","num",1],["paid","إجمالي المدفوع","money",1],["last","آخر طلب","date",1]]},
  staff:{date:"created",status:"status",cols:[["code","كود الموظف","code",1],["name","الاسم","text",1],["phone","الهاتف","text",1],["email","البريد","text",0],["title","المسمى","text",1],["role","الرتبة","text",1],["status","الحالة","text",1],["active","صلاحياته مفعّلة","text",1],["pcount","عدد الصلاحيات","num",1],["perms","الصلاحيات","text",0],["gov","المحافظة","text",0],["city","المدينة","text",1],["address","العنوان","text",0],["created","تاريخ الانضمام","date",1]]},
- monthly:{date:"created",cols:[["month","الشهر","text",1],["n","عدد الدفعات","num",1],["paidn","المدفوعة","num",1],["gross","إجمالي المدفوع","money",1],["plat","عبر المنصة","money",1],["cash","كاش","money",1],["comm","عمولة المنصة","money",1],["net","صافي الفنيين","money",1],["pend","بانتظار الدفع","money",1]]},
+ monthly:{date:"created",cols:[["month","الشهر","text",1],["n","عدد الدفعات","num",1],["paidn","المدفوعة","num",1],["gross","إجمالي المدفوع","money",1],["plat","عبر المنصة","money",1],["cash","كاش","money",1],["comm","عمولة المنصة","money",1],["net","صافي مزودي الخدمة","money",1],["pend","بانتظار الدفع","money",1]]},
  services:{date:null,status:"status",note:"الفلتر بالتاريخ بيحسب عدد مرات طلب كل خدمة في الفترة دي بس.",cols:[["code","كود الخدمة (SVC)","code",1],["name","الخدمة","text",1],["section","القسم","text",1],["scode","كود القسم (SEC)","code",0],["status","الحالة","text",1],["rate","عمولة الخدمة %","num",1],["reqs","عدد مرات الطلب","num",1],["done","المكتملة","num",1],["cancel","الملغية","num",1],["value","قيمة المدفوع","money",1],["comm","عمولة المنصة","money",1],["rating","متوسط التقييم","num",0],["last","آخر طلب","date",1]]},
  sections:{date:null,status:"status",note:"الفلتر بالتاريخ بيحسب عدد الطلبات في الفترة دي بس.",cols:[["code","كود القسم (SEC)","code",1],["name","القسم","text",1],["slug","المعرّف","text",1],["status","الحالة","text",1],["svcs","عدد الخدمات","num",1],["reqs","عدد الطلبات","num",1],["done","المكتملة","num",1],["value","قيمة المدفوع","money",1],["comm","عمولة المنصة","money",1]]},
- ratings:{date:"created",cols:[["ord","الطلب (ORD)","code",1],["customer","العميل","text",1],["provider","الفني","text",1],["rating","التقييم العام","num",1],["srv","تقييم الخدمة","num",1],["plat","تقييم المنصة","num",1],["comment","التعليق","text",1],["created","التاريخ","date",1]]},
+ ratings:{date:"created",cols:[["ord","الطلب (ORD)","code",1],["customer","العميل","text",1],["provider","مزود الخدمة","text",1],["rating","التقييم العام","num",1],["srv","تقييم الخدمة","num",1],["plat","تقييم المنصة","num",1],["comment","التعليق","text",1],["created","التاريخ","date",1]]},
  loyalty:{date:"created",need:"سجل النقاط لكل العملاء محتاج دالة قراءة للأدمن من شوشو (مثلا admin_list_loyalty_ledger). المتاح حاليًا سجل عميل واحد فقط من شاشة تحكم الولاء.",cols:[["cust","كود العميل","code",1],["customer","العميل","text",1],["ord","الطلب (ORD)","code",1],["kind","نوع الحركة","text",1],["points","النقاط","num",1],["balance","الرصيد بعدها","num",1],["note","ملاحظة","text",0],["created","التاريخ","date",1]]},
- wallet:{date:"created",need:"حركات محافظ المزوّدين لكل الفنيين محتاجة دالة قراءة للأدمن من شوشو (مثلا admin_list_wallet_entries).",cols:[["wlt","الحركة (WLT)","code",1],["provider","الفني","text",1],["pcode","كود الفني","code",1],["kind","النوع","text",1],["amount","المبلغ","money",1],["balance","الرصيد بعدها","money",1],["ord","الطلب (ORD)","code",1],["created","التاريخ","date",1]]}
+ wallet:{date:"created",need:"حركات محافظ المزوّدين لكل مزودي الخدمة محتاجة دالة قراءة للأدمن من شوشو (مثلا admin_list_wallet_entries).",cols:[["wlt","الحركة (WLT)","code",1],["provider","مزود الخدمة","text",1],["pcode","كود مزود الخدمة","code",1],["kind","النوع","text",1],["amount","المبلغ","money",1],["balance","الرصيد بعدها","money",1],["ord","الطلب (ORD)","code",1],["created","التاريخ","date",1]]}
 };
 function repColsOf(t){return REP_DEFS[t].cols.map(c=>({k:c[0],l:c[1],t:c[2],def:c[3]}))}
 function repVis(t){let sel=null;try{sel=(JSON.parse(localStorage.getItem(REP_KEY)||"{}")||{})[t]}catch(_){}const all=repColsOf(t);const keys=Array.isArray(sel)?sel:all.filter(c=>c.def).map(c=>c.k);return keys.map(k=>all.find(c=>c.k===k)).filter(Boolean)}
@@ -3764,12 +3770,12 @@ function repStatsHtml(t,rows){
  const M=v=>moneyAr(v),N=v=>v===null?"—":esc(fmt(v));
  const S={
   requests:[["عدد الطلبات",N(rows.length)],["مكتملة",N(cnt("status","مكتمل"))],["إجمالي سعر الخدمات",M(sum("price"))],["عمولة المنصة",M(sum("commission"))],["متوسط التقييم",N(avg("rating"))]],
-  payments:[["عدد الدفعات",N(rows.length)],["مدفوعة",N(cnt("status","مدفوع"))],["إجمالي المبالغ",M(sum("amount"))],["عمولة المنصة",M(sum("commission"))],["صافي الفنيين",M(sum("net"))]],
-  commissions:[["عدد العمليات",N(rows.length)],["قيمة الخدمات",M(sum("amount"))],["عمولة المنصة",M(sum("commission"))],["صافي الفنيين",M(sum("net"))]],
+  payments:[["عدد الدفعات",N(rows.length)],["مدفوعة",N(cnt("status","مدفوع"))],["إجمالي المبالغ",M(sum("amount"))],["عمولة المنصة",M(sum("commission"))],["صافي مزودي الخدمة",M(sum("net"))]],
+  commissions:[["عدد العمليات",N(rows.length)],["قيمة الخدمات",M(sum("amount"))],["عمولة المنصة",M(sum("commission"))],["صافي مزودي الخدمة",M(sum("net"))]],
   providers:[["عدد المزوّدين",N(rows.length)],["إجمالي الطلبات",N(sum("reqs"))],["صافي الأرباح",M(sum("earn"))],["عمولة المنصة منهم",M(sum("comm"))],["متوسط التقييم",N(avg("rating"))]],
   customers:[["عدد العملاء",N(rows.length)],["نشط",N(cnt("status","نشط"))],["إجمالي الطلبات",N(sum("reqs"))],["إجمالي المدفوع",M(sum("paid"))]],
   staff:[["عدد الموظفين",N(rows.length)],["نشط",N(cnt("status","نشط"))]],
-  monthly:[["أشهر",N(rows.length)],["إجمالي المدفوع",M(sum("gross"))],["عمولة المنصة",M(sum("comm"))],["صافي الفنيين",M(sum("net"))],["بانتظار الدفع",M(sum("pend"))]],
+  monthly:[["أشهر",N(rows.length)],["إجمالي المدفوع",M(sum("gross"))],["عمولة المنصة",M(sum("comm"))],["صافي مزودي الخدمة",M(sum("net"))],["بانتظار الدفع",M(sum("pend"))]],
   ratings:[["عدد التقييمات",N(rows.length)],["متوسط عام",N(avg("rating"))],["متوسط الخدمة",N(avg("srv"))],["متوسط المنصة",N(avg("plat"))]],
   services:[["عدد الخدمات",N(rows.length)],["إجمالي مرات الطلب",N(sum("reqs"))],["قيمة المدفوع",M(sum("value"))],["عمولة المنصة",M(sum("comm"))]],
   sections:[["عدد الأقسام",N(rows.length)],["عدد الخدمات",N(sum("svcs"))],["إجمالي الطلبات",N(sum("reqs"))],["قيمة المدفوع",M(sum("value"))]],
@@ -4031,7 +4037,7 @@ function dashView(){
  const rv=(a,b)=>fmt(a)+" / "+fmt(b);
  h+=dashBlk("المدفوعات وعمولة المنصة",["reports","التقارير"],'<div class="ds-grid">'+dashT("إيراد اليوم",m(sumP(d=>d.slice(0,10)===dkey,"amount")))+dashT("عمولة اليوم",m(sumP(d=>d.slice(0,10)===dkey,"commission_amount")))+dashT("إيراد الشهر",m(sumP(d=>d.slice(0,7)===mkey,"amount")))+dashT("عمولة الشهر",m(sumP(d=>d.slice(0,7)===mkey,"commission_amount")))+dashT("إجمالي الإيراد",m(sumP(()=>true,"amount")))+dashT("إجمالي العمولة",m(sumP(()=>true,"commission_amount")))+dashT("مدفوعات معلّقة",n((D.payments||[]).filter(x=>x.payment_status==="pending").length))+'</div>'+warn("payments"));
  const apps=s.apps||[];
- h+=dashBlk("المزوّدون",["providers","المزوّدون"],'<div class="ds-grid">'+dashT("الإجمالي",fmt(apps.length))+dashT("موثّق",fmt(apps.filter(x=>x.verification_status==="approved").length))+dashT("قيد المراجعة",fmt(pend),pend>0)+dashT("موقوف",fmt(apps.filter(x=>x.verification_status==="suspended"||x.profile_status==="suspended").length))+'</div>');
+ h+=dashBlk("مزودو الخدمات",["providers","مزودو الخدمات"],'<div class="ds-grid">'+dashT("الإجمالي",fmt(apps.length))+dashT("موثّق",fmt(apps.filter(x=>x.verification_status==="approved").length))+dashT("قيد المراجعة",fmt(pend),pend>0)+dashT("موقوف",fmt(apps.filter(x=>x.verification_status==="suspended"||x.profile_status==="suspended").length))+'</div>');
  const cu=s.customers||[];
  h+=dashBlk("العملاء",["customers","العملاء"],'<div class="ds-grid">'+dashT("الإجمالي",fmt(cu.length))+dashT("نشط",fmt(cu.filter(x=>x.status==="active").length))+dashT("موقوف",fmt(cu.filter(x=>x.status&&x.status!=="active").length))+'</div>');
  const st=s.staff||[];
@@ -4199,7 +4205,7 @@ function receiptInfo(pid){
   amount:Number(x.amount||0),cur:cur,methodAr:x.payment_method==="cash"?"كاش":"عبر المنصة",methodEn:x.payment_method==="cash"?"CASH":"PLATFORM",
   svc:q.title||q.services?.name_ar||"طلب خدمة",
   client:(s.profile&&s.profile.full_name)||(s.user&&s.user.email)||"عميل وصلة",
-  prov:(q.provider_profiles&&q.provider_profiles.display_name)||"مقدّم الخدمة",
+  prov:(q.provider_profiles&&q.provider_profiles.display_name)||"مزود الخدمة",
   date:isNaN(d)?null:d,dateAr:fmtDateAr(x.paid_at||x.created_at)};
 }
 function receiptB64(t){const u=new TextEncoder().encode(t);let b="";for(let k=0;k<u.length;k++)b+=String.fromCharCode(u[k]);return btoa(b).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"")}
@@ -4216,7 +4222,7 @@ function receiptParse(h){
   const rno=p[1],ono=p[2],amt=Number(p[3]),cur=p[4],ts=Number(p[7]);
   if(!/^[A-Z0-9]{4,16}$/.test(rno)||!/^[A-Z0-9]{0,16}$/.test(ono)||!isFinite(amt)||amt<0||amt>1e9||!/^[A-Z]{3}$/.test(cur)||!(p[6]==="cash"||p[6]==="platform")||!isFinite(ts)||ts<1e9||ts>4.2e9)return null;
   const d=new Date(ts*1000);if(isNaN(d))return null;
-  return {id:rno,rno:rno,ono:ono,amount:amt,cur:cur,methodAr:p[6]==="cash"?"كاش":"عبر المنصة",methodEn:p[6]==="cash"?"CASH":"PLATFORM",svc:p[5]||"طلب خدمة",client:p[8]||"عميل وصلة",prov:p[9]||"مقدّم الخدمة",date:d,dateAr:fmtDateAr(d)};
+  return {id:rno,rno:rno,ono:ono,amount:amt,cur:cur,methodAr:p[6]==="cash"?"كاش":"عبر المنصة",methodEn:p[6]==="cash"?"CASH":"PLATFORM",svc:p[5]||"طلب خدمة",client:p[8]||"عميل وصلة",prov:p[9]||"مزود الخدمة",date:d,dateAr:fmtDateAr(d)};
  }catch(_){return null}
 }
 function receiptQr(i){return qrcodegen.QrCode.encodeText(receiptQrText(i),qrcodegen.QrCode.Ecc.LOW)}
@@ -4234,7 +4240,7 @@ function receiptCard(i,pub){
   '<div class="rcp-t">إيصال دفع</div><div class="rcp-paid">✓ تم الدفع</div><div class="rcp-amt">'+esc(i.amount.toLocaleString("en-US",{maximumFractionDigits:2}))+'<small>'+cur+'</small></div></div>'+
   '<div class="rcp-b"><div class="rcp-sec">بيانات الطلب</div>'+
   row("رقم الإيصال",esc("RCP-"+i.rno),1)+row("رقم الطلب",esc(i.ono?"ORD-"+i.ono:"—"),1)+row("التاريخ",esc(i.dateAr))+
-  '<div class="rcp-sec" style="margin-top:12px">الأطراف</div>'+row("العميل",esc(i.client))+row("مقدّم الخدمة",esc(i.prov))+
+  '<div class="rcp-sec" style="margin-top:12px">الأطراف</div>'+row("العميل",esc(i.client))+row("مزود الخدمة",esc(i.prov))+
   '<div class="rcp-sec" style="margin-top:12px">الخدمة والدفع</div>'+row("الخدمة",esc(i.svc))+row("طريقة الدفع",esc(i.methodAr))+'</div>'+
   '<div class="rcp-tear"></div>'+
   '<div class="rcp-tot"><span>الإجمالي المدفوع</span><b>'+esc(i.amount.toFixed(2))+' '+cur+'</b></div>'+
@@ -4259,7 +4265,7 @@ async function receiptCanvas(i){
  const C={pri:col("var(--primary)"),pri2:col("var(--primary-hover)"),acc:col("var(--accent)"),acc2:col("var(--accent-hover)"),bg:col("var(--bg-main)"),surf:col("var(--bg-surface)"),sub:col("var(--bg-subtle)"),tx:col("var(--text-primary)"),tx2:col("var(--text-secondary)"),bd:col("var(--border-color)")};
  probe.remove();
  const mixc=function(a,b,t){const p=function(c){const m=c.match(/[\d.]+/g)||[0,0,0];return [+m[0],+m[1],+m[2]]};const A=p(a),B=p(b);return "rgb("+A.map(function(v,k){return Math.round(v*(1-t)+B[k]*t)}).join(",")+")"};
- const secs=[["بيانات الطلب",[["رقم الإيصال","RCP-"+i.rno,1],["رقم الطلب",i.ono?"ORD-"+i.ono:"—",1],["التاريخ",i.dateAr,0]]],["الأطراف",[["العميل",i.client,0],["مقدّم الخدمة",i.prov,0]]],["الخدمة والدفع",[["الخدمة",i.svc,0],["طريقة الدفع",i.methodAr,0]]]];
+ const secs=[["بيانات الطلب",[["رقم الإيصال","RCP-"+i.rno,1],["رقم الطلب",i.ono?"ORD-"+i.ono:"—",1],["التاريخ",i.dateAr,0]]],["الأطراف",[["العميل",i.client,0],["مزود الخدمة",i.prov,0]]],["الخدمة والدفع",[["الخدمة",i.svc,0],["طريقة الدفع",i.methodAr,0]]]];
  const S=3,W=390,P=16,CW=W-P*2;
  let bodyH=14;secs.forEach(function(sc){bodyH+=26+sc[1].length*38+10});
  const H=P*2+178+bodyH+16+56+16+152+22+52;
@@ -4377,7 +4383,7 @@ function payRtSubscribe(uid){
     if(!s.payments)s.payments={};
     s.payments[row.request_id]=Object.assign({},prev||{},row);
     if(row.payment_status==="paid"&&(!prev||prev.payment_status!=="paid")){
-     note("الفني أكد استلام المبلغ ✓","success");
+     note("مزود الخدمة أكد استلام المبلغ ✓","success");
     }else render();
    })
    .subscribe();
@@ -4409,7 +4415,7 @@ function paymentBlock(q,provider,own){
   h+='<p>عمولة المنصة ('+fmt(p.commission_rate)+'%): '+moneyAr(p.commission_amount)+' '+cur+' · صافي نصيبك: '+moneyAr(p.provider_amount)+' '+cur+'</p>';
   if(p.payment_method==="cash"&&p.payment_status==="pending")h+='<div class="actions">'+btn("cash-received","استلمت الفلوس","green",q.id)+'</div>';
  }else if(!provider&&p.payment_method==="cash"&&p.payment_status==="pending"){
-  h+='<p>ادفع المبلغ كاش للفني مباشرة.</p>';
+  h+='<p>ادفع المبلغ كاش لمزود الخدمة مباشرة.</p>';
  }
  if(!provider&&p.payment_status==="paid")h+='<div class="actions">'+btn("receipt","عرض الإيصال","light",p.id)+'</div>';
  return h+'</div>';
@@ -4533,7 +4539,7 @@ function customerAccountBody(p){
 
 const CU_OFFERS=[
  {tag:"من وصلة",title:"اطلب خدمتك في دقائق",sub:"اكتب مشكلتك واختار الوقت المناسب، ومزوّد معتمد يتواصل معاك",cta:"اطلب الآن",ic:"tool"},
- {tag:"مزوّدون معتمدون",title:"فنيين موثّقين وتقييمات حقيقية",sub:"اطّلع على ملف المزوّد وتقييمات العملاء قبل ما تطلب",cta:"استكشف المزوّدين",ic:"user"},
+ {tag:"مزوّدون معتمدون",title:"مزودي خدمة موثّقين وتقييمات حقيقية",sub:"اطّلع على ملف المزوّد وتقييمات العملاء قبل ما تطلب",cta:"استكشف المزوّدين",ic:"user"},
  {tag:"تابع طلبك",title:"عرض سعر واضح قبل التنفيذ",sub:"قارن العروض واقبل المناسب ليك وتابع الدفع من التطبيق",cta:"ابدأ طلب",ic:"wallet"}
 ];
 function cuBannerTick(){
@@ -6248,7 +6254,7 @@ function applications(onlyPending=false){
   ' · آخر تحديث: '+date(x.updated_at)+'</p>'+
   (x.cancel_reason?'<p>سبب الإلغاء: '+esc(x.cancel_reason)+'</p>':"")+
   '</article>'
- ).join("")||empty("لا توجد طلبات مرتبطة بمقدّم الخدمة.");
+ ).join("")||empty("لا توجد طلبات مرتبطة بمزود الخدمة.");
 
  const reviews=(d.reviews||[]).map(x=>
   '<article class="item"><div class="row rqd-head"><b>'+
@@ -6262,7 +6268,7 @@ function applications(onlyPending=false){
   '<article class="item"><div class="row"><b>'+
   'عملية مالية</b>'+tag(x.payment_status)+'</div>'+
   '<p>المبلغ: '+fmt(x.amount)+' '+esc(x.currency||"")+'</p>'+
-  '<p>مستحق مقدّم الخدمة: '+fmt(x.provider_amount)+
+  '<p>مستحق مزود الخدمة: '+fmt(x.provider_amount)+
   ' · العمولة: '+fmt(x.commission_amount)+'</p>'+
   '<p class="small">وسيلة الدفع: '+esc(x.payment_method||"غير محددة")+'</p>'+
   '<p class="small">تاريخ الدفع: '+date(x.paid_at)+'</p></article>'
@@ -6281,7 +6287,7 @@ function applications(onlyPending=false){
  ).join("")||empty("لا توجد أحداث إدارية مسجلة.");
 
  return '<section class="section">'+
-  '<div class="sectionhead"><div><h2>الملف الإداري لمقدّم الخدمة</h2>'+
+  '<div class="sectionhead"><div><h2>الملف الإداري لمزود الخدمة</h2>'+
   '<p class="small">'+esc(pp.display_name||p.full_name||"")+'</p></div>'+
   btn("tab","العودة للقائمة","light","providers")+'</div>'+
 
@@ -6310,7 +6316,7 @@ function applications(onlyPending=false){
   '</div>'
  :"")+
   '<p>تاريخ إنشاء الحساب: '+date(p.created_at)+'</p>'+
-  '<p>تاريخ إنشاء ملف مقدّم الخدمة: '+date(pp.created_at)+'</p>'+
+  '<p>تاريخ إنشاء ملف مزود الخدمة: '+date(pp.created_at)+'</p>'+
   '<p>آخر تحديث للملف: '+date(pp.updated_at)+'</p></div>'+
 
   '<div class="card"><h3>الملف المهني</h3>'+
@@ -6558,7 +6564,7 @@ async function viewPrimeKnowledgeDocument(documentId){
           {key:"title",label:"عنوان الطلب",def:1,get:r=>esc(r.title||"طلب خدمة")},
           {key:"service",label:"الخدمة",def:1,get:r=>esc(r.service_name_ar||"")},
           {key:"status",label:"الحالة",def:1,get:st},
-          {key:"provider",label:"الفني ورقمه",def:1,get:r=>rqCodeCell(rqPick(r,["provider_name"]),"PRV",rqPick(r,["provider_id","provider_profile_id"]))},
+          {key:"provider",label:"مزود الخدمة ورقمه",def:1,get:r=>rqCodeCell(rqPick(r,["provider_name"]),"PRV",rqPick(r,["provider_id","provider_profile_id"]))},
           {key:"created",label:"تاريخ الإنشاء",def:1,get:r=>esc(rqDate(r.created_at))},
           {key:"sched",label:"الموعد",def:1,get:r=>esc(rqDate(r.scheduled_at))},
           {key:"city",label:"المدينة",def:0,get:r=>esc(r.city_name||"")},
@@ -6574,7 +6580,7 @@ async function viewPrimeKnowledgeDocument(documentId){
           L.splice(8,0,
             {key:"price",label:"سعر الخدمة",def:1,get:r=>money1(r,["service_price","price","amount","payment_amount","agreed_amount"])},
             {key:"commission",label:"عمولة المنصة",def:1,get:r=>money1(r,["commission_amount","platform_commission"])},
-            {key:"net",label:"صافي الفني",def:0,get:r=>money1(r,["provider_amount","provider_net"])});
+            {key:"net",label:"صافي مزود الخدمة",def:0,get:r=>money1(r,["provider_amount","provider_net"])});
         }
         return L;
       }
@@ -7014,7 +7020,7 @@ async function viewPrimeKnowledgeDocument(documentId){
           '<label class="field">المدينة<select id="rlCity">'+opt("","كل المدن",f.city_id)+cities.map(c=>opt(c.id,nm(c),f.city_id)).join("")+'</select></label>'+
           '<label class="field">المنطقة<select id="rlArea">'+opt("","كل المناطق",f.area_id)+areas.map(a=>opt(a.id,nm(a),f.area_id)).join("")+'</select></label>'+
           svc+
-          '<label class="field">مقدم الخدمة<select id="rlProvider">'+opt("","كل مقدمي الخدمة",f.provider_id)+(s.providers||[]).map(p=>opt(p.id,p.display_name||"مقدم خدمة",f.provider_id)).join("")+'</select></label>'+
+          '<label class="field">مقدم الخدمة<select id="rlProvider">'+opt("","كل مزودي الخدمة",f.provider_id)+(s.providers||[]).map(p=>opt(p.id,p.display_name||"مقدم خدمة",f.provider_id)).join("")+'</select></label>'+
         '</div><div class="actions">'+btn("rl-apply","تطبيق","gold")+btn("rl-reset","إعادة ضبط","light")+'</div>';
         const c=l.counters||{};
         const chip=(key,label,v)=>'<div class="card" data-a="rl-reason" data-reason="'+key+'" style="cursor:pointer'+(f.reason===key?";border-color:var(--gold,#c9a24b)":"")+'"><div class="small">'+label+'</div><div class="stat">'+(v===undefined||v===null?"—":fmt(v))+'</div>'+(RL_DESC[key]?'<div class="small muted">'+RL_DESC[key]+'</div>':"")+'</div>';
@@ -7052,7 +7058,7 @@ async function viewPrimeKnowledgeDocument(documentId){
       }
       function asvNavItems(){
         const n=[["home","الرئيسية"],["requests","الطلبات"]];
-        if(ASV_FEATURES.providers)n.push(["providers","المزودون"]);
+        if(ASV_FEATURES.providers)n.push(["providers","مزودو الخدمات"]);
         if(ASV_FEATURES.complaints)n.push(["complaints","الشكاوى"]);
         return n;
       }
@@ -7250,7 +7256,7 @@ async function viewPrimeKnowledgeDocument(documentId){
             '<span class="asv-tags">'+(r.is_available===false?asvPill("غير متاح",""):asvPill("متاح","ok"))+(r.active_requests?asvPill(fmt(r.active_requests)+" طلب جاري",""):"")+(r.complaints_30d?asvPill(fmt(r.complaints_30d)+" شكاوى هذا الشهر","bad"):"")+'</span></div>'+
             (ASV_FEATURES.suspend?'<div class="asv-card-act"><button type="button" class="btn light asv-danger" data-a="asv-sheet" data-kind="suspend" data-id="'+esc(r.provider_id)+'">اقترح إيقاف</button><span class="small muted">القرار لمدير الخدمات</span></div>':"")+'</article>';
         }).join("")+'</div>';
-        return '<section class="section asv-sec"><div class="asv-h"><h2>المزودون</h2><span class="asv-sub">'+fmt(p.total)+' مزود في نطاقك</span></div>'+(st.msg?'<div class="notice success">'+esc(st.msg)+'</div>':"")+content+asvSheetHtml()+'</section>';
+        return '<section class="section asv-sec"><div class="asv-h"><h2>مزودو الخدمات</h2><span class="asv-sub">'+fmt(p.total)+' مزود في نطاقك</span></div>'+(st.msg?'<div class="notice success">'+esc(st.msg)+'</div>':"")+content+asvSheetHtml()+'</section>';
       }
       const ASV_SHEETS={
         reply:{title:"الرد على العميل",hint:"أول رد خلال ٤ ساعات من الشكوى.",ph:"اكتب الرد (من 5 إلى 500 حرف)",rpc:"asv_reply_complaint",idKey:"p_complaint_id",textKey:"p_message",ok:"تم إرسال الرد",reload:"cmp"},
@@ -7354,7 +7360,7 @@ async function viewPrimeKnowledgeDocument(documentId){
           '<label class="field">الحالة<select id="rqStatus">'+opt("","كل الحالات",f.status)+Object.keys(RQ_STATUS_LABELS).map(k=>opt(k,RQ_STATUS_LABELS[k],f.status)).join("")+'</select></label>'+
           '<label class="field">المدينة<select id="rqCity">'+opt("","كل المدن",f.city_id)+cities.map(c=>opt(c.id,nm(c),f.city_id)).join("")+'</select></label>'+
           '<label class="field">المنطقة<select id="rqArea">'+opt("","كل المناطق",f.area_id)+areas.map(a=>opt(a.id,nm(a),f.area_id)).join("")+'</select></label>'+
-          '<label class="field">مقدم الخدمة<select id="rqProvider">'+opt("","كل مقدمي الخدمة",f.provider_id)+(s.providers||[]).map(p=>opt(p.id,p.display_name||"مقدم خدمة",f.provider_id)).join("")+'</select></label>'+
+          '<label class="field">مقدم الخدمة<select id="rqProvider">'+opt("","كل مزودي الخدمة",f.provider_id)+(s.providers||[]).map(p=>opt(p.id,p.display_name||"مقدم خدمة",f.provider_id)).join("")+'</select></label>'+
           ''+waslaUI.input("من تاريخ","","date",f.date_from,false,"rqFrom")+''+
           ''+waslaUI.input("إلى تاريخ","","date",f.date_to,false,"rqTo")+''+
           '<label class="field"><span>المتأخر فقط</span><input id="rqLate" type="checkbox"'+(f.late_only?" checked":"")+'></label>'+
@@ -7465,7 +7471,7 @@ if(s.tab==="providerDossier")
        if(s.tab==="home"&&!body)body='<section class="section"><div class="grid small"><div class="card"><div class="small">الأقسام</div><div class="stat">'+fmt(s.cats.length)+'</div><p class="small">إجمالي أقسام المنصة</p></div><div class="card"><div class="small">الخدمات</div><div class="stat">'+fmt(s.services.length)+'</div><p class="small">الخدمات المسجلة بالمنصة</p></div><div class="card"><div class="small">طلبات الانضمام</div><div class="stat">'+fmt(s.apps.filter(x=>x.verification_status==="pending").length)+'</div><p class="small">طلبات المزوّدين للمراجعة</p></div><div class="card"><div class="small">طلبات العملاء</div><div class="stat">'+fmt(s.allRequests.length)+'</div><p class="small">إجمالي طلبات الخدمات</p></div></div></section><section class="section"><div class="sectionhead"><div><h2>طلبات الانضمام</h2><p class="small">راجع طلبات المزوّدين واتخذ قرار الاعتماد.</p></div></div><div class="list">'+applications(true)+'</div></section>';
 if(s.tab==="providers"){
  body='<section class="section">'+
- '<div class="sectionhead"><div><h2>إدارة مقدّمي الخدمة</h2>'+
+ '<div class="sectionhead"><div><h2>إدارة مزودي الخدمة</h2>'+
  '<p class="small">استعرض جميع الحسابات وافتح الملف الإداري لأي مقدّم خدمة.</p>'+
  '</div><span class="tag">'+fmt(s.apps.length)+' حساب</span></div>'+
  '<div class="card">'+
@@ -7532,7 +7538,7 @@ if(s.tab==="knowledge"){
  '</article>').join("")||empty("لا توجد سجلات تدقيق حتى الآن"))+
  '</div></section>';
 }
-       const nav=[["home","نظرة عامة"],["requests","الطلبات"],["messages","الرسائل"],["customers","العملاء"],["reports","التقارير"],["uploads","مركز الرفع"],["loyalty","تحكم الولاء"],["providers","المزوّدون"],["services","الخدمات"],["categories","الأقسام"],["approvals","طلبات الموافقة"+((s.pendingReqs||[]).length?" ("+fmt((s.pendingReqs||[]).length)+")":"")],["staff","الموظفون"],["knowledge","قاعدة معرفة PRIME"],...(s.profile?.role==="owner"?[["assistant","PRIME AI"]]:[]),["appearance","المظهر والثيمات"],...(s.profile?.role==="owner"?[["audit","سجل التدقيق"]]:[])].map(x=>'<button data-a="tab" data-id="'+x[0]+'" class="'+(s.tab===x[0]||(s.tab==="providerDossier"&&x[0]==="providers")?"active":"")+'">'+x[1]+'</button>').join("");
+       const nav=[["home","نظرة عامة"],["requests","الطلبات"],["messages","الرسائل"],["customers","العملاء"],["reports","التقارير"],["uploads","مركز الرفع"],["loyalty","تحكم الولاء"],["providers","مزودو الخدمات"],["services","الخدمات"],["categories","الأقسام"],["approvals","طلبات الموافقة"+((s.pendingReqs||[]).length?" ("+fmt((s.pendingReqs||[]).length)+")":"")],["staff","الموظفون"],["knowledge","قاعدة معرفة PRIME"],...(s.profile?.role==="owner"?[["assistant","PRIME AI"]]:[]),["appearance","المظهر والثيمات"],...(s.profile?.role==="owner"?[["audit","سجل التدقيق"]]:[])].map(x=>'<button data-a="tab" data-id="'+x[0]+'" class="'+(s.tab===x[0]||(s.tab==="providerDossier"&&x[0]==="providers")?"active":"")+'">'+x[1]+'</button>').join("");
  
 const isOwner=s.profile?.role==="owner";
 
@@ -7586,7 +7592,7 @@ const STAFF_NAV_ITEMS=[
  ["home","نظرة عامة",["dashboard.view"]],
  ["requests","الطلبات",["requests.view"]],
  ["customers","العملاء",["customers.view","customers.manage"]],
- ["providers","المزوّدون",["providers.view","providers.review"]],
+ ["providers","مزودو الخدمات",["providers.view","providers.review"]],
  ["services","الخدمات",["services.view","services.manage"]],
  ["categories","الأقسام",["categories.view","categories.manage"]],
  ["messages","الرسائل",["messages.view"]],
@@ -9036,7 +9042,7 @@ if(m.type==="review"){
    '<input type="hidden" name="request_id" value="'+esc(q.id)+'">'+
    '<input type="hidden" name="provider_id" value="'+esc(q.provider_id)+'">'+
    starRow("service_rating","الخدمة")+
-   starRow("rating","الفني (مقدم الخدمة)")+
+   starRow("rating","مزود الخدمة")+
    starRow("platform_rating","المنصة (وصلة)")+
    '<label class="field">تعليقك (اختياري)<textarea name="comment" maxlength="500" placeholder="اكتب تعليقك (اختياري)"></textarea></label>'+
   '<p class="muted" style="margin:-4px 0 8px;font-size:13px">⭐ اكتب تعليق واكسب 10 نقاط</p>'+
@@ -10373,7 +10379,7 @@ let r=await db.functions.invoke("admin-create-staff",{
  return;
   }
   if(f.id==="categoryForm"){let v=vals(f),r=await db.rpc("admin_create_category",{p_name_ar:v.name_ar,p_name_en:v.name_en||null,p_slug:v.slug,p_icon:v.icon||null});if(r.error)throw r.error;s.modal=null;await loadUser(s.user);note("تمت إضافة القسم.","success");return}
-  if(f.id==="reviewForm"){let v=vals(f);const rt=Number(v.rating),sr=Number(v.service_rating),pr=Number(v.platform_rating);if(![rt,sr,pr].every(n=>Number.isInteger(n)&&n>=1&&n<=5))throw Error("قيّم الخدمة والفني والمنصة من 1 إلى 5.");let r=await db.from("reviews").insert({request_id:v.request_id,provider_id:v.provider_id,customer_id:s.user.id,rating:rt,service_rating:sr,platform_rating:pr,comment:(v.comment||"").trim()||null});if(r.error){if(r.error.code==="23505")throw Error("سبق أن قيّمت هذا الطلب.");throw r.error}s.modal=null;await refreshRoleData();note("تم إرسال تقييمك. شكرًا لك.","success");return}
+  if(f.id==="reviewForm"){let v=vals(f);const rt=Number(v.rating),sr=Number(v.service_rating),pr=Number(v.platform_rating);if(![rt,sr,pr].every(n=>Number.isInteger(n)&&n>=1&&n<=5))throw Error("قيّم الخدمة ومزود الخدمة والمنصة من 1 إلى 5.");let r=await db.from("reviews").insert({request_id:v.request_id,provider_id:v.provider_id,customer_id:s.user.id,rating:rt,service_rating:sr,platform_rating:pr,comment:(v.comment||"").trim()||null});if(r.error){if(r.error.code==="23505")throw Error("سبق أن قيّمت هذا الطلب.");throw r.error}s.modal=null;await refreshRoleData();note("تم إرسال تقييمك. شكرًا لك.","success");return}
 if(f.id==="sendMessage"){
  const v=vals(f);
  const messageText=(v.message_text||"").trim();
@@ -11331,7 +11337,7 @@ if(a==="cancelrequest"){
 if(a==="lift-provider-suspension-open"){
 
   if(!["admin","owner"].includes(s.profile?.role))
-    throw Error("غير مصرح لك برفع إيقاف مقدمي الخدمة");
+    throw Error("غير مصرح لك برفع إيقاف مزودي الخدمة");
 
   const p=s.providerDossier?.profile;
 
@@ -11354,7 +11360,7 @@ if(a==="lift-provider-suspension-open"){
 if(a==="suspend-provider-open"){
 
   if(!["admin","owner"].includes(s.profile?.role))
-    throw Error("غير مصرح لك بإيقاف مقدمي الخدمة");
+    throw Error("غير مصرح لك بإيقاف مزودي الخدمة");
 
   const p=s.providerDossier?.profile;
   const pp=s.providerDossier?.provider;
@@ -11385,7 +11391,7 @@ if(a==="suspend-provider-open"){
  );
 
  if(error)throw error;
- if(!data?.profile)throw Error("لم يتم العثور على ملف مقدّم الخدمة.");
+ if(!data?.profile)throw Error("لم يتم العثور على ملف مزود الخدمة.");
 
  s.providerDossier=data;
  s.providerDocuments=[];
