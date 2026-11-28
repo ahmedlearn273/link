@@ -3173,6 +3173,51 @@ function provContractCard(m){
  m=m||{};if(!m.contract_accepted_at)return "";
  return '<section class="section"><div class="card"><h3 style="margin:0 0 6px">عقد وتعهد مقدّم الخدمة</h3><div class="row"><span>الحالة</span><span class="tag ok">تمت الموافقة</span></div><p class="small" style="margin:6px 0 0">وافق على العقد بشروطه وأحكامه باسم: <b>'+esc(m.contract_signed_name||"")+'</b></p><p class="small" style="margin:2px 0 0">بتاريخ: '+esc(fmtDateAr(m.contract_accepted_at))+' · الإصدار: '+esc(m.contract_version||"")+'</p><details style="margin-top:8px"><summary class="btn light" style="display:inline-block;cursor:pointer;border-radius:999px">عرض العقد</summary><div style="margin-top:8px">'+provContractHtml()+'</div></details></div></section>';
 }
+const LEGAL_DATE="نوفمبر 2026";
+const LEGAL_DOCS={
+terms:{t:"شروط وأحكام الاستخدام",sub:"آخر تحديث: "+LEGAL_DATE,secs:[
+["1. التعريفات","\"المنصة\": منصة وصلة، تطبيق ومنصة إلكترونية تربط العملاء بمقدّمي الخدمات (الفنيين). \"العميل\": كل شخص يطلب خدمة عبر المنصة. \"مقدّم الخدمة\": الفني المسجّل والمعتمد على المنصة. \"الخدمة\": العمل الذي يؤديه مقدّم الخدمة للعميل."],
+["2. قبول الشروط","باستخدامك المنصة أو إنشاء حساب عليها فإنك تقر بأنك قرأت هذه الشروط وفهمتها ووافقت عليها. إن لم توافق فلا تستخدم المنصة. يخضع مقدّمو الخدمة كذلك لعقد مقدّم الخدمة الذي يوافقون عليه عند التسجيل."],
+["3. طبيعة دور المنصة","المنصة وسيط إلكتروني لتسهيل التواصل والاتفاق والدفع. مقدّم الخدمة مستقل وليس موظفًا لدى المنصة، وهو المسؤول عن تنفيذ الخدمة وجودتها. تبذل المنصة جهدها في فحص الفنيين واعتمادهم، دون ضمان نتيجة أي خدمة بعينها."],
+["4. الحساب والأهلية","يشترط أن يكون عمرك 18 سنة فأكثر وأن تقدم بيانات صحيحة وكاملة. أنت مسؤول عن سرية بيانات دخولك وعن كل نشاط يتم من حسابك. تحتفظ المنصة بحق رفض أو تعليق أي حساب يخالف الشروط أو تثبت عدم صحة بياناته."],
+["5. طلب الخدمة والاتفاق","ينشئ العميل طلبًا يحدد فيه الخدمة والموقع والموعد. يمكن لمقدّمي الخدمة تقديم عروض أسعار. لا يلزم أي طرف إلا بعد قبول العرض عبر المنصة. يلتزم الطرفان بالموعد المتفق عليه، وعند التأخر أو الإلغاء يجب إخطار الطرف الآخر مبكرًا."],
+["6. الأسعار والدفع","السعر هو المتفق عليه داخل المنصة وقد يشمل أو لا يشمل مستلزمات يُنص عليها في العرض. يمكن الدفع عبر المنصة أو كاشًا بحسب ما يتاح. يظهر للعميل إجمالي السعر النهائي دون أي رسوم خفية. لا يُطلب من العميل أي مبالغ إضافية خارج المنصة دون اتفاق موثق."],
+["7. الإلغاء والاسترداد","يمكن للعميل إلغاء الطلب قبل بدء التنفيذ دون رسوم ما لم ينص العرض على غير ذلك. في حالة الدفع المسبق عبر المنصة يُرد المبلغ في الحالات التي يثبت فيها عدم تنفيذ الخدمة أو تنفيذها بشكل مخالف جوهريًا للاتفاق، وفق مراجعة المنصة وفي مدة معقولة. تُراجع كل شكوى بشكل منفصل."],
+["8. التقييمات والمحتوى","يحق للعميل تقييم الخدمة وكتابة تعليق صادق ومحترم. يُحظر نشر محتوى مسيء أو كاذب أو مخالف للقانون، وللمنصة حذفه وتقييد الحساب عند التكرار."],
+["9. السلوك المحظور","يُحظر: انتحال الشخصية، إساءة استخدام المنصة أو محاولة اختراقها، التحرش أو التهديد أو التمييز، إساءة استخدام بيانات الآخرين، أو أي نشاط يخالف القانون المصري."],
+["10. المسؤولية","لا تتحمل المنصة المسؤولية عن أي ضرر ينتج مباشرة عن تنفيذ الخدمة بمعرفة مقدّم الخدمة، وتتعاون المنصة مع العميل في تلقي الشكوى ومتابعتها مع الفني واتخاذ الإجراء المناسب. لا يُخل ذلك بحقوق المستهلك المقررة بقانون حماية المستهلك رقم 181 لسنة 2018."],
+["11. الملكية الفكرية","اسم وصلة وشعارها وتصميم المنصة ومحتواها مملوكة للمنصة ومحمية قانونًا، ولا يجوز نسخها أو استخدامها تجاريًا دون إذن كتابي."],
+["12. الخصوصية","يخضع جمع بياناتك واستخدامها لسياسة الخصوصية المنشورة على المنصة وتُعد جزءًا من هذه الشروط."],
+["13. تعديل الشروط","يجوز للمنصة تعديل هذه الشروط، ويُخطر المستخدم بالتعديل الجوهري عبر التطبيق. استمرار استخدام المنصة بعد الإخطار يُعد قبولًا للتعديل."],
+["14. القانون المطبق وحل النزاعات","تخضع هذه الشروط لقوانين جمهورية مصر العربية. يُسعى لحل أي نزاع ودّيًا خلال 15 يومًا من تقديم الشكوى، وإلا كان الاختصاص للمحاكم المصرية المختصة."],
+["15. التواصل","لأي استفسار أو شكوى استخدم صفحة \"اتصل بنا\" داخل المنصة."]
+]},
+privacy:{t:"سياسة الخصوصية",sub:"آخر تحديث: "+LEGAL_DATE,secs:[
+["1. مقدمة","نحترم خصوصيتك. توضح هذه السياسة أي بيانات نجمعها وكيف نستخدمها ونحميها وما هي حقوقك، وفقًا لقانون حماية البيانات الشخصية المصري رقم 151 لسنة 2020 ولائحته التنفيذية."],
+["2. البيانات التي نجمعها","بيانات التسجيل: الاسم والبريد الإلكتروني ورقم الهاتف وكلمة المرور (مشفّرة) والمحافظة والمنطقة والعنوان التفصيلي. لمقدّمي الخدمة: الصورة الشخصية وصورتا بطاقة الهوية وسنوات الخبرة ونطاق الخدمة. بيانات الاستخدام: الطلبات والرسائل والتقييمات وحالة المدفوعات. بيانات تقنية: نوع الجهاز والتطبيق وسجلات الأخطاء. الموقع: عند إذنك فقط لتحسين الوصول والتوصيل."],
+["3. كيف نستخدم بياناتك","لإنشاء الحساب وإدارته، ولتنفيذ الطلبات وربط العميل بالفني، وللدفع وحساب العمولات، وللتحقق من هوية مقدّمي الخدمة ولمنع الاحتيال، ولدعم العملاء والرد على الشكاوى، ولتحسين المنصة وإرسال الإشعارات الخاصة بطلباتك، ولالتزامنا بالقوانين المصرية."],
+["4. مشاركة البيانات","لا نبيع بياناتك. نشارك الحد الأدنى اللازم لتنفيذ الخدمة: يرى الفني اسم العميل وعنوانه ورقم تواصله بعد قبول الطلب فقط، ويرى العميل اسم الفني وتقييمه. نشارك البيانات مع مزودي خدمات تقنية موثوقين (استضافة وقاعدة بيانات ودفع وإشعارات) بموجب التزامات سرية، ومع الجهات الرسمية عند طلب قانوني ملزم."],
+["5. صور الهوية والمستندات","تُستخدم صور الهوية لأغراض التحقق فقط، وتُحفظ بشكل آمن، ولا يطلع عليها إلا المسؤولون المخوّلون بالمراجعة، ولا تُعرض للعملاء."],
+["6. حماية البيانات","نطبق إجراءات تقنية وتنظيمية مناسبة: تشفير الاتصال، التحكم في الوصول بحسب الدور، وسجل تدقيق للعمليات الحساسة. ومع ذلك لا يوجد نظام آمن بنسبة 100%، ونطلب منك حماية بيانات دخولك."],
+["7. مدة الاحتفاظ","نحتفظ بالبيانات طوال مدة حسابك وللمدة اللازمة للالتزامات القانونية والمحاسبية وحل النزاعات، ثم نحذفها أو نحجب هويتها."],
+["8. حقوقك","لك حق: العلم بالبيانات التي نحتفظ بها، والاطلاع عليها، وتصحيحها أو تحديثها، وطلب حذفها أو تقييد معالجتها حيث لا يمنع القانون، والاعتراض على الاستخدام التسويقي، وسحب موافقتك. لممارسة أي حق استخدم صفحة \"اتصل بنا\"."],
+["9. ملفات تعريف الارتباط والتخزين المحلي","نستخدم التخزين المحلي في جهازك لتذكر الجلسة والتفضيلات (مثل المظهر) وتحسين الأداء، ولا نستخدمه لتتبع إعلاني خارج المنصة."],
+["10. الأطفال","المنصة غير موجهة لمن هم دون 18 سنة، ولا نجمع بياناتهم عمدًا."],
+["11. تعديل السياسة","قد نحدّث هذه السياسة، وننشر آخر تحديث بتاريخه، ونخطرك بالتغييرات الجوهرية."],
+["12. التواصل","لأي استفسار أو طلب يخص بياناتك استخدم صفحة \"اتصل بنا\" داخل المنصة."]
+]}
+};
+function legalView(){
+ const d=LEGAL_DOCS[s.legal];if(!d){s.mode=s.legalBack||"welcome";return ""}
+ return header(d.t)+'<main class="wrap"><section class="section"><div class="rep-hd" style="display:flex;gap:12px;align-items:center;margin-bottom:12px"><i style="width:6px;align-self:stretch;border-radius:6px;background:linear-gradient(180deg,var(--accent,#d4a24c),var(--primary))"></i><div><h2 style="margin:0">'+esc(d.t)+'</h2><p class="small" style="margin:2px 0 0">'+esc(d.sub)+'</p></div></div><div class="card">'+d.secs.map(x=>'<h4 style="margin:14px 0 4px">'+esc(x[0])+'</h4><p style="margin:0;line-height:1.95;color:var(--text-primary)">'+esc(x[1])+'</p>').join("")+'</div><div class="actions" style="margin-top:12px">'+btn("legal-back","رجوع","light")+(s.legal!=="terms"?btn("legal","شروط الاستخدام","light","terms"):"")+(s.legal!=="privacy"?btn("legal","سياسة الخصوصية","light","privacy"):"")+'</div></section></main>';
+}
+function legalLinks(){return '<div class="foot" style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap"><a href="#" data-a="legal" data-id="terms">شروط الاستخدام</a><a href="#" data-a="legal" data-id="privacy">سياسة الخصوصية</a></div>'}
+document.addEventListener("click",e=>{
+ const b=e.target.closest&&e.target.closest('[data-a="legal"],[data-a="legal-back"]');if(!b)return;
+ e.preventDefault();e.stopImmediatePropagation();
+ if(b.dataset.a==="legal"){if(s.mode!=="legal")s.legalBack=s.mode;s.legal=b.dataset.id;s.mode="legal";render();window.scrollTo(0,0)}
+ else{s.mode=s.legalBack||"welcome";render();window.scrollTo(0,0)}
+},true);
 function authView(){
  const signup=s.mode==="signup";
  const egypt=s.geo.countries.find(x=>x.country_code==="EG");
@@ -3206,7 +3251,7 @@ function authView(){
   '</div>'+
   '<small>يمكن اختيار محافظة بالكامل أو أقسام محددة من محافظات مختلفة.</small>'+
 '</div>'+
-'<label class="field"><span>الصورة الشخصية الحديثة (إلزامية)</span><input type="file" name="profile_photo" accept="image/jpeg,image/png,image/webp"><small>يجب رفع صورة شخصية حديثة وواضحة، JPG أو PNG أو WEBP، بحد أقصى 5MB</small></label><label class="field"><span>صورة الهوية – الوجه الأمامي (إلزامية)</span><input type="file" name="identity_front" accept="image/jpeg,image/png,image/webp,application/pdf"><small>صورة أو PDF، بحد أقصى 10MB</small></label><label class="field"><span>صورة الهوية – الوجه الخلفي (إلزامية)</span><input type="file" name="identity_back" accept="image/jpeg,image/png,image/webp,application/pdf"><small>صورة أو PDF، بحد أقصى 10MB</small></label>'+provContractBlock()+'</div><button class="btn gold">إنشاء الحساب</button></form>':
+'<label class="field"><span>الصورة الشخصية الحديثة (إلزامية)</span><input type="file" name="profile_photo" accept="image/jpeg,image/png,image/webp"><small>يجب رفع صورة شخصية حديثة وواضحة، JPG أو PNG أو WEBP، بحد أقصى 5MB</small></label><label class="field"><span>صورة الهوية – الوجه الأمامي (إلزامية)</span><input type="file" name="identity_front" accept="image/jpeg,image/png,image/webp,application/pdf"><small>صورة أو PDF، بحد أقصى 10MB</small></label><label class="field"><span>صورة الهوية – الوجه الخلفي (إلزامية)</span><input type="file" name="identity_back" accept="image/jpeg,image/png,image/webp,application/pdf"><small>صورة أو PDF، بحد أقصى 10MB</small></label>'+provContractBlock()+'</div><p class="small" style="margin:10px 0">بإنشاء الحساب فأنت توافق على <a href="#" data-a="legal" data-id="terms">شروط الاستخدام</a> و<a href="#" data-a="legal" data-id="privacy">سياسة الخصوصية</a>.</p><button class="btn gold">إنشاء الحساب</button></form>':
 '<form id="login">'+
 field("البريد الإلكتروني","email","email","name@example.com","",true)+
 '<label class="field">كلمة المرور'+
@@ -8272,7 +8317,7 @@ app.innerHTML=((s.profile?.role==="admin"||s.profile?.role==="owner")?'<main cla
  
  if(/[?&]splash(=|&|$)/.test(location.search)){if(!app.querySelector(".wasla-welcome.wl3"))app.innerHTML=welcomeView();return}
  if(!s.user&&s.mode==="welcome"&&app.querySelector(".wasla-welcome.wl3")&&app.children.length<=2)return;
- if(!s.user){app.innerHTML=(s.mode==="welcome"?welcomeView():s.mode==="explore"?landing():authView())+'<div class="foot">منصة وصله · جميع الحقوق محفوظة</div>';return}
+ if(!s.user){app.innerHTML=(s.mode==="legal"?legalView():s.mode==="welcome"?welcomeView():s.mode==="explore"?landing():authView())+'<div class="foot">منصة وصله · جميع الحقوق محفوظة</div>'+legalLinks();return}
 if(s.tab==="account"){
  app.innerHTML=accountSettingsView();
  return;
