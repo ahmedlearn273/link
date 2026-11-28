@@ -5273,6 +5273,7 @@ async function viewPrimeKnowledgeDocument(documentId){
         const reason=String(a.asReason||"").trim();
         a.asErr="";
         if(!a.asSel){a.asErr="اختر مقدم الخدمة أولاً";render();return}
+        if(rqIsAsv()){const _sel=(a.asRows||[]).find(x=>x.provider_id===a.asSel);if(!_sel||!asvProvOk(_sel)||_sel.is_available===false){a.asErr="المزوّد ده مش متاح للتعيين دلوقتي. اختار مزود تاني.";render();return}}
         if(reason.length<5||reason.length>500){a.asErr="سبب التعيين إلزامي ويجب أن يكون من 5 إلى 500 حرف";render();return}
         a.asBusy=true;render();
         try{
@@ -5354,7 +5355,7 @@ async function viewPrimeKnowledgeDocument(documentId){
         return Array.isArray(sa)&&sa.includes(key);
       }
       function requestDetailView(){
-        const q=rqState(),d=q.detail||{loading:true};
+        const q=rqState(),d=q.detail||{loading:true};const isAsv=rqIsAsv();
         const back='<div class="actions">'+btn("rq-back","العودة إلى القائمة","light")+'</div>';
         let content="";
         if(d.loading)content='<div class="empty">جاري تحميل تفاصيل الطلب...</div>';
@@ -5421,7 +5422,7 @@ async function viewPrimeKnowledgeDocument(documentId){
             '<div class="card"><label class="field">إضافة ملاحظة داخلية<textarea id="rqdNote" rows="3" maxlength="2000" placeholder="اكتب الملاحظة (من 3 إلى 2000 حرف). تظهر للإدارة فقط.">'+esc(act.note)+'</textarea></label>'+
             (act.noteErr?'<div class="notice error">'+esc(act.noteErr)+'</div>':"")+(act.noteOk?'<div class="notice success">'+esc(act.noteOk)+'</div>':"")+
             '<div class="actions"><button type="button" class="btn gold" data-a="rqd-note-add"'+(act.noteBusy?" disabled":"")+'>'+(act.noteBusy?"جاري الإضافة...":"إضافة ملاحظة")+'</button></div></div>':"";
-          const shells=RQD_SECTIONS.filter(x=>rqdSectionAvailable(dd,x[0])).map(x=>'<details class="card" open><summary><b>'+esc(x[1])+'</b></summary>'+body(x[0])+(x[0]==="notes"?noteForm:"")+'</details>').join("");
+          const shells=RQD_SECTIONS.filter(x=>rqdSectionAvailable(dd,x[0])&&!(isAsv&&["quotes","payments","customer_contact"].includes(x[0]))).map(x=>'<details class="card" open><summary><b>'+esc(x[1])+'</b></summary>'+body(x[0])+(x[0]==="notes"?noteForm:"")+'</details>').join("");
           const escBar=(rqo.escalated_at||canEsc||act.escOk)?'<div class="actions">'+(rqo.escalated_at?'<span class="tag bad">مصعّد</span>':"")+(canEsc?'<button type="button" class="btn light" data-a="rqd-esc-open">تصعيد للمالك</button>':"")+'</div>'+(act.escOk?'<div class="notice success">'+esc(act.escOk)+'</div>':""):"";
           const canAs=rqdCanAssign()&&(rqo.status==="pending"||rqo.status==="accepted");
           const isRe=rqo.status==="accepted";
@@ -5437,14 +5438,14 @@ async function viewPrimeKnowledgeDocument(documentId){
           const asModal=(act.asOpen&&canAs)?'<div class="modalback"><div class="modal"><h3>'+(isRe?"إعادة تعيين مقدم الخدمة":"تعيين مقدم الخدمة")+'</h3>'+
             '<div class="actions"><input id="rqdAsSearch" type="search" maxlength="200" placeholder="بحث بالاسم" value="'+esc(act.asSearch)+'"><button type="button" class="btn light" data-a="rqd-as-search"'+(act.asLoading?" disabled":"")+'>بحث</button></div>'+
             (act.asLoading?'<p class="small">جاري تحميل المزوّدين...</p>':act.asLoadErr?'<div class="notice error">'+esc(act.asLoadErr)+'</div>':
-              (act.asRows.length?act.asRows.map(x=>'<button type="button" class="card" data-a="rqd-as-pick" data-id="'+esc(x.provider_id)+'" style="width:100%;text-align:right;'+(act.asSel===x.provider_id?'border:2px solid var(--primary);':'')+'"><b>'+esc(x.name||"—")+'</b><div class="small">'+esc([x.city,x.area].filter(Boolean).join(" - ")||"—")+'</div><div class="small">'+esc((Array.isArray(x.services)?x.services.map(v=>v&&v.name_ar).filter(Boolean).join("، "):"")||"—")+'</div></button>').join(""):'<p class="muted small">لا يوجد مزوّدون مطابقون.</p>')+
+              (isAsv?asvAssignRows(act):act.asRows.length?act.asRows.map(x=>'<button type="button" class="card" data-a="rqd-as-pick" data-id="'+esc(x.provider_id)+'" style="width:100%;text-align:right;'+(act.asSel===x.provider_id?'border:2px solid var(--primary);':'')+'"><b>'+esc(x.name||"—")+'</b><div class="small">'+esc([x.city,x.area].filter(Boolean).join(" - ")||"—")+'</div><div class="small">'+esc((Array.isArray(x.services)?x.services.map(v=>v&&v.name_ar).filter(Boolean).join("، "):"")||"—")+'</div></button>').join(""):'<p class="muted small">لا يوجد مزوّدون مطابقون.</p>')+
               (act.asTotal>act.asLimit?'<div class="actions"><button type="button" class="btn light" data-a="rqd-as-prev"'+(act.asOffset<=0?" disabled":"")+'>السابق</button><span class="small">'+fmt(asPage)+' / '+fmt(asPages)+'</span><button type="button" class="btn light" data-a="rqd-as-next"'+(act.asOffset+act.asLimit>=act.asTotal?" disabled":"")+'>التالي</button></div>':""))+
             '<label class="field">سبب التعيين (من 5 إلى 500 حرف)<textarea id="rqdAsReason" rows="3" maxlength="500">'+esc(act.asReason)+'</textarea></label>'+(act.asErr?'<div class="notice error">'+esc(act.asErr)+'</div>':"")+
             '<div class="actions"><button type="button" class="btn gold" data-a="rqd-as-confirm"'+(act.asBusy?" disabled":"")+'>'+(act.asBusy?"جاري التنفيذ...":"تأكيد")+'</button><button type="button" class="btn light" data-a="rqd-as-cancel"'+(act.asBusy?" disabled":"")+'>إلغاء</button></div></div></div>':"";
           const escModal=(act.escOpen&&canEsc)?'<div class="modalback"><div class="modal"><h3>تصعيد الطلب للمالك</h3><p class="small">اكتب سبب التصعيد (من 5 إلى 500 حرف). لن يتغير حالة الطلب ولا مقدم الخدمة.</p><label class="field">سبب التصعيد<textarea id="rqdEsc" rows="4" maxlength="500">'+esc(act.esc)+'</textarea></label>'+(act.escErr?'<div class="notice error">'+esc(act.escErr)+'</div>':"")+'<div class="actions"><button type="button" class="btn gold" data-a="rqd-esc-confirm"'+(act.escBusy?" disabled":"")+'>'+(act.escBusy?"جاري التصعيد...":"تأكيد التصعيد")+'</button><button type="button" class="btn light" data-a="rqd-esc-cancel"'+(act.escBusy?" disabled":"")+'>إلغاء</button></div></div></div>':"";
-          content=(shells?escBar+asBar+cnBar+shells:empty("لا توجد أقسام متاحة لك في هذا الطلب"))+escModal+asModal+cnModal;
+          content=isAsv?((shells?asvDetailTop(dd,rqo,act)+shells:empty("لا توجد أقسام متاحة لك في هذا الطلب"))+asvActionBar(canAs,isRe,canEsc)+escModal+asModal).replace(/class="modalback"/g,'class="modalback asv-sheet"'):(shells?escBar+asBar+cnBar+shells:empty("لا توجد أقسام متاحة لك في هذا الطلب"))+escModal+asModal+cnModal;
         }
-        return RQ_CSS+'<section class="section"><div class="sectionhead"><div><h2>تفاصيل الطلب</h2><p class="small">للقراءة فقط.</p></div></div>'+back+content+'</section>';
+        return RQ_CSS+'<section class="section"><div class="sectionhead"><div><h2>تفاصيل الطلب</h2>'+(isAsv?"":'<p class="small">للقراءة فقط.</p>')+'</div></div>'+back+content+'</section>';
       }
       const RL_REASON={no_provider:"بلا مزوّد",past_scheduled:"متأخر في التنفيذ",no_scheduled_at:"بلا موعد"};
       const RL_DESC={no_provider:"قيد الانتظار وتجاوز المهلة بلا مقدم خدمة",past_scheduled:"جاري التنفيذ وتجاوز موعد التنفيذ والمهلة",no_scheduled_at:"له مقدم خدمة (مقبول أو جاري التنفيذ) بلا موعد تنفيذ متفق عليه"};
@@ -5529,9 +5530,303 @@ async function viewPrimeKnowledgeDocument(documentId){
         '</div></div>';
         return counters+filters+content+pager;
       }
+
+      /* ===== مشرف المنطقة (ASV): شاشات الموبايل =====
+         الشاشات المبنية على RPCs موجودة شغالة. الشكاوى والمزودين واقتراح الإيقاف مبنية لكن مقفولة بالأعلام
+         دي لحد ما الـDB يتنفذ (راجع مستند طلبات الـDB). مفيش بيانات عميل ولا أسعار ولا مدفوعات تظهر للمشرف. */
+      const ASV_FEATURES={complaints:false,providers:false,suspend:false};
+      function asvState(){
+        if(!s.asv)s.asv={cmp:{rows:[],total:0,loading:false,loaded:false,error:""},prv:{rows:[],total:0,loading:false,loaded:false,error:""},sheet:null,msg:""};
+        return s.asv;
+      }
+      function asvNavItems(){
+        const n=[["home","الرئيسية"],["requests","الطلبات"]];
+        if(ASV_FEATURES.providers)n.push(["providers","المزودون"]);
+        if(ASV_FEATURES.complaints)n.push(["complaints","الشكاوى"]);
+        return n;
+      }
+      const ASV_ICONS={
+        home:'<path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
+        requests:'<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>',
+        providers:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.2-5.5 6.5-5.5s5.9 1.9 6.5 5.5"/><circle cx="17.5" cy="9" r="2.5"/>',
+        complaints:'<path d="M21 12a8 8 0 0 1-11.6 7.1L3 21l1.9-5.4A8 8 0 1 1 21 12z"/>',
+        account:'<circle cx="12" cy="8" r="4"/><path d="M4 21c.8-4.2 4-6 8-6s7.2 1.8 8 6"/>',
+        lock:'<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>'
+      };
+      function asvIcon(k){
+        return '<svg class="asv-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(ASV_ICONS[k]||"")+'</svg>';
+      }
+      function asvChipDefs(){
+        return [["all","الكل"],["late","متأخرة"],["pending","قيد الانتظار"],["accepted","مقبول"],["in_progress","قيد التنفيذ"],["completed","مكتمل"]];
+      }
+      function asvChipActive(f){
+        return f.late_only?"late":(f.status||"all");
+      }
+      function asvApplyChip(key){
+        const q=rqState(),f=q.filters;
+        f.late_only=key==="late";
+        f.status=(key==="all"||key==="late")?"":key;
+        q.offset=0;
+        loadRequestsList();
+      }
+      function asvPill(txt,cls){
+        return '<span class="asv-pill'+(cls?" "+cls:"")+'">'+esc(txt)+'</span>';
+      }
+      function asvStatusPill(st){
+        const cls=st==="in_progress"?"info":(st==="completed"||st==="accepted")?"ok":st==="cancelled"?"bad":"";
+        return asvPill(RQ_STATUS_LABELS[st]||st||"—",cls);
+      }
+      function asvReqCard(r){
+        const st=r.status;
+        const tags=(r.is_late===true?asvPill("متأخر","bad"):"")+
+          ((!r.provider_name&&st==="pending")?asvPill("بدون مزود","warn"):"")+
+          (r.no_scheduled_at===true?asvPill("بلا موعد",""):"")+asvStatusPill(st);
+        const meta=[r.service_name_ar,[r.city_name,r.area_name].filter(Boolean).join(" - ")].filter(Boolean).join(" · ");
+        return '<button type="button" class="asv-card" data-a="rq-open" data-id="'+esc(r.request_id)+'">'+
+          '<span class="asv-card-top"><b>'+esc(r.title||"طلب خدمة")+'</b><span class="asv-id">#'+esc(String(r.request_id||"").slice(0,6))+'</span></span>'+
+          '<span class="asv-card-meta">'+esc(meta||"—")+'</span>'+
+          '<span class="asv-card-meta">'+esc(r.provider_name?("المزود: "+r.provider_name):"لم يتم تعيين مزود")+' · '+esc(rqDate(r.created_at))+'</span>'+
+          '<span class="asv-tags">'+tags+'</span></button>';
+      }
+      function asvRequestsView(){
+        const q=rqState(),f=q.filters;
+        if(!q.loaded&&!q.loading)setTimeout(loadRequestsList,0);
+        const act=asvChipActive(f);
+        const chips='<div class="asv-chips" role="tablist">'+asvChipDefs().map(c=>'<button type="button" class="asv-chip'+(act===c[0]?" on":"")+'" data-a="asv-chip" data-id="'+c[0]+'">'+esc(c[1])+'</button>').join("")+'</div>';
+        const search='<div class="asv-search"><input id="asvSearch" type="search" maxlength="200" placeholder="ابحث برقم الطلب أو العنوان" value="'+esc(f.search||"")+'"><button type="button" class="btn light" data-a="asv-search">بحث</button></div>';
+        let content="";
+        if(q.loading)content='<div class="empty">جاري تحميل الطلبات...</div>';
+        else if(q.error)content='<div class="notice error">'+esc(q.error)+'</div><div class="actions">'+btn("rq-retry","إعادة المحاولة","light")+'</div>';
+        else if(!q.rows.length)content=empty("لا توجد طلبات مطابقة");
+        else content='<div class="asv-list">'+q.rows.map(asvReqCard).join("")+'</div>';
+        const pages=Math.max(1,Math.ceil(q.total/q.limit)),page=Math.floor(q.offset/q.limit)+1;
+        const pager=(q.total>q.limit)?'<div class="asv-pager">'+(q.offset>0&&!q.loading?btn("rq-prev","السابق","light"):"<span></span>")+'<span class="small">'+fmt(page)+' / '+fmt(pages)+'</span>'+(q.offset+q.limit<q.total&&!q.loading?btn("rq-next","التالي","light"):"<span></span>")+'</div>':"";
+        return '<section class="section asv-sec"><div class="asv-h"><h2>الطلبات</h2><span class="asv-sub">'+fmt(q.total)+' طلب في نطاقك</span></div>'+search+chips+content+pager+'</section>';
+      }
+      function asvHomeView(){
+        const q=rqState(),l=rlState();
+        if(!q.loaded&&!q.loading)setTimeout(loadRequestsList,0);
+        if(!l.loaded&&!l.loading)setTimeout(loadLateRequests,0);
+        const c=q.counters||{},lc=l.counters||{};
+        const num=v=>(v===undefined||v===null)?"—":fmt(v);
+        const first=String(s.profile?.full_name||"").trim().split(/\s+/)[0]||"";
+        const city=(q.rows[0]&&q.rows[0].city_name)||(l.rows[0]&&l.rows[0].city_name)||"";
+        const stat=(cls,label,v,chip)=>'<button type="button" class="asv-stat '+cls+'" data-a="asv-go" data-id="'+chip+'"><span>'+esc(label)+'</span><b>'+num(v)+'</b></button>';
+        const stats='<div class="asv-stats">'+
+          stat("bad","متأخرة",c.late,"late")+
+          stat("warn","بدون مزود",lc.no_provider,"pending")+
+          stat("","قيد التنفيذ",c.in_progress,"in_progress")+
+          stat("","قيد الانتظار",c.pending,"pending")+
+          stat("ok","اكتملت",c.completed,"completed")+
+          stat("","بلا موعد",c.no_scheduled_at,"accepted")+
+        '</div>';
+        let queue="";
+        if(l.loading&&!l.rows.length)queue='<div class="empty">جاري التحميل...</div>';
+        else if(l.error)queue='<div class="notice error">'+esc(l.error)+'</div>';
+        else if(!l.rows.length)queue='<div class="asv-ok">كل حاجة تمام. مفيش طلبات متأخرة دلوقتي.</div>';
+        else queue=l.rows.slice(0,6).map(r=>{
+          const rs=RL_REASON[r.reason]||"";
+          const delay=(r.delay_hours!==null&&r.delay_hours!==undefined)?("متأخر "+fmt(Math.round(Number(r.delay_hours)))+" ساعة"):"";
+          const noProv=r.reason==="no_provider";
+          return '<article class="asv-card"><button type="button" class="asv-card-main" data-a="asv-open" data-id="'+esc(r.request_id)+'">'+
+            '<span class="asv-card-top"><b>'+esc(r.title||"طلب خدمة")+'</b><span class="asv-id">#'+esc(String(r.request_id||"").slice(0,6))+'</span></span>'+
+            '<span class="asv-card-meta">'+esc([r.service_name_ar,[r.city_name,r.area_name].filter(Boolean).join(" - ")].filter(Boolean).join(" · ")||"—")+'</span>'+
+            '<span class="asv-tags">'+(delay?asvPill(delay,"bad"):"")+(rs?asvPill(rs,noProv?"warn":""):"")+'</span></button>'+
+            '<div class="asv-card-act">'+(noProv?'<button type="button" class="btn gold" data-a="asv-open" data-id="'+esc(r.request_id)+'" data-assign="1">عيّن مزود</button>':'<button type="button" class="btn light" data-a="asv-open" data-id="'+esc(r.request_id)+'">افتح</button>')+'</div></article>';
+        }).join("");
+        const more=(l.total>6)?'<button type="button" class="btn light asv-more" data-a="asv-go" data-id="late">كل المتأخر ('+fmt(l.total)+')</button>':"";
+        return '<section class="section asv-sec"><div class="asv-hero"><h2>أهلًا يا '+esc(first||"مشرف")+'</h2><p>مشرف منطقة'+(city?" · "+esc(city):"")+'</p></div>'+stats+
+          '<div class="asv-h"><h3>محتاج تصرف دلوقتي</h3><span class="asv-sub">بالأولوية</span></div>'+queue+more+'</section>';
+      }
+      function asvDetailTop(dd,rqo,act){
+        const st=rqo.status;
+        return '<div class="asv-summary"><div class="asv-card-top"><b>'+esc(rqo.title||"طلب خدمة")+'</b><span class="asv-id">#'+esc(String(rqo.id||dd.request_id||rqState().detailId||"").slice(0,6))+'</span></div><div class="asv-tags">'+asvStatusPill(st)+(rqo.escalated_at?asvPill("مصعّد","bad"):"")+'</div></div>'+
+          '<div class="asv-lock">'+asvIcon("lock")+'<span>بيانات العميل والأسعار والمدفوعات للإدارة فقط ومش بتظهر لك.</span></div>'+
+          (act.asOk?'<div class="notice success">'+esc(act.asOk)+'</div>':"")+(act.escOk?'<div class="notice success">'+esc(act.escOk)+'</div>':"");
+      }
+      function asvActionBar(canAs,isRe,canEsc){
+        const b=[];
+        if(canAs)b.push('<button type="button" class="btn gold" data-a="rqd-as-open">'+(isRe?"أعد التعيين":"عيّن مزود")+'</button>');
+        if(rqdCanAddNote())b.push('<button type="button" class="btn light" data-a="asv-note">ملاحظة</button>');
+        if(canEsc)b.push('<button type="button" class="btn light asv-danger" data-a="rqd-esc-open">صعّد</button>');
+        return b.length?'<div class="asv-bar">'+b.join("")+'</div>':"";
+      }
+      // مصفوفة الحالات: المزود المخفي أو الموقوف أو المتوقف من الأدمن مايظهرش في التعيين أبدًا
+      function asvProvOk(x){
+        if(!x)return false;
+        if(x.is_active===false||x.is_hidden===true||x.is_paused===true||x.is_stopped===true||x.admin_stopped===true||x.is_suspended===true)return false;
+        const stt=String(x.status||x.provider_status||"").toLowerCase();
+        return !["paused","stopped","hidden","suspended","inactive","admin_stopped"].includes(stt);
+      }
+      function asvAssignRows(act){
+        const rows=(act.asRows||[]).filter(asvProvOk);
+        if(!rows.length)return '<p class="muted small">لا يوجد مزوّدون مؤهلون مطابقون.</p>';
+        return '<div class="asv-provs">'+rows.map(x=>{
+          const off=x.is_available===false,sel=act.asSel===x.provider_id;
+          const rt=Number(x.average_rating);
+          const rv=(Number.isFinite(rt)&&rt>0)?'<span class="asv-rate">★ '+fmt(Math.round(rt*10)/10)+(x.total_reviews?" ("+fmt(x.total_reviews)+")":"")+'</span>':"";
+          const sv=Array.isArray(x.services)?x.services.map(v=>v&&v.name_ar).filter(Boolean).join("، "):"";
+          return '<button type="button" class="asv-prov'+(sel?" sel":"")+(off?" off":"")+'" data-a="rqd-as-pick" data-id="'+esc(x.provider_id)+'"'+(off?" disabled":"")+'>'+
+            '<span class="asv-av">'+esc(String(x.name||"؟").trim().charAt(0))+'</span>'+
+            '<span class="asv-prov-b"><b>'+esc(x.name||"—")+'</b><small>'+esc([x.city,x.area].filter(Boolean).join(" - ")||"—")+'</small>'+(sv?'<small>'+esc(sv)+'</small>':"")+'</span>'+
+            '<span class="asv-prov-s">'+rv+(off?asvPill("غير متاح الآن",""):"")+'</span></button>';
+        }).join("")+'</div>';
+      }
+      function asvDue(iso){
+        if(!iso)return {txt:"—",cls:""};
+        const ms=new Date(iso).getTime()-Date.now();
+        if(isNaN(ms))return {txt:"—",cls:""};
+        const m=Math.floor(Math.abs(ms)/60000),h=Math.floor(m/60),mm=m%60;
+        const t=fmt(h)+" س "+fmt(mm)+" د";
+        return ms>=0?{txt:"باقي "+t,cls:ms<3600000?"bad":"warn"}:{txt:"تجاوز بـ "+t,cls:"bad"};
+      }
+      /* ---- شاشات مقفولة لحد تنفيذ الـDB ---- */
+      async function asvLoadComplaints(){
+        const c=asvState().cmp;
+        c.loading=true;c.loaded=true;c.error="";render();
+        try{
+          const {data,error}=await db.rpc("asv_list_complaints",{p_status:null,p_limit:25,p_offset:0});
+          if(error)throw error;
+          c.rows=Array.isArray(data?.rows)?data.rows:[];c.total=Number(data?.total||0);
+        }catch(err){
+          console.error("[asv_list_complaints]");
+          c.rows=[];c.total=0;c.error="تعذّر تحميل الشكاوى.";
+        }
+        c.loading=false;render();
+      }
+      async function asvLoadProviders(){
+        const p=asvState().prv;
+        p.loading=true;p.loaded=true;p.error="";render();
+        try{
+          const {data,error}=await db.rpc("asv_list_area_providers",{p_limit:50,p_offset:0});
+          if(error)throw error;
+          p.rows=Array.isArray(data?.rows)?data.rows:[];p.total=Number(data?.total||0);
+        }catch(err){
+          console.error("[asv_list_area_providers]");
+          p.rows=[];p.total=0;p.error="تعذّر تحميل المزودين.";
+        }
+        p.loading=false;render();
+      }
+      function asvComplaintsView(){
+        const st=asvState(),c=st.cmp;
+        if(!c.loaded&&!c.loading)setTimeout(asvLoadComplaints,0);
+        let content="";
+        if(c.loading)content='<div class="empty">جاري تحميل الشكاوى...</div>';
+        else if(c.error)content='<div class="notice error">'+esc(c.error)+'</div>';
+        else if(!c.rows.length)content=empty("مفيش شكاوى مفتوحة");
+        else content='<div class="asv-list">'+c.rows.map(r=>{
+          const d=asvDue(r.first_reply_due_at),replied=!!r.first_replied_at;
+          return '<article class="asv-card"><div class="asv-card-main"><span class="asv-card-top"><b>'+esc(r.kind_label||r.title||"شكوى")+'</b>'+(replied?asvPill("تم الرد الأول","ok"):asvPill(d.txt,d.cls))+'</span>'+
+            '<span class="asv-card-meta">'+esc(r.request_title||"")+(r.request_id?" · #"+esc(String(r.request_id).slice(0,6)):"")+'</span>'+
+            (r.summary?'<span class="asv-quote">'+esc(r.summary)+'</span>':"")+'</div>'+
+            '<div class="asv-card-act"><button type="button" class="btn gold" data-a="asv-sheet" data-kind="reply" data-id="'+esc(r.complaint_id)+'">رد على العميل</button>'+
+            '<button type="button" class="btn light" data-a="asv-sheet" data-kind="comp" data-id="'+esc(r.complaint_id)+'">تعويض</button>'+
+            '<button type="button" class="btn light asv-danger" data-a="asv-sheet" data-kind="escc" data-id="'+esc(r.complaint_id)+'">صعّد</button></div></article>';
+        }).join("")+'</div>';
+        return '<section class="section asv-sec"><div class="asv-h"><h2>الشكاوى</h2><span class="asv-sub">أول رد خلال ٤ ساعات</span></div>'+(st.msg?'<div class="notice success">'+esc(st.msg)+'</div>':"")+content+asvSheetHtml()+'</section>';
+      }
+      function asvProvidersView(){
+        const st=asvState(),p=st.prv;
+        if(!p.loaded&&!p.loading)setTimeout(asvLoadProviders,0);
+        let content="";
+        if(p.loading)content='<div class="empty">جاري تحميل المزودين...</div>';
+        else if(p.error)content='<div class="notice error">'+esc(p.error)+'</div>';
+        else if(!p.rows.length)content=empty("مفيش مزودين في نطاقك");
+        else content='<div class="asv-list">'+p.rows.map(r=>{
+          const rt=Number(r.average_rating);
+          return '<article class="asv-card"><div class="asv-card-main"><span class="asv-card-top"><b>'+esc(r.name||"—")+'</b>'+((Number.isFinite(rt)&&rt>0)?'<span class="asv-rate">★ '+fmt(Math.round(rt*10)/10)+'</span>':"")+'</span>'+
+            '<span class="asv-card-meta">'+esc([r.city,r.area].filter(Boolean).join(" - ")||"—")+'</span>'+
+            '<span class="asv-tags">'+(r.is_available===false?asvPill("غير متاح",""):asvPill("متاح","ok"))+(r.active_requests?asvPill(fmt(r.active_requests)+" طلب جاري",""):"")+(r.complaints_30d?asvPill(fmt(r.complaints_30d)+" شكاوى هذا الشهر","bad"):"")+'</span></div>'+
+            (ASV_FEATURES.suspend?'<div class="asv-card-act"><button type="button" class="btn light asv-danger" data-a="asv-sheet" data-kind="suspend" data-id="'+esc(r.provider_id)+'">اقترح إيقاف</button><span class="small muted">القرار لمدير الخدمات</span></div>':"")+'</article>';
+        }).join("")+'</div>';
+        return '<section class="section asv-sec"><div class="asv-h"><h2>المزودون</h2><span class="asv-sub">'+fmt(p.total)+' مزود في نطاقك</span></div>'+(st.msg?'<div class="notice success">'+esc(st.msg)+'</div>':"")+content+asvSheetHtml()+'</section>';
+      }
+      const ASV_SHEETS={
+        reply:{title:"الرد على العميل",hint:"أول رد خلال ٤ ساعات من الشكوى.",ph:"اكتب الرد (من 5 إلى 500 حرف)",rpc:"asv_reply_complaint",idKey:"p_complaint_id",textKey:"p_message",ok:"تم إرسال الرد",reload:"cmp"},
+        comp:{title:"اقتراح تعويض",hint:"لحد ٢٠٠ جنيه تعتمده أنت. فوق كده بيتحول للمالك للموافقة.",ph:"سبب التعويض (من 5 إلى 500 حرف)",rpc:"asv_set_complaint_compensation",idKey:"p_complaint_id",textKey:"p_reason",amount:true,ok:"تم تسجيل التعويض",reload:"cmp"},
+        escc:{title:"تصعيد الشكوى لمدير الخدمات",hint:"الشكوى بتفضل مفتوحة وبتظهر لمدير الخدمات.",ph:"سبب التصعيد (من 5 إلى 500 حرف)",rpc:"asv_escalate_complaint",idKey:"p_complaint_id",textKey:"p_reason",ok:"تم التصعيد",reload:"cmp"},
+        suspend:{title:"اقتراح إيقاف مزود",hint:"ده اقتراح بس. القرار لمدير الخدمات.",ph:"سبب الاقتراح (من 5 إلى 500 حرف)",rpc:"asv_propose_provider_suspension",idKey:"p_provider_id",textKey:"p_reason",ok:"تم إرسال الاقتراح لمدير الخدمات",reload:"prv"}
+      };
+      function asvSheetHtml(){
+        const sh=asvState().sheet;
+        if(!sh||!ASV_SHEETS[sh.kind])return "";
+        const d=ASV_SHEETS[sh.kind];
+        return '<div class="modalback asv-sheet"><div class="modal"><h3>'+esc(d.title)+'</h3><p class="small">'+esc(d.hint)+'</p>'+
+          (d.amount?'<label class="field">المبلغ بالجنيه<input id="asvSheetAmt" type="text" inputmode="decimal" dir="ltr" value="'+esc(sh.amount||"")+'"></label>':"")+
+          '<label class="field"><textarea id="asvSheetText" rows="4" maxlength="500" placeholder="'+esc(d.ph)+'">'+esc(sh.text||"")+'</textarea></label>'+
+          (sh.err?'<div class="notice error">'+esc(sh.err)+'</div>':"")+
+          '<div class="actions"><button type="button" class="btn gold" data-a="asv-sheet-send"'+(sh.busy?" disabled":"")+'>'+(sh.busy?"جاري الإرسال...":"تأكيد")+'</button><button type="button" class="btn light" data-a="asv-sheet-close"'+(sh.busy?" disabled":"")+'>إلغاء</button></div></div></div>';
+      }
+      async function asvSheetSend(){
+        const st=asvState(),sh=st.sheet;
+        if(!sh||sh.busy||!ASV_SHEETS[sh.kind])return;
+        const d=ASV_SHEETS[sh.kind];
+        const text=String(document.getElementById("asvSheetText")?.value||sh.text||"").trim();
+        sh.text=text;sh.err="";
+        const params={};
+        params[d.idKey]=sh.id;
+        if(text.length<5||text.length>500){sh.err="النص لازم يكون من 5 إلى 500 حرف";render();return}
+        if(d.amount){
+          const raw=String(document.getElementById("asvSheetAmt")?.value||sh.amount||"").trim().replace(/[٠-٩]/g,x=>"٠١٢٣٤٥٦٧٨٩".indexOf(x));
+          sh.amount=raw;
+          const n=Number(raw);
+          if(!raw||!Number.isFinite(n)||n<=0||n>100000){sh.err="اكتب مبلغ صحيح أكبر من صفر";render();return}
+          params.p_amount=n;
+        }
+        params[d.textKey]=text;
+        sh.busy=true;render();
+        try{
+          const {error}=await db.rpc(d.rpc,params);
+          if(error)throw error;
+          st.msg=d.ok;st.sheet=null;
+          if(d.reload==="cmp")await asvLoadComplaints();else await asvLoadProviders();
+          return;
+        }catch(err){
+          console.error("["+d.rpc+"]");
+          sh.err=String(err?.message||"").slice(0,160)||"تعذّر تنفيذ العملية.";
+        }
+        sh.busy=false;render();
+      }
+      app.addEventListener("input",e=>{
+        const sh=s.asv&&s.asv.sheet;
+        if(!sh)return;
+        if(e.target&&e.target.id==="asvSheetText")sh.text=e.target.value;
+        if(e.target&&e.target.id==="asvSheetAmt")sh.amount=e.target.value;
+      });
+      app.addEventListener("click",e=>{
+        const b=e.target.closest?e.target.closest("[data-a]"):null;
+        if(!b||!String(b.dataset.a).startsWith("asv-"))return;
+        const a=b.dataset.a,q=rqState();
+        if(!rqIsAsv())return;
+        if(a==="asv-chip"){asvApplyChip(b.dataset.id);return}
+        if(a==="asv-go"){q.detailId=null;q.detail=null;q.act=null;s.tab="requests";asvApplyChip(b.dataset.id);return}
+        if(a==="asv-search"){q.filters.search=String(document.getElementById("asvSearch")?.value||"").trim().slice(0,200);q.offset=0;loadRequestsList();return}
+        if(a==="asv-open"){
+          const id=b.dataset.id,wantAssign=b.dataset.assign==="1";
+          if(!id)return;
+          s.tab="requests";
+          loadRequestDetail(id).then(()=>{
+            if(wantAssign){const btn0=document.querySelector('[data-a="rqd-as-open"]');if(btn0)btn0.click()}
+          });
+          return;
+        }
+        if(a==="asv-note"){
+          const t=document.getElementById("rqdNote");
+          if(t){t.scrollIntoView({block:"center",behavior:"smooth"});t.focus()}
+          return;
+        }
+        if(a==="asv-sheet"){
+          if(b.dataset.kind==="suspend"&&!ASV_FEATURES.suspend)return;
+          asvState().sheet={kind:b.dataset.kind,id:b.dataset.id,text:"",amount:"",err:"",busy:false};asvState().msg="";render();return;
+        }
+        if(a==="asv-sheet-close"){asvState().sheet=null;render();return}
+        if(a==="asv-sheet-send"){asvSheetSend();return}
+      });
+
       function requestsListView(){
         const q=rqState(),f=q.filters;
         if(q.detailId&&rqCanView())return requestDetailView();
+        if(rqIsAsv()&&rqCanView())return asvRequestsView();
         if(!rqCanView())return '<section class="section"><div class="card"><p class="muted">لا تملك صلاحية عرض الطلبات.</p></div></section>';
         if(q.view==="late"){
           const tabs='<div class="actions">'+btn("rq-tab-list","كل الطلبات","light")+btn("rq-tab-late","الطلبات المتأخرة","gold")+'</div>';
@@ -5787,7 +6082,7 @@ const STAFF_NAV_ITEMS=[
  ["settings","الإعدادات",["settings.view","settings.manage"]]
 ];
 // الأقسام المنفذة فعليًا في لوحة الموظف. الباقي صفحة مؤقتة بلا تحميل بيانات.
-const STAFF_IMPLEMENTED_TABS=["home","services","categories","requests"];
+const STAFF_IMPLEMENTED_TABS=["home","services","categories","requests","providers","complaints"];
 const STAFF_PLACEHOLDER_TEXT="القسم ده ضمن مراحل التنفيذ التالية. مش بيتم تحميل بيانات أو تنفيذ عمليات من الصفحة دي حاليًا.";
 // المفاتيح المالية: تُمنح لموظفي رتبة FIN فقط (الحماية الأساسية في قاعدة البيانات، وهنا منع مبكر في الواجهة)
 const FINANCIAL_PERMISSION_KEYS=["payments.view","payments.manage","wallet.view","wallet.manage","payouts.prepare"];
@@ -5835,7 +6130,8 @@ function checkedStaffPermissions(form){
 function staff(){
  const permissions=rqPermissions();
  const can=p=>permissions.includes(p);
- const navItems=STAFF_NAV_ITEMS.filter(n=>n[2].some(can)||(n[0]==="requests"&&rqIsAsv())).map(n=>[n[0],n[1]]);
+ const asv=rqIsAsv();
+ const navItems=asv?asvNavItems():STAFF_NAV_ITEMS.filter(n=>n[2].some(can)||(n[0]==="requests"&&rqIsAsv())).map(n=>[n[0],n[1]]);
 
  if(!navItems.some(x=>x[0]===s.tab))s.tab=navItems.length?navItems[0][0]:"none";
 
@@ -5850,6 +6146,10 @@ if(s.tab==="home"&&navItems.some(x=>x[0]==="home")){
   '</div></section>';
 }
  
+
+ if(asv&&s.tab==="home")body=asvHomeView();
+ if(asv&&s.tab==="providers"&&ASV_FEATURES.providers)body=asvProvidersView();
+ if(asv&&s.tab==="complaints"&&ASV_FEATURES.complaints)body=asvComplaintsView();
 
  if(s.tab==="services"&&navItems.some(x=>x[0]==="services")){
   body='<section class="section">'+
@@ -5887,14 +6187,14 @@ if(s.tab==="none"){
   body='<section class="section"><div class="card"><p class="muted">'+esc(STAFF_PLACEHOLDER_TEXT)+'</p></div></section>';
  }
 
-const nav=navItems.map(x=>'<button data-a="tab" data-id="'+x[0]+'" class="'+(s.tab===x[0]?"active":"")+'">'+x[1]+'</button>').join("");
+const nav=navItems.map(x=>'<button data-a="tab" data-id="'+x[0]+'" class="'+(s.tab===x[0]?"active":"")+'">'+(asv?asvIcon(x[0])+'<span>'+x[1]+'</span>':x[1])+'</button>').join("");
  
  const staffHead='<div class="sectionhead"><h2>لوحة الموظف</h2>'+tag("موظف")+'</div>';
  if(s.profile?.staff_role_code==="ASV"){
-  return header("لوحة الموظف","",true)+
-  '<main class="wrap wasla-staff-bottom-main">'+msg()+staffHead+body+'</main>'+
-  '<nav class="wasla-staff-bottom-nav" aria-label="التنقل الرئيسي">'+nav+
-  '<button data-a="tab" data-id="account" class="'+(s.tab==="account"?"active":"")+'">إعدادات الحساب</button></nav>';
+  return header(asv?"مشرف المنطقة":"لوحة الموظف","",true)+
+  '<main class="wrap wasla-staff-bottom-main">'+msg()+(asv?"":staffHead)+body+'</main>'+
+  '<nav class="wasla-staff-bottom-nav'+(asv?" asv-nav":"")+'" aria-label="التنقل الرئيسي">'+nav+
+  '<button data-a="tab" data-id="account" class="'+(s.tab==="account"?"active":"")+'">'+(asv?asvIcon("account")+'<span>حسابي</span>':"إعدادات الحساب")+'</button></nav>';
  }
  return header("لوحة الموظف","",true)+
  '<div class="wasla-admin-shell"><aside class="wasla-admin-side"><nav aria-label="قائمة الموظف">'+nav+
@@ -8861,6 +9161,7 @@ if(a==="showadmin"){s.mode="app";s.tab="home";render();return}
   if(a==="rolestart"){s.mode="signup";s.type=id==="provider"?"provider":"customer";s.notice="";render();return}
 if(a==="tab"){
  if(id==="audit"&&s.profile?.role!=="owner")return;
+ if(id==="home"&&rqIsAsv()){rqState().loaded=false;rlState().loaded=false;}
  s.tab=id;
  render();
  if(id==="knowledge")loadPrimeKnowledge();
@@ -10678,6 +10979,61 @@ const addButton = () => {
 .wasla-staff-bottom-nav button{flex:1 0 auto;min-width:76px;min-height:48px;padding:6px 10px;border:0;border-radius:13px;background:transparent;color:var(--text-secondary);font:600 12px Tajawal,sans-serif;white-space:nowrap;cursor:pointer}
 .wasla-staff-bottom-nav button.active{background:color-mix(in srgb,var(--accent) 13%,var(--bg-surface));color:var(--accent);font-weight:800}
 @media(min-width:900px){.wasla-staff-bottom-nav{left:50%;right:auto;transform:translateX(-50%);width:min(820px,calc(100% - 40px));border:1px solid var(--border-color);border-bottom:0;border-radius:19px 19px 0 0}}
+/* ===== ASV: mobile screens (theme tokens only) ===== */
+.asv-sec{padding-top:6px}
+.asv-hero{background:linear-gradient(135deg,var(--primary),var(--primary-hover));color:#fff;border-radius:20px;padding:16px 18px;margin-bottom:12px}
+.asv-sec .asv-hero h2{margin:0 0 2px;font-size:1.25rem;color:#fff}.asv-sec .asv-hero p{margin:0;opacity:.9;font-size:.9rem;color:#fff}
+.asv-h{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin:14px 2px 8px}
+.asv-h h2,.asv-h h3{margin:0;font-size:1.05rem;color:var(--text-primary)}.asv-sub{font-size:.78rem;color:var(--text-secondary)}
+.asv-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.asv-stat{display:flex;flex-direction:column;gap:4px;align-items:flex-start;padding:11px 12px;border-radius:16px;border:1px solid var(--border-color);background:var(--bg-surface);color:var(--text-primary);font:inherit;cursor:pointer;text-align:right}
+.asv-stat span{font-size:.74rem;color:var(--text-secondary)}.asv-stat b{font-size:1.5rem;line-height:1}
+.asv-stat.bad{background:var(--danger-bg);border-color:color-mix(in srgb,var(--danger) 35%,var(--border-color))}.asv-stat.bad b{color:var(--danger)}
+.asv-stat.warn b{color:var(--warning)}.asv-stat.ok b{color:var(--success)}
+:root[data-theme="dark"] .asv-stat.bad{background:color-mix(in srgb,var(--danger) 14%,var(--bg-surface))}
+.asv-list{display:flex;flex-direction:column;gap:10px}
+.asv-card{display:flex;flex-direction:column;gap:8px;width:100%;padding:13px;border-radius:16px;border:1px solid var(--border-color);background:var(--bg-surface);color:var(--text-primary);font:inherit;text-align:right}
+button.asv-card{cursor:pointer}
+.asv-card-main{display:flex;flex-direction:column;gap:6px;background:none;border:0;padding:0;color:inherit;font:inherit;text-align:right;cursor:pointer;width:100%}
+div.asv-card-main{cursor:default}
+.asv-card-main,.asv-card-main b,.asv-card-main span{color:var(--text-primary)}.asv-card-main .asv-card-meta,.asv-card-main .asv-id{color:var(--text-secondary)}
+.asv-card-top{display:flex;align-items:center;justify-content:space-between;gap:8px}.asv-card-top b{font-size:.98rem}
+.asv-id{font-size:.72rem;color:var(--text-secondary);font-family:monospace;direction:ltr}
+.asv-card-meta{font-size:.8rem;color:var(--text-secondary)}
+.asv-quote{font-size:.82rem;color:var(--text-primary);background:var(--bg-subtle);border-radius:10px;padding:8px 10px}
+.asv-tags{display:flex;gap:6px;flex-wrap:wrap}
+.asv-pill{display:inline-flex;align-items:center;padding:3px 9px;border-radius:999px;font-size:.72rem;font-weight:700;background:var(--bg-subtle);color:var(--text-secondary);border:1px solid var(--border-color)}
+.asv-pill.bad{background:var(--danger-bg);color:var(--danger);border-color:transparent}.asv-pill.warn{background:var(--warning-bg);color:var(--warning);border-color:transparent}
+.asv-pill.ok{background:var(--success-bg);color:var(--success);border-color:transparent}.asv-pill.info{background:color-mix(in srgb,var(--primary) 14%,var(--bg-surface));color:var(--primary);border-color:transparent}
+:root[data-theme="dark"] .asv-pill.bad{background:color-mix(in srgb,var(--danger) 18%,var(--bg-surface))}:root[data-theme="dark"] .asv-pill.warn{background:color-mix(in srgb,var(--warning) 18%,var(--bg-surface))}:root[data-theme="dark"] .asv-pill.ok{background:color-mix(in srgb,var(--success) 18%,var(--bg-surface))}
+.asv-card-act{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.asv-card-act .btn{flex:1;min-width:84px}
+.asv-chips{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 10px;margin:0 -2px;-webkit-overflow-scrolling:touch}
+.asv-chip{flex:0 0 auto;padding:8px 14px;border-radius:999px;border:1px solid var(--border-color);background:var(--bg-surface);color:var(--text-secondary);font:700 .82rem inherit;font-family:inherit;cursor:pointer;white-space:nowrap}
+.asv-chip.on{background:var(--primary);border-color:var(--primary);color:#fff}
+.asv-search{display:flex;gap:8px;margin:0 0 10px}.asv-search input{flex:1;min-width:0}
+.asv-pager{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px}
+.asv-ok{padding:14px;border-radius:14px;background:var(--success-bg);color:var(--success);font-weight:700;font-size:.9rem}
+:root[data-theme="dark"] .asv-ok{background:color-mix(in srgb,var(--success) 14%,var(--bg-surface))}
+.asv-more{width:100%;margin-top:10px}
+.asv-summary{display:flex;flex-direction:column;gap:8px;padding:13px;border-radius:16px;background:var(--bg-surface);border:1px solid var(--border-color);margin-bottom:10px}
+.asv-lock{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:12px;background:var(--bg-subtle);color:var(--text-secondary);font-size:.8rem;margin-bottom:10px}
+.asv-ic{width:20px;height:20px;flex:0 0 auto}
+.asv-bar{position:sticky;bottom:calc(76px + env(safe-area-inset-bottom));z-index:5;display:flex;gap:8px;padding:10px;margin:12px 0 0;border-radius:18px;background:color-mix(in srgb,var(--bg-surface) 94%,transparent);border:1px solid var(--border-color);backdrop-filter:blur(12px)}
+.asv-bar .btn{flex:1;min-width:0;white-space:nowrap}
+.asv-danger{color:var(--danger)!important;border-color:color-mix(in srgb,var(--danger) 45%,var(--border-color))!important}
+.asv-sheet{align-items:flex-end!important;padding:0!important}
+.asv-sheet .modal{width:100%;max-width:560px;margin:0 auto;border-radius:22px 22px 0 0;max-height:86dvh;overflow-y:auto;padding-bottom:calc(18px + env(safe-area-inset-bottom))}
+.asv-sheet .modal>.actions:last-child{position:sticky;bottom:calc(-18px - env(safe-area-inset-bottom));background:var(--bg-surface);padding:10px 0 calc(10px + env(safe-area-inset-bottom));margin-bottom:calc(-18px - env(safe-area-inset-bottom))}
+.asv-provs{display:flex;flex-direction:column;gap:8px;margin:10px 0}
+.asv-prov{display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border-radius:14px;border:1.5px solid var(--border-color);background:var(--bg-surface);color:var(--text-primary);font:inherit;text-align:right;cursor:pointer}
+.asv-prov.sel{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 8%,var(--bg-surface))}
+.asv-prov.off{opacity:.55;cursor:not-allowed}
+.asv-av{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;flex:0 0 auto;background:color-mix(in srgb,var(--primary) 14%,var(--bg-surface));color:var(--primary);font-weight:800}
+.asv-prov-b{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}.asv-prov-b small{color:var(--text-secondary);font-size:.74rem}
+.asv-prov-s{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.asv-rate{font-weight:800;font-size:.82rem;color:var(--warning)}
+.wasla-staff-bottom-nav.asv-nav{justify-content:space-around;overflow-x:visible}
+.wasla-staff-bottom-nav.asv-nav button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-width:0;flex:1;padding:6px 4px;font-size:11px}
 .wasla-rate-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:12px 0;padding:10px 12px;border:1px solid var(--border-color);border-radius:12px}
 .wasla-stars{display:inline-flex;flex-direction:row-reverse;gap:2px;direction:ltr}
 .wasla-stars input{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none}
