@@ -32,6 +32,30 @@ ALTER TABLE private.prime_unanswered ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON private.prime_synonyms FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON private.prime_unanswered FROM PUBLIC, anon, authenticated;
 
+CREATE TABLE IF NOT EXISTS private.prime_suggestions (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  label text NOT NULL UNIQUE,
+  roles text[] NOT NULL,
+  required_permission text,
+  sort_order integer NOT NULL DEFAULT 100,
+  is_active boolean NOT NULL DEFAULT true
+);
+ALTER TABLE private.prime_suggestions ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON private.prime_suggestions FROM PUBLIC, anon, authenticated;
+
+-- Suggestion buttons are filtered by the caller's real role and permissions (same sources the platform uses).
+INSERT INTO private.prime_suggestions (label, roles, required_permission, sort_order) VALUES
+  ('تابع طلبي', ARRAY['customer'], NULL, 10),
+  ('أسعار الخدمات', ARRAY['customer','provider'], NULL, 20),
+  ('رصيد محفظتي', ARRAY['customer'], NULL, 30),
+  ('عايز أقدم شكوى', ARRAY['customer'], NULL, 40),
+  ('طلباتي', ARRAY['provider'], NULL, 10),
+  ('شكاوى العملاء', ARRAY['provider'], NULL, 30),
+  ('ملخص الطلبات', ARRAY['staff','admin','owner'], 'requests.view', 10),
+  ('الشكاوى المفتوحة', ARRAY['staff','admin','owner'], 'support.view', 20),
+  ('الأدوار والصلاحيات', ARRAY['admin','owner'], NULL, 30)
+ON CONFLICT (label) DO NOTHING;
+
 -- ---------------------------------------------------------------- text helpers
 CREATE OR REPLACE FUNCTION private.prime_normalize(t text)
  RETURNS text
@@ -154,7 +178,7 @@ BEGIN
   IF v_role IN ('owner','admin') THEN
     v_perms := ARRAY['dashboard.view','customers.view','customers.manage','providers.view','providers.review','requests.view','requests.manage',
                      'services.view','services.manage','categories.view','categories.manage','messages.view','payments.view','payments.manage',
-                     'reports.view','ads.view','ads.manage','settings.view','settings.manage'];
+                     'reports.view','ads.view','ads.manage','settings.view','settings.manage','support.view','support.manage'];
   ELSIF v_role = 'staff' THEN
     SELECT coalesce(array_agg(DISTINCT k), ARRAY[]::text[]) INTO v_perms
     FROM public.staff_permissions sp, unnest(sp.permissions) k WHERE sp.user_id = v_uid AND sp.is_active;
@@ -198,10 +222,16 @@ BEGIN
   ) x ORDER BY x.l DESC, x.name_ar LIMIT 1;
 
   -- suggestion buttons by role
-  v_sugg := CASE
-    WHEN v_role = 'customer' THEN '["تابع طلبي","أسعار الخدمات","رصيد محفظتي","عايز أقدم شكوى"]'::jsonb
-    WHEN v_role = 'provider' THEN '["طلباتي","شكاوى العملاء","إزاي أستقبل طلبات؟"]'::jsonb
-    ELSE '["ملخص الطلبات","الشكاوى المفتوحة","الأدوار والصلاحيات"]'::jsonb END;
+  SELECT coalesce(jsonb_agg(g.label ORDER BY g.sort_order), '[]'::jsonb) INTO v_sugg
+  FROM private.prime_suggestions g
+  WHERE g.is_active AND v_role = ANY(g.roles) AND (g.required_permission IS NULL OR g.required_permission = ANY(v_perms));
+
+  -- actions that belong to a role only: other roles never get them, and the question is treated as not understood
+  IF v_intent IN ('order_new','cancel','register_provider') AND v_role <> 'customer' THEN v_intent := NULL; END IF;
+  IF v_intent = 'wallet' AND v_role <> 'customer' THEN v_intent := NULL; END IF;
+  IF v_intent = 'staff_orders' AND NOT (v_role IN ('staff','admin','owner') AND 'requests.view' = ANY(v_perms)) THEN v_intent := NULL; END IF;
+  IF v_intent = 'complaint' AND v_role IN ('staff','admin','owner') AND NOT ('support.view' = ANY(v_perms)) THEN v_intent := NULL; END IF;
+  IF v_intent = 'order_track' AND v_role IN ('staff','admin','owner') AND NOT ('requests.view' = ANY(v_perms)) THEN v_intent := NULL; END IF;
 
   -- 1) service asked about
   IF v_service_id IS NOT NULL AND (v_intent IS NULL OR v_intent IN ('price','order_new','help')) THEN
@@ -212,7 +242,7 @@ BEGIN
         v_answer := 'أسعار خدمة ' || v_service_name || ' عند مزودي الخدمة بتبدأ من ' || trim(to_char(v_min, 'FM999999990.##')) ||
                     ' EGP لحد ' || trim(to_char(v_max, 'FM999999990.##')) || ' EGP، والسعر النهائي بيتحدد حسب تفاصيل طلبك.';
       ELSE
-        v_answer := 'لسه مفيش أسعار معلنة لخدمة ' || v_service_name || '. ابعت طلبك بالتفاصيل وهتوصلك عروض الأسعار من مزودي الخدمة.';
+        v_answer := 'لسه مفيش أسعار معلنة لخدمة ' || v_service_name || '. ' || CASE WHEN v_role = 'customer' THEN ' ابعت طلبك بالتفاصيل وهتوصلك عروض الأسعار من مزودي الخدمة.' ELSE '' END;
       END IF;
     ELSE
       SELECT count(DISTINCT ps.provider_id) INTO v_n
@@ -221,7 +251,7 @@ BEGIN
         AND (v_city_id IS NULL OR EXISTS (SELECT 1 FROM public.provider_service_areas a WHERE a.provider_profile_id = ps.provider_id AND a.city_id = v_city_id));
       v_answer := 'خدمة ' || v_service_name || ' متاحة على وصلة' || CASE WHEN v_city_id IS NOT NULL THEN ' في ' || v_city_name ELSE '' END ||
                   CASE WHEN v_n > 0 THEN '، وفيه ' || v_n || ' مزود خدمة بيقدمها.' ELSE '، بس مفيش مزود خدمة مسجل ليها دلوقتي.' END ||
-                  ' اختار الخدمة من الصفحة الرئيسية واكتب تفاصيل طلبك.';
+                  CASE WHEN v_role = 'customer' THEN ' اختار الخدمة من الصفحة الرئيسية واكتب تفاصيل طلبك.' ELSE '' END;
     END IF;
     RETURN jsonb_build_object('answer', v_answer, 'suggestions', v_sugg, 'intent', coalesce(v_intent,'service'), 'matched', true);
   END IF;

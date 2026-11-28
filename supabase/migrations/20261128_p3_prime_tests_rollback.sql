@@ -1,6 +1,6 @@
 BEGIN;
 DO $test$
-DECLARE v_cust uuid; v_prov uuid; v_owner uuid; v_r jsonb; v_a text; v_ok boolean; v_n bigint; v_svc text;
+DECLARE v_staff uuid; v_sugg jsonb; v_cust uuid; v_prov uuid; v_owner uuid; v_r jsonb; v_a text; v_ok boolean; v_n bigint; v_svc text;
 BEGIN
   SELECT customer_id INTO v_cust FROM public.service_requests LIMIT 1;
   SELECT pp.user_id INTO v_prov FROM public.provider_profiles pp JOIN public.profiles p ON p.id=pp.user_id WHERE p.status='active' LIMIT 1;
@@ -76,6 +76,46 @@ BEGIN
     v_r := public.prime_answer('ملخص الطلبات');
     IF v_r->>'answer' LIKE 'الطلبات دلوقتي%' THEN RAISE EXCEPTION 'staff without permission saw summary'; END IF;
   END IF;
+
+
+  -- ===== role filtering: every role only sees actions that belong to it =====
+  SELECT p.id INTO v_staff FROM public.profiles p WHERE p.role='staff' AND p.status='active'
+    AND NOT EXISTS (SELECT 1 FROM public.staff_permissions sp WHERE sp.user_id=p.id AND 'requests.view'=ANY(sp.permissions)) ORDER BY p.created_at LIMIT 1;
+  IF v_staff IS NULL THEN RAISE EXCEPTION 'staff fixture missing'; END IF;
+  -- staff without any permission: no customer actions, no staff data, no order creation text
+  PERFORM set_config('request.jwt.claim.sub', v_staff::text, true);
+  v_r := public.prime_answer('اهلا');
+  v_sugg := v_r->'suggestions';
+  IF v_sugg ?| ARRAY['تابع طلبي','أسعار الخدمات','رصيد محفظتي','عايز أقدم شكوى','طلباتي','ملخص الطلبات','الشكاوى المفتوحة','الأدوار والصلاحيات'] THEN RAISE EXCEPTION 'staff (no perms) suggestions: %', v_sugg; END IF;
+  FOREACH v_svc IN ARRAY ARRAY['عايز اطلب سباك','ازاي اطلب خدمة','الغي الطلب','رصيدي','اسجل كمزود','ملخص الطلبات','الشكاوى المفتوحة'] LOOP
+    v_r := public.prime_answer(v_svc);
+    IF v_r->>'matched' = 'true' AND v_r->>'intent' NOT IN ('service','knowledge') THEN RAISE EXCEPTION 'staff (no perms) got an answer for %: %', v_svc, v_r; END IF;
+    IF v_r->>'answer' LIKE '%الصفحة الرئيسية%' OR v_r->>'answer' LIKE '%رصيد محفظتك%' OR v_r->>'answer' LIKE 'الطلبات دلوقتي%' OR v_r->>'answer' LIKE 'الشكاوى المفتوحة دلوقتي%' THEN RAISE EXCEPTION 'staff (no perms) leak for %: %', v_svc, v_r; END IF;
+  END LOOP;
+  v_r := public.prime_answer('عايز اطلب سباك');
+  IF v_r->>'answer' LIKE '%اطلب%' AND v_r->>'answer' LIKE '%طلبك%' THEN RAISE EXCEPTION 'staff sees order creation text: %', v_r; END IF;
+  -- staff with requests.view (granted only inside this rolled-back transaction): summary yes, higher-level and customer items no
+  UPDATE public.staff_permissions SET permissions = array_append(permissions,'requests.view'), is_active = true WHERE user_id = v_staff;
+  v_r := public.prime_answer('اهلا');
+  IF NOT (v_r->'suggestions' ? 'ملخص الطلبات') THEN RAISE EXCEPTION 'staff with requests.view lacks summary'; END IF;
+  IF v_r->'suggestions' ?| ARRAY['الأدوار والصلاحيات','الشكاوى المفتوحة','تابع طلبي','عايز أقدم شكوى','رصيد محفظتي'] THEN RAISE EXCEPTION 'staff suggestions exceed role: %', v_r->'suggestions'; END IF;
+  IF public.prime_answer('ملخص الطلبات')->>'answer' NOT LIKE 'الطلبات دلوقتي%' THEN RAISE EXCEPTION 'staff summary missing'; END IF;
+  IF public.prime_answer('الشكاوى المفتوحة')->>'answer' LIKE 'الشكاوى المفتوحة دلوقتي%' THEN RAISE EXCEPTION 'staff saw complaints without support.view'; END IF;
+  -- customer: no staff items; provider: no customer or staff items; owner sees the admin items
+  PERFORM set_config('request.jwt.claim.sub', v_cust::text, true);
+  v_sugg := public.prime_answer('اهلا')->'suggestions';
+  IF v_sugg ?| ARRAY['ملخص الطلبات','الشكاوى المفتوحة','الأدوار والصلاحيات','طلباتي','شكاوى العملاء'] THEN RAISE EXCEPTION 'customer suggestions exceed role: %', v_sugg; END IF;
+  IF public.prime_answer('ملخص الطلبات')->>'matched' = 'true' THEN RAISE EXCEPTION 'customer matched staff intent'; END IF;
+  PERFORM set_config('request.jwt.claim.sub', v_prov::text, true);
+  v_sugg := public.prime_answer('اهلا')->'suggestions';
+  IF v_sugg ?| ARRAY['ملخص الطلبات','الشكاوى المفتوحة','الأدوار والصلاحيات','تابع طلبي','رصيد محفظتي','عايز أقدم شكوى'] THEN RAISE EXCEPTION 'provider suggestions exceed role: %', v_sugg; END IF;
+  FOREACH v_svc IN ARRAY ARRAY['عايز اطلب سباك','الغي الطلب','اسجل كمزود','رصيدي'] LOOP
+    v_r := public.prime_answer(v_svc);
+    IF v_r->>'answer' LIKE '%الصفحة الرئيسية%' OR v_r->>'answer' LIKE 'رصيد محفظتك%' OR v_r->>'answer' LIKE '%تلغي طلبك%' OR v_r->>'answer' LIKE '%تسجل كمزود%' THEN RAISE EXCEPTION 'provider leak for %: %', v_svc, v_r; END IF;
+  END LOOP;
+  PERFORM set_config('request.jwt.claim.sub', v_owner::text, true);
+  v_sugg := public.prime_answer('اهلا')->'suggestions';
+  IF NOT (v_sugg ?& ARRAY['ملخص الطلبات','الشكاوى المفتوحة','الأدوار والصلاحيات']) OR v_sugg ?| ARRAY['تابع طلبي','رصيد محفظتي','عايز أقدم شكوى'] THEN RAISE EXCEPTION 'owner suggestions: %', v_sugg; END IF;
 
   -- API roles cannot touch the tables or helpers
   IF has_function_privilege('anon','public.prime_answer(text)','EXECUTE') THEN RAISE EXCEPTION 'anon can execute'; END IF;
