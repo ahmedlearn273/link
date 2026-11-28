@@ -3136,6 +3136,43 @@ if(p.role==="owner"){
  }
  render();
 }
+const PROV_CONTRACT_VER="provider-v1-2026-11";
+const PROV_CONTRACT=[
+["مقدمة وأطراف العقد","يُبرم هذا العقد إلكترونيًا بين منصة وصلة (ويُشار إليها \"المنصة\") وبين مقدّم الخدمة المسجّل بياناته في نموذج التسجيل (ويُشار إليه \"الفني\"). تقتصر المنصة على كونها وسيطًا إلكترونيًا يربط العملاء بالفنيين، ولا تُعد صاحبة عمل للفني ولا يترتب على هذا العقد أي علاقة عمل أو تأمينات اجتماعية بينهما. الفني مقدّم خدمة مستقل يعمل لحسابه وعلى مسؤوليته."],
+["صحة البيانات والمستندات","يقر الفني بأن كل ما أدخله من بيانات وصور الهوية والصورة الشخصية صحيح وخاص به، ويلتزم بتحديثها عند تغييرها. يحق للمنصة مراجعة المستندات ورفض الطلب أو إيقاف الحساب عند ثبوت عدم صحة أي بيان، دون إخلال بحقها في اتخاذ الإجراءات القانونية."],
+["الاعتماد وبدء العمل","لا يظهر حساب الفني للعملاء ولا يستقبل طلبات إلا بعد مراجعة المنصة واعتمادها. للمنصة قبول الطلب أو رفضه أو تعليقه وفق تقديرها وسياسات الجودة والأمان."],
+["تنفيذ العمل والالتزام بالجودة","يلتزم الفني بتنفيذ الخدمة بإتقان وفي الموعد المتفق عليه مع العميل، وبالسعر المعتمد داخل المنصة، وبالتعامل باحترام وأمانة، وبالحفاظ على نظافة مكان العمل وممتلكات العميل. يلتزم بحمل أدواته ومستلزماته، وبعدم التنازل عن الطلب لشخص آخر دون موافقة المنصة، وبعدم تكليف أي شخص غير مسجّل بتنفيذ الطلب."],
+["الأسعار والاتفاق عبر المنصة","تتم التسعيرة والتفاوض والاتفاق على نطاق العمل وسعره داخل المنصة. يمنع تغيير السعر المتفق عليه دون موافقة العميل عبر المنصة، ويمنع تحصيل أي مبالغ إضافية خارج المنصة غير مُعلنة وموثقة."],
+["عمولة المنصة وطرق الدفع والسداد","تستحق المنصة عمولة على كل طلب مكتمل بنسبة تحددها المنصة وتُعلن للفني داخل حسابه (النسبة الافتراضية 15% وللمنصة تعديلها للطلبات الجديدة فقط بعد إخطاره). يمكن سداد قيمة الخدمة عبر المنصة أو كاشًا للفني بحسب ما يتاح. في الدفع عبر المنصة يُحوَّل للفني صافي مستحقاته بعد خصم العمولة وفق دورة التحويل المعلنة. في الدفع الكاش يلتزم الفني بسداد عمولة المنصة عن كل طلب خلال المدة التي تحددها المنصة، وللمنصة خصمها من أي مستحقات للفني أو تعليق الحساب حتى السداد. لا يحق للفني الاحتفاظ بأي مبلغ مستحق للمنصة."],
+["منع التحايل","يمنع الفني منعًا باتًا الاتفاق مع العملاء الذين تعرّف عليهم عبر المنصة على إتمام العمل خارجها لتفادي العمولة. مخالفة ذلك تُعد إخلالًا جسيمًا يجيز للمنصة إيقاف الحساب نهائيًا وخصم المستحقات وتحميل الفني قيمة العمولة المستحقة وما ترتب من ضرر."],
+["التقييمات والشكاوى والجزاءات","للعملاء تقييم الفني بعد الخدمة. تتلقى المنصة الشكاوى وتحقق فيها، ولها اتخاذ ما تراه مناسبًا من تنبيه أو إيقاف مؤقت أو إنهاء، بحسب جسامة المخالفة وتكرارها، مع إتاحة الفرصة للفني لإبداء رده متى أمكن."],
+["المسؤولية والضمان","الفني مسؤول مسؤولية كاملة عن جودة عمله وعما يلحق بالعميل أو ممتلكاته أو الغير من أضرار نتيجة خطئه أو إهماله، ويلتزم بإصلاح العيب في عمله خلال المدة المتعارف عليها لنوع الخدمة. المنصة غير مسؤولة عن تنفيذ الخدمة نفسها، ولها حق الرجوع على الفني بما تتحمله بسبب مخالفته."],
+["السرية وحماية البيانات","يلتزم الفني بالمحافظة على سرية بيانات العملاء (الاسم والهاتف والعنوان) وعدم استخدامها لغير تنفيذ الطلب أو الإفصاح عنها لأي طرف، وذلك وفق قانون حماية البيانات الشخصية رقم 151 لسنة 2020 وسياسة الخصوصية للمنصة."],
+["السلوك والأمان","يمنع أي إساءة أو تحرش أو تمييز أو عمل تحت تأثير مواد محظورة، ويمنع تنفيذ أي عمل مخالف للقانون أو يعرض الأرواح للخطر. يلتزم الفني بأي اشتراطات سلامة تخص نوع الخدمة."],
+["الضرائب والالتزامات النظامية","الفني وحده مسؤول عن التزاماته الضريبية والتأمينية والتراخيص المهنية المطلوبة لنشاطه، ويقر بأن المنصة غير مسؤولة عنها."],
+["مدة العقد وإنهاؤه","العقد ساري من تاريخ الموافقة ولمدة غير محددة. يجوز للفني إنهاؤه بإخطار المنصة بعد إتمام الطلبات الجارية وسداد ما عليه. وللمنصة إنهاؤه أو إيقاف الحساب فورًا عند المخالفة الجسيمة لأي من بنوده."],
+["تعديل الشروط","للمنصة تعديل هذا العقد وإخطار الفني بالتعديل داخل التطبيق، ويُعد استمراره في استخدام المنصة بعد الإخطار موافقة على التعديل، وللفني رفضه بإنهاء العقد."],
+["القانون واختصاص القضاء","يخضع هذا العقد لقوانين جمهورية مصر العربية، ويكون الاختصاص بنظر أي نزاع ينشأ عنه للمحاكم المصرية المختصة بعد محاولة حل النزاع ودّيًا خلال 15 يومًا من الإخطار."],
+["الإقرار والتعهد","يقر الفني بأنه قرأ العقد كاملًا وفهمه وقبل جميع بنوده وشروطه وأحكامه، وتعهد بالالتزام بها، وأن موافقته الإلكترونية باسمه المسجل في التاريخ المدوّن تُعد توقيعًا إلكترونيًا له حجته القانونية وفق قانون التوقيع الإلكتروني رقم 15 لسنة 2004."]
+];
+function provContractHtml(){return PROV_CONTRACT.map((x,i)=>'<h4 style="margin:12px 0 4px">'+(i+1)+". "+esc(x[0])+'</h4><p style="margin:0;line-height:1.9;font-size:.9rem;color:var(--text-primary)">'+esc(x[1])+'</p>').join("")}
+function provContractBlock(){
+ return '<div class="field" id="provContract" style="border:1px solid var(--border-color);border-radius:16px;padding:12px;background:var(--bg-subtle)"><span><b>عقد وتعهد مقدّم الخدمة (إلزامي)</b></span><small>لازم تفتح العقد وتقراه قبل ما تقدر توافق وتكمل التسجيل.</small>'+
+  '<details data-contract-open style="margin-top:8px"><summary class="btn light" style="display:inline-block;cursor:pointer;border-radius:999px">فتح العقد وقراءته</summary><div style="max-height:46vh;overflow:auto;margin-top:10px;padding:6px 4px">'+provContractHtml()+'</div></details>'+
+  '<label id="contractOkRow" style="display:flex;gap:8px;align-items:flex-start;margin-top:10px;opacity:.5"><input type="checkbox" name="contract_ok" disabled style="width:auto;margin-top:4px"><span>أوافق على العقد بشروطه وأحكامه وأتعهد بالالتزام بها.</span></label>'+
+  '<div class="small" id="contractWho" style="margin-top:6px"></div></div>';
+}
+document.addEventListener("toggle",e=>{
+ const d=e.target;if(!d||!d.hasAttribute||!d.hasAttribute("data-contract-open")||!d.open)return;
+ const row=document.getElementById("contractOkRow");if(!row)return;
+ const cb=row.querySelector("input");cb.disabled=false;row.style.opacity=1;
+ const nm=(document.querySelector('#signup [name="full_name"]')||{}).value||"";
+ const w=document.getElementById("contractWho");if(w)w.textContent="سيتم تسجيل موافقتك باسمك"+(nm?" ("+nm+")":"")+" وتاريخ اليوم.";
+},true);
+function provContractCard(m){
+ m=m||{};if(!m.contract_accepted_at)return "";
+ return '<section class="section"><div class="card"><h3 style="margin:0 0 6px">عقد وتعهد مقدّم الخدمة</h3><div class="row"><span>الحالة</span><span class="tag ok">تمت الموافقة</span></div><p class="small" style="margin:6px 0 0">وافق على العقد بشروطه وأحكامه باسم: <b>'+esc(m.contract_signed_name||"")+'</b></p><p class="small" style="margin:2px 0 0">بتاريخ: '+esc(fmtDateAr(m.contract_accepted_at))+' · الإصدار: '+esc(m.contract_version||"")+'</p><details style="margin-top:8px"><summary class="btn light" style="display:inline-block;cursor:pointer;border-radius:999px">عرض العقد</summary><div style="margin-top:8px">'+provContractHtml()+'</div></details></div></section>';
+}
 function authView(){
  const signup=s.mode==="signup";
  const egypt=s.geo.countries.find(x=>x.country_code==="EG");
@@ -3169,7 +3206,7 @@ function authView(){
   '</div>'+
   '<small>يمكن اختيار محافظة بالكامل أو أقسام محددة من محافظات مختلفة.</small>'+
 '</div>'+
-'<label class="field"><span>الصورة الشخصية الحديثة (إلزامية)</span><input type="file" name="profile_photo" accept="image/jpeg,image/png,image/webp"><small>يجب رفع صورة شخصية حديثة وواضحة، JPG أو PNG أو WEBP، بحد أقصى 5MB</small></label><label class="field"><span>صورة الهوية – الوجه الأمامي (إلزامية)</span><input type="file" name="identity_front" accept="image/jpeg,image/png,image/webp,application/pdf"><small>صورة أو PDF، بحد أقصى 10MB</small></label><label class="field"><span>صورة الهوية – الوجه الخلفي (إلزامية)</span><input type="file" name="identity_back" accept="image/jpeg,image/png,image/webp,application/pdf"><small>صورة أو PDF، بحد أقصى 10MB</small></label></div><button class="btn gold">إنشاء الحساب</button></form>':
+'<label class="field"><span>الصورة الشخصية الحديثة (إلزامية)</span><input type="file" name="profile_photo" accept="image/jpeg,image/png,image/webp"><small>يجب رفع صورة شخصية حديثة وواضحة، JPG أو PNG أو WEBP، بحد أقصى 5MB</small></label><label class="field"><span>صورة الهوية – الوجه الأمامي (إلزامية)</span><input type="file" name="identity_front" accept="image/jpeg,image/png,image/webp,application/pdf"><small>صورة أو PDF، بحد أقصى 10MB</small></label><label class="field"><span>صورة الهوية – الوجه الخلفي (إلزامية)</span><input type="file" name="identity_back" accept="image/jpeg,image/png,image/webp,application/pdf"><small>صورة أو PDF، بحد أقصى 10MB</small></label>'+provContractBlock()+'</div><button class="btn gold">إنشاء الحساب</button></form>':
 '<form id="login">'+
 field("البريد الإلكتروني","email","email","name@example.com","",true)+
 '<label class="field">كلمة المرور'+
@@ -5129,6 +5166,7 @@ if(s.tab==="requests"){
 
   body=
    providerIdCard()+
+   provContractCard(s.user&&s.user.user_metadata)+
    '<div class="wasla-provider-subnav">'+
 
     '<button type="button" data-a="provider-profile-tab" data-id="profile" class="'+
@@ -9918,6 +9956,7 @@ const serviceAreaIds = Array.from(
   f.querySelectorAll('input[name="service_area_ids"]:checked')
 ).map(input => input.value);
 
+if(v.account_type==="provider"){const cb=f.querySelector('input[name="contract_ok"]');if(!cb||cb.disabled||!cb.checked)throw Error("لازم تفتح العقد وتقراه وتوافق عليه الأول عشان تكمل التسجيل.")}
 if (v.account_type === "provider" && serviceAreaIds.length === 0) {
   throw Error("اختر منطقة خدمة واحدة على الأقل.");
 }
@@ -9956,6 +9995,7 @@ if (v.account_type === "provider" && serviceAreaIds.length === 0) {
   bio:v.bio||"",
   service_area:v.service_area||""
  };
+ if(v.account_type==="provider"){signupData.contract_accepted=true;signupData.contract_accepted_at=new Date().toISOString();signupData.contract_signed_name=String(v.full_name||"").trim();signupData.contract_version=PROV_CONTRACT_VER}
 
  if(v.account_type==="provider"){
 signupData.service_area_ids = serviceAreaIds;
