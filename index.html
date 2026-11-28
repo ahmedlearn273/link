@@ -3429,7 +3429,7 @@ function secDetail(id,t,st){
 }
 
 /* ===== عملاء الموظف (عرض فقط) ===== */
-const STC={rows:[],loaded:false,busy:false,err:"",q:"",detail:null,det:null};
+const STC={rows:[],loaded:false,busy:false,err:"",q:"",f:"all",detail:null,det:null};
 async function stcLoad(){
  if(STC.busy)return;STC.busy=true;STC.err="";
  try{const r=await db.rpc("staff_list_customers",{p_q:STC.q||null,p_limit:50,p_offset:0});
@@ -3451,30 +3451,51 @@ function contactRows(c,perm){
  return rw("رقم التواصل",c.phone?LTR(esc(c.phone)):"لا يوجد",ph?'<a href="tel:'+esc(ph)+'" style="'+bs+'background:var(--surface-2,#eef0f2);color:var(--text,#111)">اتصال</a>':"")+
   rw("رقم الواتساب",c.whatsapp_number?LTR(esc(c.whatsapp_number)):"لا يوجد",wa?'<a href="https://wa.me/'+esc(wa)+'" target="_blank" rel="noopener" style="'+bs+'background:var(--primary,#0f766e);color:#fff">واتساب</a>':"");
 }
+function stcContactC(c){
+ if(!canContact("customers.contact"))return "";
+ const ph=String(c.phone||"").replace(/[^0-9+]/g,""),wa=String(c.whatsapp_number||"").replace(/[^0-9]/g,"");
+ const bs='display:inline-flex;align-items:center;justify-content:center;min-height:32px;padding:0 12px;border-radius:10px;font-weight:700;text-decoration:none;font-size:12.5px;margin-inline-start:8px;';
+ const row=(l,v,btn)=>'<div class="kv"><span>'+l+'</span><b style="display:flex;align-items:center">'+(v?LTR(esc(v)):"لا يوجد")+btn+'</b></div>';
+ return '<h3>التواصل (داخلي)</h3><div class="grp">'+
+  row("الهاتف",c.phone,ph?'<a href="tel:'+esc(ph)+'" style="'+bs+'background:var(--bg-subtle);color:var(--text-primary)">اتصال</a>':"")+
+  row("الواتساب",c.whatsapp_number,wa?'<a href="https://wa.me/'+esc(wa)+'" target="_blank" rel="noopener" style="'+bs+'background:var(--primary);color:var(--bg-surface)">واتساب</a>':"")+
+  (c.address!=null&&c.address!==""?'<div class="kv"><span>العنوان</span><b>'+esc(c.address)+'</b></div>':"")+'</div>';
+}
 function stcView(){
  if(!STC.loaded&&!STC.busy)setTimeout(stcLoad,0);
+ const isOn=x=>x&&x.status==="active";
  if(STC.detail){
   const d=STC.det;
-  let b='<div class="actions">'+btn("stc-back","← رجوع للقائمة","light","")+'</div>';
-  if(!d)return '<section class="asv-sec">'+b+'<div class="empty">جاري التحميل...</div></section>';
-  if(d.error)return '<section class="asv-sec">'+b+'<div class="notice error">تعذر تحميل الملف.</div></section>';
-  const c=d.customer||d,reqs=d.requests||[];
-  return '<section class="asv-sec">'+b+'<div class="asv-hero"><h2>'+esc(c.full_name||"عميل بدون اسم")+'</h2><p>'+esc(c.account_code||"")+' · '+(c.status==="active"?"نشط":"موقوف")+'</p></div>'+
-   '<div class="row" style="display:flex;justify-content:space-between;gap:12px;padding:10px 4px;border-bottom:1px solid var(--border-color)"><span class="muted">المدينة</span><b>'+esc([c.city,c.area].filter(Boolean).join("، ")||"غير محددة")+'</b></div>'+
-   contactRows(c,"customers.contact")+
-   '<div class="asv-h"><h3>آخر الطلبات</h3></div><div class="asv-list">'+
-   (reqs.map(r=>'<div class="item"><div class="row"><b>'+esc(r.service_name||r.title||"طلب")+'</b>'+tag(r.status||"")+'</div><p class="small">'+esc(String(r.created_at||"").slice(0,10))+'</p></div>').join("")||empty("لا توجد طلبات"))+'</div></section>';
+  const back='<button type="button" class="bk" data-a="stc-back">›</button>';
+  if(!d)return HRC_CSS+'<section class="hc"><div class="stk">'+back+'<div style="flex:1"><h2>ملف العميل</h2></div></div><div class="em">جاري التحميل...</div></section>';
+  if(d.error)return HRC_CSS+'<section class="hc"><div class="stk">'+back+'<div style="flex:1"><h2>ملف العميل</h2></div></div><div class="nt">تعذر تحميل الملف.</div></section>';
+  const c=d.customer||d,reqs=d.requests||[],on=isOn(c);
+  const kv=(l,v)=>'<div class="kv"><span>'+l+'</span><b>'+v+'</b></div>';
+  let h=HRC_CSS+'<section class="hc"><div class="stk">'+back+'<div class="av">'+sfInit(c.full_name)+'</div><div style="flex:1;min-width:0"><h2>'+esc(c.full_name||"عميل بدون اسم")+'</h2><p>'+esc(c.account_code||"")+'</p></div><span class="pl'+(on?"":" off")+'">'+(on?"نشط":"موقوف")+'</span></div>';
+  if(!on&&c.suspension_reason)h+='<div class="nt">سبب الإيقاف: '+esc(c.suspension_reason)+'</div>';
+  h+='<div class="sc"><h3>البيانات</h3><div class="grp">'+
+   kv("المدينة",esc(c.city||"غير محددة"))+kv("المنطقة",esc(c.area||"غير محددة"))+
+   kv("تاريخ التسجيل",esc(String(c.created_at||"").slice(0,10)||"-"))+
+   kv("عدد الطلبات",fmt(c.requests_count!=null?c.requests_count:reqs.length))+
+   (c.last_request_at?kv("آخر طلب",esc(String(c.last_request_at).slice(0,10))):"")+'</div>'+
+   stcContactC(c)+
+   '<h3>آخر الطلبات</h3>'+(reqs.length?'<div class="lst">'+reqs.map(r=>'<div class="rw"><div class="nm"><b>'+esc(r.service_name||r.title||"طلب")+'</b><small>'+esc(String(r.created_at||"").slice(0,10))+'</small></div><span class="pl">'+esc(r.status||"")+'</span></div>').join("")+'</div>':'<div class="em">لا توجد طلبات.</div>')+'</div></section>';
+  return h;
  }
- let body='<section class="asv-sec"><div class="asv-h"><h2>العملاء</h2><span class="asv-sub">عرض فقط</span></div>'+
-  '<input id="stcq" class="input" type="search" placeholder="ابحث بالاسم أو الكود" value="'+esc(STC.q)+'" style="margin-bottom:10px;width:100%;box-sizing:border-box">';
- if(STC.err)body+='<div class="notice error">شاشة العملاء لسه مش مفعّلة في قاعدة البيانات. الشاشة جاهزة ومستنية التفعيل.</div>';
- else if(!STC.loaded||STC.busy)body+='<div class="empty">جاري التحميل...</div>';
- else body+='<div class="asv-list">'+(STC.rows.map(x=>'<button type="button" class="item" data-a="stc-open" data-id="'+esc(x.id)+'" style="text-align:right;width:100%"><div class="row"><b>'+esc(x.full_name||"عميل بدون اسم")+'</b>'+tag(x.status==="active"?"نشط":"موقوف")+'</div><p class="small">'+esc([x.city,x.area].filter(Boolean).join("، ")||"الموقع غير محدد")+' · '+fmt(x.requests_count||0)+' طلب</p></button>').join("")||empty("لا يوجد عملاء مطابقون"))+'</div>';
+ const all=STC.rows||[],f=STC.f||"all",na=all.filter(isOn).length,ns=all.length-na;
+ const rows=all.filter(x=>f==="all"||(f==="on"?isOn(x):!isOn(x)));
+ let body=HRC_CSS+'<section class="hc"><div class="tl"><h1>العملاء</h1><span>'+fmt(all.length)+' عميل · عرض فقط</span></div>'+
+  '<div class="seg">'+[["all","الكل "+fmt(all.length)],["on","نشط "+fmt(na)],["off","موقوف "+fmt(ns)]].map(t=>'<button type="button" class="'+(f===t[0]?"on":"")+'" data-a="stc-f" data-id="'+t[0]+'">'+t[1]+'</button>').join("")+'</div>'+
+  '<input id="stcq" class="srch" type="search" placeholder="ابحث بالاسم أو الكود أو المدينة" value="'+esc(STC.q)+'">';
+ if(STC.err)body+='<div class="nt">شاشة العملاء لسه مش مفعّلة في قاعدة البيانات. الشاشة جاهزة ومستنية التفعيل.</div>';
+ else if(!STC.loaded||STC.busy)body+='<div class="em">جاري التحميل...</div>';
+ else body+=rows.length?'<div class="lst">'+rows.map(x=>'<button type="button" class="rw" data-a="stc-open" data-id="'+esc(x.id)+'"><div class="av">'+sfInit(x.full_name)+'</div><div class="nm"><b>'+esc(x.full_name||"عميل بدون اسم")+'</b><small>'+esc([x.city,x.area].filter(Boolean).join("، ")||"الموقع غير محدد")+' · '+fmt(x.requests_count||0)+' طلب</small></div><span class="dt'+(isOn(x)?"":" off")+'"></span><span class="chv">‹</span></button>').join("")+'</div>':empty("لا يوجد عملاء.");
  return body+'</section>';
 }
 document.addEventListener("change",e=>{if(e.target&&e.target.id==="waSame"){const w=e.target.form&&e.target.form.querySelector('[name="whatsapp_number"]');if(w){w.disabled=e.target.checked;w.required=!e.target.checked;if(e.target.checked){const ph=e.target.form.querySelector('[name="phone"]');w.value=ph?ph.value:""}}}});
 document.addEventListener("click",e=>{
- const b=e.target.closest&&e.target.closest('[data-a="stc-open"],[data-a="stc-back"]');if(!b)return;
+ const b=e.target.closest&&e.target.closest('[data-a="stc-open"],[data-a="stc-back"],[data-a="stc-f"]');if(!b)return;
+ if(b.dataset.a==="stc-f"){STC.f=b.dataset.id;render();return}
  if(b.dataset.a==="stc-open")stcOpen(b.dataset.id);else{STC.detail=null;STC.det=null;render()}
 });
 document.addEventListener("keydown",e=>{
