@@ -3949,7 +3949,7 @@ function walletView(){
     };
 
     if(quote.status==="awaiting_provider_approval"){
-     a=btn("quote-provider-review","مراجعة واعتماد العرض","gold",quote.id);
+     a=btn("quote-provider-review","اعتماد العرض","gold",quote.id);
     }else{
      a=tag(quoteStatus[quote.status]||"عرض السعر قيد المراجعة");
     }
