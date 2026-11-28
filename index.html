@@ -3518,6 +3518,113 @@ roles+'<div class="wl-search"><svg class="wl-s-ic" viewBox="0 0 24 24" width="20
   window.addEventListener("resize",go);if(document.fonts&&document.fonts.ready)document.fonts.ready.then(go);go()})();
 
 function fmtDateAr(x){try{return new Date(x).toLocaleString("ar-EG",{dateStyle:"medium",timeStyle:"short"})}catch(_){return ""}}
+/* ===== wasla-loyalty-ui ===== */
+const LOY_LABELS={"loyalty.order":"نقاط طلب","loyalty.review":"مكافأة تقييم","loyalty.first_order":"مكافأة أول طلب","loyalty.refund":"استرداد","loyalty.other":"نقاط"};
+const LOY_TYPES={earn_order:"نقاط طلب",earn_review:"مكافأة تقييم",earn_first_order:"مكافأة أول طلب",reverse_order:"استرداد"};
+const LOY_ST={available:["متاح","ok"],pending:["معلّق","wait"],reversed:["ملغي","bad"]};
+function loyNum(){for(let k=0;k<arguments.length;k++){const v=arguments[k];if(v!==undefined&&v!==null&&v!==""&&isFinite(Number(v)))return Number(v)}return null}
+function loyParse(d){
+ if(!d||typeof d!=="object")return null;
+ const b=(d.balance&&typeof d.balance==="object")?d.balance:d;
+ const led=d.ledger||d.entries||d.rows||d.items||[];
+ const st=d.settings&&typeof d.settings==="object"?d.settings:d;
+ return {
+  avail:loyNum(b.available,b.available_points),pending:loyNum(b.pending,b.pending_points),
+  exp:loyNum(b.expiring_in_30_days,b.expiring_30d_points,b.expiring_30d,b.expiring),egp:loyNum(b.egp_value,b.available_egp,b.value_egp),
+  months:loyNum(st.expiry_months),off:st.system_enabled===false,
+  rows:Array.isArray(led)?led:[],more:d.more===true
+ };
+}
+function loyRow(e){
+ const pts=loyNum(e.points,e.delta,e.amount)||0;
+ const lab=LOY_LABELS[e.label_key]||LOY_TYPES[e.entry_type]||LOY_TYPES[e.type]||"نقاط";
+ const st=LOY_ST[e.status]||[esc(e.status||"—"),""];
+ const dt=e.created_at?fmtDateAr(e.created_at):"";
+ const ex=e.expires_at?new Date(e.expires_at).toLocaleDateString("ar-EG",{year:"numeric",month:"short"}):"";
+ return '<article class="item"><div class="row" style="display:flex;justify-content:space-between;align-items:center;gap:10px"><b>'+esc(lab)+'</b><b style="color:'+(pts>=0?"#16a34a":"#dc2626")+'" dir="ltr">'+(pts>=0?"+":"−")+esc(fmt(Math.abs(pts)))+'</b></div>'+
+  '<div class="row" style="display:flex;justify-content:space-between;align-items:center;gap:10px"><span class="small">'+esc(dt)+'</span><span class="tag '+st[1]+'">'+st[0]+'</span></div>'+
+  (e.request_id||ex?'<div class="row" style="display:flex;justify-content:space-between;align-items:center;gap:10px">'+(e.request_id?'<span class="small">طلب #'+esc(String(e.request_id).slice(0,8).toUpperCase())+'</span>':'<span></span>')+(ex?'<span class="small">ينتهي '+esc(ex)+'</span>':'')+'</div>':'')+'</article>';
+}
+function loyCustView(){
+ const L=s.loy||{},p=L.d;
+ let body;
+ if(L.loading&&!p)body='<div class="card"><p class="muted">جارٍ تحميل نقاطك...</p></div>';
+ else if(L.err)body='<div class="card"><p>'+esc(L.err)+'</p><div class="actions"><button class="btn light" data-a="myloyalty">إعادة المحاولة</button></div></div>';
+ else if(p){
+  const n=function(v){return v===null?"—":esc(fmt(v))};
+  body='<div style="border-radius:22px;padding:20px;color:var(--bg-main);background:linear-gradient(135deg,var(--primary),var(--primary-hover));box-shadow:0 12px 26px rgba(0,0,0,.18)">'+
+   '<div style="font-size:13px;opacity:.85">رصيدك المتاح</div><div style="display:flex;align-items:baseline;gap:8px"><b style="font-size:44px;line-height:1.2">'+n(p.avail)+'</b><span>نقطة</span></div>'+
+   (p.egp!==null?'<div style="font-size:14px;margin-top:2px">≈ <b style="color:var(--accent)">'+esc(p.egp.toLocaleString("ar-EG",{maximumFractionDigits:2}))+' ج.م</b> قيمة النقاط</div>':'')+
+   '<div style="display:flex;gap:10px;margin-top:14px"><div style="flex:1;background:rgba(255,255,255,.14);border-radius:14px;padding:10px"><div style="font-size:11px;opacity:.85">معلّقة</div><b style="font-size:18px">'+n(p.pending)+'</b></div>'+
+   '<div style="flex:1;background:rgba(255,255,255,.14);border-radius:14px;padding:10px"><div style="font-size:11px;opacity:.85">تنتهي خلال ٣٠ يوم</div><b style="font-size:18px">'+n(p.exp)+'</b></div></div></div>'+
+   (p.off?'<div class="card" style="margin-top:14px;background:var(--bg-subtle)"><p class="small" style="margin:0">كسب النقاط متوقف مؤقتًا. رصيدك محفوظ.</p></div>':'')+
+   '<div class="card" style="margin-top:14px"><h3 style="margin:0 0 6px">إزاي تكسب؟</h3>'+[['كل طلب مدفوع','نقاط على قيمة الطلب'],['أول طلب','مكافأة نقاط'],['تقييم مع تعليق','مكافأة نقاط']].map(function(r){return '<div class="row" style="display:flex;justify-content:space-between;padding:6px 0;gap:10px"><span>'+r[0]+'</span><b>'+r[1]+'</b></div>'}).join("")+'</div>'+
+   '<section class="section"><div class="sectionhead"><h2>سجل النقاط</h2></div>'+
+   (p.rows.length?'<div class="list">'+p.rows.map(loyRow).join("")+'</div>':empty("لسه مفيش نقاط. أول ما تدفع طلب هتبدأ تكسب."))+
+   (L.more?'<button class="btn light" style="width:100%;margin-top:8px" data-a="loymore"'+(L.loading?' disabled':'')+'>تحميل المزيد</button>':'')+'</section>'+
+   '<div class="card" style="background:var(--bg-subtle);margin-top:12px"><p class="small" style="margin:0">استبدال النقاط بخصم قريبًا.'+(p.months?' النقاط صالحة '+esc(fmt(p.months))+' شهر من تاريخ الكسب.':'')+'</p></div>';
+ }else body='<div class="card"><p class="muted">جارٍ تحميل نقاطك...</p></div>';
+ return header("نقاطي",'<button data-a="tab" data-id="account">العودة إلى الحساب</button>',true)+
+  '<main class="wrap wasla-customer-page">'+msg()+'<div class="sectionhead"><div><h2>نقاطي</h2><p class="small">كل ما تطلب خدمة وتدفع، بتكسب نقاط</p></div></div>'+body+'</main>'+customerBottomNav();
+}
+async function loadMyLoyalty(more){
+ const L=s.loy=s.loy||{};
+ if(L.loading)return;
+ const off=more?(L.rows||[]).length:0;
+ L.loading=true;L.err="";if(!more){L.d=null}render();
+ try{
+  const r=await db.rpc("get_my_loyalty",{p_limit:30,p_offset:off});
+  if(r.error)throw r.error;
+  const d=loyParse(r.data);if(!d)throw Error("bad");
+  if(more&&L.d){d.rows=(L.rows||[]).concat(d.rows)}
+  L.rows=d.rows;L.d=d;
+ }catch(_){L.err="تعذّر تحميل نقاطك دلوقتي. جرّب تاني بعد شوية."}
+ L.loading=false;render();
+}
+function loyAdminView(){
+ const A=s.loyAdm=s.loyAdm||{tab:"lookup"};
+ const soon=function(t){return '<div class="card" style="text-align:center"><span class="tag wait">قريبًا</span><p class="muted" style="margin:8px 0 0">'+t+'</p></div>'};
+ const tabs='<div class="tabs" style="margin:10px 0;display:flex;gap:6px;flex-wrap:nowrap;overflow-x:auto">'+
+  [["lookup","بحث"],["settings","الإعدادات"],["overview","نظرة عامة"],["skip","التخطي"]].map(function(x){return '<button type="button" class="'+(A.tab===x[0]?"active":"")+'" style="white-space:nowrap;padding:10px 14px;flex:none;'+(x[0]!=="lookup"?"opacity:.6":"")+'" data-a="loyadm-tab" data-id="'+x[0]+'">'+x[1]+(x[0]!=="lookup"?" · قريبًا":"")+'</button>'}).join("")+'</div>';
+ let body="";
+ if(A.tab==="settings")body=soon("إعدادات الولاء هتتفعّل بعد مرحلة B2 في قاعدة البيانات.");
+ else if(A.tab==="overview")body=soon("النظرة العامة هتتفعّل بعد مرحلة B2 في قاعدة البيانات.");
+ else if(A.tab==="skip")body=soon("سجل التخطي هيتفعّل بعد مرحلة B2 في قاعدة البيانات.");
+ else if(A.uid){
+  const u=(s.customers||[]).find(function(x){return x.id===A.uid})||{};
+  const p=A.d;
+  body='<div class="card"><div class="row" style="display:flex;justify-content:space-between;align-items:center;gap:10px"><div><b>'+esc(u.full_name||"عميل")+'</b><p class="small" style="margin:0">'+esc(u.phone||"")+(u.account_code?' · <code dir="ltr">'+esc(u.account_code)+'</code>':'')+'</p></div><button class="btn light" data-a="loyadm-back">تغيير العميل</button></div></div>';
+  if(A.loading&&!p)body+='<div class="card"><p class="muted">جارٍ التحميل...</p></div>';
+  else if(A.err)body+='<div class="card"><p>'+esc(A.err)+'</p></div>';
+  else if(p){
+   const n=function(v){return v===null?"—":esc(fmt(v))};
+   const st=function(l,v,sub){return '<div class="card stat" style="text-align:center"><div class="small">'+l+'</div><b style="font-size:22px">'+v+'</b>'+(sub?'<div class="small">'+sub+'</div>':'')+'</div>'};
+   body+='<div class="grid small">'+st("المتاح",n(p.avail),"نقطة")+st("المعلّق",n(p.pending),"نقطة")+st("ينتهي خلال ٣٠ يوم",n(p.exp),"نقطة")+st("القيمة بالجنيه",p.egp===null?"—":esc(p.egp.toLocaleString("ar-EG",{maximumFractionDigits:2}))+" ج.م")+'</div>'+
+    '<section class="section"><div class="sectionhead"><h2>سجل النقاط</h2></div>'+(p.rows.length?'<div class="list">'+p.rows.map(loyRow).join("")+'</div>':empty("العميل ده ما عندوش حركات نقاط."))+
+    (A.more?'<button class="btn light" style="width:100%;margin-top:8px" data-a="loyadm-more"'+(A.loading?' disabled':'')+'>تحميل المزيد</button>':'')+
+    '<p class="small" style="margin-top:10px">كل عرض بيتسجل في سجل التدقيق. العرض فقط، بدون تعديل.</p></section>';
+  }
+ }else{
+  const list=(s.customers||[]);
+  body='<div class="card"><label class="field">ابحث عن عميل<input id="loyAdmSearch" type="search" placeholder="الاسم أو رقم الهاتف أو كود الحساب" value="'+esc(A.q||"")+'"></label></div>'+
+   '<div class="list" id="loyAdmList">'+(list.map(function(x){const hay=[x.full_name,x.phone,x.account_code,x.email].filter(Boolean).join(" ");return '<article class="item" data-lcust data-search="'+esc(hay)+'"><div class="row" style="display:flex;justify-content:space-between;align-items:center;gap:10px"><div><b>'+esc(x.full_name||"عميل بدون اسم")+'</b><p class="small" style="margin:0">'+esc(x.phone||"")+'</p></div><button class="btn light" data-a="loyadm-pick" data-id="'+esc(x.id)+'">عرض النقاط</button></div></article>'}).join("")||empty("لا يوجد عملاء حتى الآن"))+'</div>';
+ }
+ return '<section class="section"><div class="sectionhead"><div><h2>تحكم الولاء</h2><p class="small">ابحث عن عميل وشوف رصيده وسجل نقاطه</p></div></div>'+tabs+body+'</section>';
+}
+async function loadAdminLoyalty(more){
+ const A=s.loyAdm;if(!A||!A.uid||A.loading)return;
+ const off=more?(A.rows||[]).length:0;
+ A.loading=true;A.err="";if(!more){A.d=null}render();
+ try{
+  const r=await db.rpc("admin_get_user_loyalty",{p_user_id:A.uid,p_limit:30,p_offset:off});
+  if(r.error)throw r.error;
+  const d=loyParse(r.data);if(!d)throw Error("bad");
+  if(more&&A.d){d.rows=(A.rows||[]).concat(d.rows)}
+  A.rows=d.rows;A.d=d;A.more=d.more;
+ }catch(e){A.err=/not authori[sz]ed/i.test(String((e&&e.message)||""))?"مفيش صلاحية لعرض نقاط العملاء.":"تعذّر تحميل البيانات دلوقتي. جرّب تاني."}
+ A.loading=false;render();
+}
+/* ===== end wasla-loyalty-ui ===== */
 function paymentsView(){
  const list=Object.values(s.payments||{}).sort((a,b)=>String(b.paid_at||b.created_at||"").localeCompare(String(a.paid_at||a.created_at||"")));
  const paidSum={};
@@ -3855,6 +3962,7 @@ function customerAccountBody(p){
  const sec=(ic,t,sub,body,open)=>'<details class="cu-sec"'+(open?" open":"")+'><summary><i>'+cui(ic)+'</i><div>'+t+'<small>'+sub+'</small></div></summary><div class="bd">'+body+'</div></details>';
  return '<section class="section cu"><div class="cu-prof cu-prof2"><h2>'+esc(p.full_name||"مستخدم وصلة")+'</h2><div class="em">'+esc(s.user?.email||"")+'</div>'+
   '<div class="chips"><span>'+esc(roles[p.role]||"حساب")+'</span><code dir="ltr">'+esc(p.account_code||"—")+'</code></div></div>'+
+  '<div class="actions" style="margin:10px 0"><button type="button" class="btn gold" style="width:100%" data-a="myloyalty">نقاطي</button></div>'+
   sec("sun","المظهر","نهاري أو ليلي وألوان وصلة",'<div class="actions"><button type="button" class="btn gold" data-th="open">الثيمات</button></div>')+
   sec("user","بياناتي الشخصية","الاسم ورقم الجوال",
    '<form id="accountProfileForm"><h3>تعديل البيانات الشخصية</h3>'+
@@ -6778,6 +6886,7 @@ if(s.tab==="providers"){
  '<div class="list">'+applications()+'</div></section>';
 }
        if(s.tab==="approvals")body=approvalsBody();
+       if(s.tab==="loyalty")body=loyAdminView();
        if(s.tab==="services")body='<section class="section"><div class="sectionhead"><div><h2>إدارة الخدمات</h2><p class="small">أضف الخدمات المتاحة على وصلة وتابع وصفها وحالة ظهورها للعملاء.</p></div>'+btn("addservice","إضافة خدمة","gold")+'</div><div class="list">'+(s.services.map(x=>'<article class="item"><div class="row"><b>'+esc(x.name_ar)+'</b>'+tag(x.is_active?"نشطة":"متوقفة")+'</div><p>'+esc(x.description||"لا يوجد وصف مضاف لهذه الخدمة")+'</p>'+svcCommissionLine(x)+'<div class="actions">'+btn("toggleservice",x.is_active?"إيقاف الخدمة":"تفعيل الخدمة","light",x.id)+'</div></article>').join("")||empty("لا توجد خدمات مضافة حتى الآن. أضف أول خدمة للمنصة."))+'</div></section>';
 if(s.tab==="categories")body='<section class="section"><div class="sectionhead"><div><h2>إدارة التصنيفات</h2><p class="small">نظّم الخدمات داخل أقسام واضحة تسهّل على العملاء الوصول لما يحتاجونه.</p></div>'+btn("addcategory","إضافة تصنيف","gold")+'</div><div class="list">'+(s.cats.map(x=>'<article class="item"><div class="row"><b>'+esc(x.name_ar)+'</b>'+tag(x.is_active?"نشط":"متوقف")+'</div><div class="small">معرّف التصنيف</div><p class="muted">'+esc(x.slug||"غير محدد")+'</p><div class="actions">'+btn("togglecategory",x.is_active?"إيقاف التصنيف":"تفعيل التصنيف","light",x.id)+'</div></article>').join("")||empty("لا توجد تصنيفات حتى الآن. أضف أول تصنيف للمنصة."))+'</div></section>';
  if(s.tab==="staff")body='<section class="section"><div class="sectionhead"><div><h2>إدارة الموظفين</h2><p class="small">أدر فريق العمل وتابع صلاحيات كل موظف وحالة حسابه.</p></div>'+btn("addstaff","إضافة موظف","gold")+'</div><div class="list">'+(s.staff.map(x=>'<article class="item"><div class="row"><div><b>'+esc(x.full_name||"موظف بدون اسم")+'</b><p class="small">عضو في فريق إدارة وصلة</p></div>'+tag(x.staff_permissions?.is_active?"نشط":"موقوف")+'</div><div class="small">رقم التواصل</div><p>'+esc(x.phone||"لا يوجد رقم هاتف")+'</p><div class="small">الصلاحيات الممنوحة</div><p class="muted">'+fmt((x.staff_permissions?.permissions||[]).length)+' صلاحية</p><div class="actions">'+btn("editstaff","إدارة الصلاحيات","light",x.id)+(["admin","owner"].includes(s.profile?.role)&&x.staff_permissions?.is_active?btn("resetstaffpw","توليد كلمة مرور","light",x.id):"")+btn("removestaff","إزالة الموظف","danger",x.id)+'</div></article>').join("")||empty("لا يوجد موظفون حتى الآن. يمكنك إضافة أول موظف لفريق الإدارة."))+'</div></section>';
@@ -6825,7 +6934,7 @@ if(s.tab==="knowledge"){
  '</article>').join("")||empty("لا توجد سجلات تدقيق حتى الآن"))+
  '</div></section>';
 }
-       const nav=[["home","نظرة عامة"],["requests","الطلبات"],["messages","الرسائل"],["customers","العملاء"],["providers","المزوّدون"],["services","الخدمات"],["categories","التصنيفات"],["approvals","طلبات الموافقة"+((s.pendingReqs||[]).length?" ("+fmt((s.pendingReqs||[]).length)+")":"")],["staff","الموظفون"],["knowledge","قاعدة معرفة PRIME"],...(s.profile?.role==="owner"?[["assistant","PRIME AI"]]:[]),["appearance","المظهر والثيمات"],...(s.profile?.role==="owner"?[["audit","سجل التدقيق"]]:[])].map(x=>'<button data-a="tab" data-id="'+x[0]+'" class="'+(s.tab===x[0]||(s.tab==="providerDossier"&&x[0]==="providers")?"active":"")+'">'+x[1]+'</button>').join("");
+       const nav=[["home","نظرة عامة"],["requests","الطلبات"],["messages","الرسائل"],["customers","العملاء"],["loyalty","تحكم الولاء"],["providers","المزوّدون"],["services","الخدمات"],["categories","التصنيفات"],["approvals","طلبات الموافقة"+((s.pendingReqs||[]).length?" ("+fmt((s.pendingReqs||[]).length)+")":"")],["staff","الموظفون"],["knowledge","قاعدة معرفة PRIME"],...(s.profile?.role==="owner"?[["assistant","PRIME AI"]]:[]),["appearance","المظهر والثيمات"],...(s.profile?.role==="owner"?[["audit","سجل التدقيق"]]:[])].map(x=>'<button data-a="tab" data-id="'+x[0]+'" class="'+(s.tab===x[0]||(s.tab==="providerDossier"&&x[0]==="providers")?"active":"")+'">'+x[1]+'</button>').join("");
  
 const isOwner=s.profile?.role==="owner";
 
@@ -7541,7 +7650,7 @@ function renderCore(){
    if(s.mode==="recovery"){app.innerHTML=recoveryView();return}
    if(/^#rc=/.test(location.hash)){try{app.innerHTML=receiptPublicView()}catch(_){app.innerHTML=header("إيصال دفع","",true)+'<main class="wrap"><div class="card"><h2>إيصال غير صالح</h2></div></main>'}return}
    try{
-    if(s.user&&typeof s.tab==="string"&&s.tab!=="account"&&s.tab!=="providerDossier"){
+    if(s.user&&typeof s.tab==="string"&&s.tab!=="account"&&s.tab!=="myloyalty"&&s.tab!=="providerDossier"){
      sessionStorage.setItem("wasla_view_v1",JSON.stringify({uid:s.user.id,tab:s.tab,rf:s.requestFilter}));
     }
    }catch(_){}
@@ -7607,6 +7716,7 @@ if(s.tab==="account"){
  app.innerHTML=accountSettingsView();
  return;
 }
+if(s.tab==="myloyalty"&&s.profile?.role==="customer"){app.innerHTML=loyCustView();return}
 
 if(s.profile?.role==="admin"||s.profile?.role==="owner")
  app.innerHTML=admin();
@@ -9973,6 +10083,12 @@ if(a==="showadmin"){s.mode="app";s.tab="home";render();return}
   if(a==="showadmin"){s.mode="app";s.tab="home";render();return}
   if(a==="mode"){s.mode=id;s.notice="";render();return}
   if(a==="rolestart"){s.mode="signup";s.type=id==="provider"?"provider":"customer";s.notice="";render();return}
+if(a==="myloyalty"){s.tab="myloyalty";s.loy=s.loy||{};loadMyLoyalty(false);return}
+if(a==="loymore"){loadMyLoyalty(true);return}
+if(a==="loyadm-tab"){if(["lookup","settings","overview","skip"].indexOf(id)>=0){(s.loyAdm=s.loyAdm||{}).tab=id;render()}return}
+if(a==="loyadm-pick"){s.loyAdm={tab:"lookup",uid:id,q:(s.loyAdm&&s.loyAdm.q)||""};loadAdminLoyalty(false);return}
+if(a==="loyadm-more"){loadAdminLoyalty(true);return}
+if(a==="loyadm-back"){s.loyAdm={tab:"lookup",q:(s.loyAdm&&s.loyAdm.q)||""};render();return}
 if(a==="tab"){
  if(id==="audit"&&s.profile?.role!=="owner")return;
  if(id==="home"&&rqIsAsv()){rqState().loaded=false;rlState().loaded=false;}
@@ -11386,6 +11502,14 @@ app.addEventListener("drop",e=>{
  input.dispatchEvent(new Event("change",{bubbles:true}));
 });
     app.addEventListener("input",e=>{
+ if(e.target.id==="loyAdmSearch"){
+  (s.loyAdm=s.loyAdm||{tab:"lookup"}).q=e.target.value;
+  const q=nrm(e.target.value.trim());let vis=0;
+  app.querySelectorAll("[data-lcust]").forEach(c=>{const ok=!q||nrm(c.dataset.search).includes(q);c.style.display=ok?"":"none";if(ok)vis++});
+  const lst=document.getElementById("loyAdmList");
+  if(lst){let em=document.getElementById("loyAdmEmpty");if(!em){em=document.createElement("div");em.id="loyAdmEmpty";em.className="empty";em.textContent="لا توجد نتائج مطابقة لبحثك.";lst.appendChild(em)}em.style.display=vis?"none":""}
+  return;
+ }
  if(e.target.id==="providerSearch"){
   s.providerSearch=e.target.value;
   const q=s.providerSearch.trim().toLowerCase();
@@ -11464,7 +11588,7 @@ async function boot(){
   
   try{
    const saved=JSON.parse(sessionStorage.getItem("wasla_view_v1")||"null");
-   if(saved&&saved.uid===r.data.session.user.id&&typeof saved.tab==="string"&&saved.tab!=="account"&&saved.tab!=="providerDossier"){
+   if(saved&&saved.uid===r.data.session.user.id&&typeof saved.tab==="string"&&saved.tab!=="account"&&saved.tab!=="myloyalty"&&saved.tab!=="providerDossier"){
     s.tab=saved.tab;
     if(typeof saved.rf==="string")s.requestFilter=saved.rf;
    }
