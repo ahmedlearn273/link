@@ -4958,6 +4958,8 @@ async function loadPayments(){
   s.payments=m;
  }catch(_){s.payments=s.payments||{}}
 }
+/* Online payment flag: false = cash only (current trial). Flip to true when the Paymob gateway is connected. */
+const PAYMENTS={online:false};
 function payDueHtml(q,p,cur){
  s.reqDisc=s.reqDisc||{};
  if(s.reqDisc[q.id]===undefined)setTimeout(()=>loadReqDisc(q.id),0);
@@ -4966,7 +4968,8 @@ function payDueHtml(q,p,cur){
  let h='<div class="item" style="margin-top:8px">'+row("الإجمالي",moneyAr(gross,cur));
  if(disc>0)h+=row("كود الخصم"+(d.code?" ("+esc(d.code)+")":""),'<span style="color:#0a7a3b">'+moneyAr(-disc,cur)+'</span>');
  h+=row("المستحق للدفع",moneyAr(due,cur))+'</div>';
- h+='<div class="actions">'+btn("pay-now","ادفع "+moneyAr(due,false)+" "+cur,"gold",q.id)+'</div>';
+ if(PAYMENTS.online&&p.payment_method==="platform"&&s.payIntents&&s.payIntents[q.id])h+='<div class="actions">'+tag("في انتظار التحصيل")+'</div>';
+ else h+='<div class="actions">'+btn("pay-now","ادفع "+moneyAr(due,false)+" "+cur,"gold",q.id)+'</div>';
  return h;
 }
 function paymentBlock(q,provider,own){
@@ -9205,9 +9208,8 @@ if(m.type==="quoteRespond"){
   '<section class="section">'+
    '<h4>طريقة الدفع</h4>'+
    select("اختر طريقة الدفع","payment_method",[
-    {value:"cash",label:"الدفع نقدًا"},
-    {value:"platform",label:"الدفع عبر المنصة"}
-   ],(s.promoPm||"cash"))+
+    {value:"cash",label:"الدفع نقدًا"}
+   ].concat(PAYMENTS.online?[{value:"platform",label:"الدفع عبر المنصة"}]:[]),(s.promoPm||"cash"))+
    '<p class="muted">تحديد طريقة الدفع لا يعني تحصيل أي مبلغ الآن.</p>'+
   '</section>'+
   promoSectionHtml(version)+
@@ -11865,6 +11867,14 @@ if(a==="cancelrequest"){
   if(a==="wallet-more"){await loadWallet(true);return}
   if(a==="pay-now"){
    const p=s.payments&&s.payments[id],d=s.reqDisc&&s.reqDisc[id],due=Math.max(0,Number(p&&p.amount||0)-(d&&d.has_discount?Number(d.discount_amount||0):0));
+   if(PAYMENTS.online&&p&&p.payment_method==="platform"){
+    const r=await db.rpc("create_online_payment_intent",{p_request_id:id});
+    if(r.error){note("الدفع الإلكتروني مش متاح دلوقتي. جرب بعد شوية.","error");return}
+    const d=r.data||{};
+    if(d.redirect_url&&/^https:\/\//.test(String(d.redirect_url))){window.location.href=d.redirect_url;return}
+    s.payIntents=s.payIntents||{};s.payIntents[id]=d.intent_id||true;render();
+    note("تم تسجيل الدفعة وفي انتظار التحصيل.","success");return;
+   }
    if(p&&p.payment_method==="cash")note("ادفع "+fmt(due)+" EGP كاش لمزود الخدمة. أول ما يأكد استلام الفلوس هيظهر لك تقييم الخدمة.","info");
    else note("الدفع الإلكتروني لسه مش متاح. ادفع كاش لمزود الخدمة وهو هيأكد الاستلام.","error");
    return;
