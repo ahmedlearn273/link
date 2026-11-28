@@ -2331,6 +2331,23 @@ async function refreshRoleData(){
  }
  console.log("[perf] refreshRoleData ms:",Math.round(performance.now()-t0));
 }
+function canEditCommission(){return s.profile?.role==="admin"||s.profile?.role==="owner"}
+async function loadSvcRates(){
+ if(!canEditCommission())return;
+ try{
+  const r=await db.rpc("admin_list_service_commission_rates");
+  if(r.error)throw r.error;
+  const d=r.data||{},m={};
+  (d.rows||[]).forEach(x=>{if(x&&x.service_id!=null&&x.rate_percent!=null)m[x.service_id]=Number(x.rate_percent)});
+  s.svcRates={def:d.default_percent!=null?Number(d.default_percent):null,map:m,ok:true};
+ }catch(e){s.svcRates={def:null,map:{},ok:false}}
+}
+function svcCommissionLine(x){
+ if(!canEditCommission()||!s.svcRates||!s.svcRates.ok)return"";
+ const own=s.svcRates.map[x.id],d=s.svcRates.def;
+ const txt=own!=null?'عمولة الخدمة: <b>'+fmt(own)+'%</b>':'عمولة الخدمة: الافتراضي'+(d!=null?' '+fmt(d)+'%':'');
+ return '<div class="row"><span class="small">'+txt+'</span>'+btn("svcrate","تعديل العمولة","light",x.id)+'</div>';
+}
 async function loadUser(u){
  s.user=u;s.profile=null;s.provider=null;s.notice="";
  if(!u){render();return}
@@ -2434,6 +2451,7 @@ if(p.role==="staff"){
   if(chats.error)throw chats.error;
 
   s.apps=a.data||[];
+  await loadSvcRates();
   s.allRequests=r.data||[];
   s.chats=chats.data||[];
 if(p.role==="owner"){
@@ -5969,7 +5987,7 @@ if(s.tab==="providers"){
  '<div class="list">'+applications()+'</div></section>';
 }
        if(s.tab==="approvals")body=approvalsBody();
-       if(s.tab==="services")body='<section class="section"><div class="sectionhead"><div><h2>إدارة الخدمات</h2><p class="small">أضف الخدمات المتاحة على وصلة وتابع وصفها وحالة ظهورها للعملاء.</p></div>'+btn("addservice","إضافة خدمة","gold")+'</div><div class="list">'+(s.services.map(x=>'<article class="item"><div class="row"><b>'+esc(x.name_ar)+'</b>'+tag(x.is_active?"نشطة":"متوقفة")+'</div><p>'+esc(x.description||"لا يوجد وصف مضاف لهذه الخدمة")+'</p><div class="actions">'+btn("toggleservice",x.is_active?"إيقاف الخدمة":"تفعيل الخدمة","light",x.id)+'</div></article>').join("")||empty("لا توجد خدمات مضافة حتى الآن. أضف أول خدمة للمنصة."))+'</div></section>';
+       if(s.tab==="services")body='<section class="section"><div class="sectionhead"><div><h2>إدارة الخدمات</h2><p class="small">أضف الخدمات المتاحة على وصلة وتابع وصفها وحالة ظهورها للعملاء.</p></div>'+btn("addservice","إضافة خدمة","gold")+'</div><div class="list">'+(s.services.map(x=>'<article class="item"><div class="row"><b>'+esc(x.name_ar)+'</b>'+tag(x.is_active?"نشطة":"متوقفة")+'</div><p>'+esc(x.description||"لا يوجد وصف مضاف لهذه الخدمة")+'</p>'+svcCommissionLine(x)+'<div class="actions">'+btn("toggleservice",x.is_active?"إيقاف الخدمة":"تفعيل الخدمة","light",x.id)+'</div></article>').join("")||empty("لا توجد خدمات مضافة حتى الآن. أضف أول خدمة للمنصة."))+'</div></section>';
 if(s.tab==="categories")body='<section class="section"><div class="sectionhead"><div><h2>إدارة التصنيفات</h2><p class="small">نظّم الخدمات داخل أقسام واضحة تسهّل على العملاء الوصول لما يحتاجونه.</p></div>'+btn("addcategory","إضافة تصنيف","gold")+'</div><div class="list">'+(s.cats.map(x=>'<article class="item"><div class="row"><b>'+esc(x.name_ar)+'</b>'+tag(x.is_active?"نشط":"متوقف")+'</div><div class="small">معرّف التصنيف</div><p class="muted">'+esc(x.slug||"غير محدد")+'</p><div class="actions">'+btn("togglecategory",x.is_active?"إيقاف التصنيف":"تفعيل التصنيف","light",x.id)+'</div></article>').join("")||empty("لا توجد تصنيفات حتى الآن. أضف أول تصنيف للمنصة."))+'</div></section>';
  if(s.tab==="staff")body='<section class="section"><div class="sectionhead"><div><h2>إدارة الموظفين</h2><p class="small">أدر فريق العمل وتابع صلاحيات كل موظف وحالة حسابه.</p></div>'+btn("addstaff","إضافة موظف","gold")+'</div><div class="list">'+(s.staff.map(x=>'<article class="item"><div class="row"><div><b>'+esc(x.full_name||"موظف بدون اسم")+'</b><p class="small">عضو في فريق إدارة وصلة</p></div>'+tag(x.staff_permissions?.is_active?"نشط":"موقوف")+'</div><div class="small">رقم التواصل</div><p>'+esc(x.phone||"لا يوجد رقم هاتف")+'</p><div class="small">الصلاحيات الممنوحة</div><p class="muted">'+fmt((x.staff_permissions?.permissions||[]).length)+' صلاحية</p><div class="actions">'+btn("editstaff","إدارة الصلاحيات","light",x.id)+(["admin","owner"].includes(s.profile?.role)&&x.staff_permissions?.is_active?btn("resetstaffpw","توليد كلمة مرور","light",x.id):"")+btn("removestaff","إزالة الموظف","danger",x.id)+'</div></article>').join("")||empty("لا يوجد موظفون حتى الآن. يمكنك إضافة أول موظف لفريق الإدارة."))+'</div></section>';
  if(s.tab==="customers")body='<section class="section"><div class="sectionhead"><div><h2>إدارة العملاء</h2><p class="small">استعرض حسابات العملاء وبياناتهم وحالة كل حساب.</p></div><span class="tag">'+fmt(s.customers.length)+' عميل</span></div><div class="list">'+(s.customers.map(x=>'<article class="item"><div class="row"><div><b>'+esc(x.full_name||"عميل بدون اسم")+'</b><p class="small">حساب عميل على منصة وصلة</p></div>'+tag(x.status==="active"?"نشط":"موقوف")+'</div><div class="small">رقم التواصل</div><p>'+esc(x.phone||"لا يوجد رقم هاتف")+'</p><div class="small">الموقع</div><p class="muted">'+esc([x.city,x.country].filter(Boolean).join("، ")||"الموقع غير محدد")+'</p><div class="actions">'+btn("viewcustomer","عرض الملف","light",x.id)+'</div></article>').join("")||empty("لا يوجد عملاء حتى الآن"))+'</div></section>';
@@ -6158,7 +6176,7 @@ if(s.tab==="home"&&navItems.some(x=>x[0]==="home")){
   '</div><div class="list">'+
   (s.services.map(x=>'<article class="item">'+
   '<div class="row"><b>'+esc(x.name_ar)+'</b>'+tag(x.is_active?"نشطة":"متوقفة")+'</div>'+
-  '<p>'+esc(x.description||"لا يوجد وصف")+'</p>'+
+  '<p>'+esc(x.description||"لا يوجد وصف")+'</p>'+svcCommissionLine(x)+
   (can("services.manage")?btn("toggleservice",x.is_active?"إيقاف الخدمة":"تفعيل الخدمة","light",x.id):"")+
   '</article>').join("")||empty("لا توجد خدمات"))+
   '</div></section>';
@@ -6848,6 +6866,7 @@ if(m.type==="offer")c='<div class="modal-title"><h3>إضافة خدمة إلى �
 
 if(m.type==="service")c='<div class="modal-title"><h3>إضافة خدمة جديدة</h3><p class="muted">أضف بيانات الخدمة لتظهر للعملاء على منصة وصلة.</p></div><form id="serviceForm">'+select("التصنيف","category_id",s.cats.map(x=>({value:x.id,label:x.name_ar})),"")+field("اسم الخدمة بالعربية","name_ar","text","مثال: صيانة التكييف","",true)+field("الاسم بالإنجليزية","name_en","text","Service name","",false)+'<label class="field">وصف الخدمة<textarea name="description" placeholder="اكتب وصفًا مختصرًا يوضح تفاصيل الخدمة..."></textarea></label><label class="field">صورة الخدمة (اختياري)<input type="file" name="service_image" accept="image/jpeg,image/png,image/webp"></label><p class="muted">الصيغ المدعومة: JPG وPNG وWEBP. سيتم ضغط الصورة تلقائيًا قبل الرفع، والحد الأقصى 4 ميجابايت.</p><div class="actions"><button class="btn gold">حفظ الخدمة</button></div></form>';
   
+if(m.type==="svcRate"){const sv=s.services.find(z=>z.id===m.serviceId)||{},own=s.svcRates&&s.svcRates.map[m.serviceId],d=s.svcRates&&s.svcRates.def;c='<div class="modal-title"><h3>عمولة الخدمة</h3><p class="muted">'+esc(sv.name_ar||"")+'</p></div><form id="svcRateForm"><input type="hidden" name="service_id" value="'+esc(m.serviceId)+'"><label class="field">نسبة العمولة (%)<input name="rate" type="number" inputmode="decimal" min="0" max="99.99" step="0.01" placeholder="'+(d!=null?"الافتراضي "+fmt(d):"")+'" value="'+(own!=null?esc(own):"")+'" required></label><p class="muted">من 0 إلى أقل من 100. تسري على المدفوعات الجديدة فقط، والمدفوعات السابقة تحتفظ بعمولتها المسجلة.</p><div class="actions"><button class="btn gold">حفظ</button>'+(own!=null?btn("svcrateclear","العودة للافتراضي"+(d!=null?" ("+fmt(d)+"%)":""),"light",m.serviceId,'type="button"'):"")+'</div></form>'}
 if(m.type==="category")c='<div class="modal-title"><h3>إضافة تصنيف جديد</h3><p class="muted">أنشئ تصنيفًا يساعد العملاء على الوصول للخدمات بسهولة.</p></div><form id="categoryForm">'+field("اسم التصنيف بالعربية","name_ar","text","مثال: صيانة منزلية","",true)+field("الاسم بالإنجليزية","name_en","text","Home Maintenance","",false)+field("الرابط المختصر","slug","text","home-maintenance","",true)+field("أيقونة التصنيف","icon","text","🔧","",false)+'<div class="actions"><button class="btn gold">حفظ التصنيف</button></div></form>';
   
 if(m.type==="addstaff"){
@@ -8726,6 +8745,7 @@ if(f.id==="cancelRequestForm"){
 }
  
  if(f.id==="offerForm"){let v=vals(f),r=await db.rpc("add_own_provider_service",{p_service_id:v.service_id,p_price:Number(v.price),p_currency:v.currency,p_price_type:v.price_type});if(r.error)throw r.error;s.modal=null;await refreshRoleData();note("تمت إضافة الخدمة.","success");return}
+  if(f.id==="svcRateForm"){let v=vals(f),n=Number(String(v.rate).replace(",","."));if(v.rate===""||!Number.isFinite(n)||n<0||n>=100)throw Error("اكتب نسبة من 0 إلى أقل من 100.");let r=await db.rpc("admin_set_service_commission_rate",{p_service_id:v.service_id,p_rate:n});if(r.error)throw r.error;s.modal=null;await loadSvcRates();note("تم حفظ عمولة الخدمة.","success");return}
   if(f.id==="serviceForm"){let v=vals(f),r=await db.rpc("admin_create_service",{p_category_id:v.category_id,p_name_ar:v.name_ar,p_name_en:v.name_en||null,p_description:v.description||null});if(r.error)throw r.error;s.modal=null;await loadUser(s.user);note("تمت إضافة الخدمة.","success");return}
   
 
@@ -9840,6 +9860,8 @@ if(a==="suspend-provider-open"){
  return;
 }
   if(a==="reviewprovider"){let r=await db.rpc("admin_review_provider_application",{p_user_id:id,p_decision:b.dataset.decision});if(r.error)throw r.error;await loadUser(s.user);note("تم تحديث طلب الانضمام.","success");return}
+ if(a==="svcrate"){if(!canEditCommission())return;s.modal={type:"svcRate",serviceId:id};render();return}
+ if(a==="svcrateclear"){if(!canEditCommission())return;let r=await db.rpc("admin_set_service_commission_rate",{p_service_id:id,p_rate:null});if(r.error)throw r.error;s.modal=null;await loadSvcRates();note("رجعت الخدمة للعمولة الافتراضية.","success");return}
  if(a==="toggleservice"){let r=await db.rpc("toggle_service_active",{p_service_id:id});if(r.error)throw r.error;await loadUser(s.user);note("تم تحديث الخدمة.","success");return}
   if(a==="togglecategory"){let r=await db.rpc("toggle_category_active",{p_category_id:id});if(r.error)throw r.error;await loadUser(s.user);note("تم تحديث التصنيف.","success");return}
  }catch(x){console.error(x);note(x.message||"تعذّر تنفيذ العملية.","error")}
