@@ -5,7 +5,7 @@ self.addEventListener("push",function(e){
  try{d=e.data?e.data.json():{}}catch(_){try{d={title:e.data.text()}}catch(__){}}
  e.waitUntil(self.clients.matchAll({type:"window",includeUncontrolled:true}).then(function(list){
   for(var i=0;i<list.length;i++){if(list[i].visibilityState==="visible")return}
-  return self.registration.showNotification(d.title||"وصلة",{body:d.body||"",tag:d.tag||undefined,lang:"ar",dir:"rtl",data:d});
+  return self.registration.showNotification(d.title||"وصلة",{body:d.body||"",icon:"/icons/icon-192.png",badge:"/icons/badge-96.png",tag:d.tag||undefined,lang:"ar",dir:"rtl",data:d});
  }));
 });
 self.addEventListener("notificationclick",function(e){
