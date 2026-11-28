@@ -3587,9 +3587,10 @@ function reqCode(id){return idCode("ORD",id)}
 function codeTag(c){return c?'<code dir="ltr" style="font-size:12px;font-weight:800;padding:2px 8px;border-radius:8px;background:var(--bg-subtle);color:var(--text-secondary);letter-spacing:.5px">'+esc(c)+'</code>':""}
 function reqCodeTag(id){return codeTag(reqCode(id))}
 /* ===== قسم التقارير (الإدارة): جداول تفصيلية + إخفاء/إضافة أعمدة + تصدير PDF و Excel ===== */
+const REP_CSS='<style>.rep-sec{min-width:0;max-width:100%}.rep-hd{display:flex;align-items:center;gap:12px;margin-bottom:12px}.rep-hd i{width:6px;align-self:stretch;border-radius:6px;background:linear-gradient(180deg,var(--accent,#d4a24c),var(--primary))}.rep-hd h2{margin:0}.rep-hd p{margin:2px 0 0}.rep-tabs{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 10px;scrollbar-width:none}.rep-tabs::-webkit-scrollbar{display:none}.rep-tab{flex:0 0 auto;border:1px solid var(--border-color);background:var(--bg-surface);color:var(--text-primary);border-radius:999px;padding:9px 16px;font:inherit;font-weight:700;font-size:.9rem;cursor:pointer;white-space:nowrap}.rep-tab.on{background:linear-gradient(135deg,var(--primary),var(--primary-hover));color:#fff;border-color:transparent;box-shadow:var(--surface-shadow)}.rep-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(104px,1fr));gap:10px;margin:6px 0 12px}.rep-stat{position:relative;background:var(--bg-surface);border:1px solid var(--border-color);border-radius:14px;padding:9px 12px 9px;overflow:hidden;box-shadow:var(--surface-shadow)}.rep-stat:before{content:"";position:absolute;inset-inline-start:0;top:0;bottom:0;width:4px;background:var(--accent,#d4a24c)}.rep-stat small{display:block;color:var(--text-secondary);font-size:.78rem;margin-bottom:4px}.rep-stat b{font-size:1.05rem;font-variant-numeric:tabular-nums}.rep-bar{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;background:var(--bg-surface);border:1px solid var(--border-color);border-radius:16px;padding:10px 12px}.rep-bar label{display:flex;flex-direction:column;gap:3px;font-size:.72rem;color:var(--text-secondary);margin:0;flex:1 1 120px;min-width:110px}.rep-bar label.q{flex:2 1 170px}.rep-bar input,.rep-bar select{height:38px;padding:0 10px;font-size:.88rem;border-radius:10px;margin:0;width:100%}.rep-bar .btn{height:38px;padding:0 14px;font-size:.85rem;white-space:nowrap}.rep-cols{background:var(--bg-subtle);border:1px dashed var(--border-color);border-radius:14px;padding:8px;margin-top:8px}.rep-wrap{margin-top:12px;max-width:100%;max-height:62vh;overflow:auto;border:1px solid var(--border-color);border-radius:16px;background:var(--bg-surface);box-shadow:var(--surface-shadow)}.rep-t{border-collapse:separate;border-spacing:0;text-align:right;width:max-content;min-width:100%}.rep-t th{position:sticky;top:0;z-index:2;background:var(--primary);color:#fff;padding:11px 12px;font-size:.82rem;font-weight:700;white-space:nowrap}.rep-t th button{border:0;background:none;color:#fff;opacity:.6;cursor:pointer;padding:0 4px;font-size:1rem}.rep-t td{padding:10px 12px;font-size:.88rem;white-space:nowrap;border-bottom:1px solid var(--border-color)}.rep-t tbody tr:nth-child(even) td{background:var(--bg-subtle)}.rep-t tbody tr:hover td{background:var(--warning-bg)}.rep-t td.n{font-variant-numeric:tabular-nums;font-weight:600}.rep-t tfoot td{position:sticky;bottom:0;background:var(--bg-surface);font-weight:800;border-top:2px solid var(--accent,#d4a24c)}.rep-foot{display:flex;justify-content:space-between;margin-top:8px}</style>';
 const REP={tab:"requests",loading:false,loaded:false,err:{},data:{},f:{},menu:false,busy:""};
 const REP_KEY="wasla_rep_cols_v1";
-const REP_TABS=[["requests","الطلبات"],["payments","المدفوعات"],["commissions","العمولات"],["providers","المزوّدون"],["customers","العملاء"],["ratings","التقييمات"],["staff","الموظفون"],["monthly","ملخص مالي شهري"],["loyalty","النقاط"],["wallet","محفظة المزوّدين"]];
+const REP_TABS=[["requests","الطلبات"],["payments","المدفوعات"],["commissions","العمولات"],["providers","المزوّدون"],["customers","العملاء"],["ratings","التقييمات"],["services","الخدمات"],["sections","الأقسام"],["staff","الموظفون"],["monthly","ملخص مالي شهري"],["loyalty","النقاط"],["wallet","محفظة المزوّدين"]];
 function repN(v){const n=Number(v);return Number.isFinite(n)?n:null}
 function repCode(p,id){return id?idCode(p,id):null}
 function repSt(x){try{return (typeof RQ_STATUS_LABELS!=="undefined"&&RQ_STATUS_LABELS[x])||x||null}catch(_){return x||null}}
@@ -3624,7 +3625,7 @@ function repBuild(){
  const mo={};(D.payments||[]).forEach(x=>{const d=String(x.paid_at||x.created_at||"").slice(0,7);if(!d)return;const o=mo[d]=mo[d]||{month:d,n:0,paidn:0,gross:0,comm:0,net:0,cash:0,plat:0,pend:0};o.n++;if(x.payment_status==="paid"){o.paidn++;o.gross+=Number(x.amount||0);o.comm+=Number(x.commission_amount||0);o.net+=Number(x.provider_amount||0);if(x.payment_method==="cash")o.cash+=Number(x.amount||0);else o.plat+=Number(x.amount||0)}else if(x.payment_status==="pending")o.pend+=Number(x.amount||0)});
  R.monthly=Object.values(mo).sort((a,b)=>b.month.localeCompare(a.month)).map(o=>Object.assign({},o,{created:o.month+"-01"}));
  R.ratings=(D.reviews||[]).map(v=>{const r=rq[v.request_id]||{};return {ord:repCode("ORD",v.request_id),customer:cn(v.customer_id||r.customer_id),provider:pn(v.provider_id||r.provider_id),rating:repN(v.rating),srv:repN(v.service_rating),plat:repN(v.platform_rating),comment:v.comment||null,created:v.created_at||null}});
- R.loyalty=[];R.wallet=[];
+ R.loyalty=[];R.wallet=[];R.services=[];R.sections=[];REP.ctx={reqs,pays,rev};
  REP.rows=R;
 }
 const REP_DEFS={
@@ -3635,6 +3636,8 @@ const REP_DEFS={
  customers:{date:"created",status:"status",cols:[["code","كود العميل","code",1],["name","الاسم","text",1],["phone","الهاتف","text",1],["email","البريد","text",0],["created","تاريخ الانضمام","date",1],["status","الحالة","text",1],["gov","المحافظة","text",1],["city","المدينة","text",1],["area","المنطقة","text",0],["address","العنوان","text",1],["country","الدولة","text",0],["reqs","عدد الطلبات","num",1],["done","المكتملة","num",1],["paid","إجمالي المدفوع","money",1],["last","آخر طلب","date",1]]},
  staff:{date:"created",status:"status",cols:[["code","كود الموظف","code",1],["name","الاسم","text",1],["phone","الهاتف","text",1],["email","البريد","text",0],["title","المسمى","text",1],["role","الرتبة","text",1],["status","الحالة","text",1],["active","صلاحياته مفعّلة","text",1],["pcount","عدد الصلاحيات","num",1],["perms","الصلاحيات","text",0],["gov","المحافظة","text",0],["city","المدينة","text",1],["address","العنوان","text",0],["created","تاريخ الانضمام","date",1]]},
  monthly:{date:"created",cols:[["month","الشهر","text",1],["n","عدد الدفعات","num",1],["paidn","المدفوعة","num",1],["gross","إجمالي المدفوع","money",1],["plat","عبر المنصة","money",1],["cash","كاش","money",1],["comm","عمولة المنصة","money",1],["net","صافي الفنيين","money",1],["pend","بانتظار الدفع","money",1]]},
+ services:{date:null,status:"status",note:"الفلتر بالتاريخ بيحسب عدد مرات طلب كل خدمة في الفترة دي بس.",cols:[["code","كود الخدمة (SVC)","code",1],["name","الخدمة","text",1],["section","القسم","text",1],["scode","كود القسم (SEC)","code",0],["status","الحالة","text",1],["rate","عمولة الخدمة %","num",1],["reqs","عدد مرات الطلب","num",1],["done","المكتملة","num",1],["cancel","الملغية","num",1],["value","قيمة المدفوع","money",1],["comm","عمولة المنصة","money",1],["rating","متوسط التقييم","num",0],["last","آخر طلب","date",1]]},
+ sections:{date:null,status:"status",note:"الفلتر بالتاريخ بيحسب عدد الطلبات في الفترة دي بس.",cols:[["code","كود القسم (SEC)","code",1],["name","القسم","text",1],["slug","المعرّف","text",1],["status","الحالة","text",1],["svcs","عدد الخدمات","num",1],["reqs","عدد الطلبات","num",1],["done","المكتملة","num",1],["value","قيمة المدفوع","money",1],["comm","عمولة المنصة","money",1]]},
  ratings:{date:"created",cols:[["ord","الطلب (ORD)","code",1],["customer","العميل","text",1],["provider","الفني","text",1],["rating","التقييم العام","num",1],["srv","تقييم الخدمة","num",1],["plat","تقييم المنصة","num",1],["comment","التعليق","text",1],["created","التاريخ","date",1]]},
  loyalty:{date:"created",need:"سجل النقاط لكل العملاء محتاج دالة قراءة للأدمن من شوشو (مثلا admin_list_loyalty_ledger). المتاح حاليًا سجل عميل واحد فقط من شاشة تحكم الولاء.",cols:[["cust","كود العميل","code",1],["customer","العميل","text",1],["ord","الطلب (ORD)","code",1],["kind","نوع الحركة","text",1],["points","النقاط","num",1],["balance","الرصيد بعدها","num",1],["note","ملاحظة","text",0],["created","التاريخ","date",1]]},
  wallet:{date:"created",need:"حركات محافظ المزوّدين لكل الفنيين محتاجة دالة قراءة للأدمن من شوشو (مثلا admin_list_wallet_entries).",cols:[["wlt","الحركة (WLT)","code",1],["provider","الفني","text",1],["pcode","كود الفني","code",1],["kind","النوع","text",1],["amount","المبلغ","money",1],["balance","الرصيد بعدها","money",1],["ord","الطلب (ORD)","code",1],["created","التاريخ","date",1]]}
@@ -3643,12 +3646,23 @@ function repColsOf(t){return REP_DEFS[t].cols.map(c=>({k:c[0],l:c[1],t:c[2],def:
 function repVis(t){let sel=null;try{sel=(JSON.parse(localStorage.getItem(REP_KEY)||"{}")||{})[t]}catch(_){}const all=repColsOf(t);const keys=Array.isArray(sel)?sel:all.filter(c=>c.def).map(c=>c.k);return keys.map(k=>all.find(c=>c.k===k)).filter(Boolean)}
 function repSave(t,keys){let o={};try{o=JSON.parse(localStorage.getItem(REP_KEY)||"{}")||{}}catch(_){}o[t]=keys;try{localStorage.setItem(REP_KEY,JSON.stringify(o))}catch(_){}}
 function repText(c,v){if(v===null||v===undefined||v==="")return "";if(c.t==="date")return fmtDateAr(v);return String(v)}
+function repCatalogRows(t,f){
+ const C=REP.ctx||{reqs:[],pays:{},rev:{}},from=f.from?new Date(f.from+"T00:00:00"):null,to=f.to?new Date(f.to+"T23:59:59"):null;
+ const rs=C.reqs.filter(r=>{if(!from&&!to)return true;const d=new Date(r.created_at);return !isNaN(d)&&(!from||d>=from)&&(!to||d<=to)});
+ const cats=s.cats||[],svcs=s.services||[],cm={};cats.forEach(c=>cm[c.id]=c);
+ const agg=(list)=>{const o={reqs:list.length,done:0,cancel:0,value:0,comm:0,rs:[],last:null};list.forEach(r=>{if(r.status==="completed")o.done++;if(r.status==="cancelled"||r.status==="canceled")o.cancel++;const p=C.pays[r.id];if(p&&p.payment_status==="paid"){o.value+=Number(p.amount||0);o.comm+=Number(p.commission_amount||0)}const v=C.rev[r.id];if(v&&v.rating!=null)o.rs.push(Number(v.rating));if(!o.last||String(r.created_at)>String(o.last))o.last=r.created_at});return o};
+ const stt=x=>x?"نشط":"متوقف";
+ if(t==="services")return svcs.map(x=>{const o=agg(rs.filter(r=>r.service_id===x.id)),own=s.svcRates&&s.svcRates.map?s.svcRates.map[x.id]:null,def=s.svcRates?s.svcRates.def:null;return {code:repCode("SVC",x.id),name:x.name_ar||null,section:(cm[x.category_id]||{}).name_ar||null,scode:x.category_id?repCode("SEC",x.category_id):null,status:stt(x.is_active),rate:own!=null?own:(def!=null?def:null),reqs:o.reqs,done:o.done,cancel:o.cancel,value:o.value,comm:o.comm,rating:o.rs.length?Math.round(o.rs.reduce((a,b)=>a+b,0)/o.rs.length*10)/10:null,last:o.last}}).sort((a,b)=>b.reqs-a.reqs);
+ const sv={};svcs.forEach(x=>sv[x.id]=x);
+ return cats.map(c=>{const ids=new Set(svcs.filter(x=>x.category_id===c.id).map(x=>x.id)),o=agg(rs.filter(r=>ids.has(r.service_id)));return {code:repCode("SEC",c.id),name:c.name_ar||null,slug:c.slug||null,status:stt(c.is_active),svcs:ids.size,reqs:o.reqs,done:o.done,value:o.value,comm:o.comm}}).sort((a,b)=>b.reqs-a.reqs);
+}
 function repFiltered(t){
- const rows=(REP.rows&&REP.rows[t])||[],f=REP.f[t]||{},def=REP_DEFS[t],vis=repVis(t);
+ const catalog=(t==="services"||t==="sections");
+ const rows=catalog?repCatalogRows(t,REP.f[t]||{}):((REP.rows&&REP.rows[t])||[]),f=REP.f[t]||{},def=REP_DEFS[t],vis=repVis(t);
  const q=String(f.q||"").trim().toLowerCase(),from=f.from?new Date(f.from+"T00:00:00"):null,to=f.to?new Date(f.to+"T23:59:59"):null;
  return rows.filter(r=>{
   if(f.st&&String(r[def.status])!==f.st)return false;
-  if(from||to){const d=r[def.date]?new Date(r[def.date]):null;if(!d||isNaN(d))return false;if(from&&d<from)return false;if(to&&d>to)return false}
+  if((from||to)&&def.date){const d=r[def.date]?new Date(r[def.date]):null;if(!d||isNaN(d))return false;if(from&&d<from)return false;if(to&&d>to)return false}
   if(!q)return true;
   return vis.concat(repColsOf(t).filter(c=>!vis.includes(c))).some(c=>repText(c,r[c.k]).toLowerCase().includes(q));
  });
@@ -3674,6 +3688,8 @@ function repStatsHtml(t,rows){
   staff:[["عدد الموظفين",N(rows.length)],["نشط",N(cnt("status","نشط"))]],
   monthly:[["أشهر",N(rows.length)],["إجمالي المدفوع",M(sum("gross"))],["عمولة المنصة",M(sum("comm"))],["صافي الفنيين",M(sum("net"))],["بانتظار الدفع",M(sum("pend"))]],
   ratings:[["عدد التقييمات",N(rows.length)],["متوسط عام",N(avg("rating"))],["متوسط الخدمة",N(avg("srv"))],["متوسط المنصة",N(avg("plat"))]],
+  services:[["عدد الخدمات",N(rows.length)],["إجمالي مرات الطلب",N(sum("reqs"))],["قيمة المدفوع",M(sum("value"))],["عمولة المنصة",M(sum("comm"))]],
+  sections:[["عدد الأقسام",N(rows.length)],["عدد الخدمات",N(sum("svcs"))],["إجمالي الطلبات",N(sum("reqs"))],["قيمة المدفوع",M(sum("value"))]],
   loyalty:[["عدد الحركات",N(rows.length)]],wallet:[["عدد الحركات",N(rows.length)]]
  }[t]||[];
  return '<div class="rep-stats">'+S.map(x=>'<div class="rep-stat"><small>'+esc(x[0])+'</small><b>'+x[1]+'</b></div>').join("")+'</div>';
@@ -3682,16 +3698,17 @@ function repView(){
  if(!REP.loaded&&!REP.loading)setTimeout(repLoad,0);
  const t=REP.tab,def=REP_DEFS[t],all=repColsOf(t),vis=repVis(t),f=REP.f[t]||{};
  const tabs='<div class="rep-tabs">'+REP_TABS.map(x=>'<button type="button" class="rep-tab'+(x[0]===t?' on':'')+'" data-a="rep-tab" data-id="'+x[0]+'">'+esc(x[1])+'</button>').join("")+'</div>';
- let h='<style>.rep-sec{min-width:0;max-width:100%}.rep-hd{display:flex;align-items:center;gap:12px;margin-bottom:12px}.rep-hd i{width:6px;align-self:stretch;border-radius:6px;background:linear-gradient(180deg,var(--accent,#d4a24c),var(--primary))}.rep-hd h2{margin:0}.rep-hd p{margin:2px 0 0}.rep-tabs{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 10px;scrollbar-width:none}.rep-tabs::-webkit-scrollbar{display:none}.rep-tab{flex:0 0 auto;border:1px solid var(--border-color);background:var(--bg-surface);color:var(--text-primary);border-radius:999px;padding:9px 16px;font:inherit;font-weight:700;font-size:.9rem;cursor:pointer;white-space:nowrap}.rep-tab.on{background:linear-gradient(135deg,var(--primary),var(--primary-hover));color:#fff;border-color:transparent;box-shadow:var(--surface-shadow)}.rep-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(104px,1fr));gap:10px;margin:6px 0 12px}.rep-stat{position:relative;background:var(--bg-surface);border:1px solid var(--border-color);border-radius:14px;padding:9px 12px 9px;overflow:hidden;box-shadow:var(--surface-shadow)}.rep-stat:before{content:"";position:absolute;inset-inline-start:0;top:0;bottom:0;width:4px;background:var(--accent,#d4a24c)}.rep-stat small{display:block;color:var(--text-secondary);font-size:.78rem;margin-bottom:4px}.rep-stat b{font-size:1.05rem;font-variant-numeric:tabular-nums}.rep-bar{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;background:var(--bg-surface);border:1px solid var(--border-color);border-radius:16px;padding:10px 12px}.rep-bar label{display:flex;flex-direction:column;gap:3px;font-size:.72rem;color:var(--text-secondary);margin:0;flex:1 1 120px;min-width:110px}.rep-bar label.q{flex:2 1 170px}.rep-bar input,.rep-bar select{height:38px;padding:0 10px;font-size:.88rem;border-radius:10px;margin:0;width:100%}.rep-bar .btn{height:38px;padding:0 14px;font-size:.85rem;white-space:nowrap}.rep-cols{background:var(--bg-subtle);border:1px dashed var(--border-color);border-radius:14px;padding:8px;margin-top:8px}.rep-wrap{margin-top:12px;max-width:100%;max-height:62vh;overflow:auto;border:1px solid var(--border-color);border-radius:16px;background:var(--bg-surface);box-shadow:var(--surface-shadow)}.rep-t{border-collapse:separate;border-spacing:0;text-align:right;width:max-content;min-width:100%}.rep-t th{position:sticky;top:0;z-index:2;background:var(--primary);color:#fff;padding:11px 12px;font-size:.82rem;font-weight:700;white-space:nowrap}.rep-t th button{border:0;background:none;color:#fff;opacity:.6;cursor:pointer;padding:0 4px;font-size:1rem}.rep-t td{padding:10px 12px;font-size:.88rem;white-space:nowrap;border-bottom:1px solid var(--border-color)}.rep-t tbody tr:nth-child(even) td{background:var(--bg-subtle)}.rep-t tbody tr:hover td{background:var(--warning-bg)}.rep-t td.n{font-variant-numeric:tabular-nums;font-weight:600}.rep-t tfoot td{position:sticky;bottom:0;background:var(--bg-surface);font-weight:800;border-top:2px solid var(--accent,#d4a24c)}.rep-foot{display:flex;justify-content:space-between;margin-top:8px}</style><section class="section rep-sec"><div class="rep-hd"><i></i><div><h2>التقارير</h2><p class="small">تفاصيل كل حاجة بأرقامها وأكوادها، مع فلاتر وتحميل PDF و Excel.</p></div></div>'+tabs;
+ let h=REP_CSS+'<section class="section rep-sec"><div class="rep-hd"><i></i><div><h2>التقارير</h2><p class="small">تفاصيل كل حاجة بأرقامها وأكوادها، مع فلاتر وتحميل PDF و Excel.</p></div></div>'+tabs;
  if(REP.loading)return h+'<div class="empty">جاري تحميل بيانات التقارير...</div></section>';
  const errs=Object.keys(REP.err).filter(k=>REP.err[k]);
  if(errs.length)h+='<div class="notice error">تعذّر تحميل: '+esc(errs.map(k=>({requests:"الطلبات",payments:"المدفوعات",reviews:"التقييمات",quotes:"عروض الأسعار"}[k]||k)).join("، "))+'. غالبًا محتاج صلاحية قراءة للأدمن من شوشو. الأعمدة المعتمدة عليها هتظهر فاضية.</div>';
- const rows=repFiltered(t),total=((REP.rows&&REP.rows[t])||[]).length;
+ const rows=repFiltered(t),total=(t==="services"||t==="sections")?repCatalogRows(t,{}).length:((REP.rows&&REP.rows[t])||[]).length;
  const hid=all.filter(c=>!vis.includes(c));
- h+=repStatsHtml(t,rows)+'<div class="rep-bar"><label class="q">بحث<input id="repQ" type="search" value="'+esc(f.q||"")+'" placeholder="بحث..."></label>'+(def.status?'<label>الحالة<select id="repSt"><option value="">الكل</option>'+[...new Set(((REP.rows&&REP.rows[t])||[]).map(r=>r[def.status]).filter(Boolean))].map(x=>'<option value="'+esc(x)+'"'+(f.st===x?" selected":"")+'>'+esc(x)+'</option>').join("")+'</select></label>':"")+'<label>من تاريخ<input id="repFrom" type="date" value="'+esc(f.from||"")+'"></label><label>إلى تاريخ<input id="repTo" type="date" value="'+esc(f.to||"")+'"></label>'+btn("rep-menu",REP.menu?"إغلاق الأعمدة":"+ أعمدة","light")+btn("rep-pdf",REP.busy==="pdf"?"جاري التجهيز...":"PDF","gold")+btn("rep-xlsx",REP.busy==="xlsx"?"جاري التجهيز...":"Excel","gold")+'</div>'+
+ h+=repStatsHtml(t,rows)+'<div class="rep-bar"><label class="q">بحث<input id="repQ" type="search" value="'+esc(f.q||"")+'" placeholder="بحث..."></label>'+(def.status?'<label>الحالة<select id="repSt"><option value="">الكل</option>'+[...new Set(((t==="services"||t==="sections")?repCatalogRows(t,{}):((REP.rows&&REP.rows[t])||[])).map(r=>r[def.status]).filter(Boolean))].map(x=>'<option value="'+esc(x)+'"'+(f.st===x?" selected":"")+'>'+esc(x)+'</option>').join("")+'</select></label>':"")+'<label>من تاريخ<input id="repFrom" type="date" value="'+esc(f.from||"")+'"></label><label>إلى تاريخ<input id="repTo" type="date" value="'+esc(f.to||"")+'"></label>'+btn("rep-menu",REP.menu?"إغلاق الأعمدة":"+ أعمدة","light")+btn("rep-pdf",REP.busy==="pdf"?"جاري التجهيز...":"PDF","gold")+btn("rep-xlsx",REP.busy==="xlsx"?"جاري التجهيز...":"Excel","gold")+'</div>'+
   (REP.menu?'<div class="rep-cols">'+(hid.length?hid.map(c=>'<button type="button" class="btn light" data-a="rep-add" data-id="'+c.k+'" style="margin:3px">+ '+esc(c.l)+'</button>').join(""):'<span class="small">كل الأعمدة ظاهرة.</span>')+' '+btn("rep-reset","الأعمدة الافتراضية","light")+'</div>':"");
  if(def.need)h+='<div class="notice">'+esc(def.need)+'</div>';
- const miss=total?vis.filter(c=>(REP.rows[t]).every(r=>r[c.k]===null||r[c.k]===undefined||r[c.k]==="")):[];
+ if(def.note)h+='<p class="small">'+esc(def.note)+'</p>';
+ const miss=total&&REP.rows[t]&&REP.rows[t].length?vis.filter(c=>(REP.rows[t]).every(r=>r[c.k]===null||r[c.k]===undefined||r[c.k]==="")):[];
  if(miss.length)h+='<div class="notice">أعمدة بلا بيانات حاليًا (محتاجة حقل من شوشو في الدالة أو الجدول): '+esc(miss.map(c=>c.l).join("، "))+'</div>';
  const sums=vis.filter(c=>c.t==="money");
  const tot=sums.length&&rows.length?'<tfoot><tr>'+vis.map((c,i)=>'<td style="font-weight:700">'+(c.t==="money"?moneyAr(rows.reduce((a,r)=>a+(Number(r[c.k])||0),0)):(i===0?"الإجمالي":""))+'</td>').join("")+'</tr></tfoot>':"";
@@ -3767,6 +3784,104 @@ document.addEventListener("change",e=>{
  const el=e.target;if(!el||!el.id||el.id.slice(0,3)!=="rep")return;
  const t=REP.tab,f=REP.f[t]=REP.f[t]||{};
  if(el.id==="repQ")f.q=el.value;else if(el.id==="repSt")f.st=el.value;else if(el.id==="repFrom")f.from=el.value;else if(el.id==="repTo")f.to=el.value;else return;
+ render();
+});
+
+/* ===== مركز الرفع: رفع الأقسام والخدمات من ملف Excel/CSV بالنموذج، عبر الدوال الموجودة (من غير تغيير في قاعدة البيانات) ===== */
+const UP={rows:{sections:[],services:[]},file:"",busy:false,log:[],err:""};
+const UP_SEC_COLS=["اسم القسم بالعربية","اسم القسم بالإنجليزية","المعرّف (slug بالإنجليزي)","الأيقونة"];
+const UP_SVC_COLS=["اسم الخدمة بالعربية","اسم الخدمة بالإنجليزية","القسم (اسم القسم بالعربية)","الوصف","العمولة % (اختياري)"];
+function upNorm(x){return String(x==null?"":x).replace(/[\u064B-\u065F\u0640]/g,"").replace(/[إأآ]/g,"ا").replace(/ى/g,"ي").replace(/ة/g,"ه").replace(/\s+/g," ").trim().toLowerCase()}
+function upDigits(x){return String(x==null?"":x).replace(/[٠-٩]/g,d=>"٠١٢٣٤٥٦٧٨٩".indexOf(d)).replace(/٫/g,".").replace(/,/g,".").trim()}
+function upCheck(){
+ const cats=s.cats||[],svcs=s.services||[];
+ const catBySlug=new Set(cats.map(c=>String(c.slug||"").toLowerCase())),catByName=new Set(cats.map(c=>upNorm(c.name_ar)));
+ const seenS=new Set(),seenN=new Set();
+ UP.rows.sections.forEach(r=>{
+  const e=[];if(!r.name_ar)e.push("اسم القسم مطلوب");
+  if(!/^[a-z0-9][a-z0-9-]*$/.test(r.slug||""))e.push("المعرّف لازم حروف إنجليزية صغيرة وأرقام وشرطة");
+  r.skip=false;
+  if(!e.length&&(catBySlug.has(r.slug)||catByName.has(upNorm(r.name_ar))))r.skip="موجود بالفعل";
+  if(!e.length&&!r.skip&&(seenS.has(r.slug)||seenN.has(upNorm(r.name_ar))))e.push("مكرر في الملف");
+  seenS.add(r.slug);seenN.add(upNorm(r.name_ar));r.errors=e;
+ });
+ const secNames=new Set(cats.map(c=>upNorm(c.name_ar)).concat(UP.rows.sections.filter(x=>!x.errors.length).map(x=>upNorm(x.name_ar))));
+ const seen=new Set();
+ UP.rows.services.forEach(r=>{
+  const e=[];if(!r.name_ar)e.push("اسم الخدمة مطلوب");
+  if(!r.section)e.push("القسم مطلوب");else if(!secNames.has(upNorm(r.section)))e.push("القسم مش موجود");
+  if(r.rate!==""&&r.rate!=null){const n=Number(upDigits(r.rate));if(!Number.isFinite(n)||n<0||n>=100)e.push("العمولة لازم من 0 لأقل من 100");}
+  r.skip=false;
+  const key=upNorm(r.section)+"|"+upNorm(r.name_ar);
+  const cat=cats.find(c=>upNorm(c.name_ar)===upNorm(r.section));
+  if(!e.length&&cat&&svcs.some(x=>x.category_id===cat.id&&upNorm(x.name_ar)===upNorm(r.name_ar)))r.skip="موجودة بالفعل";
+  if(!e.length&&!r.skip&&seen.has(key))e.push("مكررة في الملف");
+  seen.add(key);r.errors=e;
+ });
+}
+async function upTemplate(){
+ await repLoadScript("https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js");
+ const wb=XLSX.utils.book_new();wb.Workbook={Views:[{RTL:true}]};
+ const w1=XLSX.utils.aoa_to_sheet([UP_SEC_COLS,["سباكة","Plumbing","plumbing","wrench"],["كهرباء","Electrical","electrical",""]]);
+ const w2=XLSX.utils.aoa_to_sheet([UP_SVC_COLS,["إصلاح تسريب مياه","Leak repair","سباكة","كشف وإصلاح التسريبات",12],["تركيب مفتاح كهرباء","Switch install","كهرباء","",""]]);
+ const w3=XLSX.utils.aoa_to_sheet([["تعليمات الملء"],["1) املأ ورقة الأقسام أولًا ثم ورقة الخدمات. اترك الورقة فاضية لو مش هترفع منها."],["2) المعرّف (slug) حروف إنجليزية صغيرة وأرقام وشرطة فقط، ومش بيتكرر."],["3) اسم القسم في ورقة الخدمات لازم يطابق اسم قسم موجود أو موجود في ورقة الأقسام."],["4) العمولة % رقم من 0 لأقل من 100، ولو فاضية بتاخد النسبة الافتراضية."],["5) الكود (SVC للخدمة و SEC للقسم) بيتولد تلقائي بعد الرفع، مش بيتكتب في الملف."],["6) الصفوف الموجودة بالفعل بتتخطى ومش بتتكرر."]]);
+ w1["!cols"]=UP_SEC_COLS.map(()=>({wch:28}));w2["!cols"]=UP_SVC_COLS.map(()=>({wch:28}));w3["!cols"]=[{wch:90}];
+ XLSX.utils.book_append_sheet(wb,w1,"الأقسام");XLSX.utils.book_append_sheet(wb,w2,"الخدمات");XLSX.utils.book_append_sheet(wb,w3,"تعليمات");
+ XLSX.writeFile(wb,"wasla-upload-template.xlsx");
+}
+async function upParse(file){
+ await repLoadScript("https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js");
+ const buf=await file.arrayBuffer(),wb=XLSX.read(buf,{type:"array"});
+ const get=(names)=>{const n=wb.SheetNames.find(x=>names.includes(upNorm(x)));return n?XLSX.utils.sheet_to_json(wb.Sheets[n],{header:1,defval:""}).slice(1).filter(r=>r.some(c=>String(c).trim()!=="")):[]};
+ const t=x=>String(x==null?"":x).trim();
+ UP.rows.sections=get(["الاقسام","sections"]).map((r,i)=>({line:i+2,name_ar:t(r[0]),name_en:t(r[1]),slug:t(r[2]).toLowerCase(),icon:t(r[3])}));
+ UP.rows.services=get(["الخدمات","services"]).map((r,i)=>({line:i+2,name_ar:t(r[0]),name_en:t(r[1]),section:t(r[2]),desc:t(r[3]),rate:t(r[4])}));
+ UP.file=file.name;UP.log=[];UP.err="";
+ if(!UP.rows.sections.length&&!UP.rows.services.length)UP.err="الملف مفيهوش صفوف في ورقتي \"الأقسام\" أو \"الخدمات\". حمّل النموذج واملأه.";
+ upCheck();
+}
+async function upRun(){
+ if(UP.busy)return;upCheck();
+ const secs=UP.rows.sections.filter(r=>!r.errors.length&&!r.skip),svs=UP.rows.services.filter(r=>!r.errors.length&&!r.skip);
+ if(!secs.length&&!svs.length){UP.err="مفيش صفوف سليمة للرفع.";render();return}
+ UP.busy=true;UP.log=[];UP.err="";render();
+ const log=(m,ok)=>{UP.log.push({m,ok})};
+ try{
+  for(const r of secs){const x=await db.rpc("admin_create_category",{p_name_ar:r.name_ar,p_name_en:r.name_en||null,p_slug:r.slug,p_icon:r.icon||null});log("قسم: "+r.name_ar,!x.error&&"تم"||String(x.error.message||x.error));if(x.error)r.failed=true}
+  if(secs.length)await loadUser(s.user);
+  for(const r of svs){const cat=(s.cats||[]).find(c=>upNorm(c.name_ar)===upNorm(r.section));if(!cat){log("خدمة: "+r.name_ar,"القسم مش موجود");r.failed=true;continue}
+   const x=await db.rpc("admin_create_service",{p_category_id:cat.id,p_name_ar:r.name_ar,p_name_en:r.name_en||null,p_description:r.desc||null});log("خدمة: "+r.name_ar,!x.error&&"تم"||String(x.error.message||x.error));if(x.error)r.failed=true}
+  if(svs.length)await loadUser(s.user);
+  for(const r of svs.filter(r=>!r.failed&&r.rate!==""&&r.rate!=null)){
+   const cat=(s.cats||[]).find(c=>upNorm(c.name_ar)===upNorm(r.section)),sv=cat&&(s.services||[]).find(x=>x.category_id===cat.id&&upNorm(x.name_ar)===upNorm(r.name_ar));
+   if(!sv){log("عمولة: "+r.name_ar,"الخدمة مش ظاهرة بعد الإضافة");continue}
+   const x=await db.rpc("admin_set_service_commission_rate",{p_service_id:sv.id,p_rate:Number(upDigits(r.rate))});log("عمولة "+r.rate+"%: "+r.name_ar,!x.error&&"تم"||String(x.error.message||x.error));
+  }
+  await loadUser(s.user);
+ }catch(e){UP.err=String(e&&e.message||e)}
+ UP.rows={sections:[],services:[]};UP.file="";UP.busy=false;render();
+}
+function upView(){
+ upCheck();
+ const stc=r=>r.errors.length?'<span class="tag bad">'+esc(r.errors.join("، "))+'</span>':(r.skip?'<span class="tag">'+esc(r.skip)+' (يتخطى)</span>':'<span class="tag ok">جاهز</span>');
+ const tbl=(title,cols,rows,cells)=>rows.length?'<h3 style="margin:14px 0 6px">'+title+' ('+fmt(rows.length)+')</h3><div class="rep-wrap"><table class="rep-t"><thead><tr><th>سطر</th>'+cols.map(c=>'<th>'+esc(c)+'</th>').join("")+'<th>الحالة</th></tr></thead><tbody>'+rows.map(r=>'<tr><td class="n">'+fmt(r.line)+'</td>'+cells(r).map(c=>'<td>'+esc(c||"—")+'</td>').join("")+'<td>'+stc(r)+'</td></tr>').join("")+'</tbody></table></div>':"";
+ const ok=UP.rows.sections.concat(UP.rows.services).filter(r=>!r.errors.length&&!r.skip).length;
+ return REP_CSS+'<section class="section rep-sec"><div class="rep-hd"><i></i><div><h2>مركز الرفع</h2><p class="small">ارفع الأقسام والخدمات (مع العمولة لكل خدمة) من ملف Excel أو CSV بالنموذج.</p></div></div>'+
+  '<div class="rep-stats" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))"><div class="rep-stat"><small>1) حمّل النموذج</small><div style="margin-top:6px">'+btn("up-template","تحميل النموذج","gold")+'</div></div><div class="rep-stat"><small>2) املأه وارفعه</small><label class="btn light" style="margin-top:6px;display:inline-block;cursor:pointer">اختيار ملف<input id="upFile" type="file" accept=".xlsx,.xls,.csv" style="display:none"></label></div><div class="rep-stat"><small>3) راجع ونفّذ</small><div style="margin-top:6px">'+(ok?btn("up-run",UP.busy?"جاري الرفع...":"رفع "+fmt(ok)+" صف","gold"):'<span class="small">مفيش صفوف جاهزة</span>')+'</div></div></div>'+
+  '<p class="small">الأكواد بتتولد تلقائي بعد الرفع: SVC للخدمة و SEC للقسم. الصفوف الموجودة بالفعل بتتخطى.</p>'+
+  (UP.file?'<p class="small">الملف: <b>'+esc(UP.file)+'</b></p>':"")+(UP.err?'<div class="notice error">'+esc(UP.err)+'</div>':"")+
+  tbl("الأقسام",UP_SEC_COLS,UP.rows.sections,r=>[r.name_ar,r.name_en,r.slug,r.icon])+
+  tbl("الخدمات",UP_SVC_COLS,UP.rows.services,r=>[r.name_ar,r.name_en,r.section,r.desc,r.rate])+
+  (UP.log.length?'<h3 style="margin:14px 0 6px">نتيجة الرفع</h3><div class="card">'+UP.log.map(x=>'<div class="small">'+(x.ok==="تم"?"✓ ":"✗ ")+esc(x.m)+' — '+esc(x.ok)+'</div>').join("")+'</div>':"")+'</section>';
+}
+document.addEventListener("click",async e=>{
+ const b=e.target.closest&&e.target.closest('[data-a^="up-"]');if(!b)return;
+ if(b.dataset.a==="up-template"){try{await upTemplate()}catch(x){alert(x.message)}}
+ if(b.dataset.a==="up-run")upRun();
+});
+document.addEventListener("change",async e=>{
+ const el=e.target;if(!el||el.id!=="upFile"||!el.files||!el.files[0])return;
+ try{await upParse(el.files[0])}catch(x){UP.err="تعذّر قراءة الملف: "+(x&&x.message||x)}
  render();
 });
 
@@ -7112,7 +7227,7 @@ async function viewPrimeKnowledgeDocument(documentId){
  let body="";
 if(s.tab==="providerDossier")
  body=providerDossierView();
-       if(s.tab==="home")body='<section class="section"><div class="grid small"><div class="card"><div class="small">التصنيفات</div><div class="stat">'+fmt(s.cats.length)+'</div><p class="small">إجمالي تصنيفات المنصة</p></div><div class="card"><div class="small">الخدمات</div><div class="stat">'+fmt(s.services.length)+'</div><p class="small">الخدمات المسجلة بالمنصة</p></div><div class="card"><div class="small">طلبات الانضمام</div><div class="stat">'+fmt(s.apps.filter(x=>x.verification_status==="pending").length)+'</div><p class="small">طلبات المزوّدين للمراجعة</p></div><div class="card"><div class="small">طلبات العملاء</div><div class="stat">'+fmt(s.allRequests.length)+'</div><p class="small">إجمالي طلبات الخدمات</p></div></div></section><section class="section"><div class="sectionhead"><div><h2>طلبات الانضمام</h2><p class="small">راجع طلبات المزوّدين واتخذ قرار الاعتماد.</p></div></div><div class="list">'+applications(true)+'</div></section>';
+       if(s.tab==="home")body='<section class="section"><div class="grid small"><div class="card"><div class="small">الأقسام</div><div class="stat">'+fmt(s.cats.length)+'</div><p class="small">إجمالي أقسام المنصة</p></div><div class="card"><div class="small">الخدمات</div><div class="stat">'+fmt(s.services.length)+'</div><p class="small">الخدمات المسجلة بالمنصة</p></div><div class="card"><div class="small">طلبات الانضمام</div><div class="stat">'+fmt(s.apps.filter(x=>x.verification_status==="pending").length)+'</div><p class="small">طلبات المزوّدين للمراجعة</p></div><div class="card"><div class="small">طلبات العملاء</div><div class="stat">'+fmt(s.allRequests.length)+'</div><p class="small">إجمالي طلبات الخدمات</p></div></div></section><section class="section"><div class="sectionhead"><div><h2>طلبات الانضمام</h2><p class="small">راجع طلبات المزوّدين واتخذ قرار الاعتماد.</p></div></div><div class="list">'+applications(true)+'</div></section>';
 if(s.tab==="providers"){
  body='<section class="section">'+
  '<div class="sectionhead"><div><h2>إدارة مقدّمي الخدمة</h2>'+
@@ -7134,8 +7249,9 @@ if(s.tab==="providers"){
        if(s.tab==="approvals")body=approvalsBody();
        if(s.tab==="loyalty")body=loyAdminView();
        if(s.tab==="reports")body=repView();
-       if(s.tab==="services")body='<section class="section"><div class="sectionhead"><div><h2>إدارة الخدمات</h2><p class="small">أضف الخدمات المتاحة على وصلة وتابع وصفها وحالة ظهورها للعملاء.</p></div>'+btn("addservice","إضافة خدمة","gold")+'</div><div class="list">'+(s.services.map(x=>'<article class="item"><div class="row"><b>'+esc(x.name_ar)+'</b>'+tag(x.is_active?"نشطة":"متوقفة")+'</div><p>'+esc(x.description||"لا يوجد وصف مضاف لهذه الخدمة")+'</p>'+svcCommissionLine(x)+'<div class="actions">'+svcRateBtn(x)+btn("toggleservice",x.is_active?"إيقاف الخدمة":"تفعيل الخدمة","light",x.id)+'</div></article>').join("")||empty("لا توجد خدمات مضافة حتى الآن. أضف أول خدمة للمنصة."))+'</div></section>';
-if(s.tab==="categories")body='<section class="section"><div class="sectionhead"><div><h2>إدارة التصنيفات</h2><p class="small">نظّم الخدمات داخل أقسام واضحة تسهّل على العملاء الوصول لما يحتاجونه.</p></div>'+btn("addcategory","إضافة تصنيف","gold")+'</div><div class="list">'+(s.cats.map(x=>'<article class="item"><div class="row"><b>'+esc(x.name_ar)+'</b>'+tag(x.is_active?"نشط":"متوقف")+'</div><div class="small">معرّف التصنيف</div><p class="muted">'+esc(x.slug||"غير محدد")+'</p><div class="actions">'+btn("togglecategory",x.is_active?"إيقاف التصنيف":"تفعيل التصنيف","light",x.id)+'</div></article>').join("")||empty("لا توجد تصنيفات حتى الآن. أضف أول تصنيف للمنصة."))+'</div></section>';
+       if(s.tab==="uploads")body=upView();
+       if(s.tab==="services")body='<section class="section"><div class="sectionhead"><div><h2>إدارة الخدمات</h2><p class="small">أضف الخدمات المتاحة على وصلة وتابع وصفها وحالة ظهورها للعملاء.</p></div>'+btn("addservice","إضافة خدمة","gold")+'</div><div class="list">'+(s.services.map(x=>'<article class="item"><div class="row"><b>'+esc(x.name_ar)+'</b>'+tag(x.is_active?"نشطة":"متوقفة")+'</div><p class="small">'+codeTag(idCode("SVC",x.id))+'</p><p>'+esc(x.description||"لا يوجد وصف مضاف لهذه الخدمة")+'</p>'+svcCommissionLine(x)+'<div class="actions">'+svcRateBtn(x)+btn("toggleservice",x.is_active?"إيقاف الخدمة":"تفعيل الخدمة","light",x.id)+'</div></article>').join("")||empty("لا توجد خدمات مضافة حتى الآن. أضف أول خدمة للمنصة."))+'</div></section>';
+if(s.tab==="categories")body='<section class="section"><div class="sectionhead"><div><h2>إدارة الأقسام</h2><p class="small">نظّم الخدمات داخل أقسام واضحة تسهّل على العملاء الوصول لما يحتاجونه.</p></div>'+btn("addcategory","إضافة قسم","gold")+'</div><div class="list">'+(s.cats.map(x=>'<article class="item"><div class="row"><b>'+esc(x.name_ar)+'</b>'+tag(x.is_active?"نشط":"متوقف")+'</div><p class="small">'+codeTag(idCode("SEC",x.id))+'</p><div class="small">معرّف القسم</div><p class="muted">'+esc(x.slug||"غير محدد")+'</p><div class="actions">'+btn("togglecategory",x.is_active?"إيقاف القسم":"تفعيل القسم","light",x.id)+'</div></article>').join("")||empty("لا توجد أقسام حتى الآن. أضف أول قسم للمنصة."))+'</div></section>';
  if(s.tab==="staff")body='<section class="section"><div class="sectionhead"><div><h2>إدارة الموظفين</h2><p class="small">أدر فريق العمل وتابع صلاحيات كل موظف وحالة حسابه.</p></div>'+btn("addstaff","إضافة موظف","gold")+'</div><div class="list">'+(s.staff.map(x=>'<article class="item"><div class="row"><div><b>'+esc(x.full_name||"موظف بدون اسم")+'</b><p class="small">عضو في فريق إدارة وصلة</p></div>'+tag(x.staff_permissions?.is_active?"نشط":"موقوف")+'</div><div class="small">رقم التواصل</div><p>'+esc(x.phone||"لا يوجد رقم هاتف")+'</p><div class="small">الصلاحيات الممنوحة</div><p class="muted">'+fmt((x.staff_permissions?.permissions||[]).length)+' صلاحية</p><div class="actions">'+btn("editstaff","إدارة الصلاحيات","light",x.id)+(["admin","owner"].includes(s.profile?.role)&&x.staff_permissions?.is_active?btn("resetstaffpw","توليد كلمة مرور","light",x.id):"")+btn("removestaff","إزالة الموظف","danger",x.id)+'</div></article>').join("")||empty("لا يوجد موظفون حتى الآن. يمكنك إضافة أول موظف لفريق الإدارة."))+'</div></section>';
  if(s.tab==="customers")body='<section class="section"><div class="sectionhead"><div><h2>إدارة العملاء</h2><p class="small">استعرض حسابات العملاء وبياناتهم وحالة كل حساب.</p></div><span class="tag">'+fmt(s.customers.length)+' عميل</span></div><div class="list">'+(s.customers.map(x=>'<article class="item"><div class="row"><div><b>'+esc(x.full_name||"عميل بدون اسم")+'</b><p class="small">حساب عميل على منصة وصلة</p></div>'+tag(x.status==="active"?"نشط":"موقوف")+'</div><div class="small">رقم التواصل</div><p>'+esc(x.phone||"لا يوجد رقم هاتف")+'</p><div class="small">الموقع</div><p class="muted">'+esc([x.city,x.country].filter(Boolean).join("، ")||"الموقع غير محدد")+'</p><div class="actions">'+btn("viewcustomer","عرض الملف","light",x.id)+'</div></article>').join("")||empty("لا يوجد عملاء حتى الآن"))+'</div></section>';
  if(s.tab==="messages")body=chatContent();
@@ -7181,7 +7297,7 @@ if(s.tab==="knowledge"){
  '</article>').join("")||empty("لا توجد سجلات تدقيق حتى الآن"))+
  '</div></section>';
 }
-       const nav=[["home","نظرة عامة"],["requests","الطلبات"],["messages","الرسائل"],["customers","العملاء"],["reports","التقارير"],["loyalty","تحكم الولاء"],["providers","المزوّدون"],["services","الخدمات"],["categories","التصنيفات"],["approvals","طلبات الموافقة"+((s.pendingReqs||[]).length?" ("+fmt((s.pendingReqs||[]).length)+")":"")],["staff","الموظفون"],["knowledge","قاعدة معرفة PRIME"],...(s.profile?.role==="owner"?[["assistant","PRIME AI"]]:[]),["appearance","المظهر والثيمات"],...(s.profile?.role==="owner"?[["audit","سجل التدقيق"]]:[])].map(x=>'<button data-a="tab" data-id="'+x[0]+'" class="'+(s.tab===x[0]||(s.tab==="providerDossier"&&x[0]==="providers")?"active":"")+'">'+x[1]+'</button>').join("");
+       const nav=[["home","نظرة عامة"],["requests","الطلبات"],["messages","الرسائل"],["customers","العملاء"],["reports","التقارير"],["uploads","مركز الرفع"],["loyalty","تحكم الولاء"],["providers","المزوّدون"],["services","الخدمات"],["categories","الأقسام"],["approvals","طلبات الموافقة"+((s.pendingReqs||[]).length?" ("+fmt((s.pendingReqs||[]).length)+")":"")],["staff","الموظفون"],["knowledge","قاعدة معرفة PRIME"],...(s.profile?.role==="owner"?[["assistant","PRIME AI"]]:[]),["appearance","المظهر والثيمات"],...(s.profile?.role==="owner"?[["audit","سجل التدقيق"]]:[])].map(x=>'<button data-a="tab" data-id="'+x[0]+'" class="'+(s.tab===x[0]||(s.tab==="providerDossier"&&x[0]==="providers")?"active":"")+'">'+x[1]+'</button>').join("");
  
 const isOwner=s.profile?.role==="owner";
 
@@ -7211,8 +7327,8 @@ const STAFF_PERMISSION_OPTIONS=[
  ["requests.manage","إدارة الطلبات",true,false],
  ["services.view","عرض الخدمات",true,false],
  ["services.manage","إدارة الخدمات",true,false],
- ["categories.view","عرض التصنيفات",true,false],
- ["categories.manage","إدارة التصنيفات",true,false],
+ ["categories.view","عرض الأقسام",true,false],
+ ["categories.manage","إدارة الأقسام",true,false],
  ["messages.view","عرض المحادثات",true,false],
  ["payments.view","عرض المدفوعات",true,false],
  ["payments.manage","إدارة المدفوعات",true,false],
@@ -7237,7 +7353,7 @@ const STAFF_NAV_ITEMS=[
  ["customers","العملاء",["customers.view","customers.manage"]],
  ["providers","المزوّدون",["providers.view","providers.review"]],
  ["services","الخدمات",["services.view","services.manage"]],
- ["categories","التصنيفات",["categories.view","categories.manage"]],
+ ["categories","الأقسام",["categories.view","categories.manage"]],
  ["messages","الرسائل",["messages.view"]],
  ["payments","المدفوعات",["payments.view","payments.manage"]],
  ["reports","التقارير",["reports.view","reports.export","reports.import"]],
@@ -7335,14 +7451,14 @@ if(s.tab==="home"&&navItems.some(x=>x[0]==="home")){
 
  if(s.tab==="categories"&&navItems.some(x=>x[0]==="categories")){
   body='<section class="section">'+
-  '<div class="sectionhead"><h2>إدارة التصنيفات</h2>'+
-  (can("categories.manage")?btn("addcategory","إضافة تصنيف","gold"):"")+
+  '<div class="sectionhead"><h2>إدارة الأقسام</h2>'+
+  (can("categories.manage")?btn("addcategory","إضافة قسم","gold"):"")+
   '</div><div class="list">'+
   (s.cats.map(x=>'<article class="item">'+
   '<div class="row"><b>'+esc(x.name_ar)+'</b>'+tag(x.is_active?"نشط":"متوقف")+'</div>'+
   '<p>'+esc(x.slug||"")+'</p>'+
-  (can("categories.manage")?btn("togglecategory",x.is_active?"إيقاف التصنيف":"تفعيل التصنيف","light",x.id):"")+
-  '</article>').join("")||empty("لا توجد تصنيفات"))+
+  (can("categories.manage")?btn("togglecategory",x.is_active?"إيقاف القسم":"تفعيل القسم","light",x.id):"")+
+  '</article>').join("")||empty("لا توجد أقسام"))+
   '</div></section>';
  }
 
@@ -8022,10 +8138,10 @@ if(m.type==="request"){
 if(m.type==="offer")c='<div class="modal-title"><h3>إضافة خدمة إلى ملفك</h3><p class="muted">أضف الخدمة وحدد سعرها حتى يتمكن العملاء من معرفة عروضك.</p></div><form id="offerForm"><section class="section"><h4>بيانات الخدمة</h4>'+select("اختر الخدمة","service_id",s.services.map(x=>({value:x.id,label:x.name_ar})),"")+'</section><section class="section"><h4>تفاصيل السعر</h4>'+field("السعر","price","number","أدخل السعر","",true)+select("العملة","currency",[{value:"SAR",label:"ريال سعودي"},{value:"EGP",label:"جنيه مصري"},{value:"AED",label:"درهم إماراتي"}],"SAR")+select("نوع السعر","price_type",[{value:"fixed",label:"سعر ثابت"},{value:"starting_from",label:"السعر يبدأ من"},{value:"negotiable",label:"قابل للتفاوض"}],"fixed")+'</section><div class="actions"><button class="btn gold">إضافة الخدمة</button></div></form>';
   
 
-if(m.type==="service")c='<div class="modal-title"><h3>إضافة خدمة جديدة</h3><p class="muted">أضف بيانات الخدمة لتظهر للعملاء على منصة وصلة.</p></div><form id="serviceForm">'+select("التصنيف","category_id",s.cats.map(x=>({value:x.id,label:x.name_ar})),"")+field("اسم الخدمة بالعربية","name_ar","text","مثال: صيانة التكييف","",true)+field("الاسم بالإنجليزية","name_en","text","Service name","",false)+'<label class="field">وصف الخدمة<textarea name="description" placeholder="اكتب وصفًا مختصرًا يوضح تفاصيل الخدمة..."></textarea></label><label class="field">صورة الخدمة (اختياري)<input type="file" name="service_image" accept="image/jpeg,image/png,image/webp"></label><p class="muted">الصيغ المدعومة: JPG وPNG وWEBP. سيتم ضغط الصورة تلقائيًا قبل الرفع، والحد الأقصى 4 ميجابايت.</p><div class="actions"><button class="btn gold">حفظ الخدمة</button></div></form>';
+if(m.type==="service")c='<div class="modal-title"><h3>إضافة خدمة جديدة</h3><p class="muted">أضف بيانات الخدمة لتظهر للعملاء على منصة وصلة.</p></div><form id="serviceForm">'+select("القسم","category_id",s.cats.map(x=>({value:x.id,label:x.name_ar})),"")+field("اسم الخدمة بالعربية","name_ar","text","مثال: صيانة التكييف","",true)+field("الاسم بالإنجليزية","name_en","text","Service name","",false)+'<label class="field">وصف الخدمة<textarea name="description" placeholder="اكتب وصفًا مختصرًا يوضح تفاصيل الخدمة..."></textarea></label><label class="field">صورة الخدمة (اختياري)<input type="file" name="service_image" accept="image/jpeg,image/png,image/webp"></label><p class="muted">الصيغ المدعومة: JPG وPNG وWEBP. سيتم ضغط الصورة تلقائيًا قبل الرفع، والحد الأقصى 4 ميجابايت.</p><div class="actions"><button class="btn gold">حفظ الخدمة</button></div></form>';
   
 if(m.type==="svcRate"){const sv=s.services.find(z=>z.id===m.serviceId)||{},own=s.svcRates&&s.svcRates.map[m.serviceId],d=s.svcRates&&s.svcRates.def;c='<div class="modal-title"><h3>عمولة الخدمة</h3><p class="muted">'+esc(sv.name_ar||"")+'</p></div><form id="svcRateForm"><input type="hidden" name="service_id" value="'+esc(m.serviceId)+'"><label class="field">نسبة العمولة (%)<input name="rate" type="number" inputmode="decimal" min="0" max="99.99" step="0.01" placeholder="'+(d!=null?"الافتراضي "+fmt(d):"")+'" value="'+(own!=null?esc(own):"")+'" required></label><p class="muted">من 0 إلى أقل من 100. تسري على المدفوعات الجديدة فقط، والمدفوعات السابقة تحتفظ بعمولتها المسجلة.</p><div class="actions"><button class="btn gold">حفظ</button>'+(own!=null?btn("svcrateclear","العودة للافتراضي"+(d!=null?" ("+fmt(d)+"%)":""),"light",m.serviceId,'type="button"'):"")+'</div></form>'}
-if(m.type==="category")c='<div class="modal-title"><h3>إضافة تصنيف جديد</h3><p class="muted">أنشئ تصنيفًا يساعد العملاء على الوصول للخدمات بسهولة.</p></div><form id="categoryForm">'+field("اسم التصنيف بالعربية","name_ar","text","مثال: صيانة منزلية","",true)+field("الاسم بالإنجليزية","name_en","text","Home Maintenance","",false)+field("الرابط المختصر","slug","text","home-maintenance","",true)+field("أيقونة التصنيف","icon","text","🔧","",false)+'<div class="actions"><button class="btn gold">حفظ التصنيف</button></div></form>';
+if(m.type==="category")c='<div class="modal-title"><h3>إضافة قسم جديد</h3><p class="muted">أنشئ قسمًا يساعد العملاء على الوصول للخدمات بسهولة.</p></div><form id="categoryForm">'+field("اسم القسم بالعربية","name_ar","text","مثال: صيانة منزلية","",true)+field("الاسم بالإنجليزية","name_en","text","Home Maintenance","",false)+field("الرابط المختصر","slug","text","home-maintenance","",true)+field("أيقونة القسم","icon","text","🔧","",false)+'<div class="actions"><button class="btn gold">حفظ القسم</button></div></form>';
   
 if(m.type==="addstaff"){
 c='<h3>إنشاء حساب موظف جديد</h3>'+
@@ -10019,7 +10135,7 @@ let r=await db.functions.invoke("admin-create-staff",{
  note("تم تحديث صلاحيات الموظف.","success");
  return;
   }
-  if(f.id==="categoryForm"){let v=vals(f),r=await db.rpc("admin_create_category",{p_name_ar:v.name_ar,p_name_en:v.name_en||null,p_slug:v.slug,p_icon:v.icon||null});if(r.error)throw r.error;s.modal=null;await loadUser(s.user);note("تمت إضافة التصنيف.","success");return}
+  if(f.id==="categoryForm"){let v=vals(f),r=await db.rpc("admin_create_category",{p_name_ar:v.name_ar,p_name_en:v.name_en||null,p_slug:v.slug,p_icon:v.icon||null});if(r.error)throw r.error;s.modal=null;await loadUser(s.user);note("تمت إضافة القسم.","success");return}
   if(f.id==="reviewForm"){let v=vals(f);const rt=Number(v.rating),sr=Number(v.service_rating),pr=Number(v.platform_rating);if(![rt,sr,pr].every(n=>Number.isInteger(n)&&n>=1&&n<=5))throw Error("قيّم الخدمة والفني والمنصة من 1 إلى 5.");let r=await db.from("reviews").insert({request_id:v.request_id,provider_id:v.provider_id,customer_id:s.user.id,rating:rt,service_rating:sr,platform_rating:pr,comment:(v.comment||"").trim()||null});if(r.error){if(r.error.code==="23505")throw Error("سبق أن قيّمت هذا الطلب.");throw r.error}s.modal=null;await refreshRoleData();note("تم إرسال تقييمك. شكرًا لك.","success");return}
 if(f.id==="sendMessage"){
  const v=vals(f);
@@ -11059,7 +11175,7 @@ if(a==="suspend-provider-open"){
  if(a==="svcrate"){if(!canEditCommission())return;s.modal={type:"svcRate",serviceId:id};render();return}
  if(a==="svcrateclear"){if(!canEditCommission())return;let r=await db.rpc("admin_set_service_commission_rate",{p_service_id:id,p_rate:null});if(r.error)throw r.error;s.modal=null;await loadSvcRates();note("رجعت الخدمة للعمولة الافتراضية.","success");return}
  if(a==="toggleservice"){let r=await db.rpc("toggle_service_active",{p_service_id:id});if(r.error)throw r.error;await loadUser(s.user);note("تم تحديث الخدمة.","success");return}
-  if(a==="togglecategory"){let r=await db.rpc("toggle_category_active",{p_category_id:id});if(r.error)throw r.error;await loadUser(s.user);note("تم تحديث التصنيف.","success");return}
+  if(a==="togglecategory"){let r=await db.rpc("toggle_category_active",{p_category_id:id});if(r.error)throw r.error;await loadUser(s.user);note("تم تحديث القسم.","success");return}
  }catch(x){console.error(x);note(x.message||"تعذّر تنفيذ العملية.","error")}
 }
 
@@ -11845,7 +11961,7 @@ async function boot(){
    new Promise((_,reject)=>setTimeout(()=>reject(new Error("timeout")),15000))
   ]);
  }catch(e){
-  status("توقف التحميل في المرحلة 1: بيانات الخدمات والتصنيفات.");
+  status("توقف التحميل في المرحلة 1: بيانات الخدمات والأقسام.");
   return;
  }
 
@@ -12048,6 +12164,7 @@ const addButton = () => {
  function title(sel){const l=sel.closest("label");if(!l)return "اختر";const c=l.cloneNode(true);c.querySelectorAll("select,.wsel,svg").forEach(x=>x.remove());return (c.textContent||"").trim()||"اختر"}
  function sync(sel){const w=sel._wsel;if(!w)return;const b=w.btn;const o=sel.options[sel.selectedIndex];const t=o?o.textContent:"";const sp=b.querySelector("span");sp.textContent=t||"اختر";sp.className=(!o||o.value==="")?"ph":"";b.disabled=sel.disabled}
  function build(sel){
+  if(typeof cui!=="function")return;
   if(sel._wsel||sel.multiple||sel.size>1||sel.matches(SKIP))return;
   const w=document.createElement("div");w.className="wsel";
   const b=document.createElement("button");b.type="button";b.className="wsel-btn";b.innerHTML="<span></span>"+cui("chev",18);
