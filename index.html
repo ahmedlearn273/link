@@ -3384,7 +3384,7 @@ cs:{title:"خدمة العملاء",sub:"تذاكر الدعم من العملا
 offers:{title:"العروض والخصومات",sub:"عروض معلنة وأكواد خصم. الخصم تتحمله المنصة والعميل لا يرى العمولة.",tabs:[
  {k:"pr",l:"العروض",rpc:"admin_list_promotions",args:()=>({p_status:null,p_limit:50}),title:r=>r.title||"—",cols:[["code","الكود",v=>v||"—"],["discount_value","الخصم",(v,r)=>r.discount_type==="percent"?fmt(v)+"%":fEGP(v)],["starts_at","من",fD],["ends_at","إلى",fD],["funded_by","يتحمله",v=>v==="provider"?"المزود":v==="platform"?"المنصة":"—"],["used_count","الاستخدام",(v,r)=>fmt(v||0)+(r.usage_limit?" / "+fmt(r.usage_limit):"")],["status","الحالة",sT]],
   acts:[{l:"إيقاف",rpc:"admin_toggle_promotion",args:r=>({p_id:r.id,p_active:false}),when:r=>r.status==="active"||r.status==="scheduled"},{l:"تفعيل",rpc:"admin_toggle_promotion",args:r=>({p_id:r.id,p_active:true}),when:r=>r.status==="paused"}],
-  form:{l:"عرض جديد",rpc:"admin_upsert_promotion",f:[["p_title","اسم العرض","text"],["p_kind","النوع","select",[["offer","عرض معلن"],["code","كود خصم"]]],["p_code","الكود (لأكواد الخصم، حروف إنجليزية)","text",1],["p_discount_type","نوع الخصم","select",[["percent","نسبة %"],["fixed","مبلغ ثابت"]]],["p_discount_value","قيمة الخصم","number"],["p_funded_by","مين يتحمل الخصم","select",[["platform","المنصة (الافتراضي)"],["provider","المزود"]]],["p_max_discount","أقصى خصم (اختياري)","number",1],["p_min_order","أقل قيمة طلب (اختياري)","number",1],["p_starts_at","يبدأ","date"],["p_ends_at","ينتهي (اختياري)","date",1],["p_usage_limit","حد الاستخدام (اختياري)","number",1]],tpl:{p_id:null,p_description:null,p_service_ids:[],p_category_ids:[],p_audiences:["customers"],p_city_ids:[],p_per_user_limit:1,p_is_active:true},up:["p_code"]}},
+  form:{l:"عرض جديد",rpc:"admin_upsert_promotion",f:[["p_title","اسم العرض","text"],["p_kind","النوع","select",[["offer","عرض معلن"],["code","كود خصم"]]],["p_code","الكود (لأكواد الخصم، حروف إنجليزية)","text",1],["p_discount_type","نوع الخصم","select",[["percent","نسبة %"],["fixed","مبلغ ثابت"]]],["p_discount_value","قيمة الخصم","number"],["p_funded_by","مين يتحمل الخصم","select",[["platform","المنصة (الافتراضي)"],["provider","المزود"]]],["p_max_discount","أقصى خصم (اختياري)","number",1],["p_min_order","أقل قيمة طلب (اختياري)","number",1],["p_starts_at","يبدأ","date"],["p_ends_at","ينتهي (اختياري)","date",1],["p_usage_limit","حد إجمالي للاستخدام (اختياري)","number",1],["p_per_user_limit","حد لكل مستخدم (الافتراضي 1)","number",1]],tpl:{p_id:null,p_description:null,p_service_ids:[],p_category_ids:[],p_audiences:["customers"],p_city_ids:[],p_is_active:true},up:["p_code"]}},
  {k:"rd",l:"الاستخدامات",rpc:"admin_list_promotion_redemptions",args:()=>({p_promotion_id:null,p_status:null,p_limit:100,p_offset:0}),title:r=>(r.code||r.title||"—")+(r.customer_name?" · "+r.customer_name:""),cols:[["discount_amount","الخصم",fEGP],["original_amount","قيمة الطلب",fEGP],["funded_by","يتحمله",v=>v==="provider"?"المزود":"المنصة"],["status","الحالة",v=>({reserved:"محجوز",applied:"اتطبق",cancelled:"ملغي"}[v]||v)],["created_at","التاريخ",fD]]}
 ]},
 adsmgr:{title:"الإعلانات",sub:"إعلانات داخل التطبيق حسب المكان والجمهور.",tabs:[
@@ -3465,13 +3465,14 @@ document.addEventListener("submit",async e=>{
  if(f.dataset.edit==="1"&&st.detail!=null){const row=(st.data[t.k]||[])[st.detail]||{};Object.keys(args).forEach(k=>{const v=row[k.slice(2)];if(v!==undefined&&v!==null)args[k]=v});args.p_id=row.id}
  fm.f.forEach(x=>{let v=fd.get(x[0]);v=v===""?null:v;if(x[2]==="number"&&v!=null)v=Number(v);if(x[0]==="p_code"&&v)v=String(v).toUpperCase();args[x[0]]=v});
  if(fm.derive)args=fm.derive(args);
- if(id==="offers"){args.p_starts_at=args.p_starts_at?args.p_starts_at+"T00:00:00+03:00":new Date().toISOString();if(args.p_ends_at)args.p_ends_at=args.p_ends_at+"T23:59:59+03:00"}
+ if(id==="offers"){args.p_per_user_limit=Number(args.p_per_user_limit)>0?Number(args.p_per_user_limit):1;args.p_starts_at=args.p_starts_at?args.p_starts_at+"T00:00:00+03:00":new Date().toISOString();if(args.p_ends_at)args.p_ends_at=args.p_ends_at+"T23:59:59+03:00"}
  if(id==="adsmgr"){args.p_starts_at=args.p_starts_at?args.p_starts_at+"T00:00:00+03:00":new Date().toISOString();if(args.p_ends_at)args.p_ends_at=args.p_ends_at+"T23:59:59+03:00"}
  try{let r=await db.rpc(fm.rpc,args);if(r.error&&id==="offers"&&args.p_funded_by==="platform"&&/funded_by|PGRST202|schema cache/i.test(String(r.error.message||r.error.code||""))){const a2=Object.assign({},args);delete a2.p_funded_by;r=await db.rpc(fm.rpc,a2)}if(r.error)throw r.error;note("تم الحفظ.","success");st.form=false;if(f.dataset.edit!=="1")st.detail=null;await secLoad(id)}
  catch(err){note("تعذّر الحفظ: "+String(err&&err.message||err),"error");render()}
 },true);
 
 /* ===== Promo code at quote acceptance (fail-soft: needs validate_promotion / redeem_promotion / get_request_discount) ===== */
+function promoErrAr(m){m=String(m||"");if(/expire|ended|date/i.test(m))return"الكود انتهت صلاحيته.";if(/limit|exhaust|max|used/i.test(m))return"الكود وصل للحد الأقصى من الاستخدام.";return"الكود ما اتطبقش. حاول تاني."}
 async function payPromoApply(requestId){
  s.payCode=s.payCode||{};
  const inp=document.querySelector('[data-pc="'+requestId+'"]');
@@ -3485,7 +3486,7 @@ async function payPromoApply(requestId){
   const d=v.data||{};
   if(!d.valid){s.payCode[requestId]={code,msg:d.message||"الكود غير صحيح",valid:false};render();return}
   const r=await db.rpc("redeem_promotion",{p_code:code,p_request_id:requestId});
-  if(r.error){s.payCode[requestId]={code,msg:"الكود ما اتطبقش: "+String(r.error.message||"حاول تاني"),valid:false};render();return}
+  if(r.error){s.payCode[requestId]={code,msg:promoErrAr(r.error.message),valid:false};render();return}
   s.payCode[requestId]={code,msg:"تم تطبيق الكود.",valid:true};
   if(s.reqDisc)delete s.reqDisc[requestId];
   await loadReqDisc(requestId);
@@ -4940,13 +4941,8 @@ function payDueHtml(q,p,cur){
  let h='<div class="item" style="margin-top:8px">'+row("الإجمالي",moneyAr(gross,cur));
  if(disc>0)h+=row("كود الخصم"+(d.code?" ("+esc(d.code)+")":""),'<span style="color:#0a7a3b">'+moneyAr(-disc,cur)+'</span>');
  h+=row("المستحق للدفع",moneyAr(due,cur))+'</div>';
- if(!(d&&d.has_discount)&&p.payment_status==="pending"){
-  const pc=(s.payCode&&s.payCode[q.id])||{};
-  h+='<div style="display:flex;gap:8px;align-items:center;margin:8px 0 0"><input class="input" data-pc="'+esc(q.id)+'" dir="ltr" autocomplete="off" placeholder="عندك كود خصم؟" value="'+esc(pc.code||"")+'" style="flex:1;min-width:0;width:auto"><button type="button" class="btn light" data-a="pay-promo" data-id="'+esc(q.id)+'" style="flex:none;width:auto"'+(pc.busy?" disabled":"")+'>تحقق</button></div>';
-  if(pc.msg)h+='<div class="notice '+(pc.valid?"success":"error")+'" style="margin-top:8px">'+esc(pc.msg)+'</div>';
- }
- if(PAYMENTS.online&&p.payment_method==="platform"&&s.payIntents&&s.payIntents[q.id])h+='<div class="actions">'+tag("في انتظار التحصيل")+'</div>';
- else h+='<div class="actions">'+btn("pay-now","ادفع "+moneyAr(due,false)+" "+cur,"gold",q.id)+'</div>';
+ if(PAYMENTS.online&&s.payIntents&&s.payIntents[q.id])h+='<div class="actions">'+tag("في انتظار التحصيل")+'</div>';
+ else h+='<div class="actions">'+btn("pay-now","اختار طريقة الدفع","gold",q.id)+'</div>';
  return h;
 }
 function paymentBlock(q,provider,own){
@@ -9160,6 +9156,33 @@ if(m.type==="quoteRespond"){
   '</div>'+
  '</form>';
 }
+  if(m.type==="payMethods"){
+   const rid=m.requestId,pay=(s.payments&&s.payments[rid])||{},cur=String(pay.currency||"EGP").trim(),gross=Number(pay.amount||0);
+   s.reqDisc=s.reqDisc||{};
+   if(s.reqDisc[rid]===undefined)setTimeout(()=>loadReqDisc(rid),0);
+   const dd=s.reqDisc[rid],disc=dd&&dd.has_discount?Number(dd.discount_amount||0):0,due=Math.max(0,gross-disc);
+   const on=!!PAYMENTS.online,sel=(m.method==="platform"&&on)?"platform":"cash",sub=m.sub||"";
+   const pc=(s.payCode&&s.payCode[rid])||{};
+   const ln=(a,b,st)=>'<div style="display:flex;justify-content:space-between;gap:8px;padding:4px 0"><span>'+a+'</span><b'+(st?' style="'+st+'"':'')+'>'+b+'</b></div>';
+   const dot=(on2)=>'<span aria-hidden="true" style="flex:none;width:20px;height:20px;border-radius:50%;border:2px solid '+(on2?"var(--primary-color,#0f4c5c)":"var(--border-color,#cfc9bf)")+';box-sizing:border-box;display:flex;align-items:center;justify-content:center">'+(on2?'<i style="width:10px;height:10px;border-radius:50%;background:var(--primary-color,#0f4c5c);display:block"></i>':"")+'</span>';
+   const card=(k,icon,title,desc,enabled,badge)=>'<button type="button" data-a="paym-pick" data-id="'+k+'"'+(enabled?"":" disabled")+' style="display:flex;gap:12px;align-items:flex-start;width:100%;text-align:right;padding:14px;margin:0 0 10px;border-radius:16px;background:var(--card-bg,#fff);color:inherit;cursor:'+(enabled?"pointer":"not-allowed")+';opacity:'+(enabled?1:.62)+';border:2px solid '+(sel===k&&enabled?"var(--primary-color,#0f4c5c)":"var(--border-color,#e6e2dc)")+'">'+
+    '<span style="flex:none;width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:'+(sel===k&&enabled?"rgba(15,76,92,.10)":"var(--border-color,#efece6)")+'">'+icon+'</span>'+
+    '<span style="flex:1;min-width:0"><span style="display:flex;align-items:center;gap:8px;justify-content:space-between"><b style="font-size:16px">'+title+'</b>'+(badge?'<span style="font-size:12px;padding:2px 8px;border-radius:999px;background:#f3e3d0;color:#8a4b0f">'+badge+'</span>':dot(sel===k))+'</span>'+
+    '<span class="muted" style="display:block;margin-top:4px;font-size:13px;line-height:1.7">'+desc+'</span></span></button>';
+   const svg=(d)=>'<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+d+'</svg>';
+   const subs=[["card","بطاقة بنكية"],["wallet","محفظة إلكترونية"],["instapay","إنستاباي"]];
+   const subHtml=(sel==="platform")?'<div style="margin:-2px 0 10px;padding:4px 10px 4px;border-radius:14px;background:var(--bg-subtle,#f6f3ee)">'+subs.map(x=>'<button type="button" data-a="paym-sub" data-id="'+x[0]+'" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:11px 4px;background:none;border:0;color:inherit;text-align:right;cursor:pointer"><span>'+x[1]+'</span>'+dot(sub===x[0])+'</button>').join("")+'</div>':"";
+   const codeHtml=(dd&&dd.has_discount)?"":'<div style="display:flex;gap:8px;align-items:center;margin-bottom:10px"><input class="input" data-pc="'+esc(rid)+'" dir="ltr" autocomplete="off" placeholder="عندك كود خصم؟" value="'+esc(pc.code||"")+'" style="flex:1;min-width:0;width:auto"><button type="button" class="btn light" data-a="pay-promo" data-id="'+esc(rid)+'" style="flex:none;width:auto"'+(pc.busy?" disabled":"")+'>تحقق</button></div>'+(pc.msg?'<div class="notice '+(pc.valid?"success":"error")+'" style="margin:-2px 0 10px">'+esc(pc.msg)+'</div>':"");
+   const can=sel==="cash"||!!sub;
+   c='<div class="modal-title"><h3>اختار طريقة الدفع</h3><p class="muted">المبلغ واحد في الطريقتين.</p></div>'+
+    codeHtml+
+    '<div class="item" style="margin-bottom:14px">'+ln("الإجمالي",LTR(esc(fmt(gross))+" "+cur))+(disc>0?ln("كود الخصم"+(dd&&dd.code?" ("+esc(dd.code)+")":""),LTR("-"+esc(fmt(disc))+" "+cur),"color:#0a7a3b"):"")+
+    '<div style="border-top:1px dashed var(--border-color,#e6e2dc);margin:6px 0"></div>'+ln("المستحق للدفع",'<span style="font-size:18px">'+LTR(esc(fmt(due))+" "+cur)+'</span>')+'</div>'+
+    card("cash",svg('<rect x="2.5" y="6" width="19" height="12" rx="2.5"/><circle cx="12" cy="12" r="2.8"/><path d="M6 9.5v.01M18 14.5v.01"/>'),"كاش لمزود الخدمة","ادفع المبلغ نقدًا لمزود الخدمة بعد ما يخلّص الشغل. المزود هو اللي بيأكد إنه استلم الفلوس.",true,"")+
+    card("platform",svg('<rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M2.5 10h19M6.5 15h4"/>'),"دفع إلكتروني عبر المنصة","الدفع بيتم جوه التطبيق وبيتسجل تلقائيًا.",on,on?"":"قريبًا")+
+    subHtml+
+    '<div class="actions" style="margin-top:6px"><button type="button" class="btn gold" data-a="paym-confirm" style="flex:1"'+(can?"":" disabled")+'>'+(sel==="platform"?"ادفع ":"تأكيد الكاش · ")+LTR(esc(fmt(due))+" "+cur)+'</button></div>';
+  }
   if(m.type==="quoteAccept"){
 
  if(s.profile?.role!=="customer")
@@ -11836,18 +11859,22 @@ if(a==="cancelrequest"){
   if(a==="receipt"){s.modal={type:"receipt",paymentId:id};render();return}
   if(a==="receipt-img"||a==="receipt-pdf"){await receiptExport(id,a==="receipt-pdf"?"pdf":"img");return}
   if(a==="wallet-more"){await loadWallet(true);return}
-  if(a==="pay-now"){
-   const p=s.payments&&s.payments[id],d=s.reqDisc&&s.reqDisc[id],due=Math.max(0,Number(p&&p.amount||0)-(d&&d.has_discount?Number(d.discount_amount||0):0));
-   if(PAYMENTS.online&&p&&p.payment_method==="platform"){
-    const r=await db.rpc("create_online_payment_intent",{p_request_id:id});
+  if(a==="pay-now"){s.modal={type:"payMethods",requestId:id,method:"cash",sub:""};render();if(!(s.reqDisc&&s.reqDisc[id]!==undefined))loadReqDisc(id);return}
+  if(a==="paym-pick"){if(s.modal&&s.modal.type==="payMethods"){s.modal.method=id;if(id!=="platform")s.modal.sub="";render()}return}
+  if(a==="paym-sub"){if(s.modal&&s.modal.type==="payMethods"){s.modal.sub=id;render()}return}
+  if(a==="paym-confirm"){
+   const m0=s.modal;if(!m0||m0.type!=="payMethods")return;
+   const rid=m0.requestId,p=s.payments&&s.payments[rid],d=s.reqDisc&&s.reqDisc[rid],due=Math.max(0,Number(p&&p.amount||0)-(d&&d.has_discount?Number(d.discount_amount||0):0));
+   if(m0.method==="platform"&&PAYMENTS.online){
+    const r=await db.rpc("create_online_payment_intent",{p_request_id:rid,p_method:m0.sub});
     if(r.error){note("الدفع الإلكتروني مش متاح دلوقتي. جرب بعد شوية.","error");return}
-    const d=r.data||{};
-    if(d.redirect_url&&/^https:\/\//.test(String(d.redirect_url))){window.location.href=d.redirect_url;return}
-    s.payIntents=s.payIntents||{};s.payIntents[id]=d.intent_id||true;render();
+    const dt=r.data||{};
+    if(dt.redirect_url&&/^https:\/\//.test(String(dt.redirect_url))){window.location.href=dt.redirect_url;return}
+    s.payIntents=s.payIntents||{};s.payIntents[rid]=dt.intent_id||true;s.modal=null;render();
     note("تم تسجيل الدفعة وفي انتظار التحصيل.","success");return;
    }
-   if(p&&p.payment_method==="cash")note("ادفع "+fmt(due)+" EGP كاش لمزود الخدمة. أول ما يأكد استلام الفلوس هيظهر لك تقييم الخدمة.","info");
-   else note("الدفع الإلكتروني لسه مش متاح. ادفع كاش لمزود الخدمة وهو هيأكد الاستلام.","error");
+   s.modal=null;render();
+   note("ادفع "+fmt(due)+" EGP كاش لمزود الخدمة. أول ما يأكد استلام الفلوس هيظهر لك تقييم الخدمة.","info");
    return;
   }
   if(a==="cash-received"){
