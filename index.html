@@ -3652,7 +3652,7 @@ function paymentsView(){
    const q=(s.requests||[]).find(r=>r.id===x.request_id)||{};
    const cur=esc(String(x.currency||"EGP").trim());
    const paid=x.payment_status==="paid";
-   return '<div class="cu-pay"><span class="d'+(paid?"":" w")+'">'+cui(paid?"ok":"hour")+'</span><div class="t"><b>'+esc(q.title||q.services?.name_ar||"طلب خدمة")+'</b><small>'+esc(fmtDateAr(x.paid_at||x.created_at))+' · '+(x.payment_method==="cash"?"كاش":"عبر المنصة")+'</small></div>'+
+   return '<div class="cu-pay"><span class="d'+(paid?"":" w")+'">'+cui(paid?"ok":"hour")+'</span><div class="t"><b>'+esc(q.title||q.services?.name_ar||"طلب خدمة")+'</b><small>'+esc(fmtDateAr(x.paid_at||x.created_at))+' · '+(x.payment_method==="cash"?"كاش":"عبر المنصة")+'</small><div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">'+codeTag(idCode("PAY",x.id))+codeTag(reqCode(x.request_id))+'</div></div>'+
     '<div class="e"><strong>'+moneyAr(x.amount)+' '+cur+'</strong>'+(paid?'<button type="button" data-a="receipt" data-id="'+esc(x.id)+'">الإيصال</button>':tag(paymentStatusAr(x)))+'</div></div>';
   }).join("")+'</div>':empty("لا توجد مدفوعات حتى الآن"))+
   '</section>';
@@ -3872,7 +3872,7 @@ function paymentBlock(q,provider,own){
  const cur=esc(String(p.currency||"EGP").trim());
  const method=p.payment_method==="cash"?"كاش":"عبر المنصة";
  let h='<div class="wasla-pay-block"><div class="row"><b>الدفع</b>'+tag(paymentStatusAr(p))+'</div>'+
-  '<p>المبلغ: '+moneyAr(p.amount)+' '+cur+' · طريقة الدفع: '+method+'</p>';
+  '<p>المبلغ: '+moneyAr(p.amount)+' '+cur+' · طريقة الدفع: '+method+'</p><p class="small">رمز الدفعة: '+codeTag(idCode("PAY",p.id))+'</p>';
  if(provider&&own){
   h+='<p>عمولة المنصة ('+fmt(p.commission_rate)+'%): '+moneyAr(p.commission_amount)+' '+cur+' · صافي نصيبك: '+moneyAr(p.provider_amount)+' '+cur+'</p>';
   if(p.payment_method==="cash"&&p.payment_status==="pending")h+='<div class="actions">'+btn("cash-received","استلمت الفلوس","green",q.id)+'</div>';
@@ -3923,7 +3923,7 @@ function walletView(){
    const a=Number(e.amount||0);
    const col=a<0?'var(--danger)':'var(--success)';
    return '<article class="item"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><b>'+esc(WALLET_LABELS[e.entry_type]||e.entry_type)+'</b><span style="flex:none;min-width:64px;text-align:center;padding:5px 12px;border-radius:10px;border:1px solid '+col+';color:'+col+';font-weight:800;background:color-mix(in srgb,'+col+' 10%,transparent)">'+moneyAr(a)+'</span></div>'+
-    '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:6px"><span class="small">'+esc(new Date(e.created_at).toLocaleString("ar-EG"))+'</span><span class="small" style="white-space:nowrap">الرصيد بعدها: '+moneyAr(e.running_balance)+'</span></div>'+
+    '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:6px"><span class="small">'+esc(new Date(e.created_at).toLocaleString("ar-EG"))+(e.id?' · '+codeTag(idCode("WLT",e.id)):'')+'</span><span class="small" style="white-space:nowrap">الرصيد بعدها: '+moneyAr(e.running_balance)+'</span></div>'+
     (e.note?'<p class="small">'+esc(e.note)+'</p>':'')+'</article>';
   }).join("")||empty("لا توجد حركات حتى الآن"))+
   '</div>'+
@@ -6322,14 +6322,14 @@ async function viewPrimeKnowledgeDocument(documentId){
             },
             timeline:v=>v.map(x=>item('<div class="row rqd-head"><b>'+esc(L(EVT,x.type))+'</b><span class="small">'+esc(rqDate(x.at))+'</span></div><div class="small">'+esc(role(x.actor_role)+(x.actor_code?" ("+x.actor_code+")":""))+'</div>'+((x.old_status||x.new_status)?'<div class="small">'+esc(st(x.old_status)+" ← "+st(x.new_status))+'</div>':"")+asmx0(x)+cnmx(x))).join(""),
             quotes:v=>v.map(q=>item(
-              '<div class="row rqd-head"><b>عرض سعر ('+esc(L(QST,q.status))+')</b><span class="small">النسخة الحالية: '+esc(q.current_version??"—")+'</span></div><div class="small">'+esc(rqDate(q.created_at))+'</div>'+
+              '<div class="row rqd-head"><b>عرض سعر ('+esc(L(QST,q.status))+')'+(idCode("REQ",q.id||q.quote_id)?' '+codeTag(idCode("REQ",q.id||q.quote_id)):'')+'</b><span class="small">النسخة الحالية: '+esc(q.current_version??"—")+'</span></div><div class="small">'+esc(rqDate(q.created_at))+'</div>'+
               ((q.versions||[]).length?'<div class="small"><b>الإصدارات</b></div>'+q.versions.map(x=>'<div class="card"><div class="row rqd-head"><b>النسخة '+esc(x.version_number)+'</b><b>'+esc(money(x.amount,x.currency))+'</b></div>'+kv("النطاق",x.scope_description)+kv("المدة المقدرة",x.estimated_duration)+kv("بداية مقترحة",x.proposed_start_at?rqDate(x.proposed_start_at):null)+kv("صالح حتى",x.valid_until?rqDate(x.valid_until):null)+kv("شروط إضافية",x.additional_terms)+kv("فاتورة الخامات مطلوبة",x.materials_invoice_required===true?"نعم":x.materials_invoice_required===false?"لا":null)+sched(x.payment_schedule)+'</div>').join(""):"")+
               ((q.events||[]).length?'<div class="small"><b>الأحداث</b></div>'+q.events.map(x=>'<div class="small">'+esc(rqDate(x.created_at)+" - "+L(EVT,x.event_type)+" - "+role(x.actor_role)+(x.note?" - "+x.note:""))+'</div>').join(""):"")+
               ((q.agreements||[]).length?'<div class="small"><b>الاتفاقات</b></div>'+q.agreements.map(x=>'<div class="card">'+kv("المبلغ المتفق عليه",money(x.agreed_amount,x.currency))+kv("طريقة الدفع",x.payment_method?L(PM,x.payment_method):null)+kv("تاريخ الاتفاق",rqDate(x.agreed_at))+sched(x.payment_schedule)+'</div>').join(""):"")+
               ((q.approvals||[]).length?'<div class="small"><b>الموافقات</b></div>'+q.approvals.map(x=>'<div class="small">'+esc(role(x.actor_role)+(x.actor_name?" ("+x.actor_name+")":"")+" - "+rqDate(x.approved_at)+(x.payment_method?" - "+L(PM,x.payment_method):""))+'</div>').join(""):"")
             )).join(""),
             chat:v=>wcAdminChat(v,role,L,MT),
-            payments:v=>v.map(x=>item('<div class="row rqd-head"><b>'+esc(money(x.amount,x.currency))+'</b><span class="small">'+esc(L(PS,x.payment_status))+'</span></div>'+kv("طريقة الدفع",x.payment_method?L(PM,x.payment_method):null)+kv("نسبة العمولة",x.commission_rate)+kv("مبلغ العمولة",money(x.commission_amount,x.currency))+kv("مستحق مقدم الخدمة",money(x.provider_amount,x.currency))+kv("تاريخ الدفع",x.paid_at?rqDate(x.paid_at):null)+kv("تاريخ الإنشاء",x.created_at?rqDate(x.created_at):null))).join(""),
+            payments:v=>v.map(x=>item('<div class="row rqd-head"><b>'+esc(money(x.amount,x.currency))+(idCode("PAY",x.id||x.payment_id)?' '+codeTag(idCode("PAY",x.id||x.payment_id)):'')+'</b><span class="small">'+esc(L(PS,x.payment_status))+'</span></div>'+kv("طريقة الدفع",x.payment_method?L(PM,x.payment_method):null)+kv("نسبة العمولة",x.commission_rate)+kv("مبلغ العمولة",money(x.commission_amount,x.currency))+kv("مستحق مقدم الخدمة",money(x.provider_amount,x.currency))+kv("تاريخ الدفع",x.paid_at?rqDate(x.paid_at):null)+kv("تاريخ الإنشاء",x.created_at?rqDate(x.created_at):null))).join(""),
             notes:v=>v.map(x=>item('<div class="row rqd-head"><b>'+esc(x.author_name||"—")+'</b><span class="small">'+esc(x.created_at?rqDate(x.created_at):"—")+'</span></div><p>'+esc(x.note||"")+'</p>')).join(""),
             audit:v=>v.map(x=>item('<div class="row rqd-head"><b>'+esc(L(ACT,x.action))+'</b><span class="small">'+esc(rqDate(x.created_at))+'</span></div><div class="small">'+esc(role(x.actor_role)+(x.actor_code?" ("+x.actor_code+")":"")+" - "+(x.result?L(RES,x.result):""))+'</div>'+((x.old_status||x.new_status)?'<div class="small">'+esc(st(x.old_status)+" ← "+st(x.new_status))+'</div>':"")+asmx0(x)+cnmx(x))).join(""),
             customer_contact:v=>{
