@@ -5624,7 +5624,7 @@ function customer(){
    const act=(a,t,c)=>'<button type="button" class="'+(c||"")+'" data-a="'+a+'" data-id="'+esc(q.id)+'">'+t+'</button>';
    return '<article class="cu-req"><div class="hd"><div><b>'+esc(requestTitle)+'</b><small>'+esc(requestDate)+' · '+reqCodeTag(q.id)+'</small></div>'+tag(q.status)+'</div>'+
     (location?'<div class="loc">'+cui("pin",14)+esc(location)+'</div>':"")+
-    '<div class="pv">'+(pn?'<span class="a">'+esc(pn.trim().slice(0,1))+'</span><b>'+esc(pn)+'</b>':'<span class="a" style="background:var(--border-color);color:var(--text-secondary)">؟</span><span class="w">بانتظار تعيين مقدم خدمة</span>')+'</div>'+
+    '<div class="pv">'+(pn?'<span class="a">'+esc(pn.trim().slice(0,1))+'</span><b>'+esc(pn)+'</b>':q.provider_id?'<span class="a">م</span><b>مزود الخدمة</b>':'<span class="a" style="background:var(--border-color);color:var(--text-secondary)">؟</span><span class="w">بانتظار تعيين مقدم خدمة</span>')+'</div>'+
     (q.description?'<p>'+esc(q.description)+'</p>':"")+
     (q.status==="completed"&&s.payments&&s.payments[q.id]&&s.payments[q.id].payment_status==="pending"?'<div class="pay-page"><b>الدفع</b>'+payDueHtml(q,s.payments[q.id],String(s.payments[q.id].currency||"EGP").trim())+'</div>':"")+
     '<div class="cu-act">'+act("request-details","تفاصيل الطلب")+
