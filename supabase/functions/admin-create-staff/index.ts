@@ -12,7 +12,8 @@ const allowed = [
   "services.manage", "categories.view", "categories.manage", "messages.view",
   "payments.view", "payments.manage", "reports.view", "ads.view", "ads.manage",
   "settings.view", "settings.manage",
-  "wallet.view", "wallet.manage", "payouts.prepare"
+  "wallet.view", "wallet.manage", "payouts.prepare",
+  "hr.view", "hr.manage"
 ];
 
 const financialKeys = [
@@ -23,6 +24,8 @@ const financialKeys = [
 const financialRestrictedMessage = "Financial permissions are restricted to FIN staff";
 
 const hierarchy: Record<string, string> = {
+  GM: "المدير العام",
+  HR: "الموارد البشرية",
   ASV: "مشرف منطقة",
   OPS: "العمليات",
   FIN: "المالية",

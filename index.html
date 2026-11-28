@@ -3336,7 +3336,7 @@ document.addEventListener("click",async e=>{
 });
 /* ===== محرك أقسام الإدارة (مالية، خدمة عملاء، عروض، إعلانات، تسويق) — fail-soft ===== */
 const ORG={ranks:[],managers:[],loaded:false,loading:false,err:""};
-const ORG_DEPTS={ASV:"مشرف منطقة",OPS:"العمليات",FIN:"المالية",SUP:"خدمة العملاء",MKT:"التسويق",TEC:"التقنية"};
+const ORG_DEPTS={GM:"المدير العام",HR:"الموارد البشرية",ASV:"مشرف منطقة",OPS:"العمليات",FIN:"المالية",SUP:"خدمة العملاء",MKT:"التسويق",TEC:"التقنية"};
 async function orgLoad(){
  if(ORG.loading)return;ORG.loading=true;
  try{const [a,b]=await Promise.all([db.rpc("staff_ranks_list"),db.rpc("staff_list_managers")]);if(a.error)throw a.error;
@@ -3676,7 +3676,7 @@ document.addEventListener("click",e=>{
  else{s.mode=s.legalBack||"welcome";render();window.scrollTo(0,0)}
 },true);
 const TW={rooms:[],people:[],cur:null,msgs:[],err:{},loaded:false,loading:false,tab:"depts",timer:null,sending:false};
-const TW_DEPTS=[["ASV","مشرفو المناطق"],["OPS","العمليات"],["FIN","المالية"],["SUP","الدعم"],["MKT","التسويق"],["TEC","التقنية"]];
+const TW_DEPTS=[["GM","المدير العام"],["HR","الموارد البشرية"],["ASV","مشرفو المناطق"],["OPS","العمليات"],["FIN","المالية"],["SUP","الدعم"],["MKT","التسويق"],["TEC","التقنية"]];
 const TW_CSS='<style>.tw-sec .btn{border-radius:999px}.tw-tabs{display:flex;gap:8px;margin:10px 0}.tw-tabs button{flex:1;border:1px solid var(--border-color);background:var(--bg-surface);color:var(--text-primary);border-radius:999px;padding:9px;font:inherit;font-weight:700;cursor:pointer}.tw-tabs button.on{background:linear-gradient(135deg,var(--primary),var(--primary-hover));color:#fff;border-color:transparent}.tw-li{display:flex;align-items:center;gap:12px;background:var(--bg-surface);border:1px solid var(--border-color);border-radius:16px;padding:10px 12px;margin-top:8px;cursor:pointer;box-shadow:var(--surface-shadow);width:100%;text-align:right;font:inherit;color:inherit}.tw-li .sf-av{width:42px;height:42px;font-size:1rem}.tw-li .nm{flex:1;min-width:0}.tw-li .nm b{display:block}.tw-li .nm small{color:var(--text-secondary);display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.tw-chat{display:flex;flex-direction:column;height:calc(100vh - 250px);min-height:380px}.tw-msgs{flex:1;overflow:auto;padding:8px 2px;display:flex;flex-direction:column;gap:8px}.tw-b{max-width:80%;padding:8px 12px;border-radius:16px;line-height:1.7;font-size:.92rem;word-break:break-word;white-space:pre-wrap}.tw-b small{display:block;font-size:.7rem;opacity:.7;margin-bottom:2px}.tw-b.me{align-self:flex-start;background:linear-gradient(135deg,var(--primary),var(--primary-hover));color:#fff}.tw-b.ot{align-self:flex-end;background:var(--bg-subtle);border:1px solid var(--border-color)}.tw-in{display:flex;gap:8px;padding-top:8px}.tw-in input{flex:1;border-radius:999px;margin:0}</style>';
 function twTime(x){try{return new Date(x).toLocaleTimeString("ar-EG-u-nu-latn",{hour:"2-digit",minute:"2-digit"})}catch(_){return ""}}
 async function twLoad(){
@@ -4564,20 +4564,27 @@ document.addEventListener("change",async e=>{
 });
 
 /* ===== ملف الموظف المهني + أدمن تحت المالك ===== */
-const SF={id:null,loading:false,data:null,err:"",msg:""};
+const SF={id:null,loading:false,data:null,err:"",msg:"",hr:false,docs:null,docsErr:""};
 const SF_SECS=[
  {k:"penalties",t:"الجزاءات",rpc:"admin_add_staff_penalty",cols:[["date","التاريخ","date"],["type","النوع","text"],["amount","الخصم","money"],["reason","السبب","text"]],form:[["date","التاريخ","date"],["type","نوع الجزاء","text"],["amount","قيمة الخصم","number"],["reason","السبب","text"]],map:v=>({p_date:v.date||null,p_type:v.type,p_amount:v.amount===""?null:Number(v.amount),p_reason:v.reason||null})},
  {k:"leaves",t:"الإجازات",rpc:"admin_add_staff_leave",cols:[["leave_type","النوع","text"],["from_date","من","date"],["to_date","إلى","date"],["days","الأيام","num"],["note","ملاحظة","text"]],form:[["leave_type","نوع الإجازة","text"],["from_date","من","date"],["to_date","إلى","date"],["note","ملاحظة","text"]],map:v=>({p_leave_type:v.leave_type,p_from:v.from_date,p_to:v.to_date,p_note:v.note||null})},
  {k:"advances",t:"السلف",rpc:"admin_add_staff_advance",cols:[["date","التاريخ","date"],["amount","المبلغ","money"],["installment","القسط الشهري","money"],["remaining","المتبقي","money"],["note","ملاحظة","text"]],form:[["date","التاريخ","date"],["amount","مبلغ السلفة","number"],["installment","القسط الشهري","number"],["note","ملاحظة","text"]],map:v=>({p_date:v.date||null,p_amount:Number(v.amount),p_installment:v.installment===""?null:Number(v.installment),p_note:v.note||null})}
 ];
 function sfIsOwner(){return s.profile?.role==="owner"}
-function sfPerson(id){return (s.staff||[]).concat(s.admins||[]).find(x=>x.id===id)}
+function sfPerson(id){return (s.staff||[]).concat(s.admins||[],HR.rows||[]).find(x=>x.id===id)}
+function sfRpc(n){return SF.hr?n.replace("admin_","hr_"):n}
+function hrCanManage(){const r=s.profile&&s.profile.role;return r==="owner"||r==="admin"||canContact("hr.manage")}
 async function sfLoad(id){
  SF.id=id;SF.loading=true;SF.err="";SF.data=null;render();
- try{const r=await db.rpc("admin_get_staff_file",{p_user_id:id});if(r.error)throw r.error;SF.data=r.data||{}}catch(e){SF.err=String(e&&e.message||e)}
- SF.loading=false;render();
+ try{const r=await db.rpc(sfRpc("admin_get_staff_file"),{p_user_id:id});if(r.error)throw r.error;SF.data=r.data||{}}catch(e){SF.err=String(e&&e.message||e)}
+ SF.loading=false;render();sfLoadDocs(id);
 }
-const SF_CSS='<style>.sf-sec .btn{border-radius:999px}.sf-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}.sf-card{position:relative;background:var(--bg-surface);border:1px solid var(--border-color);border-radius:18px;padding:14px;box-shadow:var(--surface-shadow);overflow:hidden}.sf-card:before{content:"";position:absolute;inset-inline:0;top:0;height:4px;background:linear-gradient(90deg,var(--primary),var(--primary-hover))}.sf-card.adm:before{background:linear-gradient(90deg,var(--accent,#d4a24c),#f0cf8a)}.sf-top{display:flex;align-items:center;gap:12px}.sf-av{flex:0 0 auto;width:48px;height:48px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:1.2rem;color:#fff;background:linear-gradient(135deg,var(--primary),var(--primary-hover));box-shadow:var(--surface-shadow)}.sf-av.adm{background:linear-gradient(135deg,var(--accent,#d4a24c),#b8862f)}.sf-av.lg{width:68px;height:68px;font-size:1.7rem}.sf-nm{min-width:0;flex:1}.sf-nm b{display:block;font-size:1rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.sf-pills{display:flex;gap:6px;flex-wrap:wrap;margin-top:5px}.sf-pill{display:inline-flex;align-items:center;gap:4px;border-radius:999px;padding:3px 10px;font-size:.74rem;font-weight:700;background:var(--bg-subtle);color:var(--text-secondary);border:1px solid var(--border-color)}.sf-pill.ok{background:var(--success-bg,#e6f6ee);color:var(--success,#1a7f4b);border-color:transparent}.sf-pill.off{background:var(--error-bg,#fdeaea);color:var(--error,#c0392b);border-color:transparent}.sf-pill.gold{background:var(--warning-bg);color:#8a5d0a;border-color:transparent}.sf-ph{margin:10px 0 2px;font-size:.88rem;color:var(--text-secondary);font-variant-numeric:tabular-nums}.sf-act{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.sf-act .btn{flex:1 1 auto;padding:8px 12px;font-size:.82rem;white-space:nowrap}.sf-h{display:flex;align-items:center;gap:10px;margin:22px 0 10px}.sf-h i{width:5px;height:22px;border-radius:5px;background:linear-gradient(180deg,var(--accent,#d4a24c),var(--primary))}.sf-h h3{margin:0;font-size:1.02rem}.sf-h span{margin-inline-start:auto}.sf-hero{display:flex;gap:14px;align-items:center;background:linear-gradient(135deg,var(--bg-surface),var(--bg-subtle));border:1px solid var(--border-color);border-radius:20px;padding:16px;box-shadow:var(--surface-shadow);margin:10px 0 4px;position:relative;overflow:hidden}.sf-hero:before{content:"";position:absolute;inset-inline-start:0;top:0;bottom:0;width:5px;background:linear-gradient(180deg,var(--accent,#d4a24c),var(--primary))}.sf-hero h2{margin:0 0 4px}.sf-kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0 0}.sf-kpi div{background:var(--bg-surface);border:1px solid var(--border-color);border-radius:14px;padding:8px 6px;text-align:center}.sf-kpi small{display:block;color:var(--text-secondary);font-size:.72rem}.sf-kpi b{font-size:.95rem;font-variant-numeric:tabular-nums}</style>';
+async function sfLoadDocs(id){
+ SF.docs=null;SF.docsErr="";
+ try{const r=await db.from("staff_documents").select("id,doc_type,file_name,file_path,created_at").eq("user_id",id).order("created_at",{ascending:false});if(r.error)throw r.error;SF.docs=r.data||[]}catch(e){SF.docsErr="المستندات لسه مش مفعّلة."}
+ if(SF.id===id)render();
+}
+const SF_CSS='<style>.sf-ro .rep-bar{display:none}.sf-sec .btn{border-radius:999px}.sf-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}.sf-card{position:relative;background:var(--bg-surface);border:1px solid var(--border-color);border-radius:18px;padding:14px;box-shadow:var(--surface-shadow);overflow:hidden}.sf-card:before{content:"";position:absolute;inset-inline:0;top:0;height:4px;background:linear-gradient(90deg,var(--primary),var(--primary-hover))}.sf-card.adm:before{background:linear-gradient(90deg,var(--accent,#d4a24c),#f0cf8a)}.sf-top{display:flex;align-items:center;gap:12px}.sf-av{flex:0 0 auto;width:48px;height:48px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:1.2rem;color:#fff;background:linear-gradient(135deg,var(--primary),var(--primary-hover));box-shadow:var(--surface-shadow)}.sf-av.adm{background:linear-gradient(135deg,var(--accent,#d4a24c),#b8862f)}.sf-av.lg{width:68px;height:68px;font-size:1.7rem}.sf-nm{min-width:0;flex:1}.sf-nm b{display:block;font-size:1rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.sf-pills{display:flex;gap:6px;flex-wrap:wrap;margin-top:5px}.sf-pill{display:inline-flex;align-items:center;gap:4px;border-radius:999px;padding:3px 10px;font-size:.74rem;font-weight:700;background:var(--bg-subtle);color:var(--text-secondary);border:1px solid var(--border-color)}.sf-pill.ok{background:var(--success-bg,#e6f6ee);color:var(--success,#1a7f4b);border-color:transparent}.sf-pill.off{background:var(--error-bg,#fdeaea);color:var(--error,#c0392b);border-color:transparent}.sf-pill.gold{background:var(--warning-bg);color:#8a5d0a;border-color:transparent}.sf-ph{margin:10px 0 2px;font-size:.88rem;color:var(--text-secondary);font-variant-numeric:tabular-nums}.sf-act{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.sf-act .btn{flex:1 1 auto;padding:8px 12px;font-size:.82rem;white-space:nowrap}.sf-h{display:flex;align-items:center;gap:10px;margin:22px 0 10px}.sf-h i{width:5px;height:22px;border-radius:5px;background:linear-gradient(180deg,var(--accent,#d4a24c),var(--primary))}.sf-h h3{margin:0;font-size:1.02rem}.sf-h span{margin-inline-start:auto}.sf-hero{display:flex;gap:14px;align-items:center;background:linear-gradient(135deg,var(--bg-surface),var(--bg-subtle));border:1px solid var(--border-color);border-radius:20px;padding:16px;box-shadow:var(--surface-shadow);margin:10px 0 4px;position:relative;overflow:hidden}.sf-hero:before{content:"";position:absolute;inset-inline-start:0;top:0;bottom:0;width:5px;background:linear-gradient(180deg,var(--accent,#d4a24c),var(--primary))}.sf-hero h2{margin:0 0 4px}.sf-kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0 0}.sf-kpi div{background:var(--bg-surface);border:1px solid var(--border-color);border-radius:14px;padding:8px 6px;text-align:center}.sf-kpi small{display:block;color:var(--text-secondary);font-size:.72rem}.sf-kpi b{font-size:.95rem;font-variant-numeric:tabular-nums}</style>';
 const DASH_CSS='<style>.ds-sec .btn{border-radius:999px}.ds-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(92px,1fr));gap:8px}.ds-blk{background:var(--bg-surface);border:1px solid var(--border-color);border-radius:18px;padding:14px;box-shadow:var(--surface-shadow);margin-top:12px;position:relative;overflow:hidden}.ds-blk:before{content:"";position:absolute;inset-inline-start:0;top:0;bottom:0;width:5px;background:linear-gradient(180deg,var(--accent,#d4a24c),var(--primary))}.ds-blk.own:before{background:linear-gradient(180deg,#b8862f,#f0cf8a)}.ds-bh{display:flex;align-items:center;gap:10px;margin-bottom:10px}.ds-bh h3{margin:0;font-size:1.02rem;flex:1}.ds-bh .btn{padding:6px 14px;font-size:.78rem}.ds-t{background:var(--bg-subtle);border-radius:14px;padding:9px 12px}.ds-t small{display:block;color:var(--text-secondary);font-size:.76rem;margin-bottom:3px}.ds-t b{font-size:1.15rem;font-variant-numeric:tabular-nums}.ds-t.hot{background:var(--warning-bg)}.ds-li{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--border-color);font-size:.88rem}.ds-li:first-child{border-top:0}.ds-li span:first-child{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ds-hero{background:linear-gradient(135deg,#071f29,#0f4352 60%,#14606e);color:#fff;border-radius:22px;padding:16px;margin:10px 0 4px;box-shadow:0 14px 34px rgba(7,31,41,.35);position:relative;overflow:hidden}.ds-hero:after{content:"";position:absolute;inset-inline-end:-40px;top:-40px;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,rgba(212,162,76,.45),transparent 70%)}.ds-hero h2{margin:0;color:#fff;font-size:1.25rem}.ds-hero p{margin:3px 0 12px;color:rgba(255,255,255,.7);font-size:.82rem}.ds-hk{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;position:relative;z-index:1}.ds-hk div{background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.14);border-radius:14px;padding:10px 12px;backdrop-filter:blur(4px)}.ds-hk small{display:block;color:rgba(255,255,255,.7);font-size:.74rem}.ds-hk b{font-size:1.3rem;font-variant-numeric:tabular-nums;color:#fff}.ds-hk div.g b{color:#f0cf8a}.ds-ch{background:var(--bg-surface);border:1px solid var(--border-color);border-radius:18px;padding:14px;box-shadow:var(--surface-shadow);margin-top:12px}.ds-ch h3{margin:0 0 2px;font-size:1rem}.ds-ch .sub{font-size:.76rem;color:var(--text-secondary);margin-bottom:8px}.ds-ch svg{width:100%;height:auto;display:block}.ds-lg{display:flex;gap:12px;flex-wrap:wrap;font-size:.76rem;color:var(--text-secondary);margin-top:6px}.ds-lg i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-inline-end:5px;vertical-align:middle}.ds-dn{display:flex;align-items:center;gap:14px}.ds-dn svg{width:132px;flex:0 0 132px}.ds-bar{margin:7px 0}.ds-bar div.l{display:flex;justify-content:space-between;font-size:.82rem;margin-bottom:3px}.ds-bar div.t{height:9px;border-radius:9px;background:var(--bg-subtle);overflow:hidden}.ds-bar div.t i{display:block;height:100%;border-radius:9px;background:linear-gradient(90deg,var(--primary),var(--accent,#d4a24c))}.ds-blk{box-shadow:0 6px 18px rgba(7,31,41,.08)}.ds-t{border:1px solid var(--border-color);background:var(--bg-surface)}.ds-t.hot{background:var(--warning-bg)}.ds-w{font-size:.82rem;color:var(--text-secondary);background:var(--bg-subtle);border:1px dashed var(--border-color);border-radius:12px;padding:8px 10px}</style>';
 function dashBlk(title,link,inner,own){return '<section class="ds-blk'+(own?' own':'')+'"><div class="ds-bh"><h3>'+title+'</h3>'+(own?'<span class="sf-pill gold">للمالك فقط</span>':'')+(link?btn("tab",link[1],"light",link[0]):"")+'</div>'+inner+'</section>'}
 function dashT(l,v,hot){return '<div class="ds-t'+(hot?' hot':'')+'"><small>'+esc(l)+'</small><b>'+v+'</b></div>'}
@@ -4661,13 +4668,34 @@ function staffTabView(){
   (isO?sfHd('الأدمن','<span class="sf-pill gold">للمالك فقط</span>')+'<p class="small" style="margin:-4px 0 10px">تعيين أدمن جديد للمالك بس. الأدمن مينفعش يعيّن أدمن.</p><div class="sf-grid">'+(ad.map(x=>sfCard(x,true)).join("")||empty("لا يوجد أدمن ظاهر. لو فيه أدمن ومش ظاهر، محتاج صلاحية قراءة للمالك من شوشو."))+'</div>'+sfHd('الموظفون'):'')+
   '<div class="sf-grid">'+(st.map(x=>sfCard(x,false)).join("")||empty("لا يوجد موظفون حتى الآن."))+'</div></section>';
 }
+const HR={loaded:false,busy:false,rows:[],err:"",q:""};
+async function hrLoad(){
+ if(HR.busy)return;HR.busy=true;
+ try{const r=await db.rpc("hr_list_staff");if(r.error)throw r.error;HR.rows=Array.isArray(r.data)?r.data:[];HR.err=""}catch(e){HR.err="x";HR.rows=[]}
+ HR.loaded=true;HR.busy=false;render();
+}
+function hrView(){
+ if(SF.id&&SF.hr)return sfFileView();
+ if(!HR.loaded&&!HR.busy)setTimeout(hrLoad,0);
+ let b='<section class="section sf-sec"><div class="asv-h"><h2>الموارد البشرية</h2><span class="asv-sub">'+(hrCanManage()?"عرض وتعديل":"عرض فقط")+'</span></div>'+
+  '<input id="hrq" class="input" type="search" placeholder="ابحث بالاسم" value="'+esc(HR.q)+'" style="margin-bottom:10px;width:100%;box-sizing:border-box">';
+ if(HR.err)b+='<div class="notice error">قسم الموارد البشرية لسه مش مفعّل في قاعدة البيانات. الشاشة جاهزة ومستنية التفعيل.</div>';
+ else if(!HR.loaded||HR.busy)b+='<div class="empty">جاري التحميل...</div>';
+ else{
+  const q=HR.q.toLowerCase(),rows=HR.rows.filter(x=>!q||String(x.full_name||"").toLowerCase().includes(q));
+  b+='<div class="sf-grid">'+(rows.map(x=>{const on=x.status==="active"&&x.is_active!==false;return '<article class="sf-card"><div class="sf-top"><div class="sf-av">'+sfInit(x.full_name)+'</div><div class="sf-nm"><b>'+esc(x.full_name||"بدون اسم")+'</b><div class="sf-pills"><span class="sf-pill gold">'+esc(x.staff_title||x.staff_role_code||"موظف")+'</span><span class="sf-pill '+(on?"ok":"off")+'">'+(on?"نشط":"موقوف")+'</span></div></div></div><div class="sf-act">'+btn("hr-open","الملف","gold",x.id)+'</div></article>'}).join("")||empty("لا يوجد موظفون."))+'</div>';
+ }
+ return SF_CSS+REP_CSS+'<style>.sf-ro .rep-bar{display:none}</style>'+b+'</section>';
+}
+document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest('[data-a="hr-open"]');if(!b)return;SF.msg="";SF.hr=true;sfLoad(b.dataset.id)});
+document.addEventListener("input",e=>{if(e.target&&e.target.id==="hrq"){HR.q=e.target.value;const p=e.target.selectionStart;render();const n=document.getElementById("hrq");if(n){n.focus();try{n.setSelectionRange(p,p)}catch(_){}}}});
 function sfFileView(){
  const x=sfPerson(SF.id)||{},d=SF.data||{},job=d.job||{},sal=d.salary||{};
  const isAdm=x.role==="admin",on=sfActive(x,isAdm);
  const kv=(l,v)=>'<div class="rep-stat"><small>'+esc(l)+'</small><b style="font-size:.95rem">'+(v===null||v===undefined||v===""?'<span class="muted">—</span>':v)+'</b></div>';
  const role=isAdm?"أدمن":(x.staff_title||x.staff_role_code||"موظف");
  const sum=k=>(Array.isArray(d[k])?d[k]:[]).reduce((t,r)=>t+(Number(r.amount)||0),0);
- let h=SF_CSS+REP_CSS+'<section class="section rep-sec sf-sec"><div class="actions">'+btn("sf-back","← كل الموظفين","light")+'</div>'+
+ let h=SF_CSS+REP_CSS+'<section class="section rep-sec sf-sec'+(SF.hr&&!hrCanManage()?" sf-ro":"")+'"><div class="actions">'+btn("sf-back","← كل الموظفين","light")+'</div>'+
   '<div class="sf-hero"><div class="sf-av lg'+(isAdm?' adm':'')+'">'+sfInit(x.full_name)+'</div><div><h2>'+esc(x.full_name||"ملف موظف")+'</h2><div class="sf-pills"><span class="sf-pill gold">'+esc(role)+'</span><span class="sf-pill '+(on?'ok':'off')+'">'+(on?"نشط":"موقوف")+'</span></div><p class="small" style="margin:6px 0 0">'+codeTag(idCode("EMP",SF.id))+'</p></div></div>';
  if(SF.msg)h+='<div class="notice">'+esc(SF.msg)+'</div>';
  h+='<div class="sf-kpi"><div><small>الراتب الأساسي</small><b>'+(sal.amount!=null?moneyAr(sal.amount):"—")+'</b></div><div><small>الجزاءات</small><b>'+moneyAr(sum("penalties"))+'</b></div><div><small>السلف</small><b>'+moneyAr(sum("advances"))+'</b></div></div>';
@@ -4682,14 +4710,23 @@ function sfFileView(){
    '<div class="rep-wrap" style="max-height:none"><table class="rep-t"><thead><tr>'+sec.cols.map(c=>'<th>'+esc(c[1])+'</th>').join("")+'</tr></thead><tbody>'+
    (rows.length?rows.map(r=>'<tr>'+sec.cols.map(c=>'<td'+(c[2]==="money"||c[2]==="num"?' class="n"':'')+'>'+repCell({t:c[2]==="date"?"date":c[2]},r[c[0]])+'</td>').join("")+'</tr>').join(""):'<tr><td colspan="'+sec.cols.length+'" class="muted">لا يوجد</td></tr>')+'</tbody></table></div>';
  });
+ {
+  const canM=SF.hr?hrCanManage():true,DT={contract:"عقد",id:"هوية",certificate:"شهادة",other:"أخرى"};
+  h+=sfHd('المستندات والعقود')+'<div class="card">'+(SF.docsErr?'<p class="small muted" style="margin:0">'+esc(SF.docsErr)+'</p>':SF.docs===null?'<p class="small muted" style="margin:0">جاري التحميل...</p>':(SF.docs.length?SF.docs.map(dc=>'<div class="row" style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid var(--border-color)"><span><b>'+esc(DT[dc.doc_type]||dc.doc_type)+'</b> <span class="small muted">'+esc(dc.file_name||"")+'</span></span>'+btn("sf-doc-open","عرض","light",dc.id)+'</div>').join(""):'<p class="small muted" style="margin:0">لا توجد مستندات.</p>'))+
+   (canM&&!SF.docsErr?'<div class="actions" style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap"><select id="sf_doc_type" class="input"><option value="contract">عقد توظيف</option><option value="id">هوية</option><option value="certificate">شهادة</option><option value="other">أخرى</option></select><input id="sf_doc_file" type="file" accept="application/pdf,image/jpeg,image/png" style="max-width:100%"></div><div class="actions" style="margin-top:8px">'+btn("sf-doc-up","رفع المستند","gold")+'</div><p class="small muted">PDF أو صورة حتى 10 ميجا. المستندات خاصة بالإدارة والموارد البشرية فقط.</p>':'')+'</div>';
+  if(canM&&!isAdm&&SF.id!==(s.user&&s.user.id)){
+   const susp=x.status==="suspended";
+   h+=sfHd('إيقاف الموظف')+'<div class="card"><p class="small" style="margin:0 0 8px">'+(susp?"الموظف موقوف حاليًا. إعادة التفعيل بترجّع صلاحياته.":"إيقاف الموظف بيقفل دخوله وصلاحياته فورًا، وتقدر ترجّعه بعدين.")+'</p><div class="actions">'+(susp?btn("sf-react","إعادة التفعيل","gold",SF.id):btn("sf-susp","إيقاف الموظف","light",SF.id))+'</div></div>';
+  }
+ }
  return h+'</section>';
 }
 document.addEventListener("click",async e=>{
  const b=e.target.closest&&e.target.closest('[data-a^="sf-"]');if(!b)return;
  const a=b.dataset.a,id=b.dataset.id;
  const val=n=>{const el=document.getElementById(n);return el?el.value:""};
- if(a==="sf-open"){SF.msg="";sfLoad(id);return}
- if(a==="sf-back"){SF.id=null;SF.data=null;SF.err="";SF.msg="";render();return}
+ if(a==="sf-open"){SF.msg="";SF.hr=false;sfLoad(id);return}
+ if(a==="sf-back"){SF.id=null;SF.data=null;SF.err="";SF.msg="";SF.docs=null;SF.docsErr="";render();return}
  if(a==="sf-promote"){
   if(!sfIsOwner()){alert("تعيين أدمن للمالك فقط.");return}
   if(!confirm("ترقية هذا الموظف إلى أدمن؟ هيكون له صلاحيات الإدارة كاملة."))return;
@@ -4697,9 +4734,38 @@ document.addEventListener("click",async e=>{
   if(r.error){alert("التعيين محتاج دالة owner_set_admin_role من شوشو: "+(r.error.message||r.error));return}
   await loadUser(s.user);note("تم تعيين الأدمن.","success");return
  }
+ if(a==="sf-doc-up"){
+  const fi=document.getElementById("sf_doc_file"),f=fi&&fi.files&&fi.files[0];
+  if(!f){SF.msg="اختار ملف الأول.";render();return}
+  if(f.size>10*1024*1024){SF.msg="الملف أكبر من 10 ميجا.";render();return}
+  if(!/^(application\/pdf|image\/jpeg|image\/png)$/.test(f.type)){SF.msg="الملف لازم يكون PDF أو صورة.";render();return}
+  const safe=Date.now()+"-"+f.name.replace(/[^A-Za-z0-9._-]/g,"_"),path=SF.id+"/"+safe;
+  try{
+   const up=await db.storage.from("staff-documents").upload(path,f,{contentType:f.type,upsert:false});if(up.error)throw up.error;
+   const ins=await db.from("staff_documents").insert({user_id:SF.id,doc_type:val("sf_doc_type")||"contract",file_path:path,file_name:f.name,mime_type:f.type,size_bytes:f.size,uploaded_by:s.user.id});if(ins.error)throw ins.error;
+   SF.msg="تم رفع المستند.";await sfLoadDocs(SF.id);return
+  }catch(x){SF.msg="تعذّر رفع المستند (لسه مش مفعّل في قاعدة البيانات أو مفيش صلاحية).";render();return}
+ }
+ if(a==="sf-doc-open"){
+  const dc=(SF.docs||[]).find(z=>z.id===id);if(!dc)return;
+  const w=window.open("","_blank");
+  const r=await db.storage.from("staff-documents").createSignedUrl(dc.file_path,120);
+  if(r.error||!r.data){if(w)w.close();SF.msg="تعذّر فتح المستند.";render();return}
+  if(w)w.location.href=r.data.signedUrl;else window.location.href=r.data.signedUrl;return
+ }
+ if(a==="sf-susp"||a==="sf-react"){
+  const susp=a==="sf-susp",why=(prompt(susp?"سبب إيقاف الموظف (5 حروف على الأقل):":"سبب إعادة التفعيل (5 حروف على الأقل):")||"").trim();
+  if(why.length<5){SF.msg="اكتب السبب (5 حروف على الأقل).";render();return}
+  const r=await db.rpc(sfRpc(susp?"admin_suspend_staff":"admin_reactivate_staff"),{p_user_id:SF.id,p_reason:why});
+  if(r.error){SF.msg=/PGRST202|42883|admin_suspend|admin_reactivate|hr_suspend|hr_reactivate/.test(String(r.error.code)+" "+String(r.error.message))?"الإيقاف وإعادة التفعيل لسه مش مفعّلين في قاعدة البيانات.":"تعذّر التنفيذ: "+(r.error.message||r.error);render();return}
+  SF.msg=susp?"تم إيقاف الموظف.":"تمت إعادة التفعيل.";
+  const x0=sfPerson(SF.id);if(x0)x0.status=susp?"suspended":"active";
+  if(SF.hr)HR.loaded=false;else{try{await loadUser(s.user)}catch(_){}}
+  await sfLoad(SF.id);return
+ }
  if(a==="sf-salary"){
   const n=Number(val("sf_sal_amount"));if(!Number.isFinite(n)||n<0){SF.msg="اكتب راتب صحيح.";render();return}
-  const r=await db.rpc("admin_set_staff_salary",{p_user_id:SF.id,p_amount:n,p_effective_from:val("sf_sal_from")||null,p_note:val("sf_sal_note")||null});
+  const r=await db.rpc(sfRpc("admin_set_staff_salary"),{p_user_id:SF.id,p_amount:n,p_effective_from:val("sf_sal_from")||null,p_note:val("sf_sal_note")||null});
   SF.msg=r.error?"تعذّر حفظ الراتب (محتاج دالة admin_set_staff_salary من شوشو): "+(r.error.message||r.error):"تم حفظ الراتب.";
   if(!r.error){await sfLoad(SF.id);return}render();return
  }
@@ -4708,7 +4774,7 @@ document.addEventListener("click",async e=>{
   const v={};sec.form.forEach(f=>{v[f[0]]=val("sf_"+sec.k+"_"+f[0])});
   const req=sec.form.filter(f=>f[0]!=="note"&&f[0]!=="reason"&&f[0]!=="installment"&&f[0]!=="date");
   if(req.some(f=>String(v[f[0]]).trim()==="")){SF.msg="كمّل الخانات المطلوبة.";render();return}
-  const r=await db.rpc(sec.rpc,Object.assign({p_user_id:SF.id},sec.map(v)));
+  const r=await db.rpc(sfRpc(sec.rpc),Object.assign({p_user_id:SF.id},sec.map(v)));
   SF.msg=r.error?"تعذّرت الإضافة (محتاج دالة "+sec.rpc+" من شوشو): "+(r.error.message||r.error):"تمت الإضافة.";
   if(!r.error){await sfLoad(SF.id);return}render();
  }
@@ -7678,6 +7744,7 @@ async function viewPrimeKnowledgeDocument(documentId){
         return n;
       }
       const ASV_ICONS={
+        hr:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.2-5.5 6.5-5.5s5.9 1.9 6.5 5.5"/><path d="M16 11l2 2 4-4"/>',
         home:'<path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
         requests:'<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>',
         providers:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.2-5.5 6.5-5.5s5.9 1.9 6.5 5.5"/><circle cx="17.5" cy="9" r="2.5"/>',
@@ -8216,8 +8283,10 @@ const STAFF_PERMISSION_OPTIONS=[
  ["wallet.view","عرض المحفظة",true,false],
  ["wallet.manage","إدارة المحفظة",true,false],
  ["payouts.prepare","تجهيز التسويات",true,false],
- ["customers.contact","التواصل مع العملاء",false,true],
- ["providers.contact","التواصل مع مزودي الخدمات",false,true]
+ ["customers.contact","التواصل مع العملاء",false,false],
+ ["providers.contact","التواصل مع مزودي الخدمات",false,false],
+ ["hr.view","عرض الموارد البشرية",true,false],
+ ["hr.manage","إدارة الموارد البشرية",true,false]
 ];
 // أقسام لوحة الموظف: [التبويب, العنوان, الصلاحيات التي تفتحه]
 const STAFF_NAV_ITEMS=[
@@ -8234,11 +8303,12 @@ const STAFF_NAV_ITEMS=[
  ["wallet","المحفظة",["wallet.view","wallet.manage"]],
  ["ads","الإعلانات",["ads.view","ads.manage"]],
  ["offers","العروض",["ads.view","ads.manage"]],
+ ["hr","الموارد البشرية",["hr.view","hr.manage"]],
  ["settings","الإعدادات",["settings.view","settings.manage"]]
 ];
 // الأقسام المنفذة فعليًا في لوحة الموظف. الباقي صفحة مؤقتة بلا تحميل بيانات.
 const STAFF_SEC_TAB={support:"cs",ads:"adsmgr",offers:"offers",payments:"fin"};
-const STAFF_IMPLEMENTED_TABS=["home","services","categories","requests","providers","complaints","tawasol","support","ads","offers","payments","customers"];
+const STAFF_IMPLEMENTED_TABS=["home","services","categories","requests","providers","complaints","tawasol","support","ads","offers","payments","customers","hr"];
 const STAFF_PLACEHOLDER_TEXT="القسم ده ضمن مراحل التنفيذ التالية. مش بيتم تحميل بيانات أو تنفيذ عمليات من الصفحة دي حاليًا.";
 // المفاتيح المالية: تُمنح لموظفي رتبة FIN فقط (الحماية الأساسية في قاعدة البيانات، وهنا منع مبكر في الواجهة)
 const FINANCIAL_PERMISSION_KEYS=["payments.view","payments.manage","wallet.view","wallet.manage","payouts.prepare"];
@@ -8347,6 +8417,7 @@ if(s.tab==="home"&&navItems.some(x=>x[0]==="home")){
 if(s.tab==="tawasol")body=twView();
 if(STAFF_SEC_TAB[s.tab]&&navItems.some(x=>x[0]===s.tab))body=secView(STAFF_SEC_TAB[s.tab]);
 if(s.tab==="customers"&&navItems.some(x=>x[0]==="customers"))body=stcView();
+if(s.tab==="hr"&&navItems.some(x=>x[0]==="hr"))body=hrView();
 if(s.tab==="none"){
   body='<section class="section"><div class="card"><p class="muted">لا توجد أقسام متاحة بصلاحياتك الحالية.</p></div></section>';
  }else if(!STAFF_IMPLEMENTED_TABS.includes(s.tab)&&navItems.some(x=>x[0]===s.tab)){
@@ -9049,6 +9120,8 @@ c='<h3>إنشاء حساب موظف جديد</h3>'+
 if(m.type==="addstaff"){
 
  const hierarchy=[
+  {value:"GM",label:"المدير العام — GM"},
+  {value:"HR",label:"الموارد البشرية — HR"},
   {value:"ASV",label:"مشرف منطقة — ASV"},
   {value:"OPS",label:"العمليات — OPS"},
   {value:"FIN",label:"المالية — FIN"},
@@ -10965,6 +11038,8 @@ if(f.id==="addStaffForm"){
  let permissions=checkedStaffPermissions(f);
 
  const hierarchy={
+  GM:"المدير العام",
+  HR:"الموارد البشرية",
   ASV:"مشرف منطقة",
   OPS:"العمليات",
   FIN:"المالية",
