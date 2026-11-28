@@ -3274,7 +3274,7 @@ document.addEventListener("click",async e=>{
 /* ===== الإشعارات المركزية والعروض ===== */
 const AN_AUD=[["all","كل المنصة","الجميع: عملاء ومزودو خدمات وموظفون"],["customers","العملاء","كل حسابات العملاء"],["providers","مزودو الخدمات","كل مزودي الخدمات"],["staff","الموظفون","الموظفون والإدارة"],["new","المسجلون الجدد","اللي سجلوا في آخر عدد أيام تحدده"]];
 const AN_TYPES=[["offer","عرض"],["greeting","تهنئة"],["notice","إعلان"]];
-const AN={aud:"all",type:"offer",days:7,rows:[],loaded:false,err:"",count:null,sending:false,title:"",body:""};
+const AN={aud:["all"],type:"offer",days:7,rows:[],loaded:false,err:"",count:null,sending:false,title:"",body:""};
 async function anLoad(){
  AN.loaded=true;
  try{const r=await db.rpc("admin_list_announcements",{p_limit:30});if(r.error)throw r.error;AN.rows=Array.isArray(r.data)?r.data:[];AN.err=""}
@@ -3283,30 +3283,30 @@ async function anLoad(){
 }
 async function anCount(){
  AN.count=null;
- try{const r=await db.rpc("admin_announcement_audience_count",{p_audience:AN.aud,p_new_days:Number(AN.days)||7});if(r.error)throw r.error;const c=typeof r.data==="number"?r.data:(r.data&&r.data.count);AN.count=typeof c==="number"?c:undefined}
+ try{const r=await db.rpc("admin_announcement_audience_count",{p_audiences:AN.aud,p_new_days:Number(AN.days)||7});if(r.error)throw r.error;const c=typeof r.data==="number"?r.data:(r.data&&r.data.count);AN.count=typeof c==="number"?c:undefined}
  catch(_){AN.count=undefined}
  const el=document.getElementById("anCount");if(el)el.innerHTML=anCountTxt();
 }
 function anCountTxt(){return AN.count===null?"جاري الحساب...":(AN.count===undefined?"عدد المستلمين هيظهر بعد تفعيل الدالة في قاعدة البيانات.":"هيوصل لـ <b>"+fmt(AN.count)+"</b> مستخدم")}
 function anView(){
  if(!AN.loaded)setTimeout(()=>{anLoad();anCount()},0);
- const a=AN_AUD.find(x=>x[0]===AN.aud);
- const aud=AN_AUD.map(x=>'<button type="button" class="an-chip'+(AN.aud===x[0]?" on":"")+'" data-a="an-aud" data-id="'+x[0]+'">'+esc(x[1])+'</button>').join("");
+ const a=[0,0,AN.aud.map(k=>(AN_AUD.find(x=>x[0]===k)||[0,k])[1]).join(" + ")];
+ const aud=AN_AUD.map(x=>'<button type="button" class="an-chip'+(AN.aud.includes(x[0])?" on":"")+'" data-a="an-aud" data-id="'+x[0]+'">'+esc(x[1])+'</button>').join("");
  const typ=AN_TYPES.map(x=>'<button type="button" class="an-chip'+(AN.type===x[0]?" on":"")+'" data-a="an-type" data-id="'+x[0]+'">'+esc(x[1])+'</button>').join("");
  const hist=AN.rows.length?AN.rows.map(r=>'<div class="ch-row"><div><b>'+esc(r.title||"")+'</b><small style="direction:rtl;text-align:right">'+esc((AN_AUD.find(x=>x[0]===r.audience)||[0,r.audience||""])[1])+" · "+esc(String(r.created_at||"").slice(0,10))+(r.recipients!=null?" · "+fmt(r.recipients)+" مستلم":"")+'</small></div></div>').join(""):'<p class="small">لسه مفيش إشعارات اتبعتت.</p>';
- return CH_CSS+'<style>.an-chips{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 12px}.an-chip{border:1px solid var(--border,#e5e7eb);background:var(--surface,#fff);border-radius:999px;padding:9px 14px;font:inherit;font-weight:700}.an-chip.on{background:linear-gradient(135deg,#0f766e,#0f3d3e);color:#fff;border-color:transparent}.an-prev{border-radius:16px;padding:14px;background:#0f3d3e;color:#fff;margin:10px 0}.an-prev b{display:block;color:#f3d27a}.an-aud{padding:10px 12px;border-radius:12px;background:rgba(212,162,76,.12);margin:8px 0}</style><section class="section"><div class="sectionhead"><div><h2>الإشعارات والعروض</h2><p class="small">ابعت إعلان أو عرض أو تهنئة (رمضان، عيد...) لفئة محددة أو لكل المنصة. بيوصل في جرس الإشعارات وعلى الموبايل.</p></div></div>'+(AN.err?'<div class="notice error">الإرسال لسه مش مفعّل في قاعدة البيانات ('+esc(AN.err)+'). مستني شوشو.</div>':'')+'<div class="card"><h3 style="margin:0">النوع</h3><div class="an-chips">'+typ+'</div><h3 style="margin:0">موجّه لمين</h3><div class="an-chips">'+aud+'</div><p class="small" style="margin:0">'+esc(a?a[2]:"")+'</p>'+(AN.aud==="new"?'<label class="field"><span>آخر كم يوم؟</span><input id="anDays" type="number" min="1" max="90" value="'+esc(AN.days)+'"></label>':'')+'<div class="an-aud" id="anCount">'+anCountTxt()+'</div><label class="field"><span>العنوان</span><input id="anTitle" maxlength="80" value="'+esc(AN.title)+'" placeholder="مثال: رمضان كريم"></label><label class="field"><span>نص الإشعار</span><textarea id="anBody" rows="4" maxlength="200" placeholder="اكتب الرسالة (حد أقصى 200 حرف)">'+esc(AN.body)+'</textarea></label><div class="an-prev"><small>معاينة</small><b>'+esc(AN.title||"العنوان")+'</b>'+esc(AN.body||"نص الإشعار هيظهر هنا.")+'</div><button type="button" class="btn gold" data-a="an-send"'+(AN.sending?" disabled":"")+'>'+(AN.sending?"جاري الإرسال...":"إرسال الإشعار")+'</button></div><div class="card" style="margin-top:12px"><h3 style="margin:0 0 4px">آخر الإشعارات المرسلة</h3>'+hist+'</div></section>';
+ return CH_CSS+'<style>.an-chips{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 12px}.an-chip{border:1px solid var(--border,#e5e7eb);background:var(--surface,#fff);border-radius:999px;padding:9px 14px;font:inherit;font-weight:700}.an-chip.on{background:linear-gradient(135deg,#0f766e,#0f3d3e);color:#fff;border-color:transparent}.an-prev{border-radius:16px;padding:14px;background:#0f3d3e;color:#fff;margin:10px 0}.an-prev b{display:block;color:#f3d27a}.an-aud{padding:10px 12px;border-radius:12px;background:rgba(212,162,76,.12);margin:8px 0}</style><section class="section"><div class="sectionhead"><div><h2>الإشعارات والعروض</h2><p class="small">ابعت إعلان أو عرض أو تهنئة (رمضان، عيد...) لفئة محددة أو لكل المنصة. بيوصل في جرس الإشعارات وعلى الموبايل.</p></div></div>'+(AN.err?'<div class="notice error">الإرسال لسه مش مفعّل في قاعدة البيانات ('+esc(AN.err)+'). مستني شوشو.</div>':'')+'<div class="card"><h3 style="margin:0">النوع</h3><div class="an-chips">'+typ+'</div><h3 style="margin:0">موجّه لمين</h3><div class="an-chips">'+aud+'</div><p class="small" style="margin:0">'+esc(a?a[2]:"")+'</p>'+(AN.aud.includes("new")?'<label class="field"><span>آخر كم يوم؟</span><input id="anDays" type="number" min="1" max="90" value="'+esc(AN.days)+'"></label>':'')+'<div class="an-aud" id="anCount">'+anCountTxt()+'</div><label class="field"><span>العنوان</span><input id="anTitle" maxlength="80" value="'+esc(AN.title)+'" placeholder="مثال: رمضان كريم"></label><label class="field"><span>نص الإشعار</span><textarea id="anBody" rows="4" maxlength="200" placeholder="اكتب الرسالة (حد أقصى 200 حرف)">'+esc(AN.body)+'</textarea></label><div class="an-prev"><small>معاينة</small><b>'+esc(AN.title||"العنوان")+'</b>'+esc(AN.body||"نص الإشعار هيظهر هنا.")+'</div><button type="button" class="btn gold" data-a="an-send"'+(AN.sending?" disabled":"")+'>'+(AN.sending?"جاري الإرسال...":"إرسال الإشعار")+'</button></div><div class="card" style="margin-top:12px"><h3 style="margin:0 0 4px">آخر الإشعارات المرسلة</h3>'+hist+'</div></section>';
 }
 document.addEventListener("input",e=>{const t=e.target;if(!t||!t.id)return;if(t.id==="anTitle"||t.id==="anBody"){AN[t.id==="anTitle"?"title":"body"]=t.value;const pv=document.querySelector(".an-prev");if(pv)pv.innerHTML='<small>معاينة</small><b>'+esc(AN.title||"العنوان")+'</b>'+esc(AN.body||"نص الإشعار هيظهر هنا.")}if(t.id==="anDays"){AN.days=t.value;anCount()}});
 document.addEventListener("click",async e=>{
  const b=e.target.closest&&e.target.closest('[data-a="an-aud"],[data-a="an-type"],[data-a="an-send"]');if(!b)return;
- if(b.dataset.a==="an-aud"){AN.aud=b.dataset.id;render();anCount();return}
+ if(b.dataset.a==="an-aud"){const k=b.dataset.id;AN.aud=k==="all"?["all"]:(AN.aud.includes(k)?AN.aud.filter(x=>x!==k):AN.aud.filter(x=>x!=="all").concat(k));if(!AN.aud.length)AN.aud=["all"];render();anCount();return}
  if(b.dataset.a==="an-type"){AN.type=b.dataset.id;render();return}
  const title=AN.title.trim(),body=AN.body.trim();
  if(!title||!body){note("اكتب العنوان والنص الأول.","error");render();return}
- const a=AN_AUD.find(x=>x[0]===AN.aud);
+ const a=[0,AN.aud.map(k=>(AN_AUD.find(x=>x[0]===k)||[0,k])[1]).join(" + ")];
  if(!confirm("هتبعت \""+title+"\" إلى: "+a[1]+(AN.count!=null&&AN.count!==undefined?" ("+AN.count+" مستخدم)":"")+". تأكيد؟"))return;
  AN.sending=true;render();
- try{const r=await db.rpc("admin_send_announcement",{p_title:title,p_body:body,p_type:AN.type,p_audience:AN.aud,p_new_days:Number(AN.days)||7});if(r.error)throw r.error;
+ try{const r=await db.rpc("admin_send_announcement",{p_title:title,p_body:body,p_type:AN.type,p_audiences:AN.aud,p_new_days:Number(AN.days)||7});if(r.error)throw r.error;
   AN.title="";AN.body="";note("تم إرسال الإشعار.","success");AN.sending=false;await anLoad();
  }catch(err){AN.sending=false;note("تعذّر الإرسال: "+String(err&&err.message||err),"error");render()}
 });
@@ -3354,6 +3354,33 @@ async function twOpenRoom(fn,args,title){
  }catch(e){TW.err.open=String(e&&e.message||e);render()}
 }
 function twAv(n,cls){return '<div class="sf-av'+(cls||"")+'">'+esc(String(n||"?").trim().charAt(0)||"?")+'</div>'}
+const TWB={sel:[],style:"normal",title:"",body:"",log:[],logLoaded:false,logErr:"",sending:false};
+const TWB_STYLES=[["normal","عادي","#0f766e"],["greeting","تهنئة","#b45309"],["offer","عرض","#7c3aed"],["alert","تنبيه","#dc2626"]];
+async function twbLoad(){TWB.logLoaded=true;try{const r=await db.rpc("staff_chat_broadcast_log",{p_limit:50});if(r.error)throw r.error;TWB.log=Array.isArray(r.data)?r.data:[];TWB.logErr=""}catch(e){TWB.log=[];TWB.logErr=String(e&&e.message||e)}render()}
+function twbView(){
+ if(!TWB.logLoaded)setTimeout(twbLoad,0);
+ const sty=TWB_STYLES.find(x=>x[0]===TWB.style)||TWB_STYLES[0];
+ const chips=TW_DEPTS.map(d=>'<button type="button" class="an-chip'+(TWB.sel.includes(d[0])?" on":"")+'" data-a="twb-dept" data-id="'+d[0]+'">'+esc(d[1])+'</button>').join("");
+ const st=TWB_STYLES.map(x=>'<button type="button" class="an-chip'+(TWB.style===x[0]?" on":"")+'" data-a="twb-style" data-id="'+x[0]+'">'+x[1]+'</button>').join("");
+ const log=TWB.log.length?TWB.log.map(r=>'<div class="ch-row"><div><b>'+esc(r.title||"")+'</b><small style="direction:rtl;text-align:right">'+esc((r.dept_codes||[]).map(c=>(TW_DEPTS.find(d=>d[0]===c)||[0,c])[1]).join("، "))+" · "+esc(r.sender_name||"")+" · "+esc(String(r.created_at||"").slice(0,16).replace("T"," "))+'</small></div></div>').join(""):'<p class="small">لسه مفيش رسائل جماعية.</p>';
+ return '<style>.an-chips{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 12px}.an-chip{border:1px solid var(--border,#e5e7eb);background:var(--surface,#fff);border-radius:999px;padding:9px 14px;font:inherit;font-weight:700}.an-chip.on{background:linear-gradient(135deg,#0f766e,#0f3d3e);color:#fff;border-color:transparent}</style>'+CH_CSS+(TWB.logErr?'<div class="notice error">البث الجماعي لسه مش مفعّل في قاعدة البيانات ('+esc(TWB.logErr)+').</div>':'')+'<div class="card"><h3 style="margin:0">الأقسام المستهدفة (اختار أكتر من قسم)</h3><div class="an-chips">'+chips+'</div><h3 style="margin:0">شكل الرسالة</h3><div class="an-chips">'+st+'</div><label class="field"><span>العنوان</span><input id="twbTitle" maxlength="80" value="'+esc(TWB.title)+'"></label><label class="field"><span>الرسالة</span><textarea id="twbBody" rows="4" maxlength="2000">'+esc(TWB.body)+'</textarea></label><div class="ch-hero" style="background:'+sty[2]+';margin:8px 0"><h2 style="font-size:16px">'+esc(TWB.title||"العنوان")+'</h2><p>'+esc(TWB.body||"نص الرسالة هيظهر هنا.")+'</p></div><button type="button" class="btn gold" data-a="twb-send"'+(TWB.sending?" disabled":"")+'>إرسال للأقسام المختارة'+(TWB.sel.length?" ("+fmt(TWB.sel.length)+")":"")+'</button></div><div class="card" style="margin-top:12px"><h3 style="margin:0 0 4px">سجل الرسائل الجماعية</h3>'+log+'</div>';
+}
+document.addEventListener("input",e=>{const t=e.target;if(t&&(t.id==="twbTitle"||t.id==="twbBody"))TWB[t.id==="twbTitle"?"title":"body"]=t.value});
+document.addEventListener("click",async e=>{
+ const b=e.target.closest&&e.target.closest('[data-a^="twb-"]');if(!b)return;
+ const a=b.dataset.a,id=b.dataset.id;
+ if(a==="twb-dept"){TWB.sel=TWB.sel.includes(id)?TWB.sel.filter(x=>x!==id):TWB.sel.concat(id);render();return}
+ if(a==="twb-style"){TWB.style=id;render();return}
+ if(a==="twb-send"){
+  const t=TWB.title.trim(),m=TWB.body.trim();
+  if(!TWB.sel.length||!t||!m){note("اختار قسم واحد على الأقل واكتب العنوان والرسالة.","error");render();return}
+  if(!confirm("إرسال \""+t+"\" إلى "+TWB.sel.length+" قسم؟"))return;
+  TWB.sending=true;render();
+  try{const r=await db.rpc("staff_chat_broadcast",{p_dept_codes:TWB.sel,p_title:t,p_body:m,p_style:TWB.style});if(r.error)throw r.error;
+   TWB.title="";TWB.body="";TWB.sel=[];TWB.sending=false;note("تم إرسال الرسالة للأقسام.","success");await twbLoad();
+  }catch(err){TWB.sending=false;note("تعذّر الإرسال: "+String(err&&err.message||err),"error");render()}
+ }
+});
 function twView(){
  if(!TW.loaded&&!TW.loading)setTimeout(twLoad,0);
  let h=SF_CSS+REP_CSS+TW_CSS+'<section class="section rep-sec tw-sec">';
@@ -3361,10 +3388,11 @@ function twView(){
   return h+'<div class="actions">'+btn("tw-back","← كل المحادثات","light")+'</div><div class="rep-hd" style="margin-top:10px"><i></i><div><h2>'+esc(TW.cur.title||"محادثة")+'</h2></div></div><div class="tw-chat"><div class="tw-msgs" id="twMsgs"><div class="empty">جاري التحميل...</div></div><div class="tw-in"><input id="twIn" type="text" placeholder="اكتب رسالة..." maxlength="2000" autocomplete="off"><button type="button" class="btn gold" data-a="tw-send">إرسال</button></div></div></section>';
  }
  h+='<div class="rep-hd"><i></i><div><h2>تواصل</h2><p class="small">رسائل الموظفين: مجموعات الأقسام ومحادثات فردية.</p></div></div>';
- h+='<div class="tw-tabs"><button type="button" data-a="tw-tab" data-id="depts" class="'+(TW.tab==="depts"?"on":"")+'">الأقسام</button><button type="button" data-a="tw-tab" data-id="people" class="'+(TW.tab==="people"?"on":"")+'">الأشخاص</button></div>';
+ h+='<div class="tw-tabs"><button type="button" data-a="tw-tab" data-id="depts" class="'+(TW.tab==="depts"?"on":"")+'">الأقسام</button><button type="button" data-a="tw-tab" data-id="people" class="'+(TW.tab==="people"?"on":"")+'">الأشخاص</button>'+(s.profile&&(s.profile.role==="admin"||s.profile.role==="owner")?'<button type="button" data-a="tw-tab" data-id="bc" class="'+(TW.tab==="bc"?"on":"")+'">رسالة جماعية</button>':"")+'</div>';
  if(TW.err.open)h+='<div class="notice error">'+esc(TW.err.open)+'</div>';
  if(TW.loading&&!TW.loaded)return h+'<div class="empty">جاري التحميل...</div></section>';
  if(TW.err.rooms&&TW.err.people)h+='<div class="notice error">التواصل لسه مش مفعّل في قاعدة البيانات ('+esc(TW.err.rooms)+'). محتاج دوال وجداول staff_chat_* من شوشو. الشاشة جاهزة.</div>';
+ if(TW.tab==="bc")return h+twbView()+"</section>";
  if(TW.tab==="depts"){
   const mine=new Set((TW.rooms||[]).filter(r=>r.kind==="dept").map(r=>r.dept_code));
   const isAdm=s.profile&&(s.profile.role==="admin"||s.profile.role==="owner");
