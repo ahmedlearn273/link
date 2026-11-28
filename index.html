@@ -2813,7 +2813,7 @@ const query=nrm(s.filter||"");
  header(
  selected?selected.name_ar:"اكتشف الخدمات ومزوّدي الخدمة المعتمدين",
  "",
- isCustomer
+ true
 )+
 '<main class="wrap wasla-landing '+(isCustomer?"wasla-customer-shell":"")+'">'+
 roles+'<div class="wl-search"><svg class="wl-s-ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="search" type="search" enterkeyhint="search" autocomplete="off" placeholder="ابحث عن خدمة أو تخصص أو مزوّد..." value="'+esc(s.filter||"")+'" aria-label="البحث عن الخدمات">'+((s.filter||"").length?'<button type="button" class="wl-s-x" data-a="search-clear" aria-label="مسح البحث">×</button>':"")+'</div>'+
