@@ -1,0 +1,40 @@
+-- Restores prevent_profile_privilege_change() to its state before H3 (manual rollback copy, not a migration)
+ CREATE OR REPLACE FUNCTION public.prevent_profile_privilege_change()
+  RETURNS trigger
+  LANGUAGE plpgsql
+  SET search_path TO ''
+ AS $function$
+ declare
+   v_uid uuid := (select auth.uid());
+ begin
+   if v_uid is null then
+     return new;
+   end if;
+
+   if new.role is not distinct from old.role
+      and new.status is not distinct from old.status then
+     return new;
+   end if;
+
+   -- C2: allow ONLY customer suspended -> active/pending, and ONLY from
+   -- inside public.staff_set_customer_status (flag set locally, owner postgres).
+   if coalesce(current_setting('wasla.customer_reactivation', true), '') = 'on'
+      and current_user = 'postgres'
+      and old.role = 'customer'
+      and new.role = 'customer'
+      and old.status = 'suspended'
+      and new.status in ('active', 'pending') then
+     return new;
+   end if;
+
+   if v_uid = old.id then
+     raise exception 'You cannot change your own role or status';
+   end if;
+
+   if not private.is_active_admin() then
+     raise exception 'Only active administrators can change account privileges';
+   end if;
+
+   return new;
+ end;
+ $function$;
