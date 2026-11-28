@@ -3917,8 +3917,9 @@ function walletView(){
   '<h3 style="margin:18px 0 8px">الحركات</h3><div class="list">'+
   (w.entries.map(e=>{
    const a=Number(e.amount||0);
-   return '<article class="item"><div class="row"><b>'+esc(WALLET_LABELS[e.entry_type]||e.entry_type)+'</b><b style="color:'+(a<0?'var(--danger)':'var(--success)')+'">'+moneyAr(a)+'</b></div>'+
-    '<p class="small">'+esc(new Date(e.created_at).toLocaleString("ar-EG"))+' · الرصيد بعدها: '+moneyAr(e.running_balance)+'</p>'+
+   const col=a<0?'var(--danger)':'var(--success)';
+   return '<article class="item"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><b>'+esc(WALLET_LABELS[e.entry_type]||e.entry_type)+'</b><span style="flex:none;min-width:64px;text-align:center;padding:5px 12px;border-radius:10px;border:1px solid '+col+';color:'+col+';font-weight:800;background:color-mix(in srgb,'+col+' 10%,transparent)">'+moneyAr(a)+'</span></div>'+
+    '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:6px"><span class="small">'+esc(new Date(e.created_at).toLocaleString("ar-EG"))+'</span><span class="small" style="white-space:nowrap">الرصيد بعدها: '+moneyAr(e.running_balance)+'</span></div>'+
     (e.note?'<p class="small">'+esc(e.note)+'</p>':'')+'</article>';
   }).join("")||empty("لا توجد حركات حتى الآن"))+
   '</div>'+
