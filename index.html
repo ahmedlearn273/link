@@ -4668,25 +4668,53 @@ function staffTabView(){
   (isO?sfHd('الأدمن','<span class="sf-pill gold">للمالك فقط</span>')+'<p class="small" style="margin:-4px 0 10px">تعيين أدمن جديد للمالك بس. الأدمن مينفعش يعيّن أدمن.</p><div class="sf-grid">'+(ad.map(x=>sfCard(x,true)).join("")||empty("لا يوجد أدمن ظاهر. لو فيه أدمن ومش ظاهر، محتاج صلاحية قراءة للمالك من شوشو."))+'</div>'+sfHd('الموظفون'):'')+
   '<div class="sf-grid">'+(st.map(x=>sfCard(x,false)).join("")||empty("لا يوجد موظفون حتى الآن."))+'</div></section>';
 }
-const HR={loaded:false,busy:false,rows:[],err:"",q:""};
+const HR={loaded:false,busy:false,rows:[],err:"",q:"",f:"all"};
 async function hrLoad(){
  if(HR.busy)return;HR.busy=true;
  try{const r=await db.rpc("hr_list_staff");if(r.error)throw r.error;HR.rows=Array.isArray(r.data)?r.data:[];HR.err=""}catch(e){HR.err="x";HR.rows=[]}
  HR.loaded=true;HR.busy=false;render();
 }
-function hrView(){
- if(SF.id&&SF.hr)return sfFileView();
- if(!HR.loaded&&!HR.busy)setTimeout(hrLoad,0);
- let b='<section class="section sf-sec"><div class="asv-h"><h2>الموارد البشرية</h2><span class="asv-sub">'+(hrCanManage()?"عرض وتعديل":"عرض فقط")+'</span></div>'+
-  '<input id="hrq" class="input" type="search" placeholder="ابحث بالاسم" value="'+esc(HR.q)+'" style="margin-bottom:10px;width:100%;box-sizing:border-box">';
- if(HR.err)b+='<div class="notice error">قسم الموارد البشرية لسه مش مفعّل في قاعدة البيانات. الشاشة جاهزة ومستنية التفعيل.</div>';
- else if(!HR.loaded||HR.busy)b+='<div class="empty">جاري التحميل...</div>';
- else{
-  const q=HR.q.toLowerCase(),rows=HR.rows.filter(x=>!q||String(x.full_name||"").toLowerCase().includes(q));
-  b+='<div class="sf-grid">'+(rows.map(x=>{const on=x.status==="active"&&x.is_active!==false;return '<article class="sf-card"><div class="sf-top"><div class="sf-av">'+sfInit(x.full_name)+'</div><div class="sf-nm"><b>'+esc(x.full_name||"بدون اسم")+'</b><div class="sf-pills"><span class="sf-pill gold">'+esc(x.staff_title||x.staff_role_code||"موظف")+'</span><span class="sf-pill '+(on?"ok":"off")+'">'+(on?"نشط":"موقوف")+'</span></div></div></div><div class="sf-act">'+btn("hr-open","الملف","gold",x.id)+'</div></article>'}).join("")||empty("لا يوجد موظفون."))+'</div>';
- }
- return SF_CSS+REP_CSS+'<style>.sf-ro .rep-bar{display:none}</style>'+b+'</section>';
+const HRC_CSS='<style>.hc{padding:0 0 90px}.hc .tl{padding:12px 16px 4px;display:flex;justify-content:space-between;align-items:baseline}.hc .tl h1{font-size:19px;font-weight:800;margin:0}.hc .tl span{font-size:12px;color:var(--text-secondary)}.hc .seg{margin:8px 16px;display:flex;border:1px solid var(--border-color);border-radius:12px;overflow:hidden;background:var(--bg-surface)}.hc .seg button{flex:1;text-align:center;font:inherit;font-size:12.5px;padding:9px 0;color:var(--text-secondary);background:none;border:0;cursor:pointer}.hc .seg button.on{background:var(--primary);color:#fff;font-weight:700}.hc .srch{display:block;width:calc(100% - 32px);margin:6px 16px;box-sizing:border-box;border:1px solid var(--border-color);background:var(--bg-surface);color:var(--text-primary);border-radius:12px;padding:10px 12px;font:inherit;font-size:14px}.hc .lst,.hc .grp{margin:6px 16px;background:var(--bg-surface);border:1px solid var(--border-color);border-radius:16px;overflow:hidden}.hc .rw{display:flex;align-items:center;gap:11px;padding:11px 14px;border:0;border-bottom:1px solid var(--border-color);width:100%;background:none;font:inherit;color:inherit;text-align:right;cursor:pointer}.hc .rw:last-child{border-bottom:0}.hc .av{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;font-weight:800;font-size:14px;background:var(--bg-subtle);color:var(--primary);flex:none}.hc .rw b{font-size:14px;display:block}.hc .rw small{font-size:11.5px;color:var(--text-secondary)}.hc .nm{flex:1;min-width:0}.hc .dt{width:9px;height:9px;border-radius:50%;background:var(--success);flex:none}.hc .dt.off{background:var(--danger)}.hc .chv{color:var(--text-secondary)}.hc .stk{position:sticky;top:0;z-index:5;background:var(--bg-surface);border-bottom:1px solid var(--border-color);padding:10px 16px;display:flex;align-items:center;gap:12px}.hc .stk .av{width:46px;height:46px;border-radius:14px;font-size:18px;background:var(--primary);color:#fff}.hc .stk h2{font-size:17px;margin:0}.hc .stk p{font-size:12px;color:var(--text-secondary);margin:2px 0 0}.hc .bk{width:38px;height:38px;border-radius:12px;border:1px solid var(--border-color);background:var(--bg-surface);color:var(--text-primary);font-size:18px;cursor:pointer;flex:none}.hc .pl{font-size:11px;font-weight:700;padding:3px 10px;border-radius:99px;background:var(--success-bg);color:var(--success);white-space:nowrap}.hc .pl.off{background:color-mix(in srgb,var(--danger) 12%,var(--bg-surface));color:var(--danger)}.hc .sc{padding:4px 0 0}.hc .sc h3{font-size:12px;color:var(--text-secondary);margin:14px 20px 4px;font-weight:700}.hc .kv{display:flex;justify-content:space-between;gap:12px;padding:10px 14px;border-bottom:1px solid var(--border-color);font-size:13.5px}.hc .kv:last-child{border-bottom:0}.hc .kv span{color:var(--text-secondary)}.hc .kv b{font-variant-numeric:tabular-nums;text-align:left}.hc details{margin:6px 16px;background:var(--bg-surface);border:1px solid var(--border-color);border-radius:14px}.hc summary{padding:11px 14px;font-weight:700;font-size:13.5px;color:var(--primary);cursor:pointer}.hc .fm{display:grid;gap:8px;padding:0 14px 14px}.hc .fm label{font-size:12px;color:var(--text-secondary);display:grid;gap:4px}.hc .fm input,.hc .fm select{border:1px solid var(--border-color);background:var(--bg-main);color:var(--text-primary);border-radius:10px;padding:10px;font:inherit;font-size:14px}.hc .act{position:sticky;bottom:78px;z-index:6;background:var(--bg-surface);border-top:1px solid var(--border-color);padding:10px 16px;display:flex;gap:8px;margin-top:14px}.hc .act button{flex:1;padding:12px;border-radius:12px;font:inherit;font-size:14px;font-weight:700;cursor:pointer}.hc .a1{background:var(--primary);color:#fff;border:0}.hc .a2{background:none;border:1px solid var(--danger);color:var(--danger)}.hc .em{padding:14px;font-size:13px;color:var(--text-secondary)}.hc .nt{margin:8px 16px;padding:10px 12px;border-radius:12px;background:var(--bg-subtle);font-size:13px}</style>';
+function hrFileView(){
+ const x=sfPerson(SF.id)||{},d=SF.data||{},job=d.job||{},sal=d.salary||{};
+ const isAdm=x.role==="admin",on=x.status==="active"&&x.is_active!==false;
+ const canM=hrCanManage(),sum=k=>(Array.isArray(d[k])?d[k]:[]).reduce((t,r)=>t+(Number(r[k==="advances"?"remaining":"amount"]!=null?r[k==="advances"?"remaining":"amount"]:r.amount)||0),0);
+ const kv=(l,v)=>'<div class="kv"><span>'+esc(l)+'</span><b>'+(v===null||v===undefined||v===""?'<span>—</span>':v)+'</b></div>';
+ const role=x.staff_title||x.staff_role_code||"موظف";
+ let h=HRC_CSS+'<section class="hc"><div class="stk"><button type="button" class="bk" data-a="sf-back">›</button><div class="av">'+sfInit(x.full_name)+'</div><div style="flex:1;min-width:0"><h2>'+esc(x.full_name||"ملف موظف")+'</h2><p>'+esc(role)+' · '+codeTag(idCode("EMP",SF.id))+'</p></div><span class="pl'+(on?"":" off")+'">'+(on?"نشط":"موقوف")+'</span></div>';
+ if(SF.msg)h+='<div class="nt">'+esc(SF.msg)+'</div>';
+ if(SF.loading)return h+'<div class="em">جاري تحميل الملف...</div></section>';
+ if(SF.err)h+='<div class="nt">بيانات الملف لسه مش مفعّلة في قاعدة البيانات ('+esc(SF.err)+').</div>';
+ const hist=Array.isArray(d.salary_history)?d.salary_history.slice(0,3):[];
+ h+='<div class="sc"><h3>المالية</h3><div class="grp">'+kv("الراتب الأساسي",sal.amount!=null?moneyAr(sal.amount):"")+kv("إجمالي الجزاءات",moneyAr((Array.isArray(d.penalties)?d.penalties:[]).reduce((t,r)=>t+(Number(r.amount)||0),0)))+kv("السلف (المتبقي)",moneyAr(sum("advances")))+hist.map(r=>kv("تعديل راتب "+String(r.effective_from||r.created_at||"").slice(0,10),r.amount!=null?moneyAr(r.amount):"")).join("")+'</div>'+
+  (canM?'<details><summary>تعديل الراتب</summary><div class="fm"><label>الراتب الأساسي<input id="sf_sal_amount" type="number" min="0" step="0.01" value="'+esc(sal.amount!=null?sal.amount:"")+'"></label><label>ساري من<input id="sf_sal_from" type="date"></label><label>ملاحظة<input id="sf_sal_note" type="text"></label>'+btn("sf-salary","حفظ الراتب","gold")+'</div></details>':'')+
+  '<h3>البيانات</h3><div class="grp">'+kv("القسم",esc(ORG_DEPTS[x.staff_role_code]||""))+kv("الرتبة",esc(job.rank_name||""))+kv("المدير المباشر",esc(job.manager_name||""))+kv("تاريخ التعيين",job.hire_date?esc(String(job.hire_date).slice(0,10)):"")+'</div>';
+ SF_SECS.forEach(sec=>{
+  const rows=Array.isArray(d[sec.k])?d[sec.k]:[];
+  h+='<h3>'+esc(sec.t)+' ('+fmt(rows.length)+')</h3><div class="grp">'+(rows.length?rows.slice(0,8).map(r=>{const m=sec.cols.map(c=>[c[0],c[2]]);const first=r.date||r.from_date,a=r.amount!=null?r.amount:null;return '<div class="kv"><span>'+esc(String(r.type||r.leave_type||(sec.k==="advances"?"سلفة":""))||"—")+(first?' · '+esc(String(first).slice(0,10)):"")+'</span><b>'+(a!=null?moneyAr(a):(r.days!=null?fmt(r.days)+" أيام":""))+'</b></div>'}).join(""):'<div class="em">لا توجد بيانات.</div>')+'</div>'+
+   (canM?'<details><summary>+ إضافة</summary><div class="fm">'+sec.form.map(f=>'<label>'+esc(f[1])+'<input id="sf_'+sec.k+'_'+f[0]+'" type="'+f[2]+'"'+(f[2]==="number"?' min="0" step="0.01"':'')+'></label>').join("")+btn("sf-add","إضافة","gold",sec.k)+'</div></details>':'');
+ });
+ const DT={contract:"عقد",id:"هوية",certificate:"شهادة",other:"أخرى"};
+ h+='<h3>المستندات والعقود</h3><div class="grp">'+(SF.docsErr?'<div class="em">'+esc(SF.docsErr)+'</div>':SF.docs===null?'<div class="em">جاري التحميل...</div>':(SF.docs.length?SF.docs.map(dc=>'<button type="button" class="rw" data-a="sf-doc-open" data-id="'+esc(dc.id)+'"><div class="nm"><b>'+esc(DT[dc.doc_type]||dc.doc_type)+'</b><small>'+esc(dc.file_name||"")+'</small></div><span class="chv">عرض ›</span></button>').join(""):'<div class="em">لا توجد مستندات.</div>'))+'</div>'+
+  (canM&&!SF.docsErr?'<details id="hrdoc"><summary>رفع مستند</summary><div class="fm"><label>النوع<select id="sf_doc_type"><option value="contract">عقد توظيف</option><option value="id">هوية</option><option value="certificate">شهادة</option><option value="other">أخرى</option></select></label><label>الملف (PDF أو صورة حتى 10 ميجا)<input id="sf_doc_file" type="file" accept="application/pdf,image/jpeg,image/png"></label>'+btn("sf-doc-up","رفع","gold")+'</div></details>':'')+'</div>';
+ if(canM&&!isAdm&&SF.id!==(s.user&&s.user.id)){const susp=x.status==="suspended";h+='<div class="act">'+(!SF.docsErr?'<button type="button" class="a1" data-a="hr-doc-focus">رفع مستند</button>':'')+'<button type="button" class="a2" data-a="'+(susp?"sf-react":"sf-susp")+'" data-id="'+esc(SF.id)+'">'+(susp?"إعادة التفعيل":"إيقاف")+'</button></div>'}
+ return h+'</section>';
 }
+function hrView(){
+ if(SF.id&&SF.hr)return hrFileView();
+ if(!HR.loaded&&!HR.busy)setTimeout(hrLoad,0);
+ const isOn=x=>x.status==="active"&&x.is_active!==false,all=HR.rows,na=all.filter(isOn).length,ns=all.length-na;
+ const f=HR.f||"all",q=HR.q.toLowerCase();
+ const rows=all.filter(x=>(f==="all"||(f==="on")===isOn(x))&&(!q||String(x.full_name||"").toLowerCase().includes(q)));
+ let b=HRC_CSS+'<section class="hc"><div class="tl"><h1>الموارد البشرية</h1><span>'+fmt(all.length)+' موظفين'+(hrCanManage()?'':' · عرض فقط')+'</span></div>'+
+  '<div class="seg">'+[["all","الكل "+fmt(all.length)],["on","نشط "+fmt(na)],["off","موقوف "+fmt(ns)]].map(t=>'<button type="button" class="'+(f===t[0]?"on":"")+'" data-a="hr-f" data-id="'+t[0]+'">'+t[1]+'</button>').join("")+'</div>'+
+  '<input id="hrq" class="srch" type="search" placeholder="ابحث بالاسم" value="'+esc(HR.q)+'">';
+ if(HR.err)b+='<div class="nt">قسم الموارد البشرية لسه مش مفعّل في قاعدة البيانات. الشاشة جاهزة ومستنية التفعيل.</div>';
+ else if(!HR.loaded||HR.busy)b+='<div class="em">جاري التحميل...</div>';
+ else b+=rows.length?'<div class="lst">'+rows.map(x=>'<button type="button" class="rw" data-a="hr-open" data-id="'+esc(x.id)+'"><div class="av">'+sfInit(x.full_name)+'</div><div class="nm"><b>'+esc(x.full_name||"بدون اسم")+'</b><small>'+esc(x.staff_title||x.staff_role_code||"موظف")+'</small></div><span class="dt'+(isOn(x)?"":" off")+'"></span><span class="chv">‹</span></button>').join("")+'</div>':empty("لا يوجد موظفون.");
+ return b+'</section>';
+}
+document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest('[data-a="hr-f"],[data-a="hr-doc-focus"]');if(!b)return;if(b.dataset.a==="hr-f"){HR.f=b.dataset.id;render();return}const dd=document.getElementById("hrdoc");if(dd){dd.open=true;dd.scrollIntoView({behavior:"smooth",block:"center"})}});
 document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest('[data-a="hr-open"]');if(!b)return;SF.msg="";SF.hr=true;sfLoad(b.dataset.id)});
 document.addEventListener("input",e=>{if(e.target&&e.target.id==="hrq"){HR.q=e.target.value;const p=e.target.selectionStart;render();const n=document.getElementById("hrq");if(n){n.focus();try{n.setSelectionRange(p,p)}catch(_){}}}});
 function sfFileView(){
