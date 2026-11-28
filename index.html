@@ -3357,7 +3357,7 @@ async function orgSave(userId,f){
  catch(e){note("اتحفظ الموظف لكن تعذّر حفظ الرتبة/المدير: "+String(e&&e.message||e),"error");return false}
 }
 const SEC_ST={};
-const SEC_PERM={org:["settings.view","settings.manage"],fin:["payments.view","payments.manage"],cs:["support.view","support.manage"],offers:["ads.view","ads.manage"],adsmgr:["ads.view","ads.manage"],mkt:["ads.view","ads.manage"]};
+const SEC_PERM={srep:["reports.view","reports.view"],org:["settings.view","settings.manage"],fin:["payments.view","payments.manage"],cs:["support.view","support.manage"],offers:["ads.view","ads.manage"],adsmgr:["ads.view","ads.manage"],mkt:["ads.view","ads.manage"]};
 function secCan(id,manage){const r=s.profile&&s.profile.role;if(r==="owner")return true;if(r!=="staff"&&r!=="admin")return false;const ps=r==="admin"?(s.adminPerms||[]):((s.staffAccess&&s.staffAccess.permissions)||[]);const k=SEC_PERM[id];return !!k&&ps.includes(k[manage?1:0])}
 const SEC_LBL={id:"المعرّف",code:"الكود",title:"العنوان",name:"الاسم",description:"الوصف",body:"النص",status:"الحالة",created_at:"أُنشئ في",updated_at:"آخر تعديل",starts_at:"يبدأ",ends_at:"ينتهي",discount_type:"نوع الخصم",discount_value:"قيمة الخصم",max_discount:"أقصى خصم",min_order:"أقل قيمة طلب",usage_limit:"حد الاستخدام",used_count:"مرات الاستخدام",per_user_limit:"حد لكل مستخدم",kind:"النوع",audiences:"الجمهور",placement:"المكان",impressions:"مرات الظهور",clicks:"النقرات",link_type:"نوع الرابط",link_value:"الرابط",image_url:"الصورة",is_active:"فعّال",goal:"الهدف",budget:"الميزانية",scheduled_at:"الموعد",sent_at:"أُرسل في",subject:"الموضوع",requester_name:"صاحب التذكرة",requester_role:"دوره",category:"النوع",priority:"الأولوية",assigned_to_name:"المسؤول",first_reply_due:"موعد أول رد",first_replied_at:"أول رد",overdue:"متأخرة",provider_name:"مزود الخدمة",gross:"الإجمالي",commission:"العمولة",net:"الصافي",negative_offset:"خصم الرصيد السالب",adjustments:"تعديلات",period_start:"بداية الفترة",period_end:"نهاية الفترة",method:"الطريقة",reference:"المرجع",amount:"المبلغ",expense_date:"التاريخ",reason:"السبب",note:"ملاحظة",balance:"الرصيد",paid_at:"تاريخ الدفع",rejection_reason:"سبب الرفض"};
 const nz=(v)=>v==null||v===""?null:v;
@@ -3366,7 +3366,15 @@ const fD=v=>v?String(v).slice(0,10):"—";
 const fDT=v=>v?String(v).slice(0,16).replace("T"," "):"—";
 const SEC_STAT={draft:"مسودة",pending_approval:"بانتظار الموافقة",approved:"موافق عليها",paid:"مدفوعة",rejected:"مرفوضة",failed:"فشلت",pending:"بانتظار الموافقة",requested:"مطلوب",processed:"تم التنفيذ",open:"مفتوحة",resolved:"تم الحل",closed:"مغلقة",scheduled:"مجدولة",active:"سارية",expired:"منتهية",paused:"موقوفة",sent:"تم الإرسال",cancelled:"ملغاة"};
 const sT=v=>SEC_STAT[v]||v||"—";
+const SREP_RANGE=()=>({p_from:new Date(Date.now()-30*864e5).toISOString().slice(0,10),p_to:new Date().toISOString().slice(0,10)});
+const SREP_ARR=(k,a,b)=>d=>(Array.isArray(d[k])?d[k]:[]).map(x=>({a:x[a],n:x[b]}));
 const SEC={
+srep:{title:"التقارير",sub:"آخر 30 يوم. أرقام الطلبات والتقييمات لكل الموظفين، والمالية لمن له صلاحية المدفوعات.",tabs:[
+ {k:"sum",l:"الملخص",rpc:"staff_reports_summary",args:SREP_RANGE,map:d=>{const st=d.requests_by_status||{},tot=Object.values(st).reduce((a,b)=>a+Number(b||0),0),f=d.financial||{};return Object.assign({total:tot,completed:st.completed||0,cancelled:st.cancelled||0,rcount:(d.reviews||{}).count||0,ravg:(d.reviews||{}).average},f)},kpi:[["total","كل الطلبات",v=>fmt(v||0)],["completed","المكتملة",v=>fmt(v||0)],["cancelled","الملغاة",v=>fmt(v||0)],["rcount","عدد التقييمات",v=>fmt(v||0)],["ravg","متوسط التقييم",v=>v==null?"—":LTR(String(v))],["revenue","إيراد المدفوعات",fEGP,1],["commission","عمولة المنصة",fEGP,1],["cash_paid","مدفوع كاش",fEGP,1]]},
+ {k:"svc",l:"الخدمات",rpc:"staff_reports_summary",args:SREP_RANGE,map:SREP_ARR("requests_by_service","service","count"),title:r=>r.a||"—",cols:[["n","الطلبات",v=>fmt(v||0)]]},
+ {k:"cty",l:"المدن",rpc:"staff_reports_summary",args:SREP_RANGE,map:SREP_ARR("requests_by_city","city","count"),title:r=>r.a||"—",cols:[["n","الطلبات",v=>fmt(v||0)]]},
+ {k:"day",l:"الأيام",rpc:"staff_reports_summary",args:SREP_RANGE,map:SREP_ARR("requests_by_day","day","count"),title:r=>fD(r.a),cols:[["n","الطلبات",v=>fmt(v||0)]]}
+]},
 fin:{title:"المالية",sub:"العمولات والمستحقات والتسويات والمصروفات والمبالغ المستردة.",tabs:[
  {k:"sum",l:"الملخص",rpc:"finance_summary",args:()=>({p_from:new Date(Date.now()-30*864e5).toISOString().slice(0,10),p_to:new Date().toISOString().slice(0,10)}),kpi:[["gross","إجمالي المدفوعات",fEGP],["commission","عمولة المنصة",fEGP],["refunds","المستردات",fEGP],["expenses","المصروفات",fEGP],["payouts_paid","تسويات مدفوعة",fEGP],["payouts_pending","تسويات معلقة",fEGP],["outstanding_negative_total","مستحقات على مزودي الخدمات",fEGP],["orders_paid_count","طلبات مدفوعة",v=>fmt(v)],["platform_funded_discounts","خصومات تحملتها المنصة",fEGP,1],["provider_funded_discounts","خصومات تحملها مزودو الخدمات",fEGP,1]],note:"آخر 30 يوم"},
  {k:"com",l:"العمولات",rpc:"finance_list_commissions",args:()=>({p_from:new Date(Date.now()-30*864e5).toISOString().slice(0,10),p_to:new Date().toISOString().slice(0,10),p_provider:null,p_limit:100,p_offset:0}),title:r=>r.provider_name||"—",cols:[["gross","المبلغ",fEGP],["commission","العمولة",fEGP],["paid_at","التاريخ",fD],["code","الدفعة",v=>v]]},
@@ -3410,7 +3418,7 @@ mkt:{title:"التسويق",sub:"حملات تجمع عرض وإشعار وإع�
 function secSt(id){return SEC_ST[id]||(SEC_ST[id]={tab:0,data:{},err:{},busy:false,form:false})}
 async function secLoad(id){
  const st=secSt(id),t=SEC[id].tabs[st.tab];st.busy=true;st.err[t.k]="";
- try{const r=await db.rpc(t.rpc,t.args());if(r.error)throw r.error;st.data[t.k]=(r.data&&!Array.isArray(r.data)&&Array.isArray(r.data.rows))?r.data.rows:r.data}
+ try{const r=await db.rpc(t.rpc,t.args());if(r.error)throw r.error;st.data[t.k]=t.map?t.map(r.data||{}):((r.data&&!Array.isArray(r.data)&&Array.isArray(r.data.rows))?r.data.rows:r.data)}
  catch(e){st.err[t.k]=String(e&&e.message||e);st.data[t.k]=null}
  st.busy=false;st.loaded=st.loaded||{};st.loaded[t.k]=true;render();
 }
@@ -8374,8 +8382,8 @@ const STAFF_NAV_ITEMS=[
  ["settings","الإعدادات",["settings.view","settings.manage"]]
 ];
 // الأقسام المنفذة فعليًا في لوحة الموظف. الباقي صفحة مؤقتة بلا تحميل بيانات.
-const STAFF_SEC_TAB={support:"cs",ads:"adsmgr",offers:"offers",payments:"fin"};
-const STAFF_IMPLEMENTED_TABS=["home","services","categories","requests","providers","complaints","tawasol","support","ads","offers","payments","customers","hr"];
+const STAFF_SEC_TAB={reports:"srep",support:"cs",ads:"adsmgr",offers:"offers",payments:"fin"};
+const STAFF_IMPLEMENTED_TABS=["reports","home","services","categories","requests","providers","complaints","tawasol","support","ads","offers","payments","customers","hr"];
 const STAFF_PLACEHOLDER_TEXT="القسم ده ضمن مراحل التنفيذ التالية. مش بيتم تحميل بيانات أو تنفيذ عمليات من الصفحة دي حاليًا.";
 // المفاتيح المالية: تُمنح لموظفي رتبة FIN فقط (الحماية الأساسية في قاعدة البيانات، وهنا منع مبكر في الواجهة)
 const FINANCIAL_PERMISSION_KEYS=["payments.view","payments.manage","wallet.view","wallet.manage","payouts.prepare"];
