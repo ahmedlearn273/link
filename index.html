@@ -3426,6 +3426,49 @@ function secDetail(id,t,st){
  if(!can)h+='<p class="small" style="margin-top:10px">عرض فقط. التعديل يحتاج صلاحية من المالك.</p>';
  return h;
 }
+
+/* ===== عملاء الموظف (عرض فقط) ===== */
+const STC={rows:[],loaded:false,busy:false,err:"",q:"",detail:null,det:null};
+async function stcLoad(){
+ if(STC.busy)return;STC.busy=true;STC.err="";
+ try{const r=await db.rpc("staff_list_customers",{p_q:STC.q||null,p_limit:50,p_offset:0});
+  if(r.error)STC.err=r.error.message||"error";else STC.rows=Array.isArray(r.data)?r.data:(r.data&&r.data.rows)||[];
+ }catch(e){STC.err=String(e&&e.message||e)}
+ STC.loaded=true;STC.busy=false;render();
+}
+async function stcOpen(id){
+ STC.detail=id;STC.det=null;render();window.scrollTo(0,0);
+ try{const r=await db.rpc("staff_get_customer",{p_id:id});STC.det=r.error?{error:r.error.message}:(r.data||{})}catch(e){STC.det={error:String(e&&e.message||e)}}
+ render();
+}
+function stcView(){
+ if(!STC.loaded&&!STC.busy)setTimeout(stcLoad,0);
+ if(STC.detail){
+  const d=STC.det;
+  let b='<div class="actions">'+btn("stc-back","← رجوع للقائمة","light","")+'</div>';
+  if(!d)return '<section class="asv-sec">'+b+'<div class="empty">جاري التحميل...</div></section>';
+  if(d.error)return '<section class="asv-sec">'+b+'<div class="notice error">تعذر تحميل الملف.</div></section>';
+  const c=d.customer||d,reqs=d.requests||[];
+  return '<section class="asv-sec">'+b+'<div class="asv-hero"><h2>'+esc(c.full_name||"عميل بدون اسم")+'</h2><p>'+esc(c.account_code||"")+' · '+(c.status==="active"?"نشط":"موقوف")+'</p></div>'+
+   '<div class="row" style="display:flex;justify-content:space-between;gap:12px;padding:10px 4px;border-bottom:1px solid var(--border-color)"><span class="muted">المدينة</span><b>'+esc([c.city,c.area].filter(Boolean).join("، ")||"غير محددة")+'</b></div>'+
+   '<div class="row" style="display:flex;justify-content:space-between;gap:12px;padding:10px 4px;border-bottom:1px solid var(--border-color)"><span class="muted">رقم التواصل</span><b>'+(c.phone?LTR(esc(c.phone)):"مخفي")+'</b></div>'+
+   '<div class="asv-h"><h3>آخر الطلبات</h3></div><div class="asv-list">'+
+   (reqs.map(r=>'<div class="item"><div class="row"><b>'+esc(r.service_name||r.title||"طلب")+'</b>'+tag(r.status||"")+'</div><p class="small">'+esc(String(r.created_at||"").slice(0,10))+'</p></div>').join("")||empty("لا توجد طلبات"))+'</div></section>';
+ }
+ let body='<section class="asv-sec"><div class="asv-h"><h2>العملاء</h2><span class="asv-sub">عرض فقط</span></div>'+
+  '<input id="stcq" class="input" type="search" placeholder="ابحث بالاسم أو الكود" value="'+esc(STC.q)+'" style="margin-bottom:10px;width:100%;box-sizing:border-box">';
+ if(STC.err)body+='<div class="notice error">شاشة العملاء لسه مش مفعّلة في قاعدة البيانات. الشاشة جاهزة ومستنية التفعيل.</div>';
+ else if(!STC.loaded||STC.busy)body+='<div class="empty">جاري التحميل...</div>';
+ else body+='<div class="asv-list">'+(STC.rows.map(x=>'<button type="button" class="item" data-a="stc-open" data-id="'+esc(x.id)+'" style="text-align:right;width:100%"><div class="row"><b>'+esc(x.full_name||"عميل بدون اسم")+'</b>'+tag(x.status==="active"?"نشط":"موقوف")+'</div><p class="small">'+esc([x.city,x.area].filter(Boolean).join("، ")||"الموقع غير محدد")+' · '+fmt(x.requests_count||0)+' طلب</p></button>').join("")||empty("لا يوجد عملاء مطابقون"))+'</div>';
+ return body+'</section>';
+}
+document.addEventListener("click",e=>{
+ const b=e.target.closest&&e.target.closest('[data-a="stc-open"],[data-a="stc-back"]');if(!b)return;
+ if(b.dataset.a==="stc-open")stcOpen(b.dataset.id);else{STC.detail=null;STC.det=null;render()}
+});
+document.addEventListener("keydown",e=>{
+ if(e.key==="Enter"&&e.target&&e.target.id==="stcq"){STC.q=e.target.value.trim();STC.loaded=false;STC.rows=[];render()}
+});
 function secView(id){
  const S=SEC[id],st=secSt(id),t=S.tabs[st.tab];st.loaded=st.loaded||{};
  if(!secCan(id,false))return '<section class="section"><div class="card"><p class="small" style="margin:0">ليس لديك صلاحية على هذا القسم. اطلبها من المالك.</p></div></section>';
@@ -8177,7 +8220,7 @@ const STAFF_NAV_ITEMS=[
 ];
 // الأقسام المنفذة فعليًا في لوحة الموظف. الباقي صفحة مؤقتة بلا تحميل بيانات.
 const STAFF_SEC_TAB={support:"cs",ads:"adsmgr",payments:"fin"};
-const STAFF_IMPLEMENTED_TABS=["home","services","categories","requests","providers","complaints","tawasol","support","ads","payments"];
+const STAFF_IMPLEMENTED_TABS=["home","services","categories","requests","providers","complaints","tawasol","support","ads","payments","customers"];
 const STAFF_PLACEHOLDER_TEXT="القسم ده ضمن مراحل التنفيذ التالية. مش بيتم تحميل بيانات أو تنفيذ عمليات من الصفحة دي حاليًا.";
 // المفاتيح المالية: تُمنح لموظفي رتبة FIN فقط (الحماية الأساسية في قاعدة البيانات، وهنا منع مبكر في الواجهة)
 const FINANCIAL_PERMISSION_KEYS=["payments.view","payments.manage","wallet.view","wallet.manage","payouts.prepare"];
@@ -8285,6 +8328,7 @@ if(s.tab==="home"&&navItems.some(x=>x[0]==="home")){
 
 if(s.tab==="tawasol")body=twView();
 if(STAFF_SEC_TAB[s.tab]&&navItems.some(x=>x[0]===s.tab))body=secView(STAFF_SEC_TAB[s.tab]);
+if(s.tab==="customers"&&navItems.some(x=>x[0]==="customers"))body=stcView();
 if(s.tab==="none"){
   body='<section class="section"><div class="card"><p class="muted">لا توجد أقسام متاحة بصلاحياتك الحالية.</p></div></section>';
  }else if(!STAFF_IMPLEMENTED_TABS.includes(s.tab)&&navItems.some(x=>x[0]===s.tab)){
@@ -8296,7 +8340,7 @@ const nav=navItems.map(x=>'<button data-a="tab" data-id="'+x[0]+'" class="'+(s.t
  const staffHead='<div class="sectionhead"><h2>لوحة الموظف</h2>'+tag("موظف")+'</div>';
  if(bottomLayout){
   return header(asv?"مشرف المنطقة":"لوحة الموظف","",true)+
-  '<main class="wrap wasla-staff-bottom-main">'+msg()+(asv?"":staffHead)+body+'</main>'+
+  '<main class="wrap wasla-staff-bottom-main">'+msg()+(asv||s.tab!=="home"?"":staffHead)+body+'</main>'+
   '<nav class="wasla-staff-bottom-nav asv-nav'+(navItems.length>4?" many":"")+'" aria-label="التنقل الرئيسي">'+nav+
   '<button data-a="tab" data-id="account" class="'+(s.tab==="account"?"active":"")+'">'+asvIcon("account")+'<span>حسابي</span></button></nav>';
  }
