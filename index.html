@@ -3451,35 +3451,43 @@ function contactRows(c,perm){
  return rw("رقم التواصل",c.phone?LTR(esc(c.phone)):"لا يوجد",ph?'<a href="tel:'+esc(ph)+'" style="'+bs+'background:var(--surface-2,#eef0f2);color:var(--text,#111)">اتصال</a>':"")+
   rw("رقم الواتساب",c.whatsapp_number?LTR(esc(c.whatsapp_number)):"لا يوجد",wa?'<a href="https://wa.me/'+esc(wa)+'" target="_blank" rel="noopener" style="'+bs+'background:var(--primary,#0f766e);color:#fff">واتساب</a>':"");
 }
+const CUS_MANAGE=false;
+const CPV_CSS='<style>.cp{padding:0 0 96px}.cp .hdr{background:linear-gradient(160deg,var(--primary),var(--primary-hover));color:#fff;padding:14px 16px 56px;border-radius:0 0 26px 26px;display:flex;align-items:center;gap:10px}.cp .hdr .bk{width:36px;height:36px;border-radius:11px;border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.14);color:#fff;font-size:18px;cursor:pointer;flex:none}.cp .hdr small{font-size:12px;opacity:.85}.cp .pf{margin:-40px 16px 0;background:var(--bg-surface);border:1px solid var(--border-color);border-radius:22px;padding:16px;box-shadow:0 10px 30px color-mix(in srgb,var(--primary) 16%,transparent);position:relative}.cp .pt{display:flex;align-items:center;gap:12px}.cp .av2{width:56px;height:56px;border-radius:18px;display:grid;place-items:center;font-weight:800;font-size:22px;background:var(--accent);color:#fff;flex:none}.cp .pt h2{font-size:19px;margin:0;font-weight:800}.cp .code{display:inline-block;margin-top:5px;font-size:11.5px;font-weight:700;padding:3px 10px;border-radius:99px;background:var(--bg-subtle);color:var(--text-secondary)}.cp .st{margin-inline-start:auto;font-size:12px;font-weight:800;padding:5px 11px;border-radius:99px;display:inline-flex;align-items:center;gap:6px;background:var(--success-bg);color:var(--success)}.cp .st i{width:7px;height:7px;border-radius:50%;background:currentColor}.cp .st.off{background:color-mix(in srgb,var(--danger) 12%,var(--bg-surface));color:var(--danger)}.cp .warn{margin-top:12px;padding:12px 14px;border-radius:14px;background:color-mix(in srgb,var(--danger) 9%,var(--bg-surface));border:1px solid color-mix(in srgb,var(--danger) 35%,var(--bg-surface));color:var(--danger)}.cp .warn small{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700}.cp .warn b{display:block;margin-top:6px;font-size:15px}.cp .btns{display:flex;gap:10px;margin-top:12px}.cp .btns button{flex:1;display:flex;align-items:center;justify-content:center;gap:7px;padding:13px;border-radius:13px;font:inherit;font-size:14px;font-weight:800;cursor:pointer}.cp .b-ok{background:var(--success);color:var(--bg-surface) !important;border:0}.cp .b-ln{background:var(--bg-surface);color:var(--text-primary);border:1px solid var(--border-color)}.cp .sh{display:flex;align-items:center;justify-content:space-between;margin:20px 18px 8px}.cp .sh h3{margin:0;font-size:16px;font-weight:800;display:flex;align-items:center;gap:8px}.cp .sh h3:before{content:"";width:4px;height:16px;border-radius:3px;background:var(--accent)}.cp .sh span{font-size:11.5px;color:var(--text-secondary);display:inline-flex;align-items:center;gap:4px}.cp .g2{margin:0 16px;display:grid;grid-template-columns:1fr 1fr;gap:10px}.cp .cd{background:var(--bg-surface);border:1px solid var(--border-color);border-radius:16px;padding:12px;display:flex;align-items:center;gap:10px}.cp .cd.w{grid-column:1/-1}.cp .ic{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;flex:none;background:color-mix(in srgb,var(--primary) 10%,var(--bg-surface));color:var(--primary)}.cp .ic.o{background:color-mix(in srgb,var(--accent) 14%,var(--bg-surface));color:var(--accent)}.cp .ic.g{background:color-mix(in srgb,var(--success) 14%,var(--bg-surface));color:var(--success)}.cp .ic svg{width:19px;height:19px}.cp .cd small{display:block;font-size:11.5px;color:var(--text-secondary)}.cp .cd b{font-size:15px;font-variant-numeric:tabular-nums}.cp .box{margin:0 16px;background:var(--bg-surface);border:1px solid var(--border-color);border-radius:18px;overflow:hidden}.cp .cr{display:flex;align-items:center;gap:11px;padding:12px 14px;border-bottom:1px solid var(--border-color)}.cp .cr:last-child{border-bottom:0}.cp .cr .nm{flex:1;min-width:0}.cp .cr small{display:block;font-size:11.5px;color:var(--text-secondary)}.cp .cr b{font-size:15px}.cp .cb{display:inline-flex;align-items:center;gap:6px;padding:9px 14px;border-radius:11px;font-weight:800;font-size:13px;text-decoration:none;flex:none}.cp .cb svg{width:15px;height:15px}.cp .cb.p{background:var(--primary);color:var(--bg-surface) !important}.cp .cb.w{background:var(--success);color:var(--bg-surface) !important}.cp .rq{display:flex;align-items:center;gap:11px;padding:12px 14px;border-bottom:1px solid var(--border-color)}.cp .rq:last-child{border-bottom:0}.cp .rq .nm{flex:1;min-width:0}.cp .rq b{font-size:15px;display:block}.cp .rq small{font-size:11.5px;color:var(--text-secondary)}.cp .pl2{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:800;padding:5px 11px;border-radius:99px;background:var(--success-bg);color:var(--success);white-space:nowrap}.cp .pl2.x{background:color-mix(in srgb,var(--warning) 14%,var(--bg-surface));color:var(--warning)}.cp .pl2 svg{width:12px;height:12px}.cp .em{padding:14px;font-size:13px;color:var(--text-secondary)}.cp .msg{margin:10px 16px 0;padding:10px 12px;border-radius:12px;background:var(--bg-subtle);font-size:13px}</style>';
+const CPV_I={loc:'<path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/>',city:'<path d="M4 21V8l8-4 8 4v13"/><path d="M9 21v-6h6v6M9 11h.01M15 11h.01"/>',cal:'<rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/>',chk:'<rect x="5" y="4" width="14" height="17" rx="2.5"/><path d="M9 12.5l2 2 4-4.5M9 4h6v3H9z"/>',clk:'<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>',tel:'<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A15 15 0 0 1 3 6a2 2 0 0 1 2-2z"/>',wa:'<path d="M21 12a8 8 0 0 1-11.6 7.1L3 21l1.9-5.4A8 8 0 1 1 21 12z"/>',warn:'<path d="M12 3l10 18H2L12 3z"/><path d="M12 10v5M12 18h.01"/>',lock:'<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',ok:'<path d="M5 12.5l4.5 4.5L19 7.5"/>',x:'<path d="M6 6l12 12M18 6L6 18"/>',note:'<path d="M5 5h14v10H9l-4 4V5z"/>',home:'<path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',tool:'<path d="M14 6a4 4 0 0 0 5 5l-9 9a2.1 2.1 0 0 1-3-3l9-9a4 4 0 0 0-2-2z"/>',pen:'<path d="M4 20l4-1 11-11-3-3L5 16l-1 4z"/>'};
+const cpi=(k)=>'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">'+CPV_I[k]+'</svg>';
 function stcContactC(c){
  if(!canContact("customers.contact"))return "";
  const ph=String(c.phone||"").replace(/[^0-9+]/g,""),wa=String(c.whatsapp_number||"").replace(/[^0-9]/g,"");
- const bs='display:inline-flex;align-items:center;justify-content:center;min-height:32px;padding:0 12px;border-radius:10px;font-weight:700;text-decoration:none;font-size:12.5px;margin-inline-start:8px;';
- const row=(l,v,btn)=>'<div class="kv"><span>'+l+'</span><b style="display:flex;align-items:center">'+(v?LTR(esc(v)):"لا يوجد")+btn+'</b></div>';
- return '<h3>التواصل (داخلي)</h3><div class="grp">'+
-  row("الهاتف",c.phone,ph?'<a href="tel:'+esc(ph)+'" style="'+bs+'background:var(--bg-subtle);color:var(--text-primary)">اتصال</a>':"")+
-  row("الواتساب",c.whatsapp_number,wa?'<a href="https://wa.me/'+esc(wa)+'" target="_blank" rel="noopener" style="'+bs+'background:var(--primary);color:var(--bg-surface) !important">واتساب</a>':"")+
-  (c.address!=null&&c.address!==""?'<div class="kv"><span>العنوان</span><b>'+esc(c.address)+'</b></div>':"")+'</div>';
+ const row=(ic,cl,l,v,btn)=>'<div class="cr"><span class="ic '+cl+'">'+cpi(ic)+'</span><div class="nm"><small>'+l+'</small><b>'+(v?LTR(esc(v)):"لا يوجد")+'</b></div>'+btn+'</div>';
+ return '<div class="sh"><h3>التواصل</h3><span>'+cpi("lock").replace("<svg ","<svg width=\"13\" height=\"13\" ")+'داخلي، للموظفين فقط</span></div><div class="box">'+
+  row("tel","","الهاتف",c.phone,ph?'<a class="cb p" href="tel:'+esc(ph)+'">'+cpi("tel")+'اتصال</a>':"")+
+  row("wa","g","الواتساب",c.whatsapp_number,wa?'<a class="cb w" href="https://wa.me/'+esc(wa)+'" target="_blank" rel="noopener">'+cpi("wa")+'واتساب</a>':"")+
+  (c.address!=null&&c.address!==""?'<div class="cr"><span class="ic o">'+cpi("loc")+'</span><div class="nm"><small>العنوان</small><b>'+esc(c.address)+'</b></div></div>':"")+'</div>';
 }
+const STC_MSG={t:""};
 function stcView(){
  if(!STC.loaded&&!STC.busy)setTimeout(stcLoad,0);
  const isOn=x=>x&&x.status==="active";
  if(STC.detail){
   const d=STC.det;
-  const back='<button type="button" class="bk" data-a="stc-back">›</button>';
-  if(!d)return HRC_CSS+'<section class="hc"><div class="stk">'+back+'<div style="flex:1"><h2>ملف العميل</h2></div></div><div class="em">جاري التحميل...</div></section>';
-  if(d.error)return HRC_CSS+'<section class="hc"><div class="stk">'+back+'<div style="flex:1"><h2>ملف العميل</h2></div></div><div class="nt">تعذر تحميل الملف.</div></section>';
+  const hdr=(t)=>'<div class="hdr"><button type="button" class="bk" data-a="stc-back">›</button><div><small>لوحة الموظف / العملاء</small></div></div>';
+  if(!d)return CPV_CSS+'<section class="cp">'+hdr()+'<div class="em">جاري التحميل...</div></section>';
+  if(d.error)return CPV_CSS+'<section class="cp">'+hdr()+'<div class="msg">تعذر تحميل الملف.</div></section>';
   const c=d.customer||d,reqs=d.requests||[],on=isOn(c);
-  const kv=(l,v)=>'<div class="kv"><span>'+l+'</span><b>'+v+'</b></div>';
-  let h=HRC_CSS+'<section class="hc"><div class="stk">'+back+'<div class="av">'+sfInit(c.full_name)+'</div><div style="flex:1;min-width:0"><h2>'+esc(c.full_name||"عميل بدون اسم")+'</h2><p>'+esc(c.account_code||"")+'</p></div><span class="pl'+(on?"":" off")+'">'+(on?"نشط":"موقوف")+'</span></div>';
-  if(!on&&c.suspension_reason)h+='<div class="nt">سبب الإيقاف: '+esc(c.suspension_reason)+'</div>';
-  h+='<div class="sc"><h3>البيانات</h3><div class="grp">'+
-   kv("المدينة",esc(c.city||"غير محددة"))+kv("المنطقة",esc(c.area||"غير محددة"))+
-   kv("تاريخ التسجيل",esc(String(c.created_at||"").slice(0,10)||"-"))+
-   kv("عدد الطلبات",fmt(c.requests_count!=null?c.requests_count:reqs.length))+
-   (c.last_request_at?kv("آخر طلب",esc(String(c.last_request_at).slice(0,10))):"")+'</div>'+
+  const card=(ic,cl,l,v,w)=>'<div class="cd'+(w?" w":"")+'"><span class="ic '+cl+'">'+cpi(ic)+'</span><div><small>'+l+'</small><b>'+v+'</b></div></div>';
+  const canMng=CUS_MANAGE&&canContact("customers.manage");
+  const svcIc=n=>/سباك|صيان|كهرب|تكييف/.test(n||"")?["tool","b"]:/دهان|ديكور|نجار/.test(n||"")?["pen","o"]:["home","o"];
+  let h=CPV_CSS+'<section class="cp">'+hdr()+'<div class="pf"><div class="pt"><div class="av2">'+sfInit(c.full_name)+'</div><div style="min-width:0"><h2>'+esc(c.full_name||"عميل بدون اسم")+'</h2><span class="code">'+esc(c.account_code||"")+'</span></div><span class="st'+(on?"":" off")+'"><i></i>'+(on?"نشط":"موقوف")+'</span></div>';
+  if(!on&&c.suspension_reason)h+='<div class="warn"><small>'+cpi("warn").replace("<svg ","<svg width=\"16\" height=\"16\" ")+'سبب الإيقاف</small><b>'+esc(c.suspension_reason)+'</b></div>';
+  if(canMng)h+='<div class="btns">'+(on?"":'<button type="button" class="b-ok" data-a="stc-react">'+cpi("ok").replace("<svg ","<svg width=\"16\" height=\"16\" ")+'إعادة التفعيل</button>')+'<button type="button" class="b-ln" data-a="stc-note">'+cpi("note").replace("<svg ","<svg width=\"16\" height=\"16\" ")+'ملاحظة</button></div>';
+  h+='</div>'+(STC_MSG.t?'<div class="msg">'+esc(STC_MSG.t)+'</div>':"")+
+   '<div class="sh"><h3>البيانات</h3></div><div class="g2">'+
+   card("city","o","المدينة",esc(c.city||"غير محددة"))+card("loc","o","المنطقة",esc(c.area||"غير محددة"))+
+   card("cal","","تاريخ التسجيل",esc(String(c.created_at||"").slice(0,10)||"-"))+
+   card("chk","","عدد الطلبات",fmt(c.requests_count!=null?c.requests_count:reqs.length))+
+   (c.last_request_at?card("clk","","آخر طلب",esc(String(c.last_request_at).slice(0,10)),1):"")+'</div>'+
    stcContactC(c)+
-   '<h3>آخر الطلبات</h3>'+(reqs.length?'<div class="lst">'+reqs.map(r=>'<div class="rw"><div class="nm"><b>'+esc(r.service_name||r.title||"طلب")+'</b><small>'+esc(String(r.created_at||"").slice(0,10))+'</small></div><span class="pl">'+esc(r.status||"")+'</span></div>').join("")+'</div>':'<div class="em">لا توجد طلبات.</div>')+'</div></section>';
+   '<div class="sh"><h3>آخر الطلبات</h3></div>'+(reqs.length?'<div class="box">'+reqs.map(r=>{const x=/ملغ|cancel/i.test(r.status||""),si=svcIc(r.service_name||r.title);return '<div class="rq"><span class="ic '+(si[1]==="o"?"o":"")+'">'+cpi(si[0])+'</span><div class="nm"><b>'+esc(r.service_name||r.title||"طلب")+'</b><small>'+esc(String(r.created_at||"").slice(0,10))+'</small></div><span class="pl2'+(x?" x":"")+'">'+cpi(x?"x":"ok")+esc(r.status||"")+'</span></div>'}).join("")+'</div>':'<div class="box"><div class="em">لا توجد طلبات.</div></div>')+'</section>';
   return h;
  }
  const all=STC.rows||[],f=STC.f||"all",na=all.filter(isOn).length,ns=all.length-na;
@@ -3493,10 +3501,20 @@ function stcView(){
  return body+'</section>';
 }
 document.addEventListener("change",e=>{if(e.target&&e.target.id==="waSame"){const w=e.target.form&&e.target.form.querySelector('[name="whatsapp_number"]');if(w){w.disabled=e.target.checked;w.required=!e.target.checked;if(e.target.checked){const ph=e.target.form.querySelector('[name="phone"]');w.value=ph?ph.value:""}}}});
-document.addEventListener("click",e=>{
+document.addEventListener("click",async e=>{
+ const m=e.target.closest&&e.target.closest('[data-a="stc-react"],[data-a="stc-note"]');
+ if(m&&STC.det){
+  const c=STC.det.customer||STC.det,react=m.dataset.a==="stc-react";
+  const why=(prompt(react?"سبب إعادة التفعيل (5 حروف على الأقل):":"اكتب الملاحظة (5 حروف على الأقل):")||"").trim();
+  if(why.length<5){STC_MSG.t="اكتب نص من 5 حروف على الأقل.";render();return}
+  const r=react?await db.rpc("staff_set_customer_status",{p_customer_id:c.id,p_status:"active",p_reason:why}):await db.rpc("staff_add_customer_note",{p_customer_id:c.id,p_note:why});
+  if(r.error){STC_MSG.t=/PGRST202|42883|staff_set_customer|staff_add_customer/.test(String(r.error.code)+" "+String(r.error.message))?"الإجراء ده لسه مش مفعّل في قاعدة البيانات.":"تعذّر التنفيذ: "+(r.error.message||r.error);render();return}
+  STC_MSG.t=react?"تمت إعادة تفعيل العميل.":"تم حفظ الملاحظة.";
+  if(react)stcOpen(c.id);else render();return
+ }
  const b=e.target.closest&&e.target.closest('[data-a="stc-open"],[data-a="stc-back"],[data-a="stc-f"]');if(!b)return;
  if(b.dataset.a==="stc-f"){STC.f=b.dataset.id;render();return}
- if(b.dataset.a==="stc-open")stcOpen(b.dataset.id);else{STC.detail=null;STC.det=null;render()}
+ if(b.dataset.a==="stc-open"){STC_MSG.t="";stcOpen(b.dataset.id)}else{STC.detail=null;STC.det=null;render()}
 });
 document.addEventListener("keydown",e=>{
  if(e.key==="Enter"&&e.target&&e.target.id==="stcq"){STC.q=e.target.value.trim();STC.loaded=false;STC.rows=[];render()}
