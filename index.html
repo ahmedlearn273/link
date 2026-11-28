@@ -3582,6 +3582,8 @@ async function loadMyLoyalty(more){
  }catch(_){L.err="تعذّر تحميل نقاطك دلوقتي. جرّب تاني بعد شوية."}
  L.loading=false;render();
 }
+function reqCode(id){return id?String(id).slice(0,8).toUpperCase():""}
+function reqCodeTag(id){const c=reqCode(id);return c?'<code dir="ltr" style="font-size:12px;font-weight:800;padding:2px 8px;border-radius:8px;background:var(--bg-subtle);color:var(--text-secondary);letter-spacing:.5px">#'+esc(c)+'</code>':""}
 function homePtsChip(){
  const H=s.homePts;
  if(!H){s.homePts={loading:true};
@@ -3963,7 +3965,7 @@ function walletView(){
 
   if(provider&&q.provider_id&&!own)return "";
 
-  return '<article class="item"><div class="row"><b>'+esc(q.title||q.services?.name_ar||"طلب خدمة")+'</b>'+tag(q.status)+'</div><p>'+esc([q.city,q.country].filter(Boolean).join("، "))+'</p><p>'+esc(q.description||"")+'</p><p>الميزانية: '+(q.budget?fmt(q.budget):"غير محددة")+'</p>'+paymentBlock(q,provider,own)+'<div class="actions">'+a+(provider&&own?btn("provider-request-details","تفاصيل الطلب","light",q.id):"")+(!provider&&["pending","accepted"].includes(q.status)?btn("cancelrequest","إلغاء الطلب","danger",q.id):"")+(q.status==="completed"&&q.provider_id&&!provider&&!s.reviewedIds?.has(q.id)?btn("review","تقييم الخدمة","light",q.id):"")+(q.provider_id&&["accepted","in_progress"].includes(q.status)&&(!provider||s.chats.some(c=>c.request_id===q.id))?btn("chat","محادثة","light",q.id):"")+'</div></article>';
+  return '<article class="item"><div class="row"><b>'+esc(q.title||q.services?.name_ar||"طلب خدمة")+'</b>'+tag(q.status)+'</div><p class="small">رمز الطلب: '+reqCodeTag(q.id)+'</p><p>'+esc([q.city,q.country].filter(Boolean).join("، "))+'</p><p>'+esc(q.description||"")+'</p><p>الميزانية: '+(q.budget?fmt(q.budget):"غير محددة")+'</p>'+paymentBlock(q,provider,own)+'<div class="actions">'+a+(provider&&own?btn("provider-request-details","تفاصيل الطلب","light",q.id):"")+(!provider&&["pending","accepted"].includes(q.status)?btn("cancelrequest","إلغاء الطلب","danger",q.id):"")+(q.status==="completed"&&q.provider_id&&!provider&&!s.reviewedIds?.has(q.id)?btn("review","تقييم الخدمة","light",q.id):"")+(q.provider_id&&["accepted","in_progress"].includes(q.status)&&(!provider||s.chats.some(c=>c.request_id===q.id))?btn("chat","محادثة","light",q.id):"")+'</div></article>';
  }).join("")||empty("لا توجد طلبات حتى الآن");
       }
 
@@ -4506,7 +4508,7 @@ function customer(){
    const location=[q.city,q.country].filter(Boolean).join("، ");
    const pn=q.provider_profiles?.display_name;
    const act=(a,t,c)=>'<button type="button" class="'+(c||"")+'" data-a="'+a+'" data-id="'+esc(q.id)+'">'+t+'</button>';
-   return '<article class="cu-req"><div class="hd"><div><b>'+esc(requestTitle)+'</b><small>'+esc(requestDate)+'</small></div>'+tag(q.status)+'</div>'+
+   return '<article class="cu-req"><div class="hd"><div><b>'+esc(requestTitle)+'</b><small>'+esc(requestDate)+' · '+reqCodeTag(q.id)+'</small></div>'+tag(q.status)+'</div>'+
     (location?'<div class="loc">'+cui("pin",14)+esc(location)+'</div>':"")+
     '<div class="pv">'+(pn?'<span class="a">'+esc(pn.trim().slice(0,1))+'</span><b>'+esc(pn)+'</b>':'<span class="a" style="background:var(--border-color);color:var(--text-secondary)">؟</span><span class="w">بانتظار تعيين مقدم خدمة</span>')+'</div>'+
     (q.description?'<p>'+esc(q.description)+'</p>':"")+
@@ -8074,7 +8076,7 @@ if(m.type==="providerQuoteDetails"){
  '</div>'+
  '<section class="section">'+
   '<div class="item">'+
-   '<div class="row"><b>حالة العرض</b>'+tag(({awaiting_customer:"بانتظار ردك",awaiting_provider_approval:"عند مقدم الخدمة للاعتماد",agreed:"تم الاتفاق",revision_requested:"طلبت تعديل",rejected:"مرفوض",expired:"منتهي",withdrawn:"مسحوب"})[quote.status]||quote.status)+'</div>'+
+   '<p class="small">رمز الطلب: '+reqCodeTag(quote.request_id)+'</p><div class="row"><b>حالة العرض</b>'+tag(({awaiting_customer:"بانتظار ردك",awaiting_provider_approval:"عند مقدم الخدمة للاعتماد",agreed:"تم الاتفاق",revision_requested:"طلبت تعديل",rejected:"مرفوض",expired:"منتهي",withdrawn:"مسحوب"})[quote.status]||quote.status)+'</div>'+
    '<p class="small">القيمة المتفق عليها</p>'+
    '<b>'+esc(fmt(version.amount))+' '+esc(version.currency||"")+'</b>'+
    '<p class="small">نطاق العمل</p>'+
@@ -8160,7 +8162,7 @@ if(m.type==="providerQuoteDetails"){
  c=
  '<div class="modal-title">'+
   '<h3>تفاصيل الطلب</h3>'+
-  '<p class="muted">'+esc(title)+'</p>'+
+  '<p class="muted">'+esc(title)+' · رمز الطلب '+reqCodeTag(q.id)+'</p>'+
  '</div>'+
 
  '<section class="section">'+
@@ -8310,7 +8312,7 @@ const quoteSection=quote&&version
  ?'<section class="section">'+
    '<h4>عرض السعر</h4>'+
    '<div class="item">'+
-    '<div class="row"><b>حالة العرض</b>'+tag(({awaiting_customer:"بانتظار ردك",awaiting_provider_approval:"عند مقدم الخدمة للاعتماد",agreed:"تم الاتفاق",revision_requested:"طلبت تعديل",rejected:"مرفوض",expired:"منتهي",withdrawn:"مسحوب"})[quote.status]||quote.status)+'</div>'+
+    '<p class="small">رمز الطلب: '+reqCodeTag(quote.request_id)+'</p><div class="row"><b>حالة العرض</b>'+tag(({awaiting_customer:"بانتظار ردك",awaiting_provider_approval:"عند مقدم الخدمة للاعتماد",agreed:"تم الاتفاق",revision_requested:"طلبت تعديل",rejected:"مرفوض",expired:"منتهي",withdrawn:"مسحوب"})[quote.status]||quote.status)+'</div>'+
     '<p class="small">القيمة المقترحة</p>'+
     '<b>'+esc(fmt(version.amount))+' '+esc(version.currency||"")+'</b>'+
     '<p class="small">نطاق العمل</p>'+
@@ -8377,7 +8379,7 @@ const quoteSection=quote&&version
  c=
  '<div class="modal-title">'+
   '<h3>تفاصيل الطلب</h3>'+
-  '<p class="muted">'+esc(title)+'</p>'+
+  '<p class="muted">'+esc(title)+' · رمز الطلب '+reqCodeTag(q.id)+'</p>'+
  '</div>'+
 
  '<section class="section">'+
