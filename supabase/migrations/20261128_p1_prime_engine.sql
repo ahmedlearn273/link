@@ -1,0 +1,347 @@
+-- P1: PRIME rule-based engine (no AI model). Read + answer only.
+-- New objects only: 2 private tables, 3 private helper functions, 1 private matcher, 1 public function prime_answer.
+-- prime_answer reads the caller's own data via auth.uid() and the platform catalogue. It never changes orders, money or permissions.
+-- The only write is the "unanswered questions" log (private.prime_unanswered).
+BEGIN;
+
+-- ---------------------------------------------------------------- tables
+CREATE TABLE IF NOT EXISTS private.prime_synonyms (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  phrase text NOT NULL,
+  phrase_norm text NOT NULL,
+  canonical text NOT NULL,
+  kind text NOT NULL CHECK (kind IN ('service','category','city','intent')),
+  is_active boolean NOT NULL DEFAULT true,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (kind, phrase_norm)
+);
+
+CREATE TABLE IF NOT EXISTS private.prime_unanswered (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  norm_key text NOT NULL UNIQUE,
+  question text NOT NULL,
+  role_name text,
+  asked_count integer NOT NULL DEFAULT 1,
+  first_asked_at timestamptz NOT NULL DEFAULT now(),
+  last_asked_at timestamptz NOT NULL DEFAULT now(),
+  resolved boolean NOT NULL DEFAULT false
+);
+
+ALTER TABLE private.prime_synonyms ENABLE ROW LEVEL SECURITY;
+ALTER TABLE private.prime_unanswered ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON private.prime_synonyms FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON private.prime_unanswered FROM PUBLIC, anon, authenticated;
+
+-- ---------------------------------------------------------------- text helpers
+CREATE OR REPLACE FUNCTION private.prime_normalize(t text)
+ RETURNS text
+ LANGUAGE sql
+ IMMUTABLE
+ SET search_path TO ''
+AS $function$
+  SELECT btrim(regexp_replace(
+           regexp_replace(
+             translate(lower(coalesce(t, '')), 'أإآىةؤئ٠١٢٣٤٥٦٧٨٩', 'ااايهوي0123456789'),
+             '[\u064B-\u065F\u0670\u0640]', '', 'g'),
+           '[^a-z0-9\u0621-\u064A]+', ' ', 'g'));
+$function$;
+
+CREATE OR REPLACE FUNCTION private.prime_stem(t text)
+ RETURNS text
+ LANGUAGE sql
+ IMMUTABLE
+ SET search_path TO ''
+AS $function$
+  SELECT btrim(regexp_replace(' ' || private.prime_normalize(t) || ' ',
+                              ' (وال|بال|لل|فال|كال|ال)(?=[^ ]{2,})', ' ', 'g'));
+$function$;
+
+-- ---------------------------------------------------------------- seed dictionary
+INSERT INTO private.prime_synonyms (phrase, phrase_norm, canonical, kind)
+SELECT v.p, private.prime_stem(v.p), v.c, v.k
+FROM (VALUES
+  -- intents
+  ('مرحبا','greeting','intent'),('اهلا','greeting','intent'),('السلام عليكم','greeting','intent'),('صباح الخير','greeting','intent'),
+  ('مساء الخير','greeting','intent'),('هلا','greeting','intent'),('هاي','greeting','intent'),('hello','greeting','intent'),
+  ('شكرا','thanks','intent'),('تسلم','thanks','intent'),('متشكر','thanks','intent'),('thanks','thanks','intent'),('يعطيك العافية','thanks','intent'),
+  ('عايز اطلب','order_new','intent'),('عاوز اطلب','order_new','intent'),('اطلب خدمة','order_new','intent'),('محتاج','order_new','intent'),
+  ('احتاج','order_new','intent'),('ابغى','order_new','intent'),('ابغي','order_new','intent'),('احجز','order_new','intent'),('حجز','order_new','intent'),
+  ('ازاي اطلب','order_new','intent'),('كيف اطلب','order_new','intent'),('عايز','order_new','intent'),('عاوز','order_new','intent'),('طلب خدمة','order_new','intent'),
+  ('طلبي','order_track','intent'),('طلباتي','order_track','intent'),('تابع طلبي','order_track','intent'),('حالة الطلب','order_track','intent'),
+  ('فين طلبي','order_track','intent'),('اتاخر','order_track','intent'),('متابعة','order_track','intent'),('طلباتى','order_track','intent'),
+  ('سعر','price','intent'),('اسعار','price','intent'),('بكام','price','intent'),('تكلفة','price','intent'),('تكلف','price','intent'),
+  ('كام','price','intent'),('اجرة','price','intent'),('الاسعار','price','intent'),('اسعار الخدمات','price','intent'),
+  ('شكوى','complaint','intent'),('اشتكي','complaint','intent'),('اشتكى','complaint','intent'),('شكاوي','complaint','intent'),('مشكلة','complaint','intent'),('وحش','complaint','intent'),
+  ('زعلان','complaint','intent'),('مش راضي','complaint','intent'),('تعويض','complaint','intent'),('نصب','complaint','intent'),('الشكاوى المفتوحة','complaint','intent'),
+  ('محفظة','wallet','intent'),('رصيد','wallet','intent'),('رصيدي','wallet','intent'),('فلوسي','wallet','intent'),('محفظتي','wallet','intent'),('استرداد','wallet','intent'),
+  ('اسجل كمزود','register_provider','intent'),('انضم','register_provider','intent'),('عايز اشتغل','register_provider','intent'),('اشتغل معاكم','register_provider','intent'),
+  ('مزود خدمة','register_provider','intent'),('التسجيل كمزود','register_provider','intent'),
+  ('دفع','payment','intent'),('ادفع','payment','intent'),('كاش','payment','intent'),('فيزا','payment','intent'),('فاتورة','payment','intent'),('طرق الدفع','payment','intent'),
+  ('دعم','contact','intent'),('خدمة العملاء','contact','intent'),('اكلم','contact','intent'),('واتساب','contact','intent'),('تواصل','contact','intent'),('رقم','contact','intent'),
+  ('الغاء','cancel','intent'),('الغي','cancel','intent'),('كنسل','cancel','intent'),('الغى','cancel','intent'),
+  ('ايه وصلة','what_is','intent'),('وصلة ايه','what_is','intent'),('ما هي وصلة','what_is','intent'),('عن وصلة','what_is','intent'),('بتعملوا ايه','what_is','intent'),('تعريف','what_is','intent'),
+  ('مساعدة','help','intent'),('ساعدني','help','intent'),('تعمل ايه','help','intent'),('اقدر اسالك','help','intent'),
+  ('ملخص الطلبات','staff_orders','intent'),('احصائيات الطلبات','staff_orders','intent'),
+  -- services: colloquial, synonyms, common spelling variants (canonical = services.name_ar)
+  ('سباك','سباكة','service'),('مواسرجي','سباكة','service'),('سباكه','سباكة','service'),('مواسير','سباكة','service'),('تسريب مياه','سباكة','service'),
+  ('كهربائي','كهرباء','service'),('كهربجي','كهرباء','service'),('كهربا','كهرباء','service'),('كهربه','كهرباء','service'),('كهربائى','كهرباء','service'),
+  ('نجار','نجارة','service'),('نجاره','نجارة','service'),('حداد','حدادة','service'),('حداده','حدادة','service'),
+  ('نقاش','نقاشة','service'),('دهان','نقاشة','service'),('دهانات','نقاشة','service'),('نقاشه','نقاشة','service'),('بوية','نقاشة','service'),('دهان حيطان','نقاشة','service'),
+  ('بلاط','سيراميك','service'),('سيراميك','سيراميك','service'),('تكيف','تكييف','service'),('مكيف','تكييف','service'),('تكييفات','تكييف','service'),('تكييف','تكييف','service'),('اصلاح تكييف','تكييف','service'),
+  ('غساله','غسالات','service'),('غسالة','غسالات','service'),('ثلاجه','ثلاجات','service'),('تلاجتي','ثلاجات','service'),('ثلاجتي','ثلاجات','service'),('غسالتي','غسالات','service'),('تكييفي','تكييف','service'),('سخاني','سخانات','service'),('ثلاجة','ثلاجات','service'),('تلاجه','ثلاجات','service'),('تلاجة','ثلاجات','service'),
+  ('سخان','سخانات','service'),('هيتر','سخانات','service'),('موبايل','موبايلات','service'),('تليفون','موبايلات','service'),('هاتف','موبايلات','service'),
+  ('لابتوب','كمبيوتر ولابتوب','service'),('كمبيوتر','كمبيوتر ولابتوب','service'),('دش','دش وستالايت','service'),('ستالايت','دش وستالايت','service'),
+  ('كالون','تصليح أقفال','service'),('قفل','تصليح أقفال','service'),('مفتاح','تصليح أقفال','service'),('اقفال','تصليح أقفال','service'),
+  ('عزل','عزل أسطح','service'),('ستاير','تركيب ستائر','service'),('ستائر','تركيب ستائر','service'),('برادي','تركيب ستائر','service'),
+  ('ميكانيكي','ميكانيكا','service'),('ميكانيكى','ميكانيكا','service'),('ونش','ونش وسحب','service'),('سحب سيارة','ونش وسحب','service'),
+  ('تنضيف','تنظيف','service'),('نضافة','تنظيف','service'),('نضافه','تنظيف','service'),('تنظيف','تنظيف','service'),('شغالة','تنظيف','service'),
+  ('نقل عفش','نقل أثاث','service'),('عفش','نقل أثاث','service'),('نقل اثاث','نقل أثاث','service'),('فك وتركيب','نقل أثاث','service'),
+  ('مدرس','دروس خصوصية','service'),('درس خصوصي','دروس خصوصية','service'),('دروس','دروس خصوصية','service'),
+  ('كوافيره','كوافير','service'),('كوافير','كوافير','service'),('حلاق','حلاقة','service'),('مكياج','ميك أب','service'),
+  ('محامي','محاماة','service'),('مترجم','ترجمة','service'),('مصور','تصوير','service'),('كاميرا مراقبة','كاميرات مراقبة','service'),('كاميرات','كاميرات مراقبة','service'),
+  ('ممرضة','تمريض منزلي','service'),('ممرضه','تمريض منزلي','service'),('تمريض','تمريض منزلي','service'),('دكتور','زيارة طبيب','service'),
+  ('دكتور حيوانات','بيطري','service'),('ترزي','خياطة','service'),('خياطه','خياطة','service'),('مكوجي','كي ملابس','service'),
+  ('بيست كنترول','مكافحة حشرات','service'),('رش حشرات','مكافحة حشرات','service'),('حشرات','مكافحة حشرات','service'),
+  ('مقاول','مقاولات','service'),('ديكور','ديكور','service'),('جبس','جبس بورد','service'),('باركيه','أرضيات','service'),
+  -- cities: common spellings
+  ('كايرو','القاهرة','city'),('القاهره','القاهرة','city'),('اسكندريه','الإسكندرية','city'),('اسكندرية','الإسكندرية','city'),('الاسكندريه','الإسكندرية','city'),
+  ('جيزه','الجيزة','city'),('الجيزه','الجيزة','city'),('اكتوبر','6 أكتوبر','city'),('المنصوره','المنصورة','city'),('طنطا','طنطا','city')
+) AS v(p, c, k)
+ON CONFLICT (kind, phrase_norm) DO NOTHING;
+
+-- ---------------------------------------------------------------- answer function
+CREATE OR REPLACE FUNCTION public.prime_answer(p_message text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+DECLARE
+  v_uid uuid := (SELECT auth.uid());
+  v_msg text := btrim(coalesce(p_message, ''));
+  v_stem text;
+  v_padded text;
+  v_role text;
+  v_name text;
+  v_perms text[] := ARRAY[]::text[];
+  v_is_admin boolean := false;
+  v_intent text;
+  v_service_id uuid;
+  v_service_name text;
+  v_city_id uuid;
+  v_city_name text;
+  v_answer text;
+  v_sugg jsonb;
+  v_matched boolean := true;
+  v_n integer;
+  v_min numeric; v_max numeric;
+  v_lines text;
+  v_words text[];
+  v_kb text;
+  v_stop text[] := ARRAY['ايه','ازاي','عايز','عاوز','هل','لو','في','من','علي','الي','عن','ده','دي','انا','انت','ممكن','لي','لى','كيف','ما','هو','هي'];
+BEGIN
+  IF v_uid IS NULL THEN RAISE EXCEPTION 'Authentication required' USING ERRCODE = '42501'; END IF;
+  IF v_msg = '' THEN RAISE EXCEPTION 'Empty message' USING ERRCODE = '22023'; END IF;
+  IF char_length(v_msg) > 500 THEN RAISE EXCEPTION 'Message too long' USING ERRCODE = '22023'; END IF;
+
+  -- who is asking
+  SELECT p.role, split_part(btrim(coalesce(p.full_name,'')), ' ', 1) INTO v_role, v_name
+  FROM public.profiles p WHERE p.id = v_uid AND p.status = 'active';
+  IF v_role IS NULL THEN RAISE EXCEPTION 'Account not active' USING ERRCODE = '42501'; END IF;
+  v_is_admin := private.is_active_admin();
+  IF private.is_active_owner() THEN v_role := 'owner';
+  ELSIF v_is_admin THEN v_role := 'admin'; END IF;
+  IF v_role IN ('owner','admin') THEN
+    v_perms := ARRAY['dashboard.view','customers.view','customers.manage','providers.view','providers.review','requests.view','requests.manage',
+                     'services.view','services.manage','categories.view','categories.manage','messages.view','payments.view','payments.manage',
+                     'reports.view','ads.view','ads.manage','settings.view','settings.manage'];
+  ELSIF v_role = 'staff' THEN
+    SELECT coalesce(array_agg(DISTINCT k), ARRAY[]::text[]) INTO v_perms
+    FROM public.staff_permissions sp, unnest(sp.permissions) k WHERE sp.user_id = v_uid AND sp.is_active;
+  END IF;
+  IF v_role NOT IN ('customer','provider','staff','admin','owner') THEN v_role := 'customer'; END IF;
+
+  v_stem := private.prime_stem(v_msg);
+  v_padded := ' ' || v_stem || ' ';
+
+  -- intent: highest summed phrase length (in words), then fixed priority
+  SELECT s.canonical INTO v_intent
+  FROM private.prime_synonyms s
+  WHERE s.kind = 'intent' AND s.is_active AND position(' ' || s.phrase_norm || ' ' IN v_padded) > 0
+  GROUP BY s.canonical
+  ORDER BY sum(array_length(string_to_array(s.phrase_norm, ' '), 1)) DESC,
+           array_position(ARRAY['complaint','wallet','order_track','cancel','price','register_provider','payment','contact','staff_orders','what_is','order_new','help','thanks','greeting'], s.canonical)
+  LIMIT 1;
+
+  -- service entity: longest match among service names and synonyms
+  SELECT x.id, x.name_ar INTO v_service_id, v_service_name FROM (
+    SELECT sv.id, sv.name_ar, length(private.prime_stem(sv.name_ar)) AS l
+    FROM public.services sv
+    WHERE sv.is_active AND position(' ' || private.prime_stem(sv.name_ar) || ' ' IN v_padded) > 0
+    UNION ALL
+    SELECT sv.id, sv.name_ar, length(s.phrase_norm)
+    FROM private.prime_synonyms s
+    JOIN public.services sv ON private.prime_stem(sv.name_ar) = private.prime_stem(s.canonical) AND sv.is_active
+    WHERE s.kind = 'service' AND s.is_active AND position(' ' || s.phrase_norm || ' ' IN v_padded) > 0
+  ) x ORDER BY x.l DESC, x.name_ar LIMIT 1;
+
+  -- city entity
+  SELECT x.id, x.name_ar INTO v_city_id, v_city_name FROM (
+    SELECT c.id, c.name_ar, length(private.prime_stem(c.name_ar)) AS l
+    FROM private.geo_cities c
+    WHERE c.is_active AND position(' ' || private.prime_stem(c.name_ar) || ' ' IN v_padded) > 0
+    UNION ALL
+    SELECT c.id, c.name_ar, length(s.phrase_norm)
+    FROM private.prime_synonyms s
+    JOIN private.geo_cities c ON private.prime_stem(c.name_ar) = private.prime_stem(s.canonical) AND c.is_active
+    WHERE s.kind = 'city' AND s.is_active AND position(' ' || s.phrase_norm || ' ' IN v_padded) > 0
+  ) x ORDER BY x.l DESC, x.name_ar LIMIT 1;
+
+  -- suggestion buttons by role
+  v_sugg := CASE
+    WHEN v_role = 'customer' THEN '["تابع طلبي","أسعار الخدمات","رصيد محفظتي","عايز أقدم شكوى"]'::jsonb
+    WHEN v_role = 'provider' THEN '["طلباتي","شكاوى العملاء","إزاي أستقبل طلبات؟"]'::jsonb
+    ELSE '["ملخص الطلبات","الشكاوى المفتوحة","الأدوار والصلاحيات"]'::jsonb END;
+
+  -- 1) service asked about
+  IF v_service_id IS NOT NULL AND (v_intent IS NULL OR v_intent IN ('price','order_new','help')) THEN
+    IF v_intent = 'price' THEN
+      SELECT min(ps.price), max(ps.price), count(*) INTO v_min, v_max, v_n
+      FROM public.provider_services ps WHERE ps.service_id = v_service_id AND ps.is_active AND ps.price > 0;
+      IF v_n > 0 THEN
+        v_answer := 'أسعار خدمة ' || v_service_name || ' عند مزودي الخدمة بتبدأ من ' || trim(to_char(v_min, 'FM999999990.##')) ||
+                    ' EGP لحد ' || trim(to_char(v_max, 'FM999999990.##')) || ' EGP، والسعر النهائي بيتحدد حسب تفاصيل طلبك.';
+      ELSE
+        v_answer := 'لسه مفيش أسعار معلنة لخدمة ' || v_service_name || '. ابعت طلبك بالتفاصيل وهتوصلك عروض الأسعار من مزودي الخدمة.';
+      END IF;
+    ELSE
+      SELECT count(DISTINCT ps.provider_id) INTO v_n
+      FROM public.provider_services ps
+      WHERE ps.service_id = v_service_id AND ps.is_active
+        AND (v_city_id IS NULL OR EXISTS (SELECT 1 FROM public.provider_service_areas a WHERE a.provider_profile_id = ps.provider_id AND a.city_id = v_city_id));
+      v_answer := 'خدمة ' || v_service_name || ' متاحة على وصلة' || CASE WHEN v_city_id IS NOT NULL THEN ' في ' || v_city_name ELSE '' END ||
+                  CASE WHEN v_n > 0 THEN '، وفيه ' || v_n || ' مزود خدمة بيقدمها.' ELSE '، بس مفيش مزود خدمة مسجل ليها دلوقتي.' END ||
+                  ' اختار الخدمة من الصفحة الرئيسية واكتب تفاصيل طلبك.';
+    END IF;
+    RETURN jsonb_build_object('answer', v_answer, 'suggestions', v_sugg, 'intent', coalesce(v_intent,'service'), 'matched', true);
+  END IF;
+
+  -- 2) intents
+  IF v_intent = 'greeting' THEN
+    v_answer := 'أهلا' || CASE WHEN v_name <> '' THEN ' يا ' || v_name ELSE '' END || '، أنا PRIME. أقدر أساعدك في إيه النهارده؟';
+  ELSIF v_intent = 'thanks' THEN
+    v_answer := 'العفو، أنا في خدمتك دايما.';
+  ELSIF v_intent = 'what_is' THEN
+    v_answer := 'وصلة منصة خدمات بتوصّلك بمزودي خدمة في أقسام كتير زي الصيانة والتنظيف والسيارات والتعليم. تطلب الخدمة وتتابع طلبك وتدفع من مكان واحد.';
+  ELSIF v_intent = 'help' THEN
+    v_answer := 'أقدر أساعدك في: الأسعار، متابعة طلباتك، المحفظة، الشكاوى، وأي سؤال عن وصلة. اسألني بأي صيغة.';
+  ELSIF v_intent = 'order_track' THEN
+    IF v_role = 'customer' THEN
+      SELECT count(*) INTO v_n FROM public.service_requests r WHERE r.customer_id = v_uid;
+      IF v_n = 0 THEN v_answer := 'مفيش طلبات على حسابك لسه.';
+      ELSE
+        SELECT string_agg('- ' || coalesce(nullif(btrim(t.title), ''), 'طلب') || ': ' ||
+                 CASE t.status WHEN 'pending' THEN 'في انتظار مزود خدمة' WHEN 'accepted' THEN 'اتقبل' WHEN 'in_progress' THEN 'جاري التنفيذ'
+                               WHEN 'completed' THEN 'اتنفذ' WHEN 'cancelled' THEN 'اتلغى' ELSE t.status END, E'\n' ORDER BY t.created_at DESC)
+        INTO v_lines FROM (SELECT r.title, r.status, r.created_at FROM public.service_requests r WHERE r.customer_id = v_uid ORDER BY r.created_at DESC LIMIT 3) t;
+        v_answer := 'آخر طلباتك:' || E'\n' || v_lines;
+      END IF;
+    ELSIF v_role = 'provider' THEN
+      SELECT count(*) FILTER (WHERE r.status = 'accepted'), count(*) FILTER (WHERE r.status = 'in_progress'), count(*) FILTER (WHERE r.status = 'completed')
+      INTO v_n, v_min, v_max
+      FROM public.service_requests r JOIN public.provider_profiles pp ON pp.id = r.provider_id WHERE pp.user_id = v_uid;
+      v_answer := 'طلباتك: ' || v_n || ' مقبولة، ' || v_min::integer || ' جاري تنفيذها، ' || v_max::integer || ' منفذة.';
+    ELSIF 'requests.view' = ANY(v_perms) THEN
+      v_intent := 'staff_orders';
+    ELSE
+      v_answer := 'مفيش عندك صلاحية لعرض الطلبات.';
+    END IF;
+  ELSIF v_intent = 'wallet' THEN
+    IF v_role = 'customer' THEN
+      SELECT w.balance INTO v_min FROM public.customer_wallets w WHERE w.customer_id = v_uid;
+      v_answer := 'رصيد محفظتك: ' || trim(to_char(coalesce(v_min, 0), 'FM999999990.00')) || ' EGP. الرصيد بيتضاف لما شكوى تتحل بتعويض.';
+    ELSE
+      v_answer := 'المحفظة متاحة لحسابات العملاء.';
+    END IF;
+  ELSIF v_intent = 'complaint' THEN
+    IF v_role = 'customer' THEN
+      SELECT count(*) INTO v_n FROM public.complaints c WHERE c.customer_id = v_uid;
+      IF v_n = 0 THEN
+        v_answer := 'لو عندك مشكلة في طلب، ابعت لنا تفاصيلها والإدارة هتراجعها وترد عليك.';
+      ELSE
+        SELECT string_agg('- ' || CASE c.status WHEN 'open' THEN 'مفتوحة' WHEN 'in_review' THEN 'تحت المراجعة' WHEN 'escalated' THEN 'تحت المراجعة'
+                                               WHEN 'resolved' THEN 'اتحلت' WHEN 'rejected' THEN 'اترفضت' ELSE c.status END, E'\n' ORDER BY c.created_at DESC)
+        INTO v_lines FROM (SELECT cc.status, cc.created_at FROM public.complaints cc WHERE cc.customer_id = v_uid ORDER BY cc.created_at DESC LIMIT 3) c;
+        v_answer := 'آخر شكاويك:' || E'\n' || v_lines;
+      END IF;
+    ELSIF v_role = 'provider' THEN
+      v_answer := 'شكاوى العملاء بتتراجع من الإدارة، ولو فيه شكوى على طلب عندك هتتواصل معاك الإدارة.';
+    ELSIF 'support.view' = ANY(v_perms) OR v_is_admin THEN
+      SELECT count(*) INTO v_n FROM public.complaints c WHERE c.status IN ('open','in_review','escalated');
+      v_answer := 'الشكاوى المفتوحة دلوقتي: ' || v_n || '.';
+    ELSE
+      v_answer := 'مفيش عندك صلاحية لعرض الشكاوى.';
+    END IF;
+  ELSIF v_intent = 'cancel' THEN
+    v_answer := 'تقدر تلغي طلبك من صفحة الطلب، ولازم تكتب سبب الإلغاء (5 حروف على الأقل).';
+  ELSIF v_intent = 'payment' THEN
+    v_answer := 'تفاصيل الدفع بتظهر في صفحة طلبك.';
+  ELSIF v_intent = 'contact' THEN
+    v_answer := 'التواصل بيتم من جوه المنصة، وفريق الدعم بيرد عليك من خلال الشكاوى والرسائل.';
+  ELSIF v_intent = 'register_provider' THEN
+    v_answer := 'تقدر تسجل كمزود خدمة من شاشة التسجيل بواتساب صحيح، وبعدها الإدارة بتراجع حسابك.';
+  ELSIF v_intent = 'price' THEN
+    v_answer := 'قولي اسم الخدمة اللي عايز تعرف سعرها، مثلا: سعر السباكة.';
+  ELSIF v_intent = 'order_new' THEN
+    v_answer := 'من الصفحة الرئيسية اختار الخدمة واكتب تفاصيل طلبك، وهيوصل لمزودي الخدمة المتاحين. قولي الخدمة اللي محتاجها وأقولك المتاح.';
+  END IF;
+
+  IF v_intent = 'staff_orders' AND v_answer IS NULL THEN
+    IF 'requests.view' = ANY(v_perms) OR v_is_admin THEN
+      SELECT count(*) FILTER (WHERE status = 'pending'), count(*) FILTER (WHERE status = 'accepted'), count(*) FILTER (WHERE status = 'in_progress')
+      INTO v_n, v_min, v_max FROM public.service_requests;
+      v_answer := 'الطلبات دلوقتي: ' || v_n || ' في الانتظار، ' || v_min::integer || ' مقبولة، ' || v_max::integer || ' جاري تنفيذها.';
+    ELSE
+      v_answer := 'مفيش عندك صلاحية لعرض الطلبات.';
+    END IF;
+  END IF;
+
+  IF v_answer IS NOT NULL THEN
+    RETURN jsonb_build_object('answer', v_answer, 'suggestions', v_sugg, 'intent', coalesce(v_intent,'general'), 'matched', true);
+  END IF;
+
+  -- 3) knowledge base (same role and permission rules as the existing retrieval)
+  SELECT coalesce(array_agg(w), ARRAY[]::text[]) INTO v_words
+  FROM (SELECT DISTINCT w FROM unnest(string_to_array(v_stem, ' ')) w WHERE char_length(w) >= 3 AND NOT (w = ANY(v_stop))) q;
+  IF cardinality(v_words) > 0 THEN
+    SELECT left(x.content, 700) INTO v_kb FROM (
+      SELECT c.content,
+             (SELECT count(*) FROM unnest(v_words) w WHERE position(w IN private.prime_normalize(d.title || ' ' || c.content)) > 0) AS hits
+      FROM private.ai_knowledge_chunks c
+      JOIN private.ai_knowledge_documents d ON d.id = c.document_id
+      JOIN private.ai_knowledge_releases r ON r.id = c.release_id
+      JOIN private.ai_knowledge_access a ON a.role_name = v_role AND a.category = d.category AND a.is_active
+      WHERE r.is_current = true AND r.status = 'published' AND c.document_version = d.document_version AND d.status = 'approved'
+        AND coalesce(a.required_permissions, ARRAY[]::text[]) <@ v_perms
+        AND coalesce(d.required_permissions, ARRAY[]::text[]) <@ v_perms
+    ) x WHERE x.hits >= least(2, cardinality(v_words)) ORDER BY x.hits DESC LIMIT 1;
+  END IF;
+  IF v_kb IS NOT NULL THEN
+    RETURN jsonb_build_object('answer', v_kb, 'suggestions', v_sugg, 'intent', 'knowledge', 'matched', true);
+  END IF;
+
+  -- 4) could not answer: log it so we know what to add
+  INSERT INTO private.prime_unanswered (norm_key, question, role_name)
+  VALUES (md5(v_stem), left(v_msg, 250), v_role)
+  ON CONFLICT (norm_key) DO UPDATE SET asked_count = private.prime_unanswered.asked_count + 1, last_asked_at = now(), resolved = false;
+  RETURN jsonb_build_object(
+    'answer', 'مقدرتش أفهم سؤالك بالظبط. جرب تكتبه بكلمات تانية، أو اختار من الأسئلة الجاهزة تحت. وسجلت سؤالك عشان أتعلمه.',
+    'suggestions', v_sugg, 'intent', 'unknown', 'matched', false);
+END;
+$function$;
+
+REVOKE ALL ON FUNCTION public.prime_answer(text) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.prime_answer(text) TO authenticated;
+REVOKE ALL ON FUNCTION private.prime_normalize(text), private.prime_stem(text) FROM PUBLIC, anon, authenticated;
+
+COMMIT;
