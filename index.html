@@ -4958,6 +4958,17 @@ async function loadPayments(){
   s.payments=m;
  }catch(_){s.payments=s.payments||{}}
 }
+function payDueHtml(q,p,cur){
+ s.reqDisc=s.reqDisc||{};
+ if(s.reqDisc[q.id]===undefined)setTimeout(()=>loadReqDisc(q.id),0);
+ const d=s.reqDisc[q.id],gross=Number(p.amount||0),disc=d&&d.has_discount?Number(d.discount_amount||0):0,due=Math.max(0,gross-disc);
+ const row=(a,b,st)=>'<div style="display:flex;justify-content:space-between;gap:8px;padding:3px 0'+(st||"")+'"><span>'+a+'</span><b>'+b+'</b></div>';
+ let h='<div class="item" style="margin-top:8px">'+row("الإجمالي",moneyAr(gross,cur));
+ if(disc>0)h+=row("كود الخصم"+(d.code?" ("+esc(d.code)+")":""),'<span style="color:#0a7a3b">'+moneyAr(-disc,cur)+'</span>');
+ h+=row("المستحق للدفع",moneyAr(due,cur))+'</div>';
+ h+='<div class="actions">'+btn("pay-now","ادفع "+moneyAr(due,false)+" "+cur,"gold",q.id)+'</div>';
+ return h;
+}
 function paymentBlock(q,provider,own){
  const p=s.payments&&s.payments[q.id];
  if(!p||q.status!=="completed")return "";
@@ -4969,7 +4980,7 @@ function paymentBlock(q,provider,own){
   h+='<p>عمولة المنصة ('+fmt(p.commission_rate)+'%): '+moneyAr(p.commission_amount,cur)+' · صافي نصيبك: '+moneyAr(p.provider_amount,cur)+'</p>';
   if(p.payment_method==="cash"&&p.payment_status==="pending")h+='<div class="actions">'+btn("cash-received","استلمت الفلوس","green",q.id)+'</div>';
  }else if(!provider&&p.payment_method==="cash"&&p.payment_status==="pending"){
-  h+='<p>ادفع المبلغ كاش لمزود الخدمة مباشرة.</p>';
+  h+=payDueHtml(q,p,cur);
  }
  if(!provider&&p.payment_status==="paid")h+='<div class="actions">'+btn("receipt","عرض الإيصال","light",p.id)+'</div>';
  return h+'</div>';
@@ -5612,10 +5623,11 @@ function customer(){
     (location?'<div class="loc">'+cui("pin",14)+esc(location)+'</div>':"")+
     '<div class="pv">'+(pn?'<span class="a">'+esc(pn.trim().slice(0,1))+'</span><b>'+esc(pn)+'</b>':'<span class="a" style="background:var(--border-color);color:var(--text-secondary)">؟</span><span class="w">بانتظار تعيين مقدم خدمة</span>')+'</div>'+
     (q.description?'<p>'+esc(q.description)+'</p>':"")+
+    (q.status==="completed"&&s.payments&&s.payments[q.id]&&s.payments[q.id].payment_status==="pending"?'<div class="pay-page"><b>الدفع</b>'+payDueHtml(q,s.payments[q.id],String(s.payments[q.id].currency||"EGP").trim())+'</div>':"")+
     '<div class="cu-act">'+act("request-details","تفاصيل الطلب")+
      ((s.quotes||[]).some(x=>x.request_id===q.id)?act("request-details","عرض السعر",(s.quotes||[]).some(x=>x.request_id===q.id&&x.status==="awaiting_customer")?"gd":"")+'':"")+
      (["pending","accepted"].includes(q.status)?act("cancelrequest","إلغاء الطلب","dg"):"")+
-     (q.status==="completed"&&q.provider_id&&!s.reviewedIds?.has(q.id)?act("review","تقييم الخدمة","gd"):"")+
+     (q.status==="completed"&&q.provider_id&&!s.reviewedIds?.has(q.id)&&!(s.payments&&s.payments[q.id]&&s.payments[q.id].payment_status!=="paid")?act("review","تقييم الخدمة","gd"):"")+
      (q.provider_id&&["accepted","in_progress"].includes(q.status)?act("chat","المحادثة","gd"):"")+
     '</div></article>';
   }).join("");
@@ -11851,6 +11863,12 @@ if(a==="cancelrequest"){
   if(a==="receipt"){s.modal={type:"receipt",paymentId:id};render();return}
   if(a==="receipt-img"||a==="receipt-pdf"){await receiptExport(id,a==="receipt-pdf"?"pdf":"img");return}
   if(a==="wallet-more"){await loadWallet(true);return}
+  if(a==="pay-now"){
+   const p=s.payments&&s.payments[id],d=s.reqDisc&&s.reqDisc[id],due=Math.max(0,Number(p&&p.amount||0)-(d&&d.has_discount?Number(d.discount_amount||0):0));
+   if(p&&p.payment_method==="cash")note("ادفع "+fmt(due)+" EGP كاش لمزود الخدمة. أول ما يأكد استلام الفلوس هيظهر لك تقييم الخدمة.","info");
+   else note("الدفع الإلكتروني لسه مش متاح. ادفع كاش لمزود الخدمة وهو هيأكد الاستلام.","error");
+   return;
+  }
   if(a==="cash-received"){
    if(!await waslaUI.confirm("تأكيد إنك استلمت المبلغ كاش من العميل؟ الإجراء ده مينفعش يتراجع عنه."))return;
    const r=await db.rpc("confirm_cash_received",{p_request_id:id});
