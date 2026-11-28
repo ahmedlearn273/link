@@ -3238,7 +3238,7 @@ other:'<path d="M10 14a4 4 0 0 0 5.700 0l3-3a4 4 0 0 0-5.700-5.700l-1 1M14 10a4 
 function chSvg(k,sz){return '<svg viewBox="0 0 24 24" width="'+(sz||26)+'" height="'+(sz||26)+'" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(CH_SVG[k]||CH_SVG.other)+'</svg>'}
 const CH_GRAD={whatsapp:"#25D366,#128C7E",phone:"#14b8a6,#0f766e",email:"#f59e0b,#b45309",facebook:"#3b82f6,#1d4ed8",instagram:"#f59e0b,#db2777,#7c3aed",telegram:"#38bdf8,#0284c7",x:"#374151,#000",tiktok:"#111827,#ec4899",youtube:"#ef4444,#b91c1c",linkedin:"#0a66c2,#084e96",snapchat:"#facc15,#eab308",website:"#0f766e,#0f3d3e",other:"#94a3b8,#475569"};
 function chBg(k){return "linear-gradient(135deg,"+(CH_GRAD[k]||CH_GRAD.other)+")"}
-const CH={rows:[],loaded:false,loading:false,err:"",pub:false};
+const CH={rows:[],loaded:false,loading:false,err:"",pub:false,edit:null};
 function chPlat(k){return CONTACT_PLATFORMS.find(x=>x[0]===k)||CONTACT_PLATFORMS[CONTACT_PLATFORMS.length-1]}
 function chHref(r){
  const p=chPlat(r.platform),v=String(r.value||"").trim();if(!v)return "";
@@ -3270,17 +3270,18 @@ function contactView(){
 }
 function chAdminView(){
  if(!CH.loaded&&!CH.loading)setTimeout(chLoad,0);
- const opts=CONTACT_PLATFORMS.map(x=>'<option value="'+x[0]+'">'+esc(x[1])+'</option>').join("");
- const list=CH.rows.length?CH.rows.map(r=>'<div class="ch-row">'+chIcon(r,20)+'<div><b>'+esc(r.label||chPlat(r.platform)[1])+'</b><small>'+esc(r.value)+'</small></div><button type="button" class="btn light" data-a="ch-del" data-id="'+esc(r.id)+'">حذف</button></div>').join(""):'<p class="small">لسه مفيش قنوات. القنوات فاضية ومش بتظهر للعملاء لحد ما تضيف.</p>';
- return CH_CSS+'<section class="section"><div class="sectionhead"><div><h2>التواصل والسوشيال</h2><p class="small">القنوات اللي بتظهر في صفحة "اتصل بنا" وفي روابط المنصة. بتظهر بس القنوات المملوءة.</p></div></div>'+(CH.err?'<div class="notice error">الجدول لسه مش مفعّل في قاعدة البيانات ('+esc(CH.err)+'). مستني شوشو.</div>':'')+'<div class="card"><h3 style="margin:0 0 8px">إضافة قناة</h3><form id="chForm" class="form"><label class="field"><span>المنصة</span><select name="platform">'+opts+'</select></label><label class="field"><span>الرابط أو الرقم</span><input name="value" dir="ltr" placeholder="https://... أو +966..." required></label><label class="field"><span>اسم العرض (اختياري)</span><input name="label" placeholder="مثال: خدمة العملاء"></label><button class="btn gold" type="submit">إضافة</button></form></div><div class="card" style="margin-top:12px"><h3 style="margin:0 0 4px">القنوات الحالية</h3>'+list+'</div></section>';
+ const ed=CH.edit,opts=CONTACT_PLATFORMS.map(x=>'<option value="'+x[0]+'"'+(ed&&ed.platform===x[0]?" selected":"")+'>'+esc(x[1])+'</option>').join("");
+ const list=CH.rows.length?CH.rows.map(r=>'<div class="ch-row">'+chIcon(r,20)+'<div><b>'+esc(r.label||chPlat(r.platform)[1])+'</b><small>'+esc(r.value)+'</small></div><button type="button" class="btn light" data-a="ch-edit" data-id="'+esc(r.id)+'">تعديل</button><button type="button" class="btn light" data-a="ch-del" data-id="'+esc(r.id)+'">حذف</button></div>').join(""):'<p class="small">لسه مفيش قنوات. القنوات فاضية ومش بتظهر للعملاء لحد ما تضيف.</p>';
+ return CH_CSS+'<section class="section"><div class="sectionhead"><div><h2>التواصل والسوشيال</h2><p class="small">القنوات اللي بتظهر في صفحة "اتصل بنا" وفي روابط المنصة. بتظهر بس القنوات المملوءة.</p></div></div>'+(CH.err?'<div class="notice error">الجدول لسه مش مفعّل في قاعدة البيانات ('+esc(CH.err)+'). مستني شوشو.</div>':'')+'<div class="card"><h3 style="margin:0 0 8px">'+(ed?"تعديل القناة":"إضافة قناة")+'</h3><form id="chForm" class="form"><label class="field"><span>المنصة</span><select name="platform">'+opts+'</select></label><label class="field"><span>الرابط أو الرقم</span><input name="value" dir="ltr" placeholder="https://... أو +966..." required value="'+esc(ed?ed.value:"")+'"></label><label class="field"><span>اسم العرض (اختياري)</span><input name="label" placeholder="مثال: خدمة العملاء" value="'+esc(ed&&ed.label?ed.label:"")+'"></label><button class="btn gold" type="submit">'+(ed?"حفظ التعديل":"إضافة")+'</button>'+(ed?'<button type="button" class="btn light" data-a="ch-cancel">إلغاء</button>':"")+'</form></div><div class="card" style="margin-top:12px"><h3 style="margin:0 0 4px">القنوات الحالية</h3>'+list+'</div></section>';
 }
 document.addEventListener("submit",async e=>{
  const f=e.target;if(!f||f.id!=="chForm")return;e.preventDefault();
  const fd=new FormData(f),v=String(fd.get("value")||"").trim();if(!v){note("اكتب الرابط أو الرقم.","error");render();return}
- try{const r=await db.rpc("admin_upsert_contact_channel",{p_id:null,p_platform:String(fd.get("platform")),p_label:String(fd.get("label")||"").trim()||null,p_value:v,p_sort_order:CH.rows.length+1,p_is_active:true});
-  if(r.error)throw r.error;note("تمت إضافة القناة.","success");await chLoad();
+ try{const r=await db.rpc("admin_upsert_contact_channel",{p_id:CH.edit?CH.edit.id:null,p_platform:String(fd.get("platform")),p_label:String(fd.get("label")||"").trim()||null,p_value:v,p_sort_order:CH.edit?(CH.edit.sort_order||0):CH.rows.length+1,p_is_active:true});
+  if(r.error)throw r.error;note(CH.edit?"تم تعديل القناة.":"تمت إضافة القناة.","success");CH.edit=null;await chLoad();
  }catch(err){note("تعذّر الحفظ: "+String(err&&err.message||err),"error");render()}
 },true);
+document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest('[data-a="ch-edit"],[data-a="ch-cancel"]');if(!b)return;CH.edit=b.dataset.a==="ch-edit"?CH.rows.find(x=>String(x.id)===b.dataset.id)||null:null;render();window.scrollTo(0,0)});
 document.addEventListener("click",async e=>{
  const b=e.target.closest&&e.target.closest('[data-a="ch-del"]');if(!b)return;
  if(!confirm("حذف القناة؟"))return;
@@ -3310,12 +3311,13 @@ function anView(){
  const a=[0,0,AN.aud.map(k=>(AN_AUD.find(x=>x[0]===k)||[0,k])[1]).join(" + ")];
  const aud=AN_AUD.map(x=>'<button type="button" class="an-chip'+(AN.aud.includes(x[0])?" on":"")+'" data-a="an-aud" data-id="'+x[0]+'">'+esc(x[1])+'</button>').join("");
  const typ=AN_TYPES.map(x=>'<button type="button" class="an-chip'+(AN.type===x[0]?" on":"")+'" data-a="an-type" data-id="'+x[0]+'">'+esc(x[1])+'</button>').join("");
- const hist=AN.rows.length?AN.rows.map(r=>'<div class="ch-row"><div><b>'+esc(r.title||"")+'</b><small style="direction:rtl;text-align:right">'+esc((AN_AUD.find(x=>x[0]===r.audience)||[0,r.audience||""])[1])+" · "+esc(String(r.created_at||"").slice(0,10))+(r.recipients!=null?" · "+fmt(r.recipients)+" مستلم":"")+'</small></div></div>').join(""):'<p class="small">لسه مفيش إشعارات اتبعتت.</p>';
+ const hist=AN.rows.length?AN.rows.map((r,i)=>'<div class="ch-row" data-a="an-open" data-id="'+i+'" style="cursor:pointer;flex-wrap:wrap"><div><b>'+(AN.open===i?"⌄ ":"‹ ")+'</b><b>'+esc(r.title||"")+'</b><small style="direction:rtl;text-align:right">'+esc((AN_AUD.find(x=>x[0]===r.audience)||[0,r.audience||""])[1])+" · "+esc(String(r.created_at||"").slice(0,10))+(r.recipients!=null?" · "+fmt(r.recipients)+" مستلم":"")+'</small></div>'+(AN.open===i?'<div style="width:100%;padding:8px 0;line-height:1.9">'+esc(r.body||"")+'<br><small style="color:#64748b">النوع: '+esc((AN_TYPES.find(x=>x[0]===r.kind)||[0,r.kind||""])[1])+'</small></div>':"")+'</div>').join(""):'<p class="small">لسه مفيش إشعارات اتبعتت.</p>';
  return CH_CSS+'<style>.an-chips{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 12px}.an-chip{border:1px solid var(--border,#e5e7eb);background:var(--surface,#fff);border-radius:999px;padding:9px 14px;font:inherit;font-weight:700}.an-chip.on{background:linear-gradient(135deg,#0f766e,#0f3d3e);color:#fff;border-color:transparent}.an-prev{border-radius:16px;padding:14px;background:#0f3d3e;color:#fff;margin:10px 0}.an-prev b{display:block;color:#f3d27a}.an-aud{padding:10px 12px;border-radius:12px;background:rgba(212,162,76,.12);margin:8px 0}</style><section class="section"><div class="sectionhead"><div><h2>الإشعارات والعروض</h2><p class="small">ابعت إعلان أو عرض أو تهنئة (رمضان، عيد...) لفئة محددة أو لكل المنصة. بيوصل في جرس الإشعارات وعلى الموبايل.</p></div></div>'+(AN.err?'<div class="notice error">الإرسال لسه مش مفعّل في قاعدة البيانات ('+esc(AN.err)+'). مستني شوشو.</div>':'')+'<div class="card"><h3 style="margin:0">النوع</h3><div class="an-chips">'+typ+'</div><h3 style="margin:0">موجّه لمين</h3><div class="an-chips">'+aud+'</div><p class="small" style="margin:0">'+esc(a?a[2]:"")+'</p>'+(AN.aud.includes("new")?'<label class="field"><span>آخر كم يوم؟</span><input id="anDays" type="number" min="1" max="90" value="'+esc(AN.days)+'"></label>':'')+'<div class="an-aud" id="anCount">'+anCountTxt()+'</div><label class="field"><span>العنوان</span><input id="anTitle" maxlength="80" value="'+esc(AN.title)+'" placeholder="مثال: رمضان كريم"></label><label class="field"><span>نص الإشعار</span><textarea id="anBody" rows="4" maxlength="200" placeholder="اكتب الرسالة (حد أقصى 200 حرف)">'+esc(AN.body)+'</textarea></label><div class="an-prev"><small>معاينة</small><b>'+esc(AN.title||"العنوان")+'</b>'+esc(AN.body||"نص الإشعار هيظهر هنا.")+'</div><button type="button" class="btn gold" data-a="an-send"'+(AN.sending?" disabled":"")+'>'+(AN.sending?"جاري الإرسال...":"إرسال الإشعار")+'</button></div><div class="card" style="margin-top:12px"><h3 style="margin:0 0 4px">آخر الإشعارات المرسلة</h3>'+hist+'</div></section>';
 }
 document.addEventListener("input",e=>{const t=e.target;if(!t||!t.id)return;if(t.id==="anTitle"||t.id==="anBody"){AN[t.id==="anTitle"?"title":"body"]=t.value;const pv=document.querySelector(".an-prev");if(pv)pv.innerHTML='<small>معاينة</small><b>'+esc(AN.title||"العنوان")+'</b>'+esc(AN.body||"نص الإشعار هيظهر هنا.")}if(t.id==="anDays"){AN.days=t.value;anCount()}});
 document.addEventListener("click",async e=>{
- const b=e.target.closest&&e.target.closest('[data-a="an-aud"],[data-a="an-type"],[data-a="an-send"]');if(!b)return;
+ const b=e.target.closest&&e.target.closest('[data-a="an-aud"],[data-a="an-type"],[data-a="an-send"],[data-a="an-open"]');if(!b)return;
+ if(b.dataset.a==="an-open"){const i=Number(b.dataset.id);AN.open=AN.open===i?null:i;render();return}
  if(b.dataset.a==="an-aud"){const k=b.dataset.id;AN.aud=k==="all"?["all"]:(AN.aud.includes(k)?AN.aud.filter(x=>x!==k):AN.aud.filter(x=>x!=="all").concat(k));if(!AN.aud.length)AN.aud=["all"];render();anCount();return}
  if(b.dataset.a==="an-type"){AN.type=b.dataset.id;render();return}
  const title=AN.title.trim(),body=AN.body.trim();
@@ -3329,6 +3331,9 @@ document.addEventListener("click",async e=>{
 });
 /* ===== محرك أقسام الإدارة (مالية، خدمة عملاء، عروض، إعلانات، تسويق) — fail-soft ===== */
 const SEC_ST={};
+const SEC_PERM={fin:["payments.view","payments.manage"],cs:["support.view","support.manage"],offers:["ads.view","ads.manage"],adsmgr:["ads.view","ads.manage"],mkt:["ads.view","ads.manage"]};
+function secCan(id,manage){const r=s.profile&&s.profile.role;if(r==="owner"||r==="admin")return true;if(r!=="staff")return false;const ps=(s.staffAccess&&s.staffAccess.permissions)||[];const k=SEC_PERM[id];return !!k&&ps.includes(k[manage?1:0])}
+const SEC_LBL={id:"المعرّف",code:"الكود",title:"العنوان",name:"الاسم",description:"الوصف",body:"النص",status:"الحالة",created_at:"أُنشئ في",updated_at:"آخر تعديل",starts_at:"يبدأ",ends_at:"ينتهي",discount_type:"نوع الخصم",discount_value:"قيمة الخصم",max_discount:"أقصى خصم",min_order:"أقل قيمة طلب",usage_limit:"حد الاستخدام",used_count:"مرات الاستخدام",per_user_limit:"حد لكل مستخدم",kind:"النوع",audiences:"الجمهور",placement:"المكان",impressions:"مرات الظهور",clicks:"النقرات",link_type:"نوع الرابط",link_value:"الرابط",image_url:"الصورة",is_active:"فعّال",goal:"الهدف",budget:"الميزانية",scheduled_at:"الموعد",sent_at:"أُرسل في",subject:"الموضوع",requester_name:"صاحب التذكرة",requester_role:"دوره",category:"النوع",priority:"الأولوية",assigned_to_name:"المسؤول",first_reply_due:"موعد أول رد",first_replied_at:"أول رد",overdue:"متأخرة",provider_name:"مزود الخدمة",gross:"الإجمالي",commission:"العمولة",net:"الصافي",negative_offset:"خصم الرصيد السالب",adjustments:"تعديلات",period_start:"بداية الفترة",period_end:"نهاية الفترة",method:"الطريقة",reference:"المرجع",amount:"المبلغ",expense_date:"التاريخ",reason:"السبب",note:"ملاحظة",balance:"الرصيد",paid_at:"تاريخ الدفع",rejection_reason:"سبب الرفض"};
 const nz=(v)=>v==null||v===""?null:v;
 const fEGP=v=>v==null?"—":fmt(Math.round(Number(v)*100)/100)+" ج.م";
 const fD=v=>v?String(v).slice(0,10):"—";
@@ -3376,8 +3381,22 @@ async function secLoad(id){
  catch(e){st.err[t.k]=String(e&&e.message||e);st.data[t.k]=null}
  st.busy=false;st.loaded=st.loaded||{};st.loaded[t.k]=true;render();
 }
+function secDetail(id,t,st){
+ const rows=Array.isArray(st.data[t.k])?st.data[t.k]:[],r=rows[st.detail];if(!r){st.detail=null;return ""}
+ const can=secCan(id,true),canEdit=can&&t.form&&t.form.tpl&&("p_id" in t.form.tpl);
+ const EN={percent:"نسبة %",fixed:"مبلغ ثابت",offer:"عرض معلن",code:"كود خصم",customers:"العملاء",providers:"مزودو الخدمات",staff:"الموظفون",all:"الكل",new:"المسجلون الجدد",home_banner:"الرئيسية",dashboard:"لوحة التحكم",search:"البحث",none:"بدون",url:"رابط",in_app:"داخل التطبيق",push:"إشعار دفع"};
+ const val=(k,v)=>Array.isArray(v)&&v.length?v.map(x=>EN[x]||x).join("، "):typeof v==="string"&&EN[v]?EN[v]:v==null||v===""?"—":typeof v==="boolean"?(v?"نعم":"لا"):Array.isArray(v)?(v.length?v.join("، "):"—"):typeof v==="object"?JSON.stringify(v):/(_at|date|_end|_start)$/.test(k)?fDT(v):/^(amount|gross|net|commission|balance|budget|max_discount|min_order|negative_offset|adjustments)$/.test(k)?fEGP(v):(k==="status"?sT(v):String(v));
+ let h='<div class="actions">'+btn("sec-back","← رجوع للقائمة","light",id)+'</div><div class="card" style="margin-top:10px"><h3 style="margin:0 0 6px">'+esc(t.title(r))+'</h3>'+Object.keys(r).filter(k=>k!=="id"&&k!=="title"&&k!=="name").map(k=>'<div class="ch-row"><div><small style="direction:rtl;text-align:right">'+esc(SEC_LBL[k]||k)+'</small><b style="font-weight:600">'+esc(val(k,r[k]))+'</b></div></div>').join("")+'</div>';
+ if(can&&(t.acts||[]).length){h+='<div class="actions" style="margin-top:10px">'+t.acts.filter(a=>!a.when||a.when(r)).map(a=>'<button type="button" class="btn light" data-a="sec-act" data-id="'+id+'" data-r="'+st.detail+'" data-ai="'+t.acts.indexOf(a)+'">'+esc(a.l)+'</button>').join(" ")+'</div>'}
+ if(canEdit){const fm=t.form;h+='<form class="card sec-form" id="secForm" data-id="'+id+'" data-edit="1" style="margin-top:10px"><h3 style="margin:0 0 8px">تعديل</h3>'+fm.f.map(f=>{const raw=r[f[0].slice(2)];const v=raw==null?"":(/(_at|date)/.test(f[0])?String(raw).slice(0,10):raw);return '<label class="field"><span>'+esc(f[1])+'</span>'+(f[2]==="select"?'<select name="'+f[0]+'">'+f[3].map(o=>'<option value="'+o[0]+'"'+(String(o[0])===String(raw)?" selected":"")+'>'+esc(o[1])+'</option>').join("")+'</select>':'<input name="'+f[0]+'" type="'+(f[2]==="number"?"number\" step=\"any":f[2]==="date"?"date":"text")+'" value="'+esc(v)+'">')+'</label>'}).join("")+'<button class="btn gold" type="submit">حفظ التعديل</button></form>'}
+ else if(can&&t.form)h+='<p class="small" style="margin-top:10px">تعديل هذا العنصر هيتفعّل بعد إضافة دالة التعديل في قاعدة البيانات.</p>';
+ if(!can)h+='<p class="small" style="margin-top:10px">عرض فقط. التعديل يحتاج صلاحية من المالك.</p>';
+ return h;
+}
 function secView(id){
  const S=SEC[id],st=secSt(id),t=S.tabs[st.tab];st.loaded=st.loaded||{};
+ if(!secCan(id,false))return '<section class="section"><div class="card"><p class="small" style="margin:0">ليس لديك صلاحية على هذا القسم. اطلبها من المالك.</p></div></section>';
+ if(st.detail!=null&&st.loaded[t.k]){return '<style>.ch-row{display:flex;padding:9px 0;border-bottom:1px solid var(--border,#eef0f2)}.ch-row small{display:block;color:#94a3b8}</style><section class="section">'+secDetail(id,t,st)+'</section>'}
  if(!st.loaded[t.k]&&!st.busy)setTimeout(()=>secLoad(id),0);
  const tabs=S.tabs.length>1?'<div class="an-chips">'+S.tabs.map((x,i)=>'<button type="button" class="an-chip'+(i===st.tab?" on":"")+'" data-a="sec-tab" data-id="'+id+'" data-i="'+i+'">'+esc(x.l)+'</button>').join("")+'</div>':"";
  let b="";const d=st.data[t.k];
@@ -3386,18 +3405,20 @@ function secView(id){
  else if(t.kpi){const o=d||{};b+=(t.note?'<p class="small">'+esc(t.note)+'</p>':"")+'<div class="sec-kpi">'+t.kpi.map(k=>'<div><small>'+esc(k[1])+'</small><b>'+k[2](o[k[0]])+'</b></div>').join("")+'</div>'}
  else{
   const rows=Array.isArray(d)?d:[];
-  if(t.top)b+='<div class="actions" style="margin:6px 0">'+btn("sec-top","\u200f"+t.top.l,"gold",id)+'</div>';
-  b+=rows.length?'<div class="card" style="padding:4px 14px">'+rows.map((r,ri)=>'<div class="sec-row"><b>'+esc(t.title(r))+'</b><div class="sec-meta">'+t.cols.map(c=>'<span><i>'+esc(c[1])+'</i> '+esc(String(c[2](r[c[0]],r)))+'</span>').join("")+'</div>'+((t.acts||[]).filter(a=>!a.when||a.when(r)).map(a=>'<button type="button" class="btn light" data-a="sec-act" data-id="'+id+'" data-r="'+ri+'" data-ai="'+t.acts.indexOf(a)+'">'+esc(a.l)+'</button>').join(" "))+'</div>').join("")+'</div>':'<div class="card"><p class="small" style="margin:0">لسه مفيش بيانات.</p></div>';
+  if(t.top&&secCan(id,true))b+='<div class="actions" style="margin:6px 0">'+btn("sec-top","\u200f"+t.top.l,"gold",id)+'</div>';
+  b+=rows.length?'<div class="card" style="padding:4px 14px">'+rows.map((r,ri)=>'<div class="sec-row"><button type="button" class="sec-open" data-a="sec-open" data-id="'+id+'" data-r="'+ri+'">'+esc(t.title(r))+' ‹</button><div class="sec-meta">'+t.cols.map(c=>'<span><i>'+esc(c[1])+'</i> '+esc(String(c[2](r[c[0]],r)))+'</span>').join("")+'</div>'+((secCan(id,true)?(t.acts||[]):[]).filter(a=>!a.when||a.when(r)).map(a=>'<button type="button" class="btn light" data-a="sec-act" data-id="'+id+'" data-r="'+ri+'" data-ai="'+t.acts.indexOf(a)+'">'+esc(a.l)+'</button>').join(" "))+'</div>').join("")+'</div>':'<div class="card"><p class="small" style="margin:0">لسه مفيش بيانات.</p></div>';
   if(rows.length)b+='<div class="actions" style="margin-top:8px">'+btn("sec-csv","تصدير CSV","light",id)+'</div>';
-  if(t.form){b+='<div class="actions" style="margin-top:10px">'+btn("sec-form","+ "+t.form.l,"gold",id)+'</div>';
+  if(t.form&&secCan(id,true)){b+='<div class="actions" style="margin-top:10px">'+btn("sec-form","+ "+t.form.l,"gold",id)+'</div>';
    if(st.form)b+='<form class="card sec-form" id="secForm" data-id="'+id+'" style="margin-top:10px"><h3 style="margin:0 0 8px">'+esc(t.form.l)+'</h3>'+t.form.f.map(f=>'<label class="field"><span>'+esc(f[1])+'</span>'+(f[2]==="select"?'<select name="'+f[0]+'">'+f[3].map(o=>'<option value="'+o[0]+'">'+esc(o[1])+'</option>').join("")+'</select>':'<input name="'+f[0]+'" type="'+(f[2]==="number"?"number\" step=\"any":f[2]==="date"?"date":"text")+'"'+(f[4]||f[3]===1?"":" required")+'>')+'</label>').join("")+'<button class="btn gold" type="submit">حفظ</button></form>'}
  }
- return '<style>.sec-kpi{display:grid;grid-template-columns:1fr 1fr;gap:10px}.sec-kpi div{background:var(--surface,#fff);border:1px solid var(--border,#e5e7eb);border-radius:16px;padding:14px}.sec-kpi small{display:block;color:#64748b;font-size:12px}.sec-kpi b{font-size:18px}.sec-row{padding:12px 0;border-bottom:1px solid var(--border,#eef0f2)}.sec-meta{display:flex;flex-wrap:wrap;gap:4px 14px;margin:4px 0 8px;font-size:13px;color:#475569}.sec-meta i{font-style:normal;color:#94a3b8}</style><style>.an-chips{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 12px}.an-chip{border:1px solid var(--border,#e5e7eb);background:var(--surface,#fff);border-radius:999px;padding:9px 14px;font:inherit;font-weight:700}.an-chip.on{background:linear-gradient(135deg,#0f766e,#0f3d3e);color:#fff;border-color:transparent}</style><section class="section"><div class="sectionhead"><div><h2>'+esc(S.title)+'</h2><p class="small">'+esc(S.sub)+'</p></div></div>'+tabs+b+'</section>';
+ return '<style>.sec-kpi{display:grid;grid-template-columns:1fr 1fr;gap:10px}.sec-kpi div{background:var(--surface,#fff);border:1px solid var(--border,#e5e7eb);border-radius:16px;padding:14px}.sec-kpi small{display:block;color:#64748b;font-size:12px}.sec-kpi b{font-size:18px}.sec-row{padding:12px 0;border-bottom:1px solid var(--border,#eef0f2)}.sec-open{all:unset;cursor:pointer;font-weight:700;font-size:16px;color:var(--primary,#0f766e);display:block}.sec-meta{display:flex;flex-wrap:wrap;gap:4px 14px;margin:4px 0 8px;font-size:13px;color:#475569}.sec-meta i{font-style:normal;color:#94a3b8}</style><style>.an-chips{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 12px}.an-chip{border:1px solid var(--border,#e5e7eb);background:var(--surface,#fff);border-radius:999px;padding:9px 14px;font:inherit;font-weight:700}.an-chip.on{background:linear-gradient(135deg,#0f766e,#0f3d3e);color:#fff;border-color:transparent}</style><section class="section"><div class="sectionhead"><div><h2>'+esc(S.title)+'</h2><p class="small">'+esc(S.sub)+'</p></div></div>'+tabs+b+'</section>';
 }
 document.addEventListener("click",async e=>{
- const b=e.target.closest&&e.target.closest('[data-a="sec-tab"],[data-a="sec-act"],[data-a="sec-top"],[data-a="sec-form"],[data-a="sec-csv"]');if(!b)return;
+ const b=e.target.closest&&e.target.closest('[data-a="sec-open"],[data-a="sec-back"],[data-a="sec-tab"],[data-a="sec-act"],[data-a="sec-top"],[data-a="sec-form"],[data-a="sec-csv"]');if(!b)return;
  const id=b.dataset.id,st=secSt(id),t=SEC[id].tabs[st.tab],a=b.dataset.a;
- if(a==="sec-tab"){st.tab=Number(b.dataset.i);st.form=false;render();return}
+ if(a==="sec-open"){st.detail=Number(b.dataset.r);st.form=false;render();window.scrollTo(0,0);return}
+ if(a==="sec-back"){st.detail=null;render();return}
+ if(a==="sec-tab"){st.tab=Number(b.dataset.i);st.form=false;st.detail=null;render();return}
  if(a==="sec-form"){st.form=!st.form;render();return}
  if(a==="sec-csv"){const rows=st.data[t.k]||[];if(!rows.length)return;const ks=Object.keys(rows[0]);const q=v=>'"'+String(v==null?"":v).replace(/"/g,'""')+'"';const csv="\ufeff"+ks.join(",")+"\n"+rows.map(r=>ks.map(k=>q(typeof r[k]==="object"?JSON.stringify(r[k]):r[k])).join(",")).join("\n");const u=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));const l=document.createElement("a");l.href=u;l.download=id+"-"+t.k+".csv";l.click();return}
  let act,args;
@@ -3410,11 +3431,12 @@ document.addEventListener("submit",async e=>{
  const f=e.target;if(!f||f.id!=="secForm")return;e.preventDefault();
  const id=f.dataset.id,st=secSt(id),t=SEC[id].tabs[st.tab],fm=t.form,fd=new FormData(f);
  let args=Object.assign({},fm.tpl||{});
+ if(f.dataset.edit==="1"&&st.detail!=null){const row=(st.data[t.k]||[])[st.detail]||{};Object.keys(args).forEach(k=>{const v=row[k.slice(2)];if(v!==undefined&&v!==null)args[k]=v});args.p_id=row.id}
  fm.f.forEach(x=>{let v=fd.get(x[0]);v=v===""?null:v;if(x[2]==="number"&&v!=null)v=Number(v);if(x[0]==="p_code"&&v)v=String(v).toUpperCase();args[x[0]]=v});
  if(fm.derive)args=fm.derive(args);
  if(id==="offers"){args.p_starts_at=args.p_starts_at?args.p_starts_at+"T00:00:00+03:00":new Date().toISOString();if(args.p_ends_at)args.p_ends_at=args.p_ends_at+"T23:59:59+03:00"}
  if(id==="adsmgr"){args.p_starts_at=args.p_starts_at?args.p_starts_at+"T00:00:00+03:00":new Date().toISOString();if(args.p_ends_at)args.p_ends_at=args.p_ends_at+"T23:59:59+03:00"}
- try{const r=await db.rpc(fm.rpc,args);if(r.error)throw r.error;note("تم الحفظ.","success");st.form=false;await secLoad(id)}
+ try{const r=await db.rpc(fm.rpc,args);if(r.error)throw r.error;note("تم الحفظ.","success");st.form=false;if(f.dataset.edit!=="1")st.detail=null;await secLoad(id)}
  catch(err){note("تعذّر الحفظ: "+String(err&&err.message||err),"error");render()}
 },true);
 function legalView(){
