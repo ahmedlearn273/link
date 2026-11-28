@@ -3378,7 +3378,7 @@ fin:{title:"المالية",sub:"العمولات والمستحقات والت�
 ]},
 cs:{title:"خدمة العملاء",sub:"تذاكر الدعم من العملاء ومزودي الخدمات. أول رد خلال 4 ساعات.",tabs:[
  {k:"st",l:"الملخص",rpc:"cs_stats",args:()=>({}),kpi:[["open","مفتوحة",v=>fmt(v)],["pending","معلقة",v=>fmt(v)],["overdue","متأخرة",v=>fmt(v)],["resolved_7d","اتحلت آخر 7 أيام",v=>fmt(v)],["avg_first_reply_minutes","متوسط أول رد (دقيقة)",v=>fmt(Math.round(v||0))]]},
- {k:"tk",l:"التذاكر",rpc:"cs_list_tickets",args:()=>({p_status:null,p_assignee:null,p_q:null,p_limit:50,p_offset:0}),title:r=>r.subject||"—",cols:[["code","الكود",v=>v],["requester_name","من",v=>v],["category","النوع",v=>v],["priority","الأولوية",v=>({low:"منخفضة",normal:"عادية",high:"عالية",urgent:"عاجلة"}[v]||v)],["status","الحالة",sT],["overdue","متأخرة",v=>v?"نعم":"لا"]],
+ {k:"tk",l:"التذاكر",rpc:"cs_list_tickets",args:()=>({p_status:null,p_assignee:null,p_q:null,p_limit:50,p_offset:0}),title:r=>r.subject||"—",cols:[["code","الكود",v=>v],["requester_name","من",v=>v],["category","النوع",v=>({general:"عام",order:"طلب",payment:"دفع",provider:"مزود خدمة",account:"الحساب",complaint:"شكوى",other:"أخرى"}[v]||v)],["priority","الأولوية",v=>({low:"منخفضة",normal:"عادية",high:"عالية",urgent:"عاجلة"}[v]||v)],["status","الحالة",v=>({open:"مفتوحة",pending:"قيد المتابعة",resolved:"تم الحل",closed:"مغلقة"}[v]||v)],["overdue","متأخرة",v=>v?"نعم":"لا"]],
   acts:[{l:"رد",rpc:"support_reply",args:(r,x)=>({p_ticket_id:r.id,p_body:x,p_internal:false}),ask:"اكتب الرد",when:r=>r.status!=="closed"},{l:"تم الحل",rpc:"cs_set_ticket_status",args:r=>({p_id:r.id,p_status:"resolved",p_note:null}),when:r=>r.status==="open"||r.status==="pending"},{l:"إغلاق",rpc:"cs_set_ticket_status",args:r=>({p_id:r.id,p_status:"closed",p_note:null}),when:r=>r.status!=="closed"}]}
 ]},
 offers:{title:"العروض والخصومات",sub:"عروض معلنة وأكواد خصم. الخصم تتحمله المنصة والعميل لا يرى العمولة.",tabs:[
@@ -3413,12 +3413,13 @@ async function secLoad(id){
 function secDetail(id,t,st){
  const rows=Array.isArray(st.data[t.k])?st.data[t.k]:[],r=rows[st.detail];if(!r){st.detail=null;return ""}
  const can=secCan(id,true),canEdit=can&&t.form&&t.form.tpl&&("p_id" in t.form.tpl);
- const EN={percent:"نسبة %",fixed:"مبلغ ثابت",offer:"عرض معلن",code:"كود خصم",customers:"العملاء",providers:"مزودو الخدمات",staff:"الموظفون",all:"الكل",new:"المسجلون الجدد",home_banner:"الرئيسية",dashboard:"لوحة التحكم",search:"البحث",none:"بدون",url:"رابط",in_app:"داخل التطبيق",push:"إشعار دفع"};
- const val=(k,v)=>Array.isArray(v)&&v.length?v.map(x=>EN[x]||x).join("، "):typeof v==="string"&&EN[v]?EN[v]:v==null||v===""?"—":typeof v==="boolean"?(v?"نعم":"لا"):Array.isArray(v)?(v.length?v.join("، "):"—"):typeof v==="object"?JSON.stringify(v):/(_at|date|_end|_start)$/.test(k)?fDT(v):/^(amount|gross|net|commission|balance|budget|max_discount|min_order|negative_offset|adjustments)$/.test(k)?fEGP(v):(k==="status"?sT(v):String(v));
+ const EN={percent:"نسبة %",fixed:"مبلغ ثابت",offer:"عرض معلن",code:"كود خصم",customers:"العملاء",providers:"مزودو الخدمات",staff:"الموظفون",all:"الكل",new:"المسجلون الجدد",home_banner:"الرئيسية",dashboard:"لوحة التحكم",search:"البحث",none:"بدون",url:"رابط",in_app:"داخل التطبيق",push:"إشعار دفع",customer:"عميل",provider:"مزود خدمة",payment:"دفع",order:"طلب",general:"عام",complaint:"شكوى",account:"الحساب",other:"أخرى",low:"منخفضة",normal:"عادية",high:"عالية",urgent:"عاجلة"};
+ const val=(k,v)=>Array.isArray(v)&&v.length?v.map(x=>EN[x]||x).join("، "):typeof v==="string"&&EN[v]?EN[v]:v==null||v===""?"—":typeof v==="boolean"?(v?"نعم":"لا"):Array.isArray(v)?(v.length?v.join("، "):"—"):typeof v==="object"?JSON.stringify(v):/(_at|date|_end|_start)$/.test(k)?fDT(v):/^(amount|gross|net|commission|balance|budget|max_discount|min_order|negative_offset|adjustments)$/.test(k)?fEGP(v):(k==="status"?(id==="cs"?(SUP_ST[v]||v):sT(v)):String(v));
  let h='<div class="actions">'+btn("sec-back","← رجوع للقائمة","light",id)+'</div><div class="card" style="margin-top:10px"><h3 style="margin:0 0 6px">'+esc(t.title(r))+'</h3>'+Object.keys(r).filter(k=>k!=="id"&&k!=="title"&&k!=="name").map(k=>'<div class="ch-row"><div><small style="direction:rtl;text-align:right">'+esc(SEC_LBL[k]||k)+'</small><b style="font-weight:600">'+esc(val(k,r[k]))+'</b></div></div>').join("")+'</div>';
  if(can&&(t.acts||[]).length){h+='<div class="actions" style="margin-top:10px">'+t.acts.filter(a=>!a.when||a.when(r)).map(a=>'<button type="button" class="btn light" data-a="sec-act" data-id="'+id+'" data-r="'+st.detail+'" data-ai="'+t.acts.indexOf(a)+'">'+esc(a.l)+'</button>').join(" ")+'</div>'}
  if(canEdit){const fm=t.form;h+='<form class="card sec-form" id="secForm" data-id="'+id+'" data-edit="1" style="margin-top:10px"><h3 style="margin:0 0 8px">تعديل</h3>'+fm.f.map(f=>{const raw=r[f[0].slice(2)];const v=raw==null?"":(/(_at|date)/.test(f[0])?String(raw).slice(0,10):raw);return '<label class="field"><span>'+esc(f[1])+'</span>'+(f[2]==="select"?'<select name="'+f[0]+'">'+f[3].map(o=>'<option value="'+o[0]+'"'+(String(o[0])===String(raw)?" selected":"")+'>'+esc(o[1])+'</option>').join("")+'</select>':'<input name="'+f[0]+'" type="'+(f[2]==="number"?"number\" step=\"any":f[2]==="date"?"date":"text")+'" value="'+esc(v)+'">')+'</label>'}).join("")+'<button class="btn gold" type="submit">حفظ التعديل</button></form>'}
  else if(can&&t.form)h+='<p class="small" style="margin-top:10px">تعديل هذا العنصر هيتفعّل بعد إضافة دالة التعديل في قاعدة البيانات.</p>';
+ if(id==="cs"&&t.k==="tk")h+=csThreadHtml(r,st,can);
  if(!can)h+='<p class="small" style="margin-top:10px">عرض فقط. التعديل يحتاج صلاحية من المالك.</p>';
  return h;
 }
@@ -3445,7 +3446,7 @@ function secView(id){
 document.addEventListener("click",async e=>{
  const b=e.target.closest&&e.target.closest('[data-a="sec-open"],[data-a="sec-back"],[data-a="sec-tab"],[data-a="sec-act"],[data-a="sec-top"],[data-a="sec-form"],[data-a="sec-csv"]');if(!b)return;
  const id=b.dataset.id,st=secSt(id),t=SEC[id].tabs[st.tab],a=b.dataset.a;
- if(a==="sec-open"){st.detail=Number(b.dataset.r);st.form=false;render();window.scrollTo(0,0);return}
+ if(a==="sec-open"){st.detail=Number(b.dataset.r);st.form=false;st.thr=null;render();window.scrollTo(0,0);if(id==="cs"&&t.k==="tk"){const rr=(st.data[t.k]||[])[st.detail];if(rr)csLoadThread(rr.id)}return}
  if(a==="sec-back"){st.detail=null;render();return}
  if(a==="sec-tab"){st.tab=Number(b.dataset.i);st.form=false;st.detail=null;render();return}
  if(a==="sec-form"){st.form=!st.form;render();return}
@@ -3468,6 +3469,110 @@ document.addEventListener("submit",async e=>{
  try{const r=await db.rpc(fm.rpc,args);if(r.error)throw r.error;note("تم الحفظ.","success");st.form=false;if(f.dataset.edit!=="1")st.detail=null;await secLoad(id)}
  catch(err){note("تعذّر الحفظ: "+String(err&&err.message||err),"error");render()}
 },true);
+/* ===== Support center, offers, ads (fail-soft: each needs its Supabase RPC) ===== */
+function rpcMissing(e){const m=String(e&&e.message||e||"");return /could not find the function|does not exist|schema cache|not found/i.test(m)||(e&&(e.code==="PGRST202"||e.code==="42883"))}
+function supDate(v){return v?LTR(String(v).slice(0,16).replace("T"," ")):""}
+const SUP_CAT=[["general","عام"],["order","طلب"],["payment","دفع"],["provider","مزود خدمة"],["account","الحساب"],["complaint","شكوى"],["other","أخرى"]];
+const SUP_ST={open:"مفتوحة",pending:"قيد المتابعة",resolved:"تم الحل",closed:"مغلقة"};
+const SUP={view:"list",list:null,cur:null,err:"",busy:false};
+(function(){const st=document.createElement("style");st.textContent=
+".sup-box{max-width:420px;width:100%;max-height:86vh;overflow:auto;padding:16px;text-align:right}"+
+".sup-h{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}.sup-h b{font-size:17px}"+
+".sup-x{border:0;background:var(--bg-subtle,#f3f1ec);width:34px;height:34px;border-radius:50%;font-size:18px;cursor:pointer;color:inherit}"+
+".sup-it{display:block;width:100%;text-align:right;border:1px solid var(--border,#e7e3da);background:var(--bg-card,#fff);border-radius:14px;padding:12px;margin:0 0 8px;cursor:pointer;color:inherit;font:inherit}"+
+".sup-it .r{display:flex;justify-content:space-between;align-items:center;gap:8px}.sup-it small{color:var(--text-muted,#78716c);display:block;margin-top:4px}"+
+".sup-p{display:inline-block;border-radius:99px;padding:2px 10px;font-size:12px;background:var(--bg-subtle,#f3f1ec)}.sup-p.open{background:#fdecc8}.sup-p.pending{background:#dbeafe}.sup-p.resolved{background:#d9f2e0}"+
+".sup-m{max-width:86%;padding:9px 12px;border-radius:14px;margin:6px 0;line-height:1.6;font-size:14px;white-space:pre-wrap;word-break:break-word}"+
+".sup-m.me{background:var(--accent,#d6a336);color:#1a1a1a;margin-inline-start:auto;border-end-start-radius:4px}.sup-m.tm{background:var(--bg-subtle,#f3f1ec);border-end-end-radius:4px}.sup-m small{display:block;opacity:.65;font-size:11px;margin-top:3px}"+
+".sup-box textarea,.sup-box input,.sup-box select{width:100%;box-sizing:border-box;border:1px solid var(--border,#e7e3da);border-radius:12px;padding:10px;font:inherit;background:var(--bg-card,#fff);color:inherit}.sup-box textarea{min-height:90px;resize:vertical}"+
+".sup-box label{display:block;margin:0 0 10px;font-size:13px}.sup-box label>span{display:block;margin-bottom:4px;color:var(--text-muted,#78716c)}"+
+".cu-ofr{display:flex;gap:10px;overflow-x:auto;padding:2px 2px 8px;scroll-snap-type:x mandatory}.cu-of{flex:0 0 78%;scroll-snap-align:start;border-radius:18px;padding:14px;background:var(--bg-card,#fff);border:1px solid var(--border,#e7e3da);position:relative}"+
+".cu-of .dc{display:inline-block;background:var(--accent,#d6a336);color:#1a1a1a;border-radius:10px;padding:3px 10px;font-weight:700;font-size:14px;margin-bottom:6px}.cu-of b{display:block;font-size:15px}.cu-of small{display:block;color:var(--text-muted,#78716c);margin-top:3px}"+
+".cu-of .cd{margin-top:8px;display:inline-flex;gap:6px;align-items:center;border:1px dashed var(--primary,#0b3b4a);border-radius:10px;padding:5px 10px;background:transparent;font:inherit;cursor:pointer;color:var(--primary,#0b3b4a);font-weight:700}"+
+".cu-bn-c.ad{background-size:cover!important;background-position:center!important}.cu-bn-c.ad:before{content:'';position:absolute;inset:0;background:linear-gradient(0deg,rgba(0,0,0,.55),rgba(0,0,0,.1))}.cu-bn-c.ad>*{position:relative}";
+document.head.appendChild(st)})();
+function supClose(){const w=document.getElementById("supOv");if(w)w.remove()}
+function supDraw(){
+ let w=document.getElementById("supOv");
+ if(!w){w=document.createElement("div");w.id="supOv";w.className="wui-ov";w.innerHTML='<div class="wui-box sup-box" role="dialog" aria-modal="true"></div>';w.addEventListener("click",e=>{if(e.target===w)supClose()});document.body.appendChild(w)}
+ const box=w.firstChild,me=s.user&&s.user.id;
+ const bad=SUP.err==="soon"?'<div class="card"><p class="small" style="margin:0">خدمة الدعم هتتفعّل قريبًا. لو محتاج مساعدة دلوقتي ابعت لنا من صفحة اتصل بنا.</p></div>':SUP.err?'<div class="card"><p class="small" style="margin:0">'+esc(SUP.err)+'</p></div>':"";
+ let h='<div class="sup-h"><b>'+(SUP.view==="new"?"تذكرة جديدة":SUP.view==="ticket"?"تذكرتك":"المساعدة والدعم")+'</b><button type="button" class="sup-x" data-sup="close" aria-label="إغلاق">×</button></div>';
+ if(SUP.view==="list"){
+  h+='<button type="button" class="btn gold" style="width:100%;margin-bottom:12px" data-sup="new">فتح تذكرة جديدة</button>';
+  if(SUP.busy&&!SUP.list)h+='<p class="muted">جارٍ التحميل...</p>';
+  else if(SUP.list){h+=SUP.list.length?SUP.list.map(t=>'<button type="button" class="sup-it" data-sup="open" data-id="'+esc(t.id)+'"><div class="r"><b>'+esc(t.subject||"—")+'</b><span class="sup-p '+esc(t.status)+'">'+esc(SUP_ST[t.status]||t.status||"")+'</span></div><small><span dir="ltr">'+esc(t.code||"")+'</span> · '+supDate(t.updated_at)+'</small>'+(t.last_body?'<small>'+esc(String(t.last_body).slice(0,80))+'</small>':'')+'</button>').join(""):'<div class="card"><p class="small" style="margin:0">مفيش تذاكر لسه. لو عندك مشكلة أو سؤال افتح تذكرة وفريقنا يرد عليك خلال 4 ساعات.</p></div>'}
+  h+=bad;
+ }else if(SUP.view==="new"){
+  h+='<form id="supNew"><label><span>النوع</span><select name="cat">'+SUP_CAT.map(c=>'<option value="'+c[0]+'">'+c[1]+'</option>').join("")+'</select></label><label><span>العنوان</span><input name="subject" maxlength="120" minlength="3" required placeholder="مثال: مشكلة في الدفع"></label><label><span>التفاصيل</span><textarea name="body" maxlength="2000" required placeholder="اكتب مشكلتك بالتفصيل"></textarea></label><p class="small muted">ما تكتبش كلمات مرور أو أرقام بطاقات.</p>'+bad+'<button class="btn gold" style="width:100%" '+(SUP.busy?"disabled":"")+'>إرسال</button><button type="button" class="btn light" style="width:100%;margin-top:8px" data-sup="list">رجوع</button></form>';
+ }else{
+  const d=SUP.cur,t=d&&d.ticket,ms=((d&&d.messages)||[]).filter(m=>!m.is_internal);
+  if(SUP.busy&&!d)h+='<p class="muted">جارٍ التحميل...</p>';
+  else if(t){
+   h+='<div class="r" style="display:flex;justify-content:space-between;align-items:center;gap:8px"><b>'+esc(t.subject||"")+'</b><span class="sup-p '+esc(t.status)+'">'+esc(SUP_ST[t.status]||t.status||"")+'</span></div><small class="muted" dir="ltr" style="display:block;margin:4px 0 8px">'+esc(t.code||"SUP-"+String(t.id||"").slice(0,8).toUpperCase())+'</small><div style="display:flex;flex-direction:column">'+
+   ms.map(m=>{const mine=m.sender_id===me||m.is_mine===true;return '<div class="sup-m '+(mine?"me":"tm")+'">'+esc(m.body)+'<small>'+(mine?"أنت":"فريق وصلة")+' · '+supDate(m.created_at)+'</small></div>'}).join("")+'</div>';
+   if(t.status==="closed")h+='<p class="small muted">التذكرة مغلقة. افتح تذكرة جديدة لو لسه محتاج مساعدة.</p>';
+   else h+='<form id="supReply" style="margin-top:10px"><textarea name="body" maxlength="2000" required placeholder="اكتب ردك"></textarea>'+bad+'<button class="btn gold" style="width:100%;margin-top:8px" '+(SUP.busy?"disabled":"")+'>إرسال الرد</button></form>';
+  }
+  h+=(t?'':bad)+'<button type="button" class="btn light" style="width:100%;margin-top:8px" data-sup="list">كل التذاكر</button>';
+ }
+ box.innerHTML=h;
+}
+async function supLoadList(){SUP.busy=true;SUP.err="";supDraw();try{const r=await db.rpc("support_list_my_tickets");if(r.error)throw r.error;SUP.list=Array.isArray(r.data)?r.data:[]}catch(e){SUP.list=null;SUP.err=rpcMissing(e)?"soon":"تعذّر التحميل. حاول مرة تانية."}SUP.busy=false;supDraw()}
+async function supLoadTicket(id){SUP.view="ticket";SUP.cur=null;SUP.busy=true;SUP.err="";supDraw();try{const r=await db.rpc("support_get_ticket",{p_id:id});if(r.error)throw r.error;SUP.cur=r.data;SUP.id=id}catch(e){SUP.err=rpcMissing(e)?"soon":"تعذّر فتح التذكرة."}SUP.busy=false;supDraw()}
+document.addEventListener("click",e=>{
+ const b=e.target.closest&&e.target.closest("[data-sup]");if(!b)return;const a=b.dataset.sup;
+ if(a==="open"&&!b.dataset.id){SUP.view="list";SUP.err="";SUP.list=null;supDraw();supLoadList();return}
+ if(a==="open"){supLoadTicket(b.dataset.id);return}
+ if(a==="close"){supClose();return}
+ if(a==="new"){SUP.view="new";SUP.err="";supDraw();return}
+ if(a==="list"){SUP.view="list";SUP.err="";supDraw();supLoadList();return}
+ if(a==="copy"){const c=b.dataset.code||"";try{navigator.clipboard.writeText(c)}catch(_){}note("تم نسخ الكود "+c,"success");return}
+});
+document.addEventListener("click",e=>{
+ const b=e.target.closest&&e.target.closest('[data-a="cu-ad"]');if(!b)return;e.preventDefault();e.stopPropagation();
+ const a=(s.ads||[])[Number(b.dataset.id)];if(!a)return;adTrack(Number(b.dataset.id),"click");
+ if(a.link_type==="url"&&/^https:\/\//.test(a.link_value||"")){window.open(a.link_value,"_blank","noopener,noreferrer");return}
+ const x=document.createElement("button");x.type="button";x.setAttribute("data-a",a.link_type==="category"?"category-open":"request");x.setAttribute("data-id",a.link_type==="category"?(a.link_value||""):"");(document.querySelector("#app")||document.body).appendChild(x);x.click();x.remove();
+},true);
+document.addEventListener("submit",async e=>{
+ const f=e.target;if(!f||(f.id!=="supNew"&&f.id!=="supReply"))return;e.preventDefault();e.stopPropagation();
+ const fd=new FormData(f);SUP.busy=true;SUP.err="";const body=String(fd.get("body")||"").trim();
+ try{
+  if(f.id==="supNew"){const r=await db.rpc("support_create_ticket",{p_subject:String(fd.get("subject")||"").trim(),p_category:fd.get("cat"),p_body:body,p_related_request_id:null});if(r.error)throw r.error;note("وصلتنا تذكرتك. هنرد عليك قريب.","success");SUP.busy=false;const id=r.data&&r.data.id;if(id)await supLoadTicket(id);else{SUP.view="list";await supLoadList()}}
+  else{const r=await db.rpc("support_reply",{p_ticket_id:SUP.id,p_body:body,p_internal:false});if(r.error)throw r.error;SUP.busy=false;await supLoadTicket(SUP.id)}
+ }catch(err){SUP.busy=false;SUP.err=rpcMissing(err)?"soon":"تعذّر الإرسال: "+String(err&&err.message||err);supDraw()}
+},true);
+
+/* admin: ticket conversation (support_get_ticket) */
+async function csLoadThread(tid){const st=secSt("cs");st.thr={id:tid,busy:true};render();try{const r=await db.rpc("support_get_ticket",{p_id:tid});if(r.error)throw r.error;st.thr={id:tid,data:r.data}}catch(e){st.thr={id:tid,err:rpcMissing(e)?"المحادثة هتتفعّل بعد تنفيذ قاعدة البيانات.":"تعذّر تحميل المحادثة."}}render()}
+function csThreadHtml(r,st,can){
+ const T=st.thr;if(!T||T.id!==r.id)return"";
+ let h='<div class="card" style="margin-top:10px"><h3 style="margin:0 0 6px">المحادثة</h3>';
+ if(T.busy)h+='<p class="small muted">جارٍ التحميل...</p>';
+ else if(T.err)h+='<p class="small" style="margin:0">'+esc(T.err)+'</p>';
+ else{const ms=(T.data&&T.data.messages)||[];h+='<div style="display:flex;flex-direction:column">'+(ms.length?ms.map(m=>{const mine=m.sender_id===(s.user&&s.user.id)||m.is_mine===true;const inn=!!m.is_internal;return '<div class="sup-m '+(inn?"tm":mine?"me":"tm")+'" style="'+(inn?"background:#fff4d6;border:1px dashed #d6a336;":"")+'">'+esc(m.body)+'<small>'+(inn?"ملاحظة داخلية · ":"")+(m.sender_name?esc(m.sender_name)+" · ":"")+supDate(m.created_at)+'</small></div>'}).join(""):'<p class="small muted">مفيش رسائل.</p>')+'</div>'}
+ if(can&&!T.busy&&!T.err&&r.status!=="closed")h+='<textarea id="csTxt" maxlength="2000" placeholder="اكتب ردك أو ملاحظة داخلية" style="width:100%;box-sizing:border-box;min-height:80px;margin-top:8px;border:1px solid var(--border,#e7e3da);border-radius:12px;padding:10px;font:inherit"></textarea><div class="actions" style="margin-top:8px"><button type="button" class="btn gold" data-cs="reply" data-t="'+esc(r.id)+'">رد على صاحب التذكرة</button><button type="button" class="btn light" data-cs="note" data-t="'+esc(r.id)+'">ملاحظة داخلية (لا يراها)</button></div>';
+ return h+'</div>';
+}
+document.addEventListener("click",async e=>{
+ const b=e.target.closest&&e.target.closest("[data-cs]");if(!b)return;
+ const tx=document.getElementById("csTxt"),body=tx?tx.value.trim():"";if(!body){note("اكتب النص الأول.","error");return}
+ try{const r=await db.rpc("support_reply",{p_ticket_id:b.dataset.t,p_body:body,p_internal:b.dataset.cs==="note"});if(r.error)throw r.error;note(b.dataset.cs==="note"?"اتحفظت الملاحظة.":"اتبعت الرد.","success");await csLoadThread(b.dataset.t)}
+ catch(err){note("تعذّر الإرسال: "+String(err&&err.message||err),"error")}
+},true);
+/* offers + ads on the customer home */
+function offerDisc(o){return o.discount_type==="percent"?LTR(fmt(o.discount_value)+"%"):moneyAr(o.discount_value)}
+function loadHomeExtras(){
+ if(s.homePromos===undefined){s.homePromos=null;(async()=>{let v=[];try{const r=await db.rpc("list_active_offers");if(!r.error&&Array.isArray(r.data))v=r.data}catch(_){}s.homePromos=v;if(v.length&&(s.tab==="home"||!s.tab))try{render()}catch(_){}})()}
+ if(s.ads===undefined){s.ads=null;(async()=>{let v=[];try{const r=await db.rpc("list_active_ads",{p_placement:"home_banner"});if(!r.error&&Array.isArray(r.data))v=r.data}catch(_){}s.ads=v;if(v.length&&(s.tab==="home"||!s.tab))try{render()}catch(_){}})()}
+}
+function adTrack(i,ev){try{const a=(s.ads||[])[i];if(!a)return;s.adSeen=s.adSeen||{};const k=a.id+ev;if(ev==="impression"&&s.adSeen[k])return;s.adSeen[k]=1;db.rpc("track_ad_event",{p_ad_id:a.id,p_event:ev}).then(()=>{},()=>{})}catch(_){}}
+function offersHtml(){
+ const o=Array.isArray(s.homePromos)?s.homePromos:[];if(!o.length)return"";
+ return '<div class="cu-h"><h3>عروض ليك</h3></div><div class="cu-ofr">'+o.map(x=>'<div class="cu-of"><span class="dc">خصم '+offerDisc(x)+'</span><b>'+esc(x.title||"")+'</b>'+(x.description?'<small>'+esc(x.description)+'</small>':'')+(x.ends_at?'<small>ينتهي '+LTR(String(x.ends_at).slice(0,10))+'</small>':'')+(x.code?'<button type="button" class="cd" data-sup="copy" data-code="'+esc(x.code)+'">كود: <span dir="ltr">'+esc(x.code)+'</span></button>':'')+'</div>').join("")+'</div>';
+}
+
 function legalView(){
  if(s.legal==="contact")return contactView();
  const d=LEGAL_DOCS[s.legal];if(!d){s.mode=s.legalBack||"welcome";return ""}
@@ -4916,6 +5021,7 @@ function customerAccountBody(p){
    '<label class="field">اختر صورة جديدة<input type="file" name="avatar_file" accept="image/jpeg,image/png,image/webp" required></label>'+
    '<p class="muted">شعار وصلة هو الصورة الافتراضية. لا يستطيع تغيير صورتك الشخصية إلا صاحب الحساب نفسه.</p>'+
    '<div class="actions"><button class="btn gold">حفظ الصورة الشخصية</button></div></form>')+
+  sec("mail","المساعدة والدعم","افتح تذكرة وفريقنا يرد عليك",'<p class="muted">عندك مشكلة أو سؤال؟ ابعت لنا وهنرد خلال 4 ساعات.</p><div class="actions"><button type="button" class="btn gold" data-sup="open">فتح الدعم</button></div>')+
   sec("lock","كلمة المرور","غيّرها في أي وقت",
    '<form id="accountPasswordForm"><h3>تغيير كلمة المرور</h3>'+
    '<label class="field">كلمة المرور الحالية<input name="current_password" type="password" autocomplete="current-password" required></label>'+
@@ -4933,7 +5039,7 @@ const CU_OFFERS=[
 function cuBannerTick(){
  try{
   const t=document.querySelector(".cu-bn-t");if(!t)return;
-  const n=CU_OFFERS.length;s.cuBn=((s.cuBn||0)+1)%n;
+  const n=document.querySelectorAll(".cu-bn-c").length||CU_OFFERS.length;s.cuBn=((s.cuBn||0)+1)%n;if(Array.isArray(s.ads)&&s.ads.length)adTrack(s.cuBn,"impression");
   t.style.transform="translateX(-"+(s.cuBn*100)+"%)";
   document.querySelectorAll(".cu-bn-d i").forEach((d,i)=>d.classList.toggle("on",i===s.cuBn));
  }catch(_){}
@@ -4943,11 +5049,15 @@ function customerHome(){
  const p=s.profile||{};
  const first=String(p.full_name||"").trim().split(/\s+/)[0]||"";
  const av=p.avatar_url?'<img src="'+esc(p.avatar_url)+'" alt="">':esc((first||"و").slice(0,1));
+ loadHomeExtras();
+ const ads=Array.isArray(s.ads)&&s.ads.length?s.ads:null;
  const idx=s.cuBn||0;
- const banner='<div class="cu-bn"><div class="cu-bn-s"><div class="cu-bn-t" style="transform:translateX(-'+(idx*100)+'%)">'+CU_OFFERS.map((o,i)=>
-  '<div class="cu-bn-c" style="background:linear-gradient(135deg,'+(i===1?'var(--primary),var(--primary-hover)':'var(--accent),var(--accent-hover)')+')"><span class="tg">'+esc(o.tag)+'</span><b>'+esc(o.title)+'</b><small>'+esc(o.sub)+'</small>'+
-  '<button type="button" class="cu-bn-b" data-a="'+(i===1?"cu-providers":"request")+'" data-id="">'+esc(o.cta)+'</button>'+cui(o.ic,92).replace('<svg','<svg class="deco"')+'</div>').join("")+
-  '</div></div><div class="cu-bn-d">'+CU_OFFERS.map((o,i)=>'<i class="'+(i===idx?"on":"")+'"></i>').join("")+'</div></div>';
+ const slides=ads?ads.map(a=>({ad:1,tag:"إعلان",title:a.title,sub:a.body||"",cta:a.link_type&&a.link_type!=="none"?"اعرف أكثر":"",img:/^https:\/\//.test(a.image_url||"")?a.image_url:"",ic:"tool"})):CU_OFFERS;
+ if(ads&&idx<ads.length)adTrack(idx,"impression");
+ const banner='<div class="cu-bn"><div class="cu-bn-s"><div class="cu-bn-t" style="transform:translateX(-'+(idx*100)+'%)">'+slides.map((o,i)=>
+  '<div class="cu-bn-c'+(o.ad?' ad':'')+'" style="'+(o.ad?(o.img?'background:url('+esc(o.img)+')':'background:linear-gradient(135deg,var(--primary),var(--primary-hover))'):'background:linear-gradient(135deg,'+(i===1?'var(--primary),var(--primary-hover)':'var(--accent),var(--accent-hover)')+')')+'"><span class="tg">'+esc(o.tag)+'</span><b>'+esc(o.title)+'</b><small>'+esc(o.sub)+'</small>'+
+  (o.cta?'<button type="button" class="cu-bn-b" data-a="'+(o.ad?"cu-ad":i===1?"cu-providers":"request")+'" data-id="'+(o.ad?i:"")+'">'+esc(o.cta)+'</button>':'')+(o.ad?'':cui(o.ic,92).replace('<svg','<svg class="deco"'))+'</div>').join("")+
+  '</div></div><div class="cu-bn-d">'+slides.map((o,i)=>'<i class="'+(i===idx?"on":"")+'"></i>').join("")+'</div></div>';
  const cur=(s.requests||[]).filter(q=>["pending","accepted","in_progress"].includes(q.status)).sort((a,b)=>String(b.created_at||"").localeCompare(String(a.created_at||"")))[0];
  const stAr={pending:"قيد المراجعة",accepted:"مقبول",in_progress:"قيد التنفيذ"};
  const hero=cur?'<div class="cu-hero"><small>طلبك الحالي</small><b class="big">'+esc(cur.title||cur.services?.name_ar||"طلب خدمة")+'</b><div class="row"><span class="cu-pill">'+(stAr[cur.status]||"")+'</span><span>'+(cur.provider_profiles?.display_name?'مع '+esc(cur.provider_profiles.display_name):'بانتظار تعيين مقدم خدمة')+'</span><button type="button" class="go" data-a="request-details" data-id="'+esc(cur.id)+'">تفاصيل</button></div></div>':"";
@@ -4960,7 +5070,7 @@ function customerHome(){
  '<main class="wrap wasla-customer-page"><div class="cu">'+msg()+
  '<div class="cu-hello"><div class="cu-av">'+av+'</div><div><h2>أهلاً'+(first?' يا '+esc(first):'')+'</h2><p>عايز تطلب إيه النهاردة؟</p></div>'+homePtsChip()+'</div>'+
  '<div class="cu-search wl-search"><svg class="wl-s-ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="search" type="search" enterkeyhint="search" autocomplete="off" placeholder="ابحث عن خدمة أو تخصص أو مزوّد..." value="" aria-label="البحث عن الخدمات"></div>'+
- banner+hero+
+ banner+offersHtml()+hero+
  (cats?'<div class="cu-h"><h3>الأقسام</h3></div><div class="cu-cats">'+cats+'</div>':"")+
  (svcs?'<div class="cu-h"><h3>خدمات مختارة</h3></div><div class="cu-card">'+svcs+'</div>':"")+
  (provs?'<div class="cu-h"><h3>مزوّدون مميزون</h3></div><div class="cu-provs">'+provs+'</div>':"")+
@@ -5248,6 +5358,7 @@ function accountSettingsBody(p){
  '<div class="actions"><button class="btn gold">حفظ الصورة الشخصية</button></div>'+
  '</form>'+
  '<div class="notice">شعار وصلة هو الصورة الافتراضية. لا يستطيع تغيير صورتك الشخصية إلا صاحب الحساب نفسه.</div>'+
+ (p.role==="provider"?'<section class="section"><h3>المساعدة والدعم</h3><p class="muted">عندك مشكلة أو سؤال؟ افتح تذكرة وفريقنا يرد عليك خلال 4 ساعات.</p><div class="actions"><button type="button" class="btn gold" data-sup="open">فتح الدعم</button></div></section>':'')+
  '<section class="section">'+
  '<h3>تغيير كلمة المرور</h3>'+
  '<p class="muted">يمكنك تغيير كلمة المرور في أي وقت. لن يتم فرض تغييرها عند تسجيل الدخول.</p>'+
