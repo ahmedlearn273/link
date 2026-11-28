@@ -2900,6 +2900,7 @@ document.addEventListener("change",e=>{
 document.addEventListener("input",e=>{
  const t=e.target;if(t&&t.dataset&&t.dataset.areaQ&&s.areaEdit){s.areaEdit.q[t.dataset.areaQ]=t.value;const pos=t.selectionStart;render();const n=document.querySelector('[data-area-q="'+t.dataset.areaQ+'"]');if(n){n.focus();try{n.setSelectionRange(pos,pos)}catch(_){}}}
 });
+function waslaNormEG(x){let d=String(x||"").replace(/[\u0660-\u0669]/g,c=>String(c.charCodeAt(0)-1632)).replace(/[^0-9+]/g,"");if(d.startsWith("+20"))d=d.slice(3);else if(d.startsWith("0020"))d=d.slice(4);else if(d.startsWith("20")&&d.length===12)d=d.slice(2);if(d.length===10&&d[0]==="1")d="0"+d;return /^01[0125][0-9]{8}$/.test(d)?"+2"+d:null}
 function field(l,n,type,ph,v,req){if(type==="datetime-local")return waslaUI.input(l,n,"datetime",v,req);return '<label class="field">'+l+'<input name="'+n+'" type="'+(type||"text")+'" placeholder="'+esc(ph||"")+'" value="'+esc(v||"")+'" '+(req?"required":"")+'></label>'}
 function select(l,n,opts,v){return '<label class="field">'+l+'<select name="'+n+'">'+opts.map(o=>'<option value="'+esc(o.value)+'" '+(String(o.value)===String(v)?"selected":"")+'>'+esc(o.label)+'</option>').join("")+'</select></label>'}
 function empty(x){return '<div class="empty">'+esc(x)+'</div>'}
@@ -3462,6 +3463,7 @@ function stcView(){
  else body+='<div class="asv-list">'+(STC.rows.map(x=>'<button type="button" class="item" data-a="stc-open" data-id="'+esc(x.id)+'" style="text-align:right;width:100%"><div class="row"><b>'+esc(x.full_name||"عميل بدون اسم")+'</b>'+tag(x.status==="active"?"نشط":"موقوف")+'</div><p class="small">'+esc([x.city,x.area].filter(Boolean).join("، ")||"الموقع غير محدد")+' · '+fmt(x.requests_count||0)+' طلب</p></button>').join("")||empty("لا يوجد عملاء مطابقون"))+'</div>';
  return body+'</section>';
 }
+document.addEventListener("change",e=>{if(e.target&&e.target.id==="waSame"){const w=e.target.form&&e.target.form.querySelector('[name="whatsapp_number"]');if(w){w.disabled=e.target.checked;w.required=!e.target.checked;if(e.target.checked){const ph=e.target.form.querySelector('[name="phone"]');w.value=ph?ph.value:""}}}});
 document.addEventListener("click",e=>{
  const b=e.target.closest&&e.target.closest('[data-a="stc-open"],[data-a="stc-back"]');if(!b)return;
  if(b.dataset.a==="stc-open")stcOpen(b.dataset.id);else{STC.detail=null;STC.det=null;render()}
@@ -3808,7 +3810,7 @@ function authView(){
   '<label class="field">القسم / المركز<select name="area_id" required disabled><option value="">اختر المحافظة أولاً</option></select><small id="geoAreaStatus">اختر المحافظة أولاً</small></label>'+
   '<label class="field">العنوان التفصيلي<input name="address" type="text" maxlength="500" placeholder="الشارع، رقم العقار، الدور، الشقة، وأقرب علامة مميزة" required></label>';
  return header("تسجيل موحّد بالبريد الإلكتروني")+'<main class="wrap"><div class="auth"><div class="card"><div class="sectionhead"><h2>'+(signup?"إنشاء حساب":"تسجيل الدخول")+'</h2><span class="tag">آمن</span></div>'+msg()+'<div class="tabs"><button data-a="mode" data-id="login" class="'+(!signup?"active":"")+'">دخول</button><button data-a="mode" data-id="signup" class="'+(signup?"active":"")+'">حساب جديد</button></div>'+
-(signup?'<form id="signup">'+field("الاسم الكامل","full_name","text","اسمك","",true)+field("البريد الإلكتروني","email","email","name@example.com","",true)+field("كلمة المرور","password","password","8 أحرف على الأقل","",true)+field("الهاتف (اختياري)","phone","tel","رقم التواصل","",false)+geoFields+select("نوع الحساب","account_type",[{value:"customer",label:"عميل"},{value:"provider",label:"مزوّد خدمة"}],s.type)+'<div id="providerExtra" class="'+(s.type==="provider"?"":"hidden")+'">'+field("سنوات الخبرة","experience_years","number","سنوات الخبرة","",false)+field("نبذة","bio","text","نبذة عن خبرتك","",false)+
+(signup?'<form id="signup">'+field("الاسم الكامل","full_name","text","اسمك","",true)+field("البريد الإلكتروني","email","email","name@example.com","",true)+field("كلمة المرور","password","password","8 أحرف على الأقل","",true)+field("رقم التواصل","phone","tel","مثال: 01012345678","",true)+field("رقم الواتساب (للتواصل والعروض والإشعارات)","whatsapp_number","tel","مثال: 01012345678","",true)+'<label class="field" style="display:flex;flex-direction:row;align-items:center;gap:8px;font-weight:600"><input type="checkbox" id="waSame" style="width:auto"><span>رقم الواتساب هو نفس رقم التواصل</span></label>'+geoFields+select("نوع الحساب","account_type",[{value:"customer",label:"عميل"},{value:"provider",label:"مزوّد خدمة"}],s.type)+'<div id="providerExtra" class="'+(s.type==="provider"?"":"hidden")+'">'+field("سنوات الخبرة","experience_years","number","سنوات الخبرة","",false)+field("نبذة","bio","text","نبذة عن خبرتك","",false)+
 '<div class="field">'+
   '<span>نطاق الخدمة – اختر المحافظات والأقسام المناسبة</span>'+
   '<div class="service-area-list">'+
@@ -10689,9 +10691,13 @@ if (v.account_type === "provider" && serviceAreaIds.length === 0) {
  if(!v.address?.trim())
   throw Error("اكتب العنوان التفصيلي.");
 
+ const _ph=waslaNormEG(v.phone),_wa=waslaNormEG(f.querySelector("#waSame")&&f.querySelector("#waSame").checked?v.phone:v.whatsapp_number);
+ if(!_ph)throw Error("اكتب رقم تواصل مصري صحيح، مثال: 01012345678");
+ if(!_wa)throw Error("اكتب رقم واتساب مصري صحيح، مثال: 01012345678");
  const signupData={
   full_name:v.full_name,
-  phone:v.phone||null,
+  phone:_ph,
+  whatsapp_number:_wa,
   country:geoCountry.name_ar,
   city:geoCity.name_ar,
   address:v.address.trim(),
