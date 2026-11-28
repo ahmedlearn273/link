@@ -3544,7 +3544,7 @@ function loyRow(e){
  const ex=e.expires_at?new Date(e.expires_at).toLocaleDateString("ar-EG",{year:"numeric",month:"short"}):"";
  return '<article class="item"><div class="row" style="display:flex;justify-content:space-between;align-items:center;gap:10px"><b>'+esc(lab)+'</b><b style="color:'+(pts>=0?"#16a34a":"#dc2626")+'" dir="ltr">'+(pts>=0?"+":"−")+esc(fmt(Math.abs(pts)))+'</b></div>'+
   '<div class="row" style="display:flex;justify-content:space-between;align-items:center;gap:10px"><span class="small">'+esc(dt)+'</span><span class="tag '+st[1]+'">'+st[0]+'</span></div>'+
-  (e.request_id||ex?'<div class="row" style="display:flex;justify-content:space-between;align-items:center;gap:10px">'+(e.request_id?'<span class="small">طلب #'+esc(String(e.request_id).slice(0,8).toUpperCase())+'</span>':'<span></span>')+(ex?'<span class="small">ينتهي '+esc(ex)+'</span>':'')+'</div>':'')+'</article>';
+  (e.request_id||ex?'<div class="row" style="display:flex;justify-content:space-between;align-items:center;gap:10px">'+(e.request_id?'<span class="small">'+esc(idCode("ORD",e.request_id))+'</span>':'<span></span>')+(ex?'<span class="small">ينتهي '+esc(ex)+'</span>':'')+'</div>':'')+'</article>';
 }
 function loyCustView(){
  const L=s.loy||{},p=L.d;
@@ -3582,8 +3582,10 @@ async function loadMyLoyalty(more){
  }catch(_){L.err="تعذّر تحميل نقاطك دلوقتي. جرّب تاني بعد شوية."}
  L.loading=false;render();
 }
-function reqCode(id){return id?String(id).slice(0,8).toUpperCase():""}
-function reqCodeTag(id){const c=reqCode(id);return c?'<code dir="ltr" style="font-size:12px;font-weight:800;padding:2px 8px;border-radius:8px;background:var(--bg-subtle);color:var(--text-secondary);letter-spacing:.5px">#'+esc(c)+'</code>':""}
+function idCode(p,id){return id?p+"-"+String(id).slice(0,8).toUpperCase():""}
+function reqCode(id){return idCode("ORD",id)}
+function codeTag(c){return c?'<code dir="ltr" style="font-size:12px;font-weight:800;padding:2px 8px;border-radius:8px;background:var(--bg-subtle);color:var(--text-secondary);letter-spacing:.5px">'+esc(c)+'</code>':""}
+function reqCodeTag(id){return codeTag(reqCode(id))}
 function homePtsChip(){
  const H=s.homePts;
  if(!H){s.homePts={loading:true};
@@ -3699,7 +3701,7 @@ function receiptCard(i,pub){
   '<div class="rcp-h"><div class="rcp-br"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M7 17 L19 46 L31 25 L43 46 L57 17" fill="none" stroke="currentColor" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 39 C17 57 46 9 59 27" fill="none" stroke="var(--accent)" stroke-width="4" stroke-linecap="round"/><circle cx="55" cy="15" r="5" fill="var(--accent)"/></svg><b>وصلة</b><i>WASLA</i></div>'+
   '<div class="rcp-t">إيصال دفع</div><div class="rcp-paid">✓ تم الدفع</div><div class="rcp-amt">'+esc(i.amount.toLocaleString("en-US",{maximumFractionDigits:2}))+'<small>'+cur+'</small></div></div>'+
   '<div class="rcp-b"><div class="rcp-sec">بيانات الطلب</div>'+
-  row("رقم الإيصال",esc(i.rno),1)+row("رقم الطلب","#"+esc(i.ono),1)+row("التاريخ",esc(i.dateAr))+
+  row("رقم الإيصال",esc("RCP-"+i.rno),1)+row("رقم الطلب",esc(i.ono?"ORD-"+i.ono:"—"),1)+row("التاريخ",esc(i.dateAr))+
   '<div class="rcp-sec" style="margin-top:12px">الأطراف</div>'+row("العميل",esc(i.client))+row("مقدّم الخدمة",esc(i.prov))+
   '<div class="rcp-sec" style="margin-top:12px">الخدمة والدفع</div>'+row("الخدمة",esc(i.svc))+row("طريقة الدفع",esc(i.methodAr))+'</div>'+
   '<div class="rcp-tear"></div>'+
@@ -3725,7 +3727,7 @@ async function receiptCanvas(i){
  const C={pri:col("var(--primary)"),pri2:col("var(--primary-hover)"),acc:col("var(--accent)"),acc2:col("var(--accent-hover)"),bg:col("var(--bg-main)"),surf:col("var(--bg-surface)"),sub:col("var(--bg-subtle)"),tx:col("var(--text-primary)"),tx2:col("var(--text-secondary)"),bd:col("var(--border-color)")};
  probe.remove();
  const mixc=function(a,b,t){const p=function(c){const m=c.match(/[\d.]+/g)||[0,0,0];return [+m[0],+m[1],+m[2]]};const A=p(a),B=p(b);return "rgb("+A.map(function(v,k){return Math.round(v*(1-t)+B[k]*t)}).join(",")+")"};
- const secs=[["بيانات الطلب",[["رقم الإيصال",i.rno,1],["رقم الطلب","#"+i.ono,1],["التاريخ",i.dateAr,0]]],["الأطراف",[["العميل",i.client,0],["مقدّم الخدمة",i.prov,0]]],["الخدمة والدفع",[["الخدمة",i.svc,0],["طريقة الدفع",i.methodAr,0]]]];
+ const secs=[["بيانات الطلب",[["رقم الإيصال","RCP-"+i.rno,1],["رقم الطلب",i.ono?"ORD-"+i.ono:"—",1],["التاريخ",i.dateAr,0]]],["الأطراف",[["العميل",i.client,0],["مقدّم الخدمة",i.prov,0]]],["الخدمة والدفع",[["الخدمة",i.svc,0],["طريقة الدفع",i.methodAr,0]]]];
  const S=3,W=390,P=16,CW=W-P*2;
  let bodyH=14;secs.forEach(function(sc){bodyH+=26+sc[1].length*38+10});
  const H=P*2+178+bodyH+16+56+16+152+22+52;
@@ -5384,9 +5386,7 @@ function chatContent(){
  s.activeChat.service_requests?.title||
  "طلب خدمة";
 
-const requestRef=s.activeChat.request_id
- ?String(s.activeChat.request_id).slice(0,8).toUpperCase()
- :"";
+const requestRef=[s.activeChat.request_id?idCode("ORD",s.activeChat.request_id):"",s.activeChat.id?idCode("MSG",s.activeChat.id):""].filter(Boolean).join(" · ");
 
 const customerName=
  s.adminProfiles?.find(x=>x.id===s.activeChat.customer_id)?.full_name||
@@ -5508,7 +5508,7 @@ return '<section class="section wc-section">'+
   '<div class="wc-list">'+
   (chats.map(c=>{
    const title=c.request_title||c.service_requests?.title||"محادثة طلب خدمة";
-   const ref=c.request_id?String(c.request_id).slice(0,8).toUpperCase():"";
+   const ref=[c.request_id?idCode("ORD",c.request_id):"",c.id?idCode("MSG",c.id):""].filter(Boolean).join(" · ");
    const when=c.last_message_at?wcListTime(c.last_message_at):"";
    const peer=(typeof c.peer_name==="string"&&c.peer_name.trim())?c.peer_name.trim():title;
    const avatar=(typeof c.peer_avatar_url==="string"&&c.peer_avatar_url)?'<img src="'+esc(c.peer_avatar_url)+'" alt="">':esc((peer.charAt(0)||"؟"));
@@ -6451,7 +6451,7 @@ async function viewPrimeKnowledgeDocument(documentId){
             const stTag='<span class="tag '+(RQ_STATUS_CLASS[st]||"")+'">'+esc(RQ_STATUS_LABELS[st]||st||"—")+'</span>';
             const rs=RL_REASON[r.reason]||r.reason||"—";
             const badge='<span class="tag'+(r.reason==="no_scheduled_at"?"":" bad")+'">'+esc(rs)+'</span>'+((r.delay_hours!==null&&r.delay_hours!==undefined)?'<div class="small">'+esc(fmt(r.delay_hours))+' ساعة تأخير</div>':"");
-            return '<tr data-a="rq-open" data-id="'+esc(r.request_id)+'" style="cursor:pointer"><td class="rq-id">'+esc(String(r.request_id||"").slice(0,8))+'</td><td>'+esc(r.title||"طلب خدمة")+'</td><td>'+esc(r.service_name_ar||"—")+'</td><td>'+stTag+'</td><td>'+esc(r.city_name||"—")+'</td><td>'+esc(r.area_name||"—")+'</td><td>'+esc(r.provider_name||"—")+'</td><td>'+esc(rqDate(r.created_at))+'</td><td>'+esc(rqDate(r.scheduled_at))+'</td><td><div class="rq-flags">'+badge+'</div></td></tr>';
+            return '<tr data-a="rq-open" data-id="'+esc(r.request_id)+'" style="cursor:pointer"><td class="rq-id">'+esc(idCode("ORD",r.request_id))+'</td><td>'+esc(r.title||"طلب خدمة")+'</td><td>'+esc(r.service_name_ar||"—")+'</td><td>'+stTag+'</td><td>'+esc(r.city_name||"—")+'</td><td>'+esc(r.area_name||"—")+'</td><td>'+esc(r.provider_name||"—")+'</td><td>'+esc(rqDate(r.created_at))+'</td><td>'+esc(rqDate(r.scheduled_at))+'</td><td><div class="rq-flags">'+badge+'</div></td></tr>';
           }).join("")+'</tbody></table></div>';
         }
         const pages=Math.max(1,Math.ceil(l.total/l.limit)),page=Math.floor(l.offset/l.limit)+1;
@@ -6799,7 +6799,7 @@ async function viewPrimeKnowledgeDocument(documentId){
             const st=r.status;
             const stTag='<span class="tag '+(RQ_STATUS_CLASS[st]||"")+'">'+esc(RQ_STATUS_LABELS[st]||st||"—")+'</span>';
             const flags=(r.is_late===true?'<span class="tag bad"'+(r.late_reason?' title="'+esc(r.late_reason)+'"':"")+'>متأخر</span>':"")+(r.no_scheduled_at===true?'<span class="tag">بلا موعد</span>':"");
-            return '<tr data-a="rq-open" data-id="'+esc(r.request_id)+'" style="cursor:pointer"><td class="rq-id">'+esc(String(r.request_id||"").slice(0,8))+'</td><td>'+esc(r.title||"طلب خدمة")+'</td><td>'+esc(r.service_name_ar||"—")+'</td><td>'+stTag+'</td><td>'+esc(r.city_name||"—")+'</td><td>'+esc(r.area_name||"—")+'</td><td>'+esc(r.provider_name||"—")+'</td><td>'+esc(rqDate(r.created_at))+'</td><td>'+esc(rqDate(r.scheduled_at))+'</td><td><div class="rq-flags">'+(flags||"—")+'</div></td></tr>';
+            return '<tr data-a="rq-open" data-id="'+esc(r.request_id)+'" style="cursor:pointer"><td class="rq-id">'+esc(idCode("ORD",r.request_id))+'</td><td>'+esc(r.title||"طلب خدمة")+'</td><td>'+esc(r.service_name_ar||"—")+'</td><td>'+stTag+'</td><td>'+esc(r.city_name||"—")+'</td><td>'+esc(r.area_name||"—")+'</td><td>'+esc(r.provider_name||"—")+'</td><td>'+esc(rqDate(r.created_at))+'</td><td>'+esc(rqDate(r.scheduled_at))+'</td><td><div class="rq-flags">'+(flags||"—")+'</div></td></tr>';
           }).join("")+'</tbody></table></div>';
         }
         const pages=Math.max(1,Math.ceil(q.total/q.limit)),page=Math.floor(q.offset/q.limit)+1;
@@ -8076,7 +8076,7 @@ if(m.type==="providerQuoteDetails"){
  '</div>'+
  '<section class="section">'+
   '<div class="item">'+
-   '<p class="small">رمز الطلب: '+reqCodeTag(quote.request_id)+'</p><div class="row"><b>حالة العرض</b>'+tag(({awaiting_customer:"بانتظار ردك",awaiting_provider_approval:"عند مقدم الخدمة للاعتماد",agreed:"تم الاتفاق",revision_requested:"طلبت تعديل",rejected:"مرفوض",expired:"منتهي",withdrawn:"مسحوب"})[quote.status]||quote.status)+'</div>'+
+   '<p class="small">رمز العرض: '+codeTag(idCode("REQ",quote.id))+'</p><p class="small">رمز الطلب: '+reqCodeTag(quote.request_id)+'</p><div class="row"><b>حالة العرض</b>'+tag(({awaiting_customer:"بانتظار ردك",awaiting_provider_approval:"عند مقدم الخدمة للاعتماد",agreed:"تم الاتفاق",revision_requested:"طلبت تعديل",rejected:"مرفوض",expired:"منتهي",withdrawn:"مسحوب"})[quote.status]||quote.status)+'</div>'+
    '<p class="small">القيمة المتفق عليها</p>'+
    '<b>'+esc(fmt(version.amount))+' '+esc(version.currency||"")+'</b>'+
    '<p class="small">نطاق العمل</p>'+
@@ -8312,7 +8312,7 @@ const quoteSection=quote&&version
  ?'<section class="section">'+
    '<h4>عرض السعر</h4>'+
    '<div class="item">'+
-    '<p class="small">رمز الطلب: '+reqCodeTag(quote.request_id)+'</p><div class="row"><b>حالة العرض</b>'+tag(({awaiting_customer:"بانتظار ردك",awaiting_provider_approval:"عند مقدم الخدمة للاعتماد",agreed:"تم الاتفاق",revision_requested:"طلبت تعديل",rejected:"مرفوض",expired:"منتهي",withdrawn:"مسحوب"})[quote.status]||quote.status)+'</div>'+
+    '<p class="small">رمز العرض: '+codeTag(idCode("REQ",quote.id))+'</p><p class="small">رمز الطلب: '+reqCodeTag(quote.request_id)+'</p><div class="row"><b>حالة العرض</b>'+tag(({awaiting_customer:"بانتظار ردك",awaiting_provider_approval:"عند مقدم الخدمة للاعتماد",agreed:"تم الاتفاق",revision_requested:"طلبت تعديل",rejected:"مرفوض",expired:"منتهي",withdrawn:"مسحوب"})[quote.status]||quote.status)+'</div>'+
     '<p class="small">القيمة المقترحة</p>'+
     '<b>'+esc(fmt(version.amount))+' '+esc(version.currency||"")+'</b>'+
     '<p class="small">نطاق العمل</p>'+
