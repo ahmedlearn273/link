@@ -2008,6 +2008,643 @@ button, input, select, textarea,
 </head>
 <body><div id="app"></div>
 
+<style id="wasla-receipt-css">
+.wasla-receipt-wrap{margin:-4px 0 0}
+.rcp{background:var(--bg-subtle);border:1px solid var(--border-color);border-radius:22px;overflow:hidden;text-align:start}
+.rcp-h{background:linear-gradient(135deg,var(--primary),var(--primary-hover));color:var(--bg-main);text-align:center;padding:20px 18px 22px}
+.rcp-br{display:flex;align-items:center;justify-content:center;gap:10px}.rcp-br svg{width:34px;height:34px;flex:none}
+.rcp-br b{font:800 27px/1 Tajawal,sans-serif}.rcp-br i{font:700 10.5px/1 Tajawal,sans-serif;font-style:normal;letter-spacing:.4em;color:var(--accent)}
+.rcp-t{margin-top:12px;font:700 12.5px/1 Tajawal,sans-serif;letter-spacing:.12em;opacity:.9}
+.rcp-paid{display:inline-block;margin-top:11px;padding:5px 14px;border-radius:99px;border:1px solid color-mix(in srgb,var(--bg-main) 55%,transparent);background:color-mix(in srgb,var(--bg-main) 14%,transparent);font:700 13px/1.3 Tajawal,sans-serif}
+.rcp-amt{margin-top:12px;direction:ltr;font:800 46px/1 Tajawal,sans-serif}.rcp-amt small{font:700 17px Tajawal,sans-serif;margin-inline-start:6px;color:var(--accent)}
+.rcp-b{padding:16px 20px 2px}.rcp-sec{font:700 11px/1 Tajawal,sans-serif;letter-spacing:.12em;color:var(--accent-hover);margin:8px 0 4px}
+.rcp-r{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:9px 0;border-bottom:1px dotted var(--border-color);font:500 14px/1.5 Tajawal,sans-serif}
+.rcp-r:last-child{border-bottom:0}.rcp-r span{color:var(--text-secondary);white-space:nowrap}.rcp-r b{font-weight:700;color:var(--text-primary);text-align:end;min-width:0;overflow-wrap:anywhere}
+.rcp-r b.l{direction:ltr;font-family:ui-monospace,Menlo,monospace;letter-spacing:.05em}
+.rcp-tear{position:relative;margin-top:8px;border-top:2px dashed var(--border-color)}
+.rcp-tear:before,.rcp-tear:after{content:"";position:absolute;top:-10px;width:18px;height:18px;border-radius:50%;background:var(--bg-surface);border:1px solid var(--border-color)}
+.rcp-tear:before{left:-10px}.rcp-tear:after{right:-10px}
+.rcp-tot{display:flex;justify-content:space-between;align-items:center;margin:16px 18px 0;padding:13px 15px;border-radius:14px;background:var(--primary);color:var(--bg-main)}
+.rcp-tot span{font:700 13.5px Tajawal,sans-serif;opacity:.92}.rcp-tot b{font:800 21px Tajawal,sans-serif;direction:ltr}
+.rcp-qr{display:flex;align-items:center;gap:14px;margin:16px 18px 0;padding:12px;border-radius:16px;background:var(--bg-surface);border:1px solid var(--border-color)}
+.rcp-qr .c{width:112px;height:112px;flex:none;padding:6px;background:#fff;border:2px solid #111;border-radius:10px}.rcp-qr .c svg{display:block;width:100%;height:100%}
+.rcp-qr p{margin:0;font:500 12.5px/1.7 Tajawal,sans-serif;color:var(--text-secondary)}.rcp-qr p b{display:block;font:800 14.5px Tajawal,sans-serif;color:var(--text-primary);margin-bottom:2px}
+.rcp-f{text-align:center;padding:16px 18px 18px;font:500 12.5px/1.8 Tajawal,sans-serif;color:var(--text-secondary)}.rcp-f b{color:var(--text-primary);font-weight:800;font-size:13.5px}
+.rcp-act{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+</style>
+<script id="wasla-qrcodegen">
+/*
+ * QR Code generator library (TypeScript)
+ * 
+ * Copyright (c) Project Nayuki. (MIT License)
+ * https://www.nayuki.io/page/qr-code-generator-library
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+ * the Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ * - The above copyright notice and this permission notice shall be included in
+ *   all copies or substantial portions of the Software.
+ * - The Software is provided "as is", without warranty of any kind, express or
+ *   implied, including but not limited to the warranties of merchantability,
+ *   fitness for a particular purpose and noninfringement. In no event shall the
+ *   authors or copyright holders be liable for any claim, damages or other
+ *   liability, whether in an action of contract, tort or otherwise, arising from,
+ *   out of or in connection with the Software or the use or other dealings in the
+ *   Software.
+ */
+var qrcodegen;
+(function (qrcodegen) {
+    class QrCode {
+        static encodeText(text, ecl) {
+            const segs = qrcodegen.QrSegment.makeSegments(text);
+            return QrCode.encodeSegments(segs, ecl);
+        }
+        static encodeBinary(data, ecl) {
+            const seg = qrcodegen.QrSegment.makeBytes(data);
+            return QrCode.encodeSegments([seg], ecl);
+        }
+        static encodeSegments(segs, ecl, minVersion = 1, maxVersion = 40, mask = -1, boostEcl = true) {
+            if (!(QrCode.MIN_VERSION <= minVersion && minVersion <= maxVersion && maxVersion <= QrCode.MAX_VERSION)
+                || mask < -1 || mask > 7)
+                throw new RangeError("Invalid value");
+            let version;
+            let dataUsedBits;
+            for (version = minVersion;; version++) {
+                const dataCapacityBits = QrCode.getNumDataCodewords(version, ecl) * 8;
+                const usedBits = QrSegment.getTotalBits(segs, version);
+                if (usedBits <= dataCapacityBits) {
+                    dataUsedBits = usedBits;
+                    break;
+                }
+                if (version >= maxVersion)
+                    throw new RangeError("Data too long");
+            }
+            for (const newEcl of [QrCode.Ecc.MEDIUM, QrCode.Ecc.QUARTILE, QrCode.Ecc.HIGH]) {
+                if (boostEcl && dataUsedBits <= QrCode.getNumDataCodewords(version, newEcl) * 8)
+                    ecl = newEcl;
+            }
+            let bb = [];
+            for (const seg of segs) {
+                appendBits(seg.mode.modeBits, 4, bb);
+                appendBits(seg.numChars, seg.mode.numCharCountBits(version), bb);
+                for (const b of seg.getData())
+                    bb.push(b);
+            }
+            assert(bb.length == dataUsedBits);
+            const dataCapacityBits = QrCode.getNumDataCodewords(version, ecl) * 8;
+            assert(bb.length <= dataCapacityBits);
+            appendBits(0, Math.min(4, dataCapacityBits - bb.length), bb);
+            appendBits(0, (8 - bb.length % 8) % 8, bb);
+            assert(bb.length % 8 == 0);
+            for (let padByte = 0xEC; bb.length < dataCapacityBits; padByte ^= 0xEC ^ 0x11)
+                appendBits(padByte, 8, bb);
+            let dataCodewords = [];
+            while (dataCodewords.length * 8 < bb.length)
+                dataCodewords.push(0);
+            bb.forEach((b, i) => dataCodewords[i >>> 3] |= b << (7 - (i & 7)));
+            return new QrCode(version, ecl, dataCodewords, mask);
+        }
+        constructor(version, errorCorrectionLevel, dataCodewords, msk) {
+            this.version = version;
+            this.errorCorrectionLevel = errorCorrectionLevel;
+            this.modules = [];
+            this.isFunction = [];
+            if (version < QrCode.MIN_VERSION || version > QrCode.MAX_VERSION)
+                throw new RangeError("Version value out of range");
+            if (msk < -1 || msk > 7)
+                throw new RangeError("Mask value out of range");
+            this.size = version * 4 + 17;
+            let row = [];
+            for (let i = 0; i < this.size; i++)
+                row.push(false);
+            for (let i = 0; i < this.size; i++) {
+                this.modules.push(row.slice());
+                this.isFunction.push(row.slice());
+            }
+            this.drawFunctionPatterns();
+            const allCodewords = this.addEccAndInterleave(dataCodewords);
+            this.drawCodewords(allCodewords);
+            if (msk == -1) {
+                let minPenalty = 1000000000;
+                for (let i = 0; i < 8; i++) {
+                    this.applyMask(i);
+                    this.drawFormatBits(i);
+                    const penalty = this.getPenaltyScore();
+                    if (penalty < minPenalty) {
+                        msk = i;
+                        minPenalty = penalty;
+                    }
+                    this.applyMask(i);
+                }
+            }
+            assert(0 <= msk && msk <= 7);
+            this.mask = msk;
+            this.applyMask(msk);
+            this.drawFormatBits(msk);
+            this.isFunction = [];
+        }
+        getModule(x, y) {
+            return 0 <= x && x < this.size && 0 <= y && y < this.size && this.modules[y][x];
+        }
+        drawFunctionPatterns() {
+            for (let i = 0; i < this.size; i++) {
+                this.setFunctionModule(6, i, i % 2 == 0);
+                this.setFunctionModule(i, 6, i % 2 == 0);
+            }
+            this.drawFinderPattern(3, 3);
+            this.drawFinderPattern(this.size - 4, 3);
+            this.drawFinderPattern(3, this.size - 4);
+            const alignPatPos = this.getAlignmentPatternPositions();
+            alignPatPos.forEach((x, i) => {
+                alignPatPos.forEach((y, j) => {
+                    if (!(i == 0 && j == 0 || i == 0 && j == alignPatPos.length - 1 || i == alignPatPos.length - 1 && j == 0))
+                        this.drawAlignmentPattern(x, y);
+                });
+            });
+            this.drawFormatBits(0);
+            this.drawVersion();
+        }
+        drawFormatBits(mask) {
+            const data = this.errorCorrectionLevel.formatBits << 3 | mask;
+            let rem = data;
+            for (let i = 0; i < 10; i++)
+                rem = (rem << 1) ^ ((rem >>> 9) * 0x537);
+            const bits = (data << 10 | rem) ^ 0x5412;
+            assert(bits >>> 15 == 0);
+            for (let i = 0; i <= 5; i++)
+                this.setFunctionModule(8, i, getBit(bits, i));
+            this.setFunctionModule(8, 7, getBit(bits, 6));
+            this.setFunctionModule(8, 8, getBit(bits, 7));
+            this.setFunctionModule(7, 8, getBit(bits, 8));
+            for (let i = 9; i < 15; i++)
+                this.setFunctionModule(14 - i, 8, getBit(bits, i));
+            for (let i = 0; i < 8; i++)
+                this.setFunctionModule(this.size - 1 - i, 8, getBit(bits, i));
+            for (let i = 8; i < 15; i++)
+                this.setFunctionModule(8, this.size - 15 + i, getBit(bits, i));
+            this.setFunctionModule(8, this.size - 8, true);
+        }
+        drawVersion() {
+            if (this.version < 7)
+                return;
+            let rem = this.version;
+            for (let i = 0; i < 12; i++)
+                rem = (rem << 1) ^ ((rem >>> 11) * 0x1F25);
+            const bits = this.version << 12 | rem;
+            assert(bits >>> 18 == 0);
+            for (let i = 0; i < 18; i++) {
+                const color = getBit(bits, i);
+                const a = this.size - 11 + i % 3;
+                const b = Math.floor(i / 3);
+                this.setFunctionModule(a, b, color);
+                this.setFunctionModule(b, a, color);
+            }
+        }
+        drawFinderPattern(x, y) {
+            for (let dy = -4; dy <= 4; dy++) {
+                for (let dx = -4; dx <= 4; dx++) {
+                    const dist = Math.max(Math.abs(dx), Math.abs(dy));
+                    const xx = x + dx;
+                    const yy = y + dy;
+                    if (0 <= xx && xx < this.size && 0 <= yy && yy < this.size)
+                        this.setFunctionModule(xx, yy, dist != 2 && dist != 4);
+                }
+            }
+        }
+        drawAlignmentPattern(x, y) {
+            for (let dy = -2; dy <= 2; dy++) {
+                for (let dx = -2; dx <= 2; dx++)
+                    this.setFunctionModule(x + dx, y + dy, Math.max(Math.abs(dx), Math.abs(dy)) != 1);
+            }
+        }
+        setFunctionModule(x, y, isDark) {
+            this.modules[y][x] = isDark;
+            this.isFunction[y][x] = true;
+        }
+        addEccAndInterleave(data) {
+            const ver = this.version;
+            const ecl = this.errorCorrectionLevel;
+            if (data.length != QrCode.getNumDataCodewords(ver, ecl))
+                throw new RangeError("Invalid argument");
+            const numBlocks = QrCode.NUM_ERROR_CORRECTION_BLOCKS[ecl.ordinal][ver];
+            const blockEccLen = QrCode.ECC_CODEWORDS_PER_BLOCK[ecl.ordinal][ver];
+            const rawCodewords = Math.floor(QrCode.getNumRawDataModules(ver) / 8);
+            const numShortBlocks = numBlocks - rawCodewords % numBlocks;
+            const shortBlockLen = Math.floor(rawCodewords / numBlocks);
+            let blocks = [];
+            const rsDiv = QrCode.reedSolomonComputeDivisor(blockEccLen);
+            for (let i = 0, k = 0; i < numBlocks; i++) {
+                let dat = data.slice(k, k + shortBlockLen - blockEccLen + (i < numShortBlocks ? 0 : 1));
+                k += dat.length;
+                const ecc = QrCode.reedSolomonComputeRemainder(dat, rsDiv);
+                if (i < numShortBlocks)
+                    dat.push(0);
+                blocks.push(dat.concat(ecc));
+            }
+            let result = [];
+            for (let i = 0; i < blocks[0].length; i++) {
+                blocks.forEach((block, j) => {
+                    if (i != shortBlockLen - blockEccLen || j >= numShortBlocks)
+                        result.push(block[i]);
+                });
+            }
+            assert(result.length == rawCodewords);
+            return result;
+        }
+        drawCodewords(data) {
+            if (data.length != Math.floor(QrCode.getNumRawDataModules(this.version) / 8))
+                throw new RangeError("Invalid argument");
+            let i = 0;
+            for (let right = this.size - 1; right >= 1; right -= 2) {
+                if (right == 6)
+                    right = 5;
+                for (let vert = 0; vert < this.size; vert++) {
+                    for (let j = 0; j < 2; j++) {
+                        const x = right - j;
+                        const upward = ((right + 1) & 2) == 0;
+                        const y = upward ? this.size - 1 - vert : vert;
+                        if (!this.isFunction[y][x] && i < data.length * 8) {
+                            this.modules[y][x] = getBit(data[i >>> 3], 7 - (i & 7));
+                            i++;
+                        }
+                    }
+                }
+            }
+            assert(i == data.length * 8);
+        }
+        applyMask(mask) {
+            if (mask < 0 || mask > 7)
+                throw new RangeError("Mask value out of range");
+            for (let y = 0; y < this.size; y++) {
+                for (let x = 0; x < this.size; x++) {
+                    let invert;
+                    switch (mask) {
+                        case 0:
+                            invert = (x + y) % 2 == 0;
+                            break;
+                        case 1:
+                            invert = y % 2 == 0;
+                            break;
+                        case 2:
+                            invert = x % 3 == 0;
+                            break;
+                        case 3:
+                            invert = (x + y) % 3 == 0;
+                            break;
+                        case 4:
+                            invert = (Math.floor(x / 3) + Math.floor(y / 2)) % 2 == 0;
+                            break;
+                        case 5:
+                            invert = x * y % 2 + x * y % 3 == 0;
+                            break;
+                        case 6:
+                            invert = (x * y % 2 + x * y % 3) % 2 == 0;
+                            break;
+                        case 7:
+                            invert = ((x + y) % 2 + x * y % 3) % 2 == 0;
+                            break;
+                        default: throw new Error("Unreachable");
+                    }
+                    if (!this.isFunction[y][x] && invert)
+                        this.modules[y][x] = !this.modules[y][x];
+                }
+            }
+        }
+        getPenaltyScore() {
+            let result = 0;
+            for (let y = 0; y < this.size; y++) {
+                let runColor = false;
+                let runX = 0;
+                let runHistory = [0, 0, 0, 0, 0, 0, 0];
+                for (let x = 0; x < this.size; x++) {
+                    if (this.modules[y][x] == runColor) {
+                        runX++;
+                        if (runX == 5)
+                            result += QrCode.PENALTY_N1;
+                        else if (runX > 5)
+                            result++;
+                    }
+                    else {
+                        this.finderPenaltyAddHistory(runX, runHistory);
+                        if (!runColor)
+                            result += this.finderPenaltyCountPatterns(runHistory) * QrCode.PENALTY_N3;
+                        runColor = this.modules[y][x];
+                        runX = 1;
+                    }
+                }
+                result += this.finderPenaltyTerminateAndCount(runColor, runX, runHistory) * QrCode.PENALTY_N3;
+            }
+            for (let x = 0; x < this.size; x++) {
+                let runColor = false;
+                let runY = 0;
+                let runHistory = [0, 0, 0, 0, 0, 0, 0];
+                for (let y = 0; y < this.size; y++) {
+                    if (this.modules[y][x] == runColor) {
+                        runY++;
+                        if (runY == 5)
+                            result += QrCode.PENALTY_N1;
+                        else if (runY > 5)
+                            result++;
+                    }
+                    else {
+                        this.finderPenaltyAddHistory(runY, runHistory);
+                        if (!runColor)
+                            result += this.finderPenaltyCountPatterns(runHistory) * QrCode.PENALTY_N3;
+                        runColor = this.modules[y][x];
+                        runY = 1;
+                    }
+                }
+                result += this.finderPenaltyTerminateAndCount(runColor, runY, runHistory) * QrCode.PENALTY_N3;
+            }
+            for (let y = 0; y < this.size - 1; y++) {
+                for (let x = 0; x < this.size - 1; x++) {
+                    const color = this.modules[y][x];
+                    if (color == this.modules[y][x + 1] &&
+                        color == this.modules[y + 1][x] &&
+                        color == this.modules[y + 1][x + 1])
+                        result += QrCode.PENALTY_N2;
+                }
+            }
+            let dark = 0;
+            for (const row of this.modules)
+                dark = row.reduce((sum, color) => sum + (color ? 1 : 0), dark);
+            const total = this.size * this.size;
+            const k = Math.ceil(Math.abs(dark * 20 - total * 10) / total) - 1;
+            assert(0 <= k && k <= 9);
+            result += k * QrCode.PENALTY_N4;
+            assert(0 <= result && result <= 2568888);
+            return result;
+        }
+        getAlignmentPatternPositions() {
+            if (this.version == 1)
+                return [];
+            else {
+                const numAlign = Math.floor(this.version / 7) + 2;
+                const step = Math.floor((this.version * 8 + numAlign * 3 + 5) / (numAlign * 4 - 4)) * 2;
+                let result = [6];
+                for (let pos = this.size - 7; result.length < numAlign; pos -= step)
+                    result.splice(1, 0, pos);
+                return result;
+            }
+        }
+        static getNumRawDataModules(ver) {
+            if (ver < QrCode.MIN_VERSION || ver > QrCode.MAX_VERSION)
+                throw new RangeError("Version number out of range");
+            let result = (16 * ver + 128) * ver + 64;
+            if (ver >= 2) {
+                const numAlign = Math.floor(ver / 7) + 2;
+                result -= (25 * numAlign - 10) * numAlign - 55;
+                if (ver >= 7)
+                    result -= 36;
+            }
+            assert(208 <= result && result <= 29648);
+            return result;
+        }
+        static getNumDataCodewords(ver, ecl) {
+            return Math.floor(QrCode.getNumRawDataModules(ver) / 8) -
+                QrCode.ECC_CODEWORDS_PER_BLOCK[ecl.ordinal][ver] *
+                    QrCode.NUM_ERROR_CORRECTION_BLOCKS[ecl.ordinal][ver];
+        }
+        static reedSolomonComputeDivisor(degree) {
+            if (degree < 1 || degree > 255)
+                throw new RangeError("Degree out of range");
+            let result = [];
+            for (let i = 0; i < degree - 1; i++)
+                result.push(0);
+            result.push(1);
+            let root = 1;
+            for (let i = 0; i < degree; i++) {
+                for (let j = 0; j < result.length; j++) {
+                    result[j] = QrCode.reedSolomonMultiply(result[j], root);
+                    if (j + 1 < result.length)
+                        result[j] ^= result[j + 1];
+                }
+                root = QrCode.reedSolomonMultiply(root, 0x02);
+            }
+            return result;
+        }
+        static reedSolomonComputeRemainder(data, divisor) {
+            let result = divisor.map(_ => 0);
+            for (const b of data) {
+                const factor = b ^ result.shift();
+                result.push(0);
+                divisor.forEach((coef, i) => result[i] ^= QrCode.reedSolomonMultiply(coef, factor));
+            }
+            return result;
+        }
+        static reedSolomonMultiply(x, y) {
+            if (x >>> 8 != 0 || y >>> 8 != 0)
+                throw new RangeError("Byte out of range");
+            let z = 0;
+            for (let i = 7; i >= 0; i--) {
+                z = (z << 1) ^ ((z >>> 7) * 0x11D);
+                z ^= ((y >>> i) & 1) * x;
+            }
+            assert(z >>> 8 == 0);
+            return z;
+        }
+        finderPenaltyCountPatterns(runHistory) {
+            const n = runHistory[1];
+            assert(n <= this.size * 3);
+            const core = n > 0 && runHistory[2] == n && runHistory[3] == n * 3 && runHistory[4] == n && runHistory[5] == n;
+            return (core && runHistory[0] >= n * 4 && runHistory[6] >= n ? 1 : 0)
+                + (core && runHistory[6] >= n * 4 && runHistory[0] >= n ? 1 : 0);
+        }
+        finderPenaltyTerminateAndCount(currentRunColor, currentRunLength, runHistory) {
+            if (currentRunColor) {
+                this.finderPenaltyAddHistory(currentRunLength, runHistory);
+                currentRunLength = 0;
+            }
+            currentRunLength += this.size;
+            this.finderPenaltyAddHistory(currentRunLength, runHistory);
+            return this.finderPenaltyCountPatterns(runHistory);
+        }
+        finderPenaltyAddHistory(currentRunLength, runHistory) {
+            if (runHistory[0] == 0)
+                currentRunLength += this.size;
+            runHistory.pop();
+            runHistory.unshift(currentRunLength);
+        }
+    }
+    QrCode.MIN_VERSION = 1;
+    QrCode.MAX_VERSION = 40;
+    QrCode.PENALTY_N1 = 3;
+    QrCode.PENALTY_N2 = 3;
+    QrCode.PENALTY_N3 = 40;
+    QrCode.PENALTY_N4 = 10;
+    QrCode.ECC_CODEWORDS_PER_BLOCK = [
+        [-1, 7, 10, 15, 20, 26, 18, 20, 24, 30, 18, 20, 24, 26, 30, 22, 24, 28, 30, 28, 28, 28, 28, 30, 30, 26, 28, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30],
+        [-1, 10, 16, 26, 18, 24, 16, 18, 22, 22, 26, 30, 22, 22, 24, 24, 28, 28, 26, 26, 26, 26, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28],
+        [-1, 13, 22, 18, 26, 18, 24, 18, 22, 20, 24, 28, 26, 24, 20, 30, 24, 28, 28, 26, 30, 28, 30, 30, 30, 30, 28, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30],
+        [-1, 17, 28, 22, 16, 22, 28, 26, 26, 24, 28, 24, 28, 22, 24, 24, 30, 28, 28, 26, 28, 30, 24, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30],
+    ];
+    QrCode.NUM_ERROR_CORRECTION_BLOCKS = [
+        [-1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 4, 4, 4, 4, 4, 6, 6, 6, 6, 7, 8, 8, 9, 9, 10, 12, 12, 12, 13, 14, 15, 16, 17, 18, 19, 19, 20, 21, 22, 24, 25],
+        [-1, 1, 1, 1, 2, 2, 4, 4, 4, 5, 5, 5, 8, 9, 9, 10, 10, 11, 13, 14, 16, 17, 17, 18, 20, 21, 23, 25, 26, 28, 29, 31, 33, 35, 37, 38, 40, 43, 45, 47, 49],
+        [-1, 1, 1, 2, 2, 4, 4, 6, 6, 8, 8, 8, 10, 12, 16, 12, 17, 16, 18, 21, 20, 23, 23, 25, 27, 29, 34, 34, 35, 38, 40, 43, 45, 48, 51, 53, 56, 59, 62, 65, 68],
+        [-1, 1, 1, 2, 4, 4, 4, 5, 6, 8, 8, 11, 11, 16, 16, 18, 16, 19, 21, 25, 25, 25, 34, 30, 32, 35, 37, 40, 42, 45, 48, 51, 54, 57, 60, 63, 66, 70, 74, 77, 81],
+    ];
+    qrcodegen.QrCode = QrCode;
+    function appendBits(val, len, bb) {
+        if (len < 0 || len > 31 || val >>> len != 0)
+            throw new RangeError("Value out of range");
+        for (let i = len - 1; i >= 0; i--)
+            bb.push((val >>> i) & 1);
+    }
+    function getBit(x, i) {
+        return ((x >>> i) & 1) != 0;
+    }
+    function assert(cond) {
+        if (!cond)
+            throw new Error("Assertion error");
+    }
+    class QrSegment {
+        static makeBytes(data) {
+            let bb = [];
+            for (const b of data)
+                appendBits(b, 8, bb);
+            return new QrSegment(QrSegment.Mode.BYTE, data.length, bb);
+        }
+        static makeNumeric(digits) {
+            if (!QrSegment.isNumeric(digits))
+                throw new RangeError("String contains non-numeric characters");
+            let bb = [];
+            for (let i = 0; i < digits.length;) {
+                const n = Math.min(digits.length - i, 3);
+                appendBits(parseInt(digits.substring(i, i + n), 10), n * 3 + 1, bb);
+                i += n;
+            }
+            return new QrSegment(QrSegment.Mode.NUMERIC, digits.length, bb);
+        }
+        static makeAlphanumeric(text) {
+            if (!QrSegment.isAlphanumeric(text))
+                throw new RangeError("String contains unencodable characters in alphanumeric mode");
+            let bb = [];
+            let i;
+            for (i = 0; i + 2 <= text.length; i += 2) {
+                let temp = QrSegment.ALPHANUMERIC_CHARSET.indexOf(text.charAt(i)) * 45;
+                temp += QrSegment.ALPHANUMERIC_CHARSET.indexOf(text.charAt(i + 1));
+                appendBits(temp, 11, bb);
+            }
+            if (i < text.length)
+                appendBits(QrSegment.ALPHANUMERIC_CHARSET.indexOf(text.charAt(i)), 6, bb);
+            return new QrSegment(QrSegment.Mode.ALPHANUMERIC, text.length, bb);
+        }
+        static makeSegments(text) {
+            if (text == "")
+                return [];
+            else if (QrSegment.isNumeric(text))
+                return [QrSegment.makeNumeric(text)];
+            else if (QrSegment.isAlphanumeric(text))
+                return [QrSegment.makeAlphanumeric(text)];
+            else
+                return [QrSegment.makeBytes(QrSegment.toUtf8ByteArray(text))];
+        }
+        static makeEci(assignVal) {
+            let bb = [];
+            if (assignVal < 0)
+                throw new RangeError("ECI assignment value out of range");
+            else if (assignVal < (1 << 7))
+                appendBits(assignVal, 8, bb);
+            else if (assignVal < (1 << 14)) {
+                appendBits(0b10, 2, bb);
+                appendBits(assignVal, 14, bb);
+            }
+            else if (assignVal < 1000000) {
+                appendBits(0b110, 3, bb);
+                appendBits(assignVal, 21, bb);
+            }
+            else
+                throw new RangeError("ECI assignment value out of range");
+            return new QrSegment(QrSegment.Mode.ECI, 0, bb);
+        }
+        static isNumeric(text) {
+            return QrSegment.NUMERIC_REGEX.test(text);
+        }
+        static isAlphanumeric(text) {
+            return QrSegment.ALPHANUMERIC_REGEX.test(text);
+        }
+        constructor(mode, numChars, bitData) {
+            this.mode = mode;
+            this.numChars = numChars;
+            this.bitData = bitData;
+            if (numChars < 0)
+                throw new RangeError("Invalid argument");
+            this.bitData = bitData.slice();
+        }
+        getData() {
+            return this.bitData.slice();
+        }
+        static getTotalBits(segs, version) {
+            let result = 0;
+            for (const seg of segs) {
+                const ccbits = seg.mode.numCharCountBits(version);
+                if (seg.numChars >= (1 << ccbits))
+                    return Infinity;
+                result += 4 + ccbits + seg.bitData.length;
+            }
+            return result;
+        }
+        static toUtf8ByteArray(str) {
+            str = encodeURI(str);
+            let result = [];
+            for (let i = 0; i < str.length; i++) {
+                if (str.charAt(i) != "%")
+                    result.push(str.charCodeAt(i));
+                else {
+                    result.push(parseInt(str.substring(i + 1, i + 3), 16));
+                    i += 2;
+                }
+            }
+            return result;
+        }
+    }
+    QrSegment.NUMERIC_REGEX = /^[0-9]*$/;
+    QrSegment.ALPHANUMERIC_REGEX = /^[A-Z0-9 $%*+.\/:-]*$/;
+    QrSegment.ALPHANUMERIC_CHARSET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:";
+    qrcodegen.QrSegment = QrSegment;
+})(qrcodegen || (qrcodegen = {}));
+(function (qrcodegen) {
+    var QrCode;
+    (function (QrCode) {
+        class Ecc {
+            constructor(ordinal, formatBits) {
+                this.ordinal = ordinal;
+                this.formatBits = formatBits;
+            }
+        }
+        Ecc.LOW = new Ecc(0, 1);
+        Ecc.MEDIUM = new Ecc(1, 0);
+        Ecc.QUARTILE = new Ecc(2, 3);
+        Ecc.HIGH = new Ecc(3, 2);
+        QrCode.Ecc = Ecc;
+    })(QrCode = qrcodegen.QrCode || (qrcodegen.QrCode = {}));
+})(qrcodegen || (qrcodegen = {}));
+(function (qrcodegen) {
+    var QrSegment;
+    (function (QrSegment) {
+        class Mode {
+            constructor(modeBits, numBitsCharCount) {
+                this.modeBits = modeBits;
+                this.numBitsCharCount = numBitsCharCount;
+            }
+            numCharCountBits(ver) {
+                return this.numBitsCharCount[Math.floor((ver + 7) / 17)];
+            }
+        }
+        Mode.NUMERIC = new Mode(0x1, [10, 12, 14]);
+        Mode.ALPHANUMERIC = new Mode(0x2, [9, 11, 13]);
+        Mode.BYTE = new Mode(0x4, [8, 16, 16]);
+        Mode.KANJI = new Mode(0x8, [8, 10, 12]);
+        Mode.ECI = new Mode(0x7, [0, 0, 0]);
+        QrSegment.Mode = Mode;
+    })(QrSegment = qrcodegen.QrSegment || (qrcodegen.QrSegment = {}));
+})(qrcodegen || (qrcodegen = {}));
+
+</script>
  <script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script>
 (()=>{"use strict";
@@ -2898,18 +3535,133 @@ function paymentsView(){
   }).join("")+'</div>':empty("لا توجد مدفوعات حتى الآن"))+
   '</section>';
 }
-function receiptModal(m){
- const x=Object.values(s.payments||{}).find(r=>r.id===m.paymentId);
- if(!x||x.payment_status!=="paid")throw Error("الإيصال غير متاح");
+function receiptInfo(pid){
+ const x=Object.values(s.payments||{}).find(r=>r.id===pid);
+ if(!x||x.payment_status!=="paid")return null;
  const q=(s.requests||[]).find(r=>r.id===x.request_id)||{};
- const cur=esc(String(x.currency||"EGP").trim());
- const row=(l,v)=>'<div class="row" style="padding:7px 0;border-bottom:1px dashed var(--border-color)"><span class="muted">'+l+'</span><b>'+v+'</b></div>';
- return '<div class="wasla-receipt"><div style="text-align:center;padding:6px 0 10px"><div class="muted">وصلة · إيصال دفع</div><div class="stat" style="margin:6px 0;color:var(--success)">'+moneyAr(x.amount)+' '+cur+'</div><span class="tag ok">تم الدفع</span></div>'+
-  row("الخدمة",esc(q.title||q.services?.name_ar||"طلب خدمة"))+
-  row("طريقة الدفع",x.payment_method==="cash"?"كاش":"عبر المنصة")+
-  row("تاريخ الدفع",esc(fmtDateAr(x.paid_at||x.created_at)))+
-  row("رقم الإيصال",'<span dir="ltr" style="font-size:12px">'+esc(String(x.id).slice(0,8).toUpperCase())+'</span>')+
-  '<p class="small" style="text-align:center;margin-top:10px">شكرًا لاستخدامك وصلة</p></div>';
+ const cur=String(x.currency||"EGP").trim();
+ const d=new Date(x.paid_at||x.created_at);
+ return {id:x.id,rno:String(x.id).slice(0,8).toUpperCase(),ono:String(q.id||x.request_id||"").slice(0,8).toUpperCase(),
+  amount:Number(x.amount||0),cur:cur,methodAr:x.payment_method==="cash"?"كاش":"عبر المنصة",methodEn:x.payment_method==="cash"?"CASH":"PLATFORM",
+  svc:q.title||q.services?.name_ar||"طلب خدمة",
+  client:(s.profile&&s.profile.full_name)||(s.user&&s.user.email)||"عميل وصلة",
+  prov:(q.provider_profiles&&q.provider_profiles.display_name)||"مقدّم الخدمة",
+  date:isNaN(d)?null:d,dateAr:fmtDateAr(x.paid_at||x.created_at)};
+}
+function receiptQrText(i){
+ const c=function(t){return String(t||"").replace(/[|\r\n]+/g," ").trim()};
+ return ["WASLA-INV",i.rno,"REQ:"+i.ono,"AMT:"+i.amount.toFixed(2)+" "+i.cur,"SVC:"+c(i.svc),"PAY:"+i.methodEn,"DATE:"+(i.date?i.date.toISOString().slice(0,16)+"Z":""),"CLIENT:"+c(i.client),"PROV:"+c(i.prov)].join("|");
+}
+function receiptQr(i){return qrcodegen.QrCode.encodeText(receiptQrText(i),qrcodegen.QrCode.Ecc.MEDIUM)}
+function receiptQrSvg(i){
+ const q=receiptQr(i),n=q.size,z=2;let d="";
+ for(let y=0;y<n;y++)for(let x=0;x<n;x++)if(q.getModule(x,y))d+="M"+(x+z)+" "+(y+z)+"h1v1h-1z";
+ const t=n+z*2;
+ return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+t+' '+t+'" shape-rendering="crispEdges" role="img" aria-label="QR"><rect width="'+t+'" height="'+t+'" fill="#fff"/><path d="'+d+'" fill="#111"/></svg>';
+}
+function receiptModal(m){
+ const i=receiptInfo(m.paymentId);
+ if(!i)throw Error("الإيصال غير متاح");
+ const cur=esc(i.cur);
+ const row=(l,v,ltr)=>'<div class="rcp-r"><span>'+l+'</span><b'+(ltr?' class="l"':'')+'>'+v+'</b></div>';
+ return '<div class="wasla-receipt wasla-receipt-wrap"><div class="rcp" id="rcp" data-pid="'+esc(i.id)+'">'+
+  '<div class="rcp-h"><div class="rcp-br"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M7 17 L19 46 L31 25 L43 46 L57 17" fill="none" stroke="currentColor" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 39 C17 57 46 9 59 27" fill="none" stroke="var(--accent)" stroke-width="4" stroke-linecap="round"/><circle cx="55" cy="15" r="5" fill="var(--accent)"/></svg><b>وصلة</b><i>WASLA</i></div>'+
+  '<div class="rcp-t">إيصال دفع</div><div class="rcp-paid">✓ تم الدفع</div><div class="rcp-amt">'+esc(i.amount.toLocaleString("en-US",{maximumFractionDigits:2}))+'<small>'+cur+'</small></div></div>'+
+  '<div class="rcp-b"><div class="rcp-sec">بيانات الطلب</div>'+
+  row("رقم الإيصال",esc(i.rno),1)+row("رقم الطلب","#"+esc(i.ono),1)+row("التاريخ",esc(i.dateAr))+
+  '<div class="rcp-sec" style="margin-top:12px">الأطراف</div>'+row("العميل",esc(i.client))+row("مقدّم الخدمة",esc(i.prov))+
+  '<div class="rcp-sec" style="margin-top:12px">الخدمة والدفع</div>'+row("الخدمة",esc(i.svc))+row("طريقة الدفع",esc(i.methodAr))+'</div>'+
+  '<div class="rcp-tear"></div>'+
+  '<div class="rcp-tot"><span>الإجمالي المدفوع</span><b>'+esc(i.amount.toFixed(2))+' '+cur+'</b></div>'+
+  '<div class="rcp-qr"><div class="c">'+receiptQrSvg(i)+'</div><p><b>امسح للتحقق من الإيصال</b>الكود فيه بيانات الفاتورة كاملة: رقم الإيصال والطلب والمبلغ والخدمة والأطراف والتاريخ.</p></div>'+
+  '<div class="rcp-f"><b>شكرًا لاستخدامك وصلة</b><br>كل خدمة تبدأ باتصال</div></div>'+
+  '<div class="rcp-act"><button type="button" class="btn" data-a="receipt-img" data-id="'+esc(i.id)+'">حفظ كصورة</button><button type="button" class="btn light" data-a="receipt-pdf" data-id="'+esc(i.id)+'">حفظ PDF</button></div></div>';
+}
+async function receiptCanvas(i){
+ try{if(document.fonts&&document.fonts.load){await Promise.all([document.fonts.load("800 28px Tajawal","وصلة"),document.fonts.load("700 14px Tajawal","وصلة"),document.fonts.load("500 13px Tajawal","وصلة")])}}catch(_){}
+ const probe=document.createElement("span");probe.style.cssText="position:absolute;visibility:hidden";document.body.appendChild(probe);
+ const col=function(v){probe.style.color=v;return getComputedStyle(probe).color};
+ const C={pri:col("var(--primary)"),pri2:col("var(--primary-hover)"),acc:col("var(--accent)"),acc2:col("var(--accent-hover)"),bg:col("var(--bg-main)"),surf:col("var(--bg-surface)"),sub:col("var(--bg-subtle)"),tx:col("var(--text-primary)"),tx2:col("var(--text-secondary)"),bd:col("var(--border-color)")};
+ probe.remove();
+ const mixc=function(a,b,t){const p=function(c){const m=c.match(/[\d.]+/g)||[0,0,0];return [+m[0],+m[1],+m[2]]};const A=p(a),B=p(b);return "rgb("+A.map(function(v,k){return Math.round(v*(1-t)+B[k]*t)}).join(",")+")"};
+ const secs=[["بيانات الطلب",[["رقم الإيصال",i.rno,1],["رقم الطلب","#"+i.ono,1],["التاريخ",i.dateAr,0]]],["الأطراف",[["العميل",i.client,0],["مقدّم الخدمة",i.prov,0]]],["الخدمة والدفع",[["الخدمة",i.svc,0],["طريقة الدفع",i.methodAr,0]]]];
+ const S=3,W=390,P=16,CW=W-P*2;
+ let bodyH=14;secs.forEach(function(sc){bodyH+=26+sc[1].length*38+10});
+ const H=P*2+178+bodyH+16+56+16+136+22+52;
+ const cv=document.createElement("canvas");cv.width=W*S;cv.height=H*S;
+ const ctx=cv.getContext("2d");ctx.scale(S,S);
+ const F="Tajawal,Arial,sans-serif";
+ const rr=function(x,y,w,h,r,tl,tr,br,bl){tl=tl===undefined?r:tl;tr=tr===undefined?r:tr;br=br===undefined?r:br;bl=bl===undefined?r:bl;ctx.beginPath();ctx.moveTo(x+tl,y);ctx.lineTo(x+w-tr,y);ctx.arcTo(x+w,y,x+w,y+tr,tr);ctx.lineTo(x+w,y+h-br);ctx.arcTo(x+w,y+h,x+w-br,y+h,br);ctx.lineTo(x+bl,y+h);ctx.arcTo(x,y+h,x,y+h-bl,bl);ctx.lineTo(x,y+tl);ctx.arcTo(x,y,x+tl,y,tl);ctx.closePath()};
+ const T=function(t,x,y,font,color,al,dir,ls){ctx.font=font;ctx.fillStyle=color;ctx.textAlign=al||"right";ctx.direction=dir||"rtl";ctx.textBaseline="middle";ctx.letterSpacing=ls||"0px";ctx.fillText(t,x,y);ctx.letterSpacing="0px"};
+ const fit=function(t,font,maxW){ctx.font=font;ctx.letterSpacing="0px";if(ctx.measureText(t).width<=maxW)return t;while(t.length>1&&ctx.measureText(t+"…").width>maxW)t=t.slice(0,-1);return t+"…"};
+ ctx.fillStyle=C.surf;ctx.fillRect(0,0,W,H);
+ const X=P,Y=P;
+ ctx.fillStyle=C.sub;rr(X,Y,CW,H-P*2,22);ctx.fill();ctx.strokeStyle=C.bd;ctx.lineWidth=1;ctx.stroke();
+ ctx.save();rr(X,Y,CW,H-P*2,22);ctx.clip();
+ const g=ctx.createLinearGradient(X,Y,X+CW,Y+178);g.addColorStop(0,C.pri);g.addColorStop(1,C.pri2);ctx.fillStyle=g;ctx.fillRect(X,Y,CW,178);
+ const cx=X+CW/2;
+ ctx.font="800 27px "+F;const nw=ctx.measureText("وصلة").width;ctx.font="700 10.5px "+F;ctx.letterSpacing="4px";const ew=ctx.measureText("WASLA").width;ctx.letterSpacing="0px";
+ const tot=34+10+nw+10+ew;let rx=cx+tot/2;const by=Y+38;
+ ctx.save();ctx.translate(rx-34,by-17);ctx.scale(34/64,34/64);ctx.lineCap="round";ctx.lineJoin="round";ctx.strokeStyle=C.bg;ctx.lineWidth=8;ctx.stroke(new Path2D("M7 17 L19 46 L31 25 L43 46 L57 17"));ctx.strokeStyle=C.acc;ctx.lineWidth=4;ctx.stroke(new Path2D("M5 39 C17 57 46 9 59 27"));ctx.fillStyle=C.acc;ctx.beginPath();ctx.arc(55,15,5,0,7);ctx.fill();ctx.restore();
+ rx-=34+10;T("وصلة",rx,by,"800 27px "+F,C.bg,"right");rx-=nw+10;T("WASLA",rx,by+1,"700 10.5px "+F,C.acc,"right","ltr","4px");
+ T("إيصال دفع",cx,Y+76,"700 12.5px "+F,C.bg,"center","rtl","1.5px");
+ const pw=96;ctx.fillStyle=mixc(C.pri,C.bg,.16);rr(cx-pw/2,Y+90,pw,26,13);ctx.fill();ctx.strokeStyle=mixc(C.pri,C.bg,.55);ctx.stroke();T("✓ تم الدفع",cx,Y+103.5,"700 13px "+F,C.bg,"center");
+ const amt=i.amount.toLocaleString("en-US",{maximumFractionDigits:2});ctx.font="800 46px "+F;const aw=ctx.measureText(amt).width;ctx.font="700 17px "+F;const cw2=ctx.measureText(i.cur).width;
+ const ax=cx-(aw+6+cw2)/2;T(amt,ax,Y+146,"800 46px "+F,C.bg,"left","ltr");T(i.cur,ax+aw+6,Y+152,"700 17px "+F,C.acc,"left","ltr");
+ let y=Y+178+14;const rxr=X+CW-20,lx=X+20;
+ secs.forEach(function(sc){
+  T(sc[0],rxr,y+8,"700 11px "+F,C.acc2,"right","rtl","1.2px");y+=26;
+  sc[1].forEach(function(r,k){
+   const cy=y+19;T(r[0],rxr,cy,"500 14px "+F,C.tx2,"right");
+   ctx.font="500 14px "+F;const lw=ctx.measureText(r[0]).width;
+   const val=fit(r[1],(r[2]?"700 13.5px ui-monospace,Menlo,monospace":"700 14px "+F),CW-40-lw-16);
+   if(r[2])T(val,lx,cy,"700 13.5px ui-monospace,Menlo,monospace",C.tx,"left","ltr","0.6px");else T(val,lx,cy,"700 14px "+F,C.tx,"left","rtl");
+   if(k<sc[1].length-1){ctx.strokeStyle=C.bd;ctx.lineWidth=1;ctx.setLineDash([1.5,2.5]);ctx.beginPath();ctx.moveTo(lx,y+38);ctx.lineTo(rxr,y+38);ctx.stroke();ctx.setLineDash([])}
+   y+=38;
+  });y+=10;
+ });
+ ctx.strokeStyle=C.bd;ctx.lineWidth=2;ctx.setLineDash([6,5]);ctx.beginPath();ctx.moveTo(X,y);ctx.lineTo(X+CW,y);ctx.stroke();ctx.setLineDash([]);
+ ctx.fillStyle=C.surf;[X,X+CW].forEach(function(px){ctx.beginPath();ctx.arc(px,y,9,0,7);ctx.fill();ctx.strokeStyle=C.bd;ctx.lineWidth=1;ctx.stroke()});
+ y+=16;ctx.fillStyle=C.pri;rr(X+18,y,CW-36,56,14);ctx.fill();
+ T("الإجمالي المدفوع",X+CW-18-15,y+28,"700 13.5px "+F,C.bg,"right");T(i.amount.toFixed(2)+" "+i.cur,X+18+15,y+28,"800 21px "+F,C.bg,"left","ltr");
+ y+=56+16;ctx.fillStyle=C.surf;rr(X+18,y,CW-36,136,16);ctx.fill();ctx.strokeStyle=C.bd;ctx.lineWidth=1;ctx.stroke();
+ const qx=X+CW-18-12-112,qy=y+12;ctx.fillStyle="#fff";rr(qx,qy,112,112,10);ctx.fill();ctx.strokeStyle="#111";ctx.lineWidth=2;ctx.stroke();
+ const q=receiptQr(i),qz=2,qm=(112-12)/(q.size+0),ms=(112-12)/(q.size);
+ for(let yy=0;yy<q.size;yy++)for(let xx=0;xx<q.size;xx++)if(q.getModule(xx,yy)){ctx.fillStyle="#111";ctx.fillRect(qx+6+xx*ms,qy+6+yy*ms,ms+.3,ms+.3)}
+ const tx=qx-14;T("امسح للتحقق من الإيصال",tx,y+30,"800 14.5px "+F,C.tx,"right");
+ ["الكود فيه بيانات الفاتورة","كاملة: رقم الإيصال والطلب","والمبلغ والخدمة والأطراف","والتاريخ."].forEach(function(l,k){T(l,tx,y+54+k*19,"500 12.5px "+F,C.tx2,"right")});
+ y+=136+22;T("شكرًا لاستخدامك وصلة",cx,y+6,"800 13.5px "+F,C.tx,"center");T("كل خدمة تبدأ باتصال",cx,y+28,"500 12.5px "+F,C.tx2,"center");
+ ctx.restore();
+ return cv;
+}
+function receiptPdf(cv){
+ const jpg=atob(cv.toDataURL("image/jpeg",.93).split(",")[1]);const jb=new Uint8Array(jpg.length);for(let k=0;k<jpg.length;k++)jb[k]=jpg.charCodeAt(k);
+ const pw=360,ph=Math.round(pw*cv.height/cv.width*100)/100,enc=new TextEncoder(),parts=[],off=[];let len=0;
+ const put=function(b){const u=typeof b==="string"?enc.encode(b):b;parts.push(u);len+=u.length};
+ put("%PDF-1.4\n");
+ const obj=function(n,body,stream){off[n]=len;put(n+" 0 obj\n"+body);if(stream){put("\nstream\n");put(stream);put("\nendstream")}put("\nendobj\n")};
+ obj(1,"<< /Type /Catalog /Pages 2 0 R >>");
+ obj(2,"<< /Type /Pages /Kids [3 0 R] /Count 1 >>");
+ obj(3,"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 "+pw+" "+ph+"] /Resources << /XObject << /Im0 4 0 R >> >> /Contents 5 0 R >>");
+ obj(4,"<< /Type /XObject /Subtype /Image /Width "+cv.width+" /Height "+cv.height+" /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length "+jb.length+" >>",jb);
+ const cs="q "+pw+" 0 0 "+ph+" 0 0 cm /Im0 Do Q";
+ obj(5,"<< /Length "+cs.length+" >>",cs);
+ const xr=len;let x="xref\n0 6\n0000000000 65535 f \n";for(let n=1;n<=5;n++)x+=String(off[n]).padStart(10,"0")+" 00000 n \n";
+ put(x+"trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n"+xr+"\n%%EOF");
+ return new Blob(parts,{type:"application/pdf"});
+}
+function receiptDownload(blob,name){
+ const u=URL.createObjectURL(blob),a=document.createElement("a");a.href=u;a.download=name;a.rel="noopener";document.body.appendChild(a);a.click();
+ setTimeout(function(){a.remove();URL.revokeObjectURL(u)},6000);
+}
+async function receiptExport(pid,kind){
+ const i=receiptInfo(pid);if(!i){note("الإيصال غير متاح","bad");return}
+ try{
+  const cv=await receiptCanvas(i);
+  if(kind==="pdf")receiptDownload(receiptPdf(cv),"wasla-receipt-"+i.rno+".pdf");
+  else{const b=await new Promise(function(r){cv.toBlob(r,"image/png")});receiptDownload(b,"wasla-receipt-"+i.rno+".png")}
+  note("تم حفظ الإيصال","ok");
+ }catch(e){console.error("[receipt export]");note("تعذر حفظ الإيصال، حاول مرة أخرى","bad")}
 }
 var reqRt={chan:null,uid:null,timer:null,busy:false};
 function reqRtUnsub(){try{if(reqRt.chan)db.removeChannel(reqRt.chan)}catch(_){}reqRt.chan=null;reqRt.uid=null;clearTimeout(reqRt.timer)}
@@ -9732,6 +10484,7 @@ if(a==="cancelrequest"){
  } 
   if(a==="claim"){const q0=s.requests.find(x=>x.id===id),old0=q0?{provider_id:q0.provider_id,status:q0.status}:null;if(q0&&s.provider){q0.provider_id=s.provider.id;q0.status="accepted";render()}let r=await db.rpc("claim_service_request",{p_request_id:id});if(r.error){if(q0&&old0){Object.assign(q0,old0);render()}throw r.error}await refreshRoleData();note("تم قبول الطلب وإسناده إليك.","success");return}
   if(a==="receipt"){s.modal={type:"receipt",paymentId:id};render();return}
+  if(a==="receipt-img"||a==="receipt-pdf"){await receiptExport(id,a==="receipt-pdf"?"pdf":"img");return}
   if(a==="wallet-more"){await loadWallet(true);return}
   if(a==="cash-received"){
    if(!await waslaUI.confirm("تأكيد إنك استلمت المبلغ كاش من العميل؟ الإجراء ده مينفعش يتراجع عنه."))return;
