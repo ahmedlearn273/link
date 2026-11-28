@@ -1292,8 +1292,8 @@ a:focus-visible{
 
 /* WASLA - Welcome Screen (bold typography, theme tokens only) */
 .wasla-welcome{
-  --w-bg:var(--primary);--w-fg:var(--bg-main);--w-ac:var(--accent);
-  --w-onacw:var(--bg-main);--w-onacs:var(--primary-hover);--w-onbtn:var(--bg-surface);
+  --w-bg:#0F4C5C;--w-fg:#FAF9F6;--w-ac:#F2792E;--w-btn:#C2410C;
+  --w-onacw:#FAF9F6;--w-onacs:#0B3945;--w-onbtn:#FFFFFF;
   position:relative;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;
   padding:calc(56px + env(safe-area-inset-top)) max(24px,calc((100% - 440px)/2)) 0;
   overflow:hidden;background:var(--w-bg);color:var(--w-fg);text-align:start;isolation:isolate;
@@ -1305,7 +1305,7 @@ a:focus-visible{
   animation:wl3-aurora 11s ease-in-out infinite alternate}
 @keyframes wl3-aurora{from{transform:translate3d(-3%,-2%,0) scale(1)}to{transform:translate3d(3%,2%,0) scale(1.08)}}
 .wasla-welcome + .foot{display:none}
-:root[data-theme="dark"] .wasla-welcome{--w-bg:var(--bg-main);--w-fg:var(--text-primary);--w-onacw:var(--bg-main);--w-onacs:var(--bg-main);--w-onbtn:var(--bg-main)}
+:root[data-theme="dark"] .wasla-welcome{--w-bg:#121417;--w-fg:#F9FAFB;--w-ac:#D6A642;--w-btn:#D6A642;--w-onacw:#121417;--w-onacs:#121417;--w-onbtn:#121417}
 .wasla-welcome > .theme-toggle{position:absolute;top:20px;inset-inline-end:20px;z-index:6}
 .wasla-welcome .wl3-giant{position:absolute;top:calc(84px + env(safe-area-inset-top));left:0;right:0;text-align:center;font:800 min(40vw,170px)/1 Tajawal,sans-serif;color:color-mix(in srgb,var(--w-fg) 8%,transparent);white-space:nowrap;pointer-events:none;z-index:1;animation:wl3-drift 14s ease-in-out infinite alternate}
 .wasla-welcome .wl3-orange{position:absolute;inset:0;background:var(--w-ac);z-index:2;pointer-events:none;animation:wl3-oc .6s cubic-bezier(.65,0,.35,1) 2.4s both,wl3-ow .7s cubic-bezier(.65,0,.35,1) 3.2s forwards}
@@ -1323,7 +1323,7 @@ a:focus-visible{
 .wasla-welcome .wl3-actions{position:relative;z-index:3;display:grid;gap:10px;margin-top:auto;padding-bottom:calc(26px + env(safe-area-inset-bottom));padding-top:18px}
 .wasla-welcome .wl3-actions .btn{display:flex;justify-content:space-between;align-items:center;width:100%;min-height:54px;padding:15px 22px;border-radius:14px;font:800 17px Tajawal,sans-serif;border:1.5px solid transparent;animation:wl3-spring .7s cubic-bezier(.34,1.56,.64,1) calc(4s + var(--i)*.2s) both}
 .wasla-welcome .wl3-actions .btn:after{content:"←";font-weight:800}
-.wasla-welcome .wl3-actions .btn.wl3-b1{background:var(--w-ac)!important;color:var(--w-onbtn)!important;border-color:transparent!important}
+.wasla-welcome .wl3-actions .btn.wl3-b1{background:var(--w-btn)!important;color:var(--w-onbtn)!important;border-color:transparent!important}
 .wasla-welcome .wl3-actions .btn.wl3-b2{background:var(--w-fg)!important;color:var(--w-bg)!important;border-color:transparent!important}
 .wasla-welcome .wl3-actions .btn.wl3-b3{background:transparent!important;color:var(--w-fg)!important;border-color:color-mix(in srgb,var(--w-fg) 38%,transparent)!important}
 @keyframes wl3-drift{from{transform:translateX(-10px)}to{transform:translateX(10px)}}
