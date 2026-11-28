@@ -3093,7 +3093,7 @@ if(p.role==="staff"){
   const [a,r,profiles,permissions,chats]=await Promise.all([
     db.rpc("admin_list_providers"),
     db.from("service_requests").select("*,services(name_ar)").order("created_at",{ascending:false}).limit(100),
-    db.from("profiles").select("id,full_name,phone,city,country,role,status,staff_role_code,staff_title").in("role",["customer","staff"]),
+    db.from("profiles").select("id,full_name,phone,city,country,role,status,staff_role_code,staff_title").in("role",p.role==="owner"?["customer","staff","admin"]:["customer","staff"]),
     db.from("staff_permissions").select("*"),
     db.from("conversations").select("id,request_id,customer_id,provider_id,last_message_at,service_requests(title)").order("last_message_at",{ascending:false})
   ]);
@@ -3124,6 +3124,7 @@ if(p.role==="owner"){
   s.staff=people.filter(x=>x.role==="staff").map(x=>({...x,staff_permissions:perms.find(p=>p.user_id===x.id)||null}));
   s.staffCandidates=people.filter(x=>x.role==="customer"&&x.status==="active");
   s.customers=people.filter(x=>x.role==="customer");
+  s.admins=p.role==="owner"?people.filter(x=>x.role==="admin"):[];
 
   const ids=[...new Set(s.apps.map(x=>x.user_id).concat(s.allRequests.map(x=>x.customer_id)).filter(Boolean))];
 
@@ -3621,7 +3622,7 @@ function repBuild(){
  const custList=Object.values(prof).filter(x=>x.role==="customer");
  R.customers=custList.map(c=>{const o=byC[c.id]||{n:0,done:0,paid:0,last:null};return {code:pk(c,["account_code"])||repCode("CUS",c.id),name:c.full_name||null,phone:c.phone||null,email:pk(c,["email"]),gov:pk(c,["governorate","state","region","province"]),city:c.city||null,area:pk(c,["area","district"]),address:pk(c,["address","address_line","street_address","street"]),country:c.country||null,status:stAr(c.status),reqs:o.n,done:o.done,paid:o.paid,last:o.last,created:c.created_at||null}});
  const staffList=Object.values(prof).filter(x=>x.role==="staff"),perms={};(D.perms||[]).forEach(x=>{perms[x.user_id]=x});
- R.staff=staffList.map(c=>{const pm=perms[c.id]||{},arr=Array.isArray(pm.permissions)?pm.permissions:(Array.isArray(pm.keys)?pm.keys:null);return {code:pk(c,["account_code"])||repCode("STF",c.id),name:c.full_name||null,phone:c.phone||null,email:pk(c,["email"]),title:c.staff_title||null,role:c.staff_role_code||null,status:stAr(c.status),active:pm.is_active===undefined?null:(pm.is_active?"نعم":"لا"),pcount:arr?arr.length:null,perms:arr?arr.join("، "):null,gov:pk(c,["governorate","state","region"]),city:c.city||null,address:pk(c,["address","address_line","street"]),created:c.created_at||null}});
+ R.staff=staffList.map(c=>{const pm=perms[c.id]||{},arr=Array.isArray(pm.permissions)?pm.permissions:(Array.isArray(pm.keys)?pm.keys:null);return {code:pk(c,["account_code"])||repCode("EMP",c.id),name:c.full_name||null,phone:c.phone||null,email:pk(c,["email"]),title:c.staff_title||null,role:c.staff_role_code||null,status:stAr(c.status),active:pm.is_active===undefined?null:(pm.is_active?"نعم":"لا"),pcount:arr?arr.length:null,perms:arr?arr.join("، "):null,gov:pk(c,["governorate","state","region"]),city:c.city||null,address:pk(c,["address","address_line","street"]),created:c.created_at||null}});
  const mo={};(D.payments||[]).forEach(x=>{const d=String(x.paid_at||x.created_at||"").slice(0,7);if(!d)return;const o=mo[d]=mo[d]||{month:d,n:0,paidn:0,gross:0,comm:0,net:0,cash:0,plat:0,pend:0};o.n++;if(x.payment_status==="paid"){o.paidn++;o.gross+=Number(x.amount||0);o.comm+=Number(x.commission_amount||0);o.net+=Number(x.provider_amount||0);if(x.payment_method==="cash")o.cash+=Number(x.amount||0);else o.plat+=Number(x.amount||0)}else if(x.payment_status==="pending")o.pend+=Number(x.amount||0)});
  R.monthly=Object.values(mo).sort((a,b)=>b.month.localeCompare(a.month)).map(o=>Object.assign({},o,{created:o.month+"-01"}));
  R.ratings=(D.reviews||[]).map(v=>{const r=rq[v.request_id]||{};return {ord:repCode("ORD",v.request_id),customer:cn(v.customer_id||r.customer_id),provider:pn(v.provider_id||r.provider_id),rating:repN(v.rating),srv:repN(v.service_rating),plat:repN(v.platform_rating),comment:v.comment||null,created:v.created_at||null}});
@@ -3789,7 +3790,7 @@ document.addEventListener("change",e=>{
 
 /* ===== مركز الرفع: رفع الأقسام والخدمات من ملف Excel/CSV بالنموذج، عبر الدوال الموجودة (من غير تغيير في قاعدة البيانات) ===== */
 const UP={rows:{sections:[],services:[]},file:"",busy:false,log:[],err:""};
-const UP_SEC_COLS=["اسم القسم بالعربية","اسم القسم بالإنجليزية","المعرّف (slug بالإنجليزي)","الأيقونة"];
+const UP_SEC_COLS=["اسم القسم بالعربية","اسم القسم بالإنجليزية","المعرّف الداخلي (اختياري، بيتولد تلقائي)","الأيقونة"];
 const UP_SVC_COLS=["اسم الخدمة بالعربية","اسم الخدمة بالإنجليزية","القسم (اسم القسم بالعربية)","الوصف","العمولة % (اختياري)"];
 function upNorm(x){return String(x==null?"":x).replace(/[\u064B-\u065F\u0640]/g,"").replace(/[إأآ]/g,"ا").replace(/ى/g,"ي").replace(/ة/g,"ه").replace(/\s+/g," ").trim().toLowerCase()}
 function upDigits(x){return String(x==null?"":x).replace(/[٠-٩]/g,d=>"٠١٢٣٤٥٦٧٨٩".indexOf(d)).replace(/٫/g,".").replace(/,/g,".").trim()}
@@ -3822,9 +3823,9 @@ function upCheck(){
 async function upTemplate(){
  await repLoadScript("https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js");
  const wb=XLSX.utils.book_new();wb.Workbook={Views:[{RTL:true}]};
- const w1=XLSX.utils.aoa_to_sheet([UP_SEC_COLS,["سباكة","Plumbing","plumbing","wrench"],["كهرباء","Electrical","electrical",""]]);
+ const w1=XLSX.utils.aoa_to_sheet([UP_SEC_COLS,["سباكة","Plumbing","","wrench"],["كهرباء","Electrical","",""]]);
  const w2=XLSX.utils.aoa_to_sheet([UP_SVC_COLS,["إصلاح تسريب مياه","Leak repair","سباكة","كشف وإصلاح التسريبات",12],["تركيب مفتاح كهرباء","Switch install","كهرباء","",""]]);
- const w3=XLSX.utils.aoa_to_sheet([["تعليمات الملء"],["1) املأ ورقة الأقسام أولًا ثم ورقة الخدمات. اترك الورقة فاضية لو مش هترفع منها."],["2) المعرّف (slug) حروف إنجليزية صغيرة وأرقام وشرطة فقط، ومش بيتكرر."],["3) اسم القسم في ورقة الخدمات لازم يطابق اسم قسم موجود أو موجود في ورقة الأقسام."],["4) العمولة % رقم من 0 لأقل من 100، ولو فاضية بتاخد النسبة الافتراضية."],["5) الكود (SVC للخدمة و SEC للقسم) بيتولد تلقائي بعد الرفع، مش بيتكتب في الملف."],["6) الصفوف الموجودة بالفعل بتتخطى ومش بتتكرر."]]);
+ const w3=XLSX.utils.aoa_to_sheet([["تعليمات الملء"],["1) املأ ورقة الأقسام أولًا ثم ورقة الخدمات. اترك الورقة فاضية لو مش هترفع منها."],["2) المعرّف الداخلي اختياري: سيبه فاضي والمنصة بتولده تلقائي."],["3) اسم القسم في ورقة الخدمات لازم يطابق اسم قسم موجود أو موجود في ورقة الأقسام."],["4) العمولة % رقم من 0 لأقل من 100، ولو فاضية بتاخد النسبة الافتراضية."],["5) الأكواد (SVC للخدمة و SEC للقسم) بتتولد تلقائي من المنصة بعد الرفع، ومفيش خانة كود في الملف."],["6) الصفوف الموجودة بالفعل بتتخطى ومش بتتكرر."]]);
  w1["!cols"]=UP_SEC_COLS.map(()=>({wch:28}));w2["!cols"]=UP_SVC_COLS.map(()=>({wch:28}));w3["!cols"]=[{wch:90}];
  XLSX.utils.book_append_sheet(wb,w1,"الأقسام");XLSX.utils.book_append_sheet(wb,w2,"الخدمات");XLSX.utils.book_append_sheet(wb,w3,"تعليمات");
  XLSX.writeFile(wb,"wasla-upload-template.xlsx");
@@ -3834,7 +3835,7 @@ async function upParse(file){
  const buf=await file.arrayBuffer(),wb=XLSX.read(buf,{type:"array"});
  const get=(names)=>{const n=wb.SheetNames.find(x=>names.includes(upNorm(x)));return n?XLSX.utils.sheet_to_json(wb.Sheets[n],{header:1,defval:""}).slice(1).filter(r=>r.some(c=>String(c).trim()!=="")):[]};
  const t=x=>String(x==null?"":x).trim();
- UP.rows.sections=get(["الاقسام","sections"]).map((r,i)=>({line:i+2,name_ar:t(r[0]),name_en:t(r[1]),slug:t(r[2]).toLowerCase(),icon:t(r[3])}));
+ UP.rows.sections=get(["الاقسام","sections"]).map((r,i)=>({line:i+2,name_ar:t(r[0]),name_en:t(r[1]),slug:t(r[2]).toLowerCase()||("sec-"+Date.now().toString(36)+i),icon:t(r[3])}));
  UP.rows.services=get(["الخدمات","services"]).map((r,i)=>({line:i+2,name_ar:t(r[0]),name_en:t(r[1]),section:t(r[2]),desc:t(r[3]),rate:t(r[4])}));
  UP.file=file.name;UP.log=[];UP.err="";
  if(!UP.rows.sections.length&&!UP.rows.services.length)UP.err="الملف مفيهوش صفوف في ورقتي \"الأقسام\" أو \"الخدمات\". حمّل النموذج واملأه.";
@@ -3883,6 +3884,82 @@ document.addEventListener("change",async e=>{
  const el=e.target;if(!el||el.id!=="upFile"||!el.files||!el.files[0])return;
  try{await upParse(el.files[0])}catch(x){UP.err="تعذّر قراءة الملف: "+(x&&x.message||x)}
  render();
+});
+
+/* ===== ملف الموظف المهني + أدمن تحت المالك ===== */
+const SF={id:null,loading:false,data:null,err:"",msg:""};
+const SF_SECS=[
+ {k:"penalties",t:"الجزاءات",rpc:"admin_add_staff_penalty",cols:[["date","التاريخ","date"],["type","النوع","text"],["amount","الخصم","money"],["reason","السبب","text"]],form:[["date","التاريخ","date"],["type","نوع الجزاء","text"],["amount","قيمة الخصم","number"],["reason","السبب","text"]],map:v=>({p_date:v.date||null,p_type:v.type,p_amount:v.amount===""?null:Number(v.amount),p_reason:v.reason||null})},
+ {k:"leaves",t:"الإجازات",rpc:"admin_add_staff_leave",cols:[["leave_type","النوع","text"],["from_date","من","date"],["to_date","إلى","date"],["days","الأيام","num"],["note","ملاحظة","text"]],form:[["leave_type","نوع الإجازة","text"],["from_date","من","date"],["to_date","إلى","date"],["note","ملاحظة","text"]],map:v=>({p_leave_type:v.leave_type,p_from:v.from_date,p_to:v.to_date,p_note:v.note||null})},
+ {k:"advances",t:"السلف",rpc:"admin_add_staff_advance",cols:[["date","التاريخ","date"],["amount","المبلغ","money"],["installment","القسط الشهري","money"],["remaining","المتبقي","money"],["note","ملاحظة","text"]],form:[["date","التاريخ","date"],["amount","مبلغ السلفة","number"],["installment","القسط الشهري","number"],["note","ملاحظة","text"]],map:v=>({p_date:v.date||null,p_amount:Number(v.amount),p_installment:v.installment===""?null:Number(v.installment),p_note:v.note||null})}
+];
+function sfIsOwner(){return s.profile?.role==="owner"}
+function sfPerson(id){return (s.staff||[]).concat(s.admins||[]).find(x=>x.id===id)}
+async function sfLoad(id){
+ SF.id=id;SF.loading=true;SF.err="";SF.data=null;render();
+ try{const r=await db.rpc("admin_get_staff_file",{p_user_id:id});if(r.error)throw r.error;SF.data=r.data||{}}catch(e){SF.err=String(e&&e.message||e)}
+ SF.loading=false;render();
+}
+function sfCard(x,isAdmin){
+ const role=isAdmin?"أدمن":(x.staff_title||x.staff_role_code||"موظف");
+ return '<article class="item"><div class="row"><div><b>'+esc(x.full_name||"بدون اسم")+'</b><p class="small">'+codeTag(idCode("EMP",x.id))+' · '+esc(role)+'</p></div>'+tag(isAdmin?(x.status==="active"?"نشط":"موقوف"):(x.staff_permissions?.is_active?"نشط":"موقوف"))+'</div><p class="small">'+esc(x.phone||"لا يوجد رقم هاتف")+'</p><div class="actions">'+btn("sf-open","الملف المهني","gold",x.id)+
+  (!isAdmin?btn("editstaff","إدارة الصلاحيات","light",x.id):"")+
+  (!isAdmin&&sfIsOwner()?btn("sf-promote","ترقية إلى أدمن","light",x.id):"")+'</div></article>';
+}
+function staffTabView(){
+ const isO=sfIsOwner();
+ if(SF.id)return sfFileView();
+ return '<section class="section"><div class="sectionhead"><div><h2>إدارة الموظفين</h2><p class="small">أدر فريق العمل وافتح الملف المهني لكل شخص.</p></div>'+btn("addstaff","إضافة موظف","gold")+'</div>'+
+  (isO?'<h3 style="margin:10px 0 6px">الأدمن (للمالك فقط)</h3><p class="small">تعيين أدمن جديد للمالك بس. الأدمن مينفعش يعيّن أدمن.</p><div class="list">'+((s.admins||[]).map(x=>sfCard(x,true)).join("")||empty("لا يوجد أدمن ظاهر. لو فيه أدمن ومش ظاهر، محتاج صلاحية قراءة للمالك من شوشو."))+'</div><h3 style="margin:14px 0 6px">الموظفون</h3>':"")+
+  '<div class="list">'+((s.staff||[]).map(x=>sfCard(x,false)).join("")||empty("لا يوجد موظفون حتى الآن."))+'</div></section>';
+}
+function sfFileView(){
+ const x=sfPerson(SF.id)||{},d=SF.data||{},job=d.job||{},sal=d.salary||{};
+ const isAdm=x.role==="admin";
+ const kv=(l,v)=>'<div class="rep-stat"><small>'+esc(l)+'</small><b style="font-size:.95rem">'+(v===null||v===undefined||v===""?'<span class="muted">—</span>':v)+'</b></div>';
+ let h=REP_CSS+'<section class="section rep-sec"><div class="actions">'+btn("sf-back","← كل الموظفين","light")+'</div><div class="rep-hd" style="margin-top:10px"><i></i><div><h2>'+esc(x.full_name||"ملف موظف")+'</h2><p class="small">'+codeTag(idCode("EMP",SF.id))+' · الملف المهني</p></div></div>';
+ if(SF.msg)h+='<div class="notice">'+esc(SF.msg)+'</div>';
+ h+='<div class="rep-stats">'+kv("الكود الوظيفي",codeTag(idCode("EMP",SF.id)))+kv("المنصب",esc(isAdm?"أدمن":(x.staff_title||x.staff_role_code||"")))+kv("كود الرتبة",esc(x.staff_role_code||(isAdm?"ADM":"")))+kv("الحالة",esc(x.status==="active"||x.staff_permissions?.is_active?"نشط":"موقوف"))+kv("الهاتف",esc(x.phone||""))+kv("المدينة",esc(x.city||""))+kv("تاريخ التعيين",job.hire_date?esc(fmtDateAr(job.hire_date)):"")+kv("الراتب الأساسي",sal.amount!=null?moneyAr(sal.amount)+" "+esc(sal.currency||"EGP"):"")+'</div>';
+ if(SF.loading)return h+'<div class="empty">جاري تحميل الملف...</div></section>';
+ if(SF.err)h+='<div class="notice error">بيانات الملف المهني (الراتب والجزاءات والإجازات والسلف) لسه مش مفعّلة في قاعدة البيانات: '+esc(SF.err)+'<div class="small">محتاجة دالة admin_get_staff_file وجداولها من شوشو. الشاشة جاهزة وهتشتغل أول ما تتنفذ.</div></div>';
+ h+='<div class="rep-bar" style="margin-top:10px"><label>الراتب الأساسي<input id="sf_sal_amount" type="number" min="0" step="0.01" value="'+esc(sal.amount!=null?sal.amount:"")+'"></label><label>ساري من<input id="sf_sal_from" type="date"></label><label class="q">ملاحظة<input id="sf_sal_note" type="text"></label>'+btn("sf-salary","حفظ الراتب","gold")+'</div>';
+ SF_SECS.forEach(sec=>{
+  const rows=Array.isArray(d[sec.k])?d[sec.k]:[];
+  h+='<h3 style="margin:16px 0 6px">'+esc(sec.t)+' ('+fmt(rows.length)+')</h3>'+
+   '<div class="rep-bar">'+sec.form.map(f=>'<label'+(f[2]==="text"?' class="q"':'')+'>'+esc(f[1])+'<input id="sf_'+sec.k+'_'+f[0]+'" type="'+f[2]+'"'+(f[2]==="number"?' min="0" step="0.01"':'')+'></label>').join("")+btn("sf-add","إضافة","gold",sec.k)+'</div>'+
+   '<div class="rep-wrap"><table class="rep-t"><thead><tr>'+sec.cols.map(c=>'<th>'+esc(c[1])+'</th>').join("")+'</tr></thead><tbody>'+
+   (rows.length?rows.map(r=>'<tr>'+sec.cols.map(c=>'<td'+(c[2]==="money"||c[2]==="num"?' class="n"':'')+'>'+repCell({t:c[2]==="date"?"date":c[2]},r[c[0]])+'</td>').join("")+'</tr>').join(""):'<tr><td colspan="'+sec.cols.length+'" class="muted">لا يوجد</td></tr>')+'</tbody></table></div>';
+ });
+ return h+'</section>';
+}
+document.addEventListener("click",async e=>{
+ const b=e.target.closest&&e.target.closest('[data-a^="sf-"]');if(!b)return;
+ const a=b.dataset.a,id=b.dataset.id;
+ const val=n=>{const el=document.getElementById(n);return el?el.value:""};
+ if(a==="sf-open"){SF.msg="";sfLoad(id);return}
+ if(a==="sf-back"){SF.id=null;SF.data=null;SF.err="";SF.msg="";render();return}
+ if(a==="sf-promote"){
+  if(!sfIsOwner()){alert("تعيين أدمن للمالك فقط.");return}
+  if(!confirm("ترقية هذا الموظف إلى أدمن؟ هيكون له صلاحيات الإدارة كاملة."))return;
+  const r=await db.rpc("owner_set_admin_role",{p_user_id:id});
+  if(r.error){alert("التعيين محتاج دالة owner_set_admin_role من شوشو: "+(r.error.message||r.error));return}
+  await loadUser(s.user);note("تم تعيين الأدمن.","success");return
+ }
+ if(a==="sf-salary"){
+  const n=Number(val("sf_sal_amount"));if(!Number.isFinite(n)||n<0){SF.msg="اكتب راتب صحيح.";render();return}
+  const r=await db.rpc("admin_set_staff_salary",{p_user_id:SF.id,p_amount:n,p_effective_from:val("sf_sal_from")||null,p_note:val("sf_sal_note")||null});
+  SF.msg=r.error?"تعذّر حفظ الراتب (محتاج دالة admin_set_staff_salary من شوشو): "+(r.error.message||r.error):"تم حفظ الراتب.";
+  if(!r.error){await sfLoad(SF.id);return}render();return
+ }
+ if(a==="sf-add"){
+  const sec=SF_SECS.find(x=>x.k===id);if(!sec)return;
+  const v={};sec.form.forEach(f=>{v[f[0]]=val("sf_"+sec.k+"_"+f[0])});
+  const req=sec.form.filter(f=>f[0]!=="note"&&f[0]!=="reason"&&f[0]!=="installment"&&f[0]!=="date");
+  if(req.some(f=>String(v[f[0]]).trim()==="")){SF.msg="كمّل الخانات المطلوبة.";render();return}
+  const r=await db.rpc(sec.rpc,Object.assign({p_user_id:SF.id},sec.map(v)));
+  SF.msg=r.error?"تعذّرت الإضافة (محتاج دالة "+sec.rpc+" من شوشو): "+(r.error.message||r.error):"تمت الإضافة.";
+  if(!r.error){await sfLoad(SF.id);return}render();
+ }
 });
 
 function homePtsChip(){
@@ -7252,7 +7329,7 @@ if(s.tab==="providers"){
        if(s.tab==="uploads")body=upView();
        if(s.tab==="services")body='<section class="section"><div class="sectionhead"><div><h2>إدارة الخدمات</h2><p class="small">أضف الخدمات المتاحة على وصلة وتابع وصفها وحالة ظهورها للعملاء.</p></div>'+btn("addservice","إضافة خدمة","gold")+'</div><div class="list">'+(s.services.map(x=>'<article class="item"><div class="row"><b>'+esc(x.name_ar)+'</b>'+tag(x.is_active?"نشطة":"متوقفة")+'</div><p class="small">'+codeTag(idCode("SVC",x.id))+'</p><p>'+esc(x.description||"لا يوجد وصف مضاف لهذه الخدمة")+'</p>'+svcCommissionLine(x)+'<div class="actions">'+svcRateBtn(x)+btn("toggleservice",x.is_active?"إيقاف الخدمة":"تفعيل الخدمة","light",x.id)+'</div></article>').join("")||empty("لا توجد خدمات مضافة حتى الآن. أضف أول خدمة للمنصة."))+'</div></section>';
 if(s.tab==="categories")body='<section class="section"><div class="sectionhead"><div><h2>إدارة الأقسام</h2><p class="small">نظّم الخدمات داخل أقسام واضحة تسهّل على العملاء الوصول لما يحتاجونه.</p></div>'+btn("addcategory","إضافة قسم","gold")+'</div><div class="list">'+(s.cats.map(x=>'<article class="item"><div class="row"><b>'+esc(x.name_ar)+'</b>'+tag(x.is_active?"نشط":"متوقف")+'</div><p class="small">'+codeTag(idCode("SEC",x.id))+'</p><div class="small">معرّف القسم</div><p class="muted">'+esc(x.slug||"غير محدد")+'</p><div class="actions">'+btn("togglecategory",x.is_active?"إيقاف القسم":"تفعيل القسم","light",x.id)+'</div></article>').join("")||empty("لا توجد أقسام حتى الآن. أضف أول قسم للمنصة."))+'</div></section>';
- if(s.tab==="staff")body='<section class="section"><div class="sectionhead"><div><h2>إدارة الموظفين</h2><p class="small">أدر فريق العمل وتابع صلاحيات كل موظف وحالة حسابه.</p></div>'+btn("addstaff","إضافة موظف","gold")+'</div><div class="list">'+(s.staff.map(x=>'<article class="item"><div class="row"><div><b>'+esc(x.full_name||"موظف بدون اسم")+'</b><p class="small">عضو في فريق إدارة وصلة</p></div>'+tag(x.staff_permissions?.is_active?"نشط":"موقوف")+'</div><div class="small">رقم التواصل</div><p>'+esc(x.phone||"لا يوجد رقم هاتف")+'</p><div class="small">الصلاحيات الممنوحة</div><p class="muted">'+fmt((x.staff_permissions?.permissions||[]).length)+' صلاحية</p><div class="actions">'+btn("editstaff","إدارة الصلاحيات","light",x.id)+(["admin","owner"].includes(s.profile?.role)&&x.staff_permissions?.is_active?btn("resetstaffpw","توليد كلمة مرور","light",x.id):"")+btn("removestaff","إزالة الموظف","danger",x.id)+'</div></article>').join("")||empty("لا يوجد موظفون حتى الآن. يمكنك إضافة أول موظف لفريق الإدارة."))+'</div></section>';
+ if(s.tab==="staff")body=staffTabView();
  if(s.tab==="customers")body='<section class="section"><div class="sectionhead"><div><h2>إدارة العملاء</h2><p class="small">استعرض حسابات العملاء وبياناتهم وحالة كل حساب.</p></div><span class="tag">'+fmt(s.customers.length)+' عميل</span></div><div class="list">'+(s.customers.map(x=>'<article class="item"><div class="row"><div><b>'+esc(x.full_name||"عميل بدون اسم")+'</b><p class="small">حساب عميل على منصة وصلة</p></div>'+tag(x.status==="active"?"نشط":"موقوف")+'</div><div class="small">رقم التواصل</div><p>'+esc(x.phone||"لا يوجد رقم هاتف")+'</p><div class="small">الموقع</div><p class="muted">'+esc([x.city,x.country].filter(Boolean).join("، ")||"الموقع غير محدد")+'</p><div class="actions">'+btn("viewcustomer","عرض الملف","light",x.id)+'</div></article>').join("")||empty("لا يوجد عملاء حتى الآن"))+'</div></section>';
  if(s.tab==="messages")body=chatContent();
 if(s.tab==="assistant"&&s.profile?.role==="owner")body=assistantView();
