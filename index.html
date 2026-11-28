@@ -3330,8 +3330,29 @@ document.addEventListener("click",async e=>{
  }catch(err){AN.sending=false;note("تعذّر الإرسال: "+String(err&&err.message||err),"error");render()}
 });
 /* ===== محرك أقسام الإدارة (مالية، خدمة عملاء، عروض، إعلانات، تسويق) — fail-soft ===== */
+const ORG={ranks:[],managers:[],loaded:false,loading:false,err:""};
+const ORG_DEPTS={ASV:"مشرف منطقة",OPS:"العمليات",FIN:"المالية",SUP:"خدمة العملاء",MKT:"التسويق",TEC:"التقنية"};
+async function orgLoad(){
+ if(ORG.loading)return;ORG.loading=true;
+ try{const [a,b]=await Promise.all([db.rpc("staff_ranks_list"),db.rpc("staff_list_managers")]);if(a.error)throw a.error;
+  ORG.ranks=(Array.isArray(a.data)?a.data:[]).filter(x=>x.is_active!==false);ORG.managers=b.error||!Array.isArray(b.data)?[]:b.data;ORG.err=""}
+ catch(e){ORG.err=String(e&&e.message||e)}
+ ORG.loading=false;ORG.loaded=true;render();
+}
+function orgRankOptions(sel){return [{value:"",label:"بدون رتبة محددة"}].concat(ORG.ranks.map(r=>({value:r.id,label:r.name_ar+(r.is_manager?" (مدير)":"")})))}
+function orgManagerOptions(exclude){return [{value:"",label:"بدون مدير مباشر"}].concat(ORG.managers.filter(m=>m.id!==exclude).map(m=>({value:m.id,label:(m.full_name||"—")+(m.rank_name?" — "+m.rank_name:"")+(m.staff_role_code?" ("+m.staff_role_code+")":"")})))}
+function orgFields(x){
+ if(!ORG.loaded&&!ORG.loading)setTimeout(orgLoad,0);
+ return select("الرتبة","rank_id",orgRankOptions(),x&&x.rank_id||"")+select("المدير المباشر","manager_id",orgManagerOptions(x&&x.id),x&&x.manager_id||"")+(ORG.err?'<p class="muted">الرتب والمديرين لسه مش مفعّلين في قاعدة البيانات، هيتحفظوا بعد تنفيذ SQL الهيكل التنظيمي.</p>':"");
+}
+async function orgSave(userId,f){
+ const rk=f.elements.rank_id&&f.elements.rank_id.value||null,mg=f.elements.manager_id&&f.elements.manager_id.value||null;
+ if(!rk&&!mg)return true;
+ try{const r=await db.rpc("admin_set_staff_org",{p_user_id:userId,p_rank_id:rk,p_manager_id:mg});if(r.error)throw r.error;return true}
+ catch(e){note("اتحفظ الموظف لكن تعذّر حفظ الرتبة/المدير: "+String(e&&e.message||e),"error");return false}
+}
 const SEC_ST={};
-const SEC_PERM={fin:["payments.view","payments.manage"],cs:["support.view","support.manage"],offers:["ads.view","ads.manage"],adsmgr:["ads.view","ads.manage"],mkt:["ads.view","ads.manage"]};
+const SEC_PERM={org:["settings.view","settings.manage"],fin:["payments.view","payments.manage"],cs:["support.view","support.manage"],offers:["ads.view","ads.manage"],adsmgr:["ads.view","ads.manage"],mkt:["ads.view","ads.manage"]};
 function secCan(id,manage){const r=s.profile&&s.profile.role;if(r==="owner"||r==="admin")return true;if(r!=="staff")return false;const ps=(s.staffAccess&&s.staffAccess.permissions)||[];const k=SEC_PERM[id];return !!k&&ps.includes(k[manage?1:0])}
 const SEC_LBL={id:"المعرّف",code:"الكود",title:"العنوان",name:"الاسم",description:"الوصف",body:"النص",status:"الحالة",created_at:"أُنشئ في",updated_at:"آخر تعديل",starts_at:"يبدأ",ends_at:"ينتهي",discount_type:"نوع الخصم",discount_value:"قيمة الخصم",max_discount:"أقصى خصم",min_order:"أقل قيمة طلب",usage_limit:"حد الاستخدام",used_count:"مرات الاستخدام",per_user_limit:"حد لكل مستخدم",kind:"النوع",audiences:"الجمهور",placement:"المكان",impressions:"مرات الظهور",clicks:"النقرات",link_type:"نوع الرابط",link_value:"الرابط",image_url:"الصورة",is_active:"فعّال",goal:"الهدف",budget:"الميزانية",scheduled_at:"الموعد",sent_at:"أُرسل في",subject:"الموضوع",requester_name:"صاحب التذكرة",requester_role:"دوره",category:"النوع",priority:"الأولوية",assigned_to_name:"المسؤول",first_reply_due:"موعد أول رد",first_replied_at:"أول رد",overdue:"متأخرة",provider_name:"مزود الخدمة",gross:"الإجمالي",commission:"العمولة",net:"الصافي",negative_offset:"خصم الرصيد السالب",adjustments:"تعديلات",period_start:"بداية الفترة",period_end:"نهاية الفترة",method:"الطريقة",reference:"المرجع",amount:"المبلغ",expense_date:"التاريخ",reason:"السبب",note:"ملاحظة",balance:"الرصيد",paid_at:"تاريخ الدفع",rejection_reason:"سبب الرفض"};
 const nz=(v)=>v==null||v===""?null:v;
@@ -3367,6 +3388,12 @@ adsmgr:{title:"الإعلانات",sub:"إعلانات داخل التطبيق �
  {k:"ad",l:"الإعلانات",rpc:"admin_list_ads",args:()=>({p_placement:null}),title:r=>r.title||"—",cols:[["placement","المكان",v=>({home_banner:"الرئيسية",dashboard:"لوحة التحكم",search:"البحث"}[v]||v)],["impressions","مرات الظهور",v=>fmt(v||0)],["clicks","النقرات",v=>fmt(v||0)],["is_active","الحالة",v=>v?"شغال":"موقوف"]],
   acts:[{l:"إيقاف",rpc:"admin_toggle_ad",args:r=>({p_id:r.id,p_active:false}),when:r=>r.is_active},{l:"تشغيل",rpc:"admin_toggle_ad",args:r=>({p_id:r.id,p_active:true}),when:r=>!r.is_active}],
   form:{l:"إعلان جديد",rpc:"admin_upsert_ad",f:[["p_title","العنوان","text"],["p_body","النص","text",1],["p_image_url","رابط الصورة (اختياري)","text",1],["p_placement","المكان","select",[["home_banner","الرئيسية"],["dashboard","لوحة التحكم"],["search","البحث"]]],["p_link_value","رابط عند الضغط (https، اختياري)","text",1],["p_starts_at","يبدأ","date"],["p_ends_at","ينتهي (اختياري)","date",1]],tpl:{p_id:null,p_audiences:["customers"],p_city_ids:[],p_is_active:true,p_sort_order:0},derive:a=>{a.p_link_type=a.p_link_value?"url":"none";return a}}}
+]},
+org:{title:"الهيكل والرتب",sub:"رتب الموظفين المخصصة والهيكل التنظيمي. الأقسام الأساسية ثابتة (ASV, OPS, FIN, SUP, MKT, TEC).",tabs:[
+ {k:"rk",l:"الرتب",rpc:"staff_ranks_list",args:()=>({}),title:r=>r.name_ar||"—",cols:[["is_manager","مدير",v=>v?"نعم":"لا"],["sort_order","الترتيب",v=>fmt(v||0)],["staff_count","عدد الموظفين",v=>fmt(v||0)],["is_active","الحالة",v=>v?"فعّالة":"موقوفة"]],
+  acts:[{l:"إيقاف",rpc:"admin_upsert_staff_rank",args:r=>({p_id:r.id,p_name_ar:r.name_ar,p_is_manager:!!r.is_manager,p_sort_order:r.sort_order||0,p_is_active:false}),when:r=>r.is_active},{l:"تفعيل",rpc:"admin_upsert_staff_rank",args:r=>({p_id:r.id,p_name_ar:r.name_ar,p_is_manager:!!r.is_manager,p_sort_order:r.sort_order||0,p_is_active:true}),when:r=>!r.is_active}],
+  form:{l:"رتبة جديدة",rpc:"admin_upsert_staff_rank",f:[["p_name_ar","اسم الرتبة (مثال: مشرف، مدير عام، مسؤول)","text"],["p_is_manager","تُعتبر رتبة مدير؟","select",[["false","لا"],["true","نعم (تظهر في قائمة المديرين)"]]],["p_sort_order","الترتيب","number",1]],tpl:{p_id:null,p_is_active:true},derive:a=>{a.p_is_manager=a.p_is_manager==="true"||a.p_is_manager===true;a.p_sort_order=a.p_sort_order||0;return a}}},
+ {k:"ch",l:"الهيكل التنظيمي",rpc:"staff_org_chart",args:()=>({}),title:r=>r.full_name||"—",cols:[["staff_role_code","القسم",v=>ORG_DEPTS[v]||v||"—"],["rank_name","الرتبة",v=>v||"—"],["manager_name","المدير المباشر",v=>v||"—"]]}
 ]},
 mkt:{title:"التسويق",sub:"حملات تجمع عرض وإشعار وإعلان وتتابع نتايجها.",tabs:[
  {k:"cp",l:"الحملات",rpc:"admin_list_campaigns",args:()=>({p_status:null}),title:r=>r.name||"—",cols:[["goal","الهدف",v=>({awareness:"تعريف",promotion:"ترويج",retention:"احتفاظ",activation:"تنشيط"}[v]||v||"—")],["scheduled_at","الموعد",fDT],["status","الحالة",sT]],
@@ -4421,6 +4448,7 @@ function sfCard(x,isAdmin){
 }
 function sfHd(t,extra){return '<div class="sf-h"><i></i><h3>'+t+'</h3>'+(extra?'<span>'+extra+'</span>':'')+'</div>'}
 function staffTabView(){
+ if(!ORG.loaded&&!ORG.loading)setTimeout(orgLoad,0);
  const isO=sfIsOwner();
  if(SF.id)return sfFileView();
  const st=s.staff||[],ad=s.admins||[],act=st.filter(x=>x.staff_permissions?.is_active).length;
@@ -4439,7 +4467,7 @@ function sfFileView(){
   '<div class="sf-hero"><div class="sf-av lg'+(isAdm?' adm':'')+'">'+sfInit(x.full_name)+'</div><div><h2>'+esc(x.full_name||"ملف موظف")+'</h2><div class="sf-pills"><span class="sf-pill gold">'+esc(role)+'</span><span class="sf-pill '+(on?'ok':'off')+'">'+(on?"نشط":"موقوف")+'</span></div><p class="small" style="margin:6px 0 0">'+codeTag(idCode("EMP",SF.id))+'</p></div></div>';
  if(SF.msg)h+='<div class="notice">'+esc(SF.msg)+'</div>';
  h+='<div class="sf-kpi"><div><small>الراتب الأساسي</small><b>'+(sal.amount!=null?moneyAr(sal.amount):"—")+'</b></div><div><small>الجزاءات</small><b>'+moneyAr(sum("penalties"))+'</b></div><div><small>السلف</small><b>'+moneyAr(sum("advances"))+'</b></div></div>';
- h+=sfHd('البيانات الأساسية')+'<div class="rep-stats">'+kv("الكود الوظيفي",codeTag(idCode("EMP",SF.id)))+kv("المنصب",esc(role))+kv("كود الرتبة",esc(x.staff_role_code||(isAdm?"ADM":"")))+kv("الهاتف",esc(x.phone||""))+kv("المدينة",esc(x.city||""))+kv("تاريخ التعيين",job.hire_date?esc(fmtDateAr(job.hire_date)):"")+'</div>';
+ h+=sfHd('البيانات الأساسية')+'<div class="rep-stats">'+kv("الكود الوظيفي",codeTag(idCode("EMP",SF.id)))+kv("المنصب",esc(role))+kv("كود الرتبة",esc(x.staff_role_code||(isAdm?"ADM":"")))+kv("القسم",esc(ORG_DEPTS[x.staff_role_code]||""))+kv("الرتبة",esc(job.rank_name||""))+kv("المدير المباشر",esc(job.manager_name||((s.staff||[]).find(y=>y.id===job.manager_id)||{}).full_name||""))+kv("الهاتف",esc(x.phone||""))+kv("المدينة",esc(x.city||""))+kv("تاريخ التعيين",job.hire_date?esc(fmtDateAr(job.hire_date)):"")+'</div>';
  if(SF.loading)return h+'<div class="empty">جاري تحميل الملف...</div></section>';
  if(SF.err)h+='<div class="notice error">بيانات الملف المهني (الراتب والجزاءات والإجازات والسلف) لسه مش مفعّلة في قاعدة البيانات: '+esc(SF.err)+'<div class="small">محتاجة دالة admin_get_staff_file وجداولها من شوشو. الشاشة جاهزة وهتشتغل أول ما تتنفذ.</div></div>';
  h+=sfHd('الراتب')+'<div class="rep-bar"><label>الراتب الأساسي<input id="sf_sal_amount" type="number" min="0" step="0.01" value="'+esc(sal.amount!=null?sal.amount:"")+'"></label><label>ساري من<input id="sf_sal_from" type="date"></label><label class="q">ملاحظة<input id="sf_sal_note" type="text"></label>'+btn("sf-salary","حفظ الراتب","gold")+'</div>';
@@ -7900,7 +7928,7 @@ if(s.tab==="knowledge"){
  '</article>').join("")||empty("لا توجد سجلات تدقيق حتى الآن"))+
  '</div></section>';
 }
-       const nav=[["home","نظرة عامة"],["requests","الطلبات"],["messages","الرسائل"],["tawasol","تواصل"],["channels","التواصل والسوشيال"],["announce","الإشعارات والعروض"],["fin","المالية"],["cs","خدمة العملاء"],["offers","العروض والخصومات"],["adsmgr","الإعلانات"],["mkt","التسويق"],["customers","العملاء"],["reports","التقارير"],["uploads","مركز الرفع"],["loyalty","تحكم الولاء"],["providers","مزودو الخدمات"],["services","الخدمات"],["categories","الأقسام"],["approvals","طلبات الموافقة"+((s.pendingReqs||[]).length?" ("+fmt((s.pendingReqs||[]).length)+")":"")],["staff","الموظفون"],["knowledge","قاعدة معرفة PRIME"],...(s.profile?.role==="owner"?[["assistant","PRIME AI"]]:[]),["appearance","المظهر والثيمات"],...(s.profile?.role==="owner"?[["audit","سجل التدقيق"]]:[])].map(x=>'<button data-a="tab" data-id="'+x[0]+'" class="'+(s.tab===x[0]||(s.tab==="providerDossier"&&x[0]==="providers")?"active":"")+'">'+x[1]+'</button>').join("");
+       const nav=[["home","نظرة عامة"],["requests","الطلبات"],["messages","الرسائل"],["tawasol","تواصل"],["channels","التواصل والسوشيال"],["announce","الإشعارات والعروض"],["org","الهيكل والرتب"],["fin","المالية"],["cs","خدمة العملاء"],["offers","العروض والخصومات"],["adsmgr","الإعلانات"],["mkt","التسويق"],["customers","العملاء"],["reports","التقارير"],["uploads","مركز الرفع"],["loyalty","تحكم الولاء"],["providers","مزودو الخدمات"],["services","الخدمات"],["categories","الأقسام"],["approvals","طلبات الموافقة"+((s.pendingReqs||[]).length?" ("+fmt((s.pendingReqs||[]).length)+")":"")],["staff","الموظفون"],["knowledge","قاعدة معرفة PRIME"],...(s.profile?.role==="owner"?[["assistant","PRIME AI"]]:[]),["appearance","المظهر والثيمات"],...(s.profile?.role==="owner"?[["audit","سجل التدقيق"]]:[])].map(x=>'<button data-a="tab" data-id="'+x[0]+'" class="'+(s.tab===x[0]||(s.tab==="providerDossier"&&x[0]==="providers")?"active":"")+'">'+x[1]+'</button>').join("");
  
 const isOwner=s.profile?.role==="owner";
 
@@ -8782,7 +8810,7 @@ if(m.type==="addstaff"){
  '<p class="muted">الكود النهائي يُثبت تلقائيًا عند إنشاء الحساب، وقد تتغير المعاينة إذا أُنشئ حساب آخر بالتزامن.</p>'+
  '</div>'+
  '<div class="section"><h4>الرتبة الوظيفية</h4>'+
- select("المسمى الوظيفي وكود الرول","staff_role_code",hierarchy,"ASV")+
+ select("القسم","staff_role_code",hierarchy,"ASV")+orgFields(null)+
  '</div>'+
  '<div class="section"><h4>الصلاحيات الممنوحة</h4>'+
  '<p class="muted">الرتبة الوظيفية مستقلة عن الصلاحيات؛ اختر الصلاحيات التي يحتاجها الموظف.</p>'+
@@ -8803,7 +8831,7 @@ if(m.type==="addstaff"){
  '<form id="editStaffForm"><input type="hidden" name="user_id" value="'+esc(x.id)+'">'+
  '<section class="section"><b>'+esc(x.full_name||"موظف بدون اسم")+'</b>'+
  '<p class="muted">'+esc(x.email||"")+'</p></section>'+
- '<section class="section"><h4>الصلاحيات</h4><div class="list">'+
+ '<section class="section"><h4>الهيكل التنظيمي</h4>'+orgFields(x)+'<p class="muted">القسم: '+esc(ORG_DEPTS[x.staff_role_code]||x.staff_role_code||"—")+'</p></section><section class="section"><h4>الصلاحيات</h4><div class="list">'+
  staffPermissionOptionsHtml(selected,x.staff_role_code)+
  '</div></section>'+
  '<section class="section">'+select("حالة الحساب","is_active",[{value:"true",label:"نشط"},{value:"false",label:"موقوف"}],x.staff_permissions?.is_active?"true":"false")+'</section>'+
@@ -10707,6 +10735,7 @@ let r=await db.functions.invoke("admin-create-staff",{
   throw Error((financialDenied?FINANCIAL_RESTRICTED_AR+" ":"")+"تم إنشاء حساب الموظف لكن فشل حفظ صلاحياته، فتم إيقاف الحساب تلقائيًا. لم تُعرض كلمة المرور المؤقتة. حاول مرة أخرى بعد مراجعة الإدارة.");
  }
 
+ await orgSave(r.data.user_id,f);
  if(!r.data?.temporary_password){
   s.modal=null;
   try{await loadUser(s.user);}catch(_e){}
@@ -10737,6 +10766,7 @@ let r=await db.functions.invoke("admin-create-staff",{
   if(isFinancialRestrictedError(r.error.message))throw Error(FINANCIAL_RESTRICTED_AR);
   throw r.error;
  }
+ await orgSave(userId,f);
  s.modal=null;
  await loadUser(s.user);
  note("تم تحديث صلاحيات الموظف.","success");
