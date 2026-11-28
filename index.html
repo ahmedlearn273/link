@@ -2027,7 +2027,7 @@ button, input, select, textarea,
 .rcp-tot{display:flex;justify-content:space-between;align-items:center;margin:16px 18px 0;padding:13px 15px;border-radius:14px;background:var(--primary);color:var(--bg-main)}
 .rcp-tot span{font:700 13.5px Tajawal,sans-serif;opacity:.92}.rcp-tot b{font:800 21px Tajawal,sans-serif;direction:ltr}
 .rcp-qr{display:flex;align-items:center;gap:14px;margin:16px 18px 0;padding:12px;border-radius:16px;background:var(--bg-surface);border:1px solid var(--border-color)}
-.rcp-qr .c{width:112px;height:112px;flex:none;padding:6px;background:#fff;border:2px solid #111;border-radius:10px}.rcp-qr .c svg{display:block;width:100%;height:100%}
+.rcp-qr .c{width:132px;height:132px;flex:none;padding:6px;background:#fff;border:2px solid #111;border-radius:10px}.rcp-qr .c svg{display:block;width:100%;height:100%}
 .rcp-qr p{margin:0;font:500 12.5px/1.7 Tajawal,sans-serif;color:var(--text-secondary)}.rcp-qr p b{display:block;font:800 14.5px Tajawal,sans-serif;color:var(--text-primary);margin-bottom:2px}
 .rcp-f{text-align:center;padding:16px 18px 18px;font:500 12.5px/1.8 Tajawal,sans-serif;color:var(--text-secondary)}.rcp-f b{color:var(--text-primary);font-weight:800;font-size:13.5px}
 .rcp-act{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
@@ -3548,23 +3548,34 @@ function receiptInfo(pid){
   prov:(q.provider_profiles&&q.provider_profiles.display_name)||"مقدّم الخدمة",
   date:isNaN(d)?null:d,dateAr:fmtDateAr(x.paid_at||x.created_at)};
 }
+function receiptB64(t){const u=new TextEncoder().encode(t);let b="";for(let k=0;k<u.length;k++)b+=String.fromCharCode(u[k]);return btoa(b).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"")}
+function receiptUnb64(t){const b=atob(String(t).replace(/-/g,"+").replace(/_/g,"/"));const u=new Uint8Array(b.length);for(let k=0;k<b.length;k++)u[k]=b.charCodeAt(k);return new TextDecoder("utf-8",{fatal:true}).decode(u)}
 function receiptQrText(i){
- const c=function(t){return String(t||"").replace(/[|\r\n]+/g," ").trim()};
- return ["WASLA-INV",i.rno,"REQ:"+i.ono,"AMT:"+i.amount.toFixed(2)+" "+i.cur,"SVC:"+c(i.svc),"PAY:"+i.methodEn,"DATE:"+(i.date?i.date.toISOString().slice(0,16)+"Z":""),"CLIENT:"+c(i.client),"PROV:"+c(i.prov)].join("|");
+ const c=function(t){return String(t||"").replace(/[|\r\n]+/g," ").trim().slice(0,60)};
+ const raw=["1",i.rno,i.ono,i.amount.toFixed(2),i.cur,c(i.svc),i.methodEn==="CASH"?"cash":"platform",i.date?Math.floor(i.date.getTime()/1000):"",c(i.client),c(i.prov)].join("|");
+ return location.origin+"/#rc="+receiptB64(raw);
 }
-function receiptQr(i){return qrcodegen.QrCode.encodeText(receiptQrText(i),qrcodegen.QrCode.Ecc.MEDIUM)}
+function receiptParse(h){
+ try{
+  const m=/^#rc=([A-Za-z0-9_-]{8,1200})$/.exec(String(h||""));if(!m)return null;
+  const p=receiptUnb64(m[1]).split("|");if(p.length!==10||p[0]!=="1")return null;
+  const rno=p[1],ono=p[2],amt=Number(p[3]),cur=p[4],ts=Number(p[7]);
+  if(!/^[A-Z0-9]{4,16}$/.test(rno)||!/^[A-Z0-9]{0,16}$/.test(ono)||!isFinite(amt)||amt<0||amt>1e9||!/^[A-Z]{3}$/.test(cur)||!(p[6]==="cash"||p[6]==="platform")||!isFinite(ts)||ts<1e9||ts>4.2e9)return null;
+  const d=new Date(ts*1000);if(isNaN(d))return null;
+  return {id:rno,rno:rno,ono:ono,amount:amt,cur:cur,methodAr:p[6]==="cash"?"كاش":"عبر المنصة",methodEn:p[6]==="cash"?"CASH":"PLATFORM",svc:p[5]||"طلب خدمة",client:p[8]||"عميل وصلة",prov:p[9]||"مقدّم الخدمة",date:d,dateAr:fmtDateAr(d)};
+ }catch(_){return null}
+}
+function receiptQr(i){return qrcodegen.QrCode.encodeText(receiptQrText(i),qrcodegen.QrCode.Ecc.LOW)}
 function receiptQrSvg(i){
  const q=receiptQr(i),n=q.size,z=2;let d="";
  for(let y=0;y<n;y++)for(let x=0;x<n;x++)if(q.getModule(x,y))d+="M"+(x+z)+" "+(y+z)+"h1v1h-1z";
  const t=n+z*2;
  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+t+' '+t+'" shape-rendering="crispEdges" role="img" aria-label="QR"><rect width="'+t+'" height="'+t+'" fill="#fff"/><path d="'+d+'" fill="#111"/></svg>';
 }
-function receiptModal(m){
- const i=receiptInfo(m.paymentId);
- if(!i)throw Error("الإيصال غير متاح");
+function receiptCard(i,pub){
  const cur=esc(i.cur);
  const row=(l,v,ltr)=>'<div class="rcp-r"><span>'+l+'</span><b'+(ltr?' class="l"':'')+'>'+v+'</b></div>';
- return '<div class="wasla-receipt wasla-receipt-wrap"><div class="rcp" id="rcp" data-pid="'+esc(i.id)+'">'+
+ return '<div class="rcp" id="rcp" data-pid="'+esc(i.id)+'">'+
   '<div class="rcp-h"><div class="rcp-br"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M7 17 L19 46 L31 25 L43 46 L57 17" fill="none" stroke="currentColor" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 39 C17 57 46 9 59 27" fill="none" stroke="var(--accent)" stroke-width="4" stroke-linecap="round"/><circle cx="55" cy="15" r="5" fill="var(--accent)"/></svg><b>وصلة</b><i>WASLA</i></div>'+
   '<div class="rcp-t">إيصال دفع</div><div class="rcp-paid">✓ تم الدفع</div><div class="rcp-amt">'+esc(i.amount.toLocaleString("en-US",{maximumFractionDigits:2}))+'<small>'+cur+'</small></div></div>'+
   '<div class="rcp-b"><div class="rcp-sec">بيانات الطلب</div>'+
@@ -3573,9 +3584,19 @@ function receiptModal(m){
   '<div class="rcp-sec" style="margin-top:12px">الخدمة والدفع</div>'+row("الخدمة",esc(i.svc))+row("طريقة الدفع",esc(i.methodAr))+'</div>'+
   '<div class="rcp-tear"></div>'+
   '<div class="rcp-tot"><span>الإجمالي المدفوع</span><b>'+esc(i.amount.toFixed(2))+' '+cur+'</b></div>'+
-  '<div class="rcp-qr"><div class="c">'+receiptQrSvg(i)+'</div><p><b>امسح للتحقق من الإيصال</b>الكود فيه بيانات الفاتورة كاملة: رقم الإيصال والطلب والمبلغ والخدمة والأطراف والتاريخ.</p></div>'+
-  '<div class="rcp-f"><b>شكرًا لاستخدامك وصلة</b><br>كل خدمة تبدأ باتصال</div></div>'+
-  '<div class="rcp-act"><button type="button" class="btn" data-a="receipt-img" data-id="'+esc(i.id)+'">حفظ كصورة</button><button type="button" class="btn light" data-a="receipt-pdf" data-id="'+esc(i.id)+'">حفظ PDF</button></div></div>';
+  (pub?'':'<div class="rcp-qr"><div class="c">'+receiptQrSvg(i)+'</div><p><b>امسح الكود لفتح الإيصال</b>بيفتح صفحة الإيصال بكل بياناته: الرقم والمبلغ والخدمة والأطراف والتاريخ.</p></div>')+
+  '<div class="rcp-f"><b>شكرًا لاستخدامك وصلة</b><br>كل خدمة تبدأ باتصال</div></div>';
+}
+function receiptModal(m){
+ const i=receiptInfo(m.paymentId);
+ if(!i)throw Error("الإيصال غير متاح");
+ return '<div class="wasla-receipt wasla-receipt-wrap">'+receiptCard(i,false)+'<div class="rcp-act"><button type="button" class="btn" data-a="receipt-img" data-id="'+esc(i.id)+'">حفظ كصورة</button><button type="button" class="btn light" data-a="receipt-pdf" data-id="'+esc(i.id)+'">حفظ PDF</button></div></div>';
+}
+function receiptPublicView(){
+ const i=receiptParse(location.hash);
+ const head=header("إيصال دفع","",true);
+ if(!i)return head+'<main class="wrap"><section class="section"><div class="card" style="text-align:center"><h2>إيصال غير صالح</h2><p class="muted">الرابط ناقص أو غير سليم، فمقدرناش نعرض الإيصال.</p><a class="btn" href="/">فتح وصلة</a></div></section></main>';
+ return head+'<main class="wrap"><div class="wasla-receipt wasla-receipt-wrap">'+receiptCard(i,true)+'</div><p class="small muted" style="text-align:center;margin:12px 4px">البيانات دي جاية من الرابط نفسه، ومش متأكدة من خوادم وصلة.</p><a class="btn light" style="display:block;text-align:center;margin:8px 0" href="/">فتح وصلة</a></main>';
 }
 async function receiptCanvas(i){
  try{if(document.fonts&&document.fonts.load){await Promise.all([document.fonts.load("800 28px Tajawal","وصلة"),document.fonts.load("700 14px Tajawal","وصلة"),document.fonts.load("500 13px Tajawal","وصلة")])}}catch(_){}
@@ -3587,7 +3608,7 @@ async function receiptCanvas(i){
  const secs=[["بيانات الطلب",[["رقم الإيصال",i.rno,1],["رقم الطلب","#"+i.ono,1],["التاريخ",i.dateAr,0]]],["الأطراف",[["العميل",i.client,0],["مقدّم الخدمة",i.prov,0]]],["الخدمة والدفع",[["الخدمة",i.svc,0],["طريقة الدفع",i.methodAr,0]]]];
  const S=3,W=390,P=16,CW=W-P*2;
  let bodyH=14;secs.forEach(function(sc){bodyH+=26+sc[1].length*38+10});
- const H=P*2+178+bodyH+16+56+16+136+22+52;
+ const H=P*2+178+bodyH+16+56+16+152+22+52;
  const cv=document.createElement("canvas");cv.width=W*S;cv.height=H*S;
  const ctx=cv.getContext("2d");ctx.scale(S,S);
  const F="Tajawal,Arial,sans-serif";
@@ -3624,13 +3645,13 @@ async function receiptCanvas(i){
  ctx.fillStyle=C.surf;[X,X+CW].forEach(function(px){ctx.beginPath();ctx.arc(px,y,9,0,7);ctx.fill();ctx.strokeStyle=C.bd;ctx.lineWidth=1;ctx.stroke()});
  y+=16;ctx.fillStyle=C.pri;rr(X+18,y,CW-36,56,14);ctx.fill();
  T("الإجمالي المدفوع",X+CW-18-15,y+28,"700 13.5px "+F,C.bg,"right");T(i.amount.toFixed(2)+" "+i.cur,X+18+15,y+28,"800 21px "+F,C.bg,"left","ltr");
- y+=56+16;ctx.fillStyle=C.surf;rr(X+18,y,CW-36,136,16);ctx.fill();ctx.strokeStyle=C.bd;ctx.lineWidth=1;ctx.stroke();
- const qx=X+CW-18-12-112,qy=y+12;ctx.fillStyle="#fff";rr(qx,qy,112,112,10);ctx.fill();ctx.strokeStyle="#111";ctx.lineWidth=2;ctx.stroke();
- const q=receiptQr(i),qz=2,qm=(112-12)/(q.size+0),ms=(112-12)/(q.size);
+ y+=56+16;ctx.fillStyle=C.surf;rr(X+18,y,CW-36,152,16);ctx.fill();ctx.strokeStyle=C.bd;ctx.lineWidth=1;ctx.stroke();
+ const qx=X+CW-18-12-132,qy=y+10;ctx.fillStyle="#fff";rr(qx,qy,132,132,10);ctx.fill();ctx.strokeStyle="#111";ctx.lineWidth=2;ctx.stroke();
+ const q=receiptQr(i),qz=2,qm=0,ms=(132-12)/(q.size);
  for(let yy=0;yy<q.size;yy++)for(let xx=0;xx<q.size;xx++)if(q.getModule(xx,yy)){ctx.fillStyle="#111";ctx.fillRect(qx+6+xx*ms,qy+6+yy*ms,ms+.3,ms+.3)}
- const tx=qx-14;T("امسح للتحقق من الإيصال",tx,y+30,"800 14.5px "+F,C.tx,"right");
- ["الكود فيه بيانات الفاتورة","كاملة: رقم الإيصال والطلب","والمبلغ والخدمة والأطراف","والتاريخ."].forEach(function(l,k){T(l,tx,y+54+k*19,"500 12.5px "+F,C.tx2,"right")});
- y+=136+22;T("شكرًا لاستخدامك وصلة",cx,y+6,"800 13.5px "+F,C.tx,"center");T("كل خدمة تبدأ باتصال",cx,y+28,"500 12.5px "+F,C.tx2,"center");
+ const tx=qx-14;T("امسح الكود لفتح الإيصال",tx,y+34,"800 14.5px "+F,C.tx,"right");
+ ["بيفتح صفحة الإيصال","بكل بياناته: الرقم","والمبلغ والخدمة","والأطراف والتاريخ."].forEach(function(l,k){T(l,tx,y+58+k*19,"500 12.5px "+F,C.tx2,"right")});
+ y+=152+22;T("شكرًا لاستخدامك وصلة",cx,y+6,"800 13.5px "+F,C.tx,"center");T("كل خدمة تبدأ باتصال",cx,y+28,"500 12.5px "+F,C.tx2,"center");
  ctx.restore();
  return cv;
 }
@@ -7515,8 +7536,10 @@ window.addEventListener("popstate",function(e){
   if(st.tab==="profile"&&st.sub==="wallet")loadWallet(false);
  }catch(err){console.warn("history restore failed",err);h.target=null}
 });
+window.addEventListener("hashchange",function(){if(/^#rc=/.test(location.hash)||s.__rcShown){s.__rcShown=/^#rc=/.test(location.hash);render()}});
 function renderCore(){
    if(s.mode==="recovery"){app.innerHTML=recoveryView();return}
+   if(/^#rc=/.test(location.hash)){try{app.innerHTML=receiptPublicView()}catch(_){app.innerHTML=header("إيصال دفع","",true)+'<main class="wrap"><div class="card"><h2>إيصال غير صالح</h2></div></main>'}return}
    try{
     if(s.user&&typeof s.tab==="string"&&s.tab!=="account"&&s.tab!=="providerDossier"){
      sessionStorage.setItem("wasla_view_v1",JSON.stringify({uid:s.user.id,tab:s.tab,rf:s.requestFilter}));
