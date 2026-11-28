@@ -8398,6 +8398,7 @@ const waslaNotif=(function(){
    var role=s.profile&&s.profile.role;
    if(n.notification_type==="chat_message"){if(n.request_id)navFire("chat",n.request_id);else navFire("tab","messages")}
    else if(n.notification_type==="payment_paid"&&role==="customer")navFire("tab","payments");
+   else if(n.notification_type==="no_quote_alert"){var nq=n.request_id||n.related_id||null;navFire("tab","requests");if(nq)setTimeout(function(){navFire("rq-open",nq)},300)}
    else if(/quote|offer|agreement/i.test(String(n.notification_type||""))||/عرض\s*(ال)?سعر|عرض سعر/.test(String(n.title||"")+" "+String(n.body||""))){
     var rid=n.request_id||n.related_id||null;
     navFire("tab","requests");
