@@ -4942,7 +4942,7 @@ function walletView(){
  if(w.error)h+='<div class="notice error">'+esc(w.error)+'</div>';
  if(!d){return h+(w.loading?'<div class="empty">جاري التحميل...</div>':'')+'</section>'}
  const bal=Number(d.balance||0);
- if(d.blocked)h+='<div class="notice error">حسابك موقوف عن الطلبات الجديدة لأن رصيدك نزل تحت -'+fmt(d.negative_cap||200)+'. سدّد الرصيد عشان يرجع الاستقبال.</div>';
+ if(d.blocked)h+='<div class="notice error">حسابك موقوف عن الطلبات الجديدة لأن رصيدك نزل تحت -'+fmt(d.negative_cap||500)+'. سدّد الرصيد عشان يرجع الاستقبال.</div>';
  h+='<div class="grid small">'+
   '<div class="card"><p>الرصيد الحالي</p><div class="stat" style="'+(bal<0?'color:var(--danger)':'')+'">'+moneyAr(bal)+'</div></div>'+
   '<div class="card"><p>القابل للسحب</p><div class="stat">'+moneyAr(d.withdrawable)+'</div></div>'+
